@@ -1,4 +1,4 @@
-# Mijn Bureau
+# Mijn Bureau deployment automation
 
 `MijnBureau` is a collaboration suite. This repo is the deployment Automation Mijn Bureau.
 
@@ -33,12 +33,24 @@ export MASTER_PASSWORD=changethis
 helmfile template
 ```
 
-For more detailed information see [MijnBureau docs](https://minbzk.github.io/mijn-bureau/)
-
 ## Commit rules
 
 We use the [gitmoji](https://gitmoji.dev/) commit convention with the following scopes: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 
-## License
+## Mijn Bureau
+
+For more detailed information see [MijnBureau docs](https://minbzk.github.io/mijn-bureau/)
+
+This project is a sub-project of MijnBureau and it is part of the same governance. See:
+
+* [Governance](https://github.com/MinBZK/mijn-bureau/blob/main/GOVERNANCE.md) (Dutch)
+* [Code of conduct](https://github.com/MinBZK/mijn-bureau/blob/main/CODE_OF_CONDUCT.md) (Dutch)
+* [Contributing](https://github.com/MinBZK/mijn-bureau/blob/main/CONTRIBUTING.md) (Dutch)
+* [Security](https://github.com/MinBZK/mijn-bureau/blob/main/SECURITY.md) (Dutch)
+
+---
 
 Licensed under the EUPL-1.2 license
+[EUPL (Public License of the European Union 1.2 or higher)](LICENSE)
+
+Copyright: the State of the Netherlands and all contributors
