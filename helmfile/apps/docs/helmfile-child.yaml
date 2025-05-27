@@ -1,13 +1,11 @@
 repositories:
-- name: docs-repo
-  url: "git+https://github.com/suitenumerique/docs@src/helm?ref=v3.2.1"
-- name: bitnami
-  url: registry-1.docker.io/bitnamicharts
-  oci: true
-
+  - name: docs-repo
+    url: "git+https://github.com/suitenumerique/docs@src/helm?ref=v3.2.1"
+  - name: bitnami
+    url: registry-1.docker.io/bitnamicharts
+    oci: true
 
 releases:
   - name: "docs"
     chart: "docs-repo/docs"
-
 # todo: postgresql minio redis

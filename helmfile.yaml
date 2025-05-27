@@ -5,7 +5,7 @@ missingFileHandler: "Error"
 
 environments:
   default:
-    values:  &values
+    values: &values
       - "helmfile/environments/default/*.yaml*"
 
 helmfiles:
