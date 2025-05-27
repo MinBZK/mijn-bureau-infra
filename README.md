@@ -43,10 +43,10 @@ For more detailed information see [MijnBureau docs](https://minbzk.github.io/mij
 
 This project is a sub-project of MijnBureau and it is part of the same governance. See:
 
-* [Governance](https://github.com/MinBZK/mijn-bureau/blob/main/GOVERNANCE.md) (Dutch)
-* [Code of conduct](https://github.com/MinBZK/mijn-bureau/blob/main/CODE_OF_CONDUCT.md) (Dutch)
-* [Contributing](https://github.com/MinBZK/mijn-bureau/blob/main/CONTRIBUTING.md) (Dutch)
-* [Security](https://github.com/MinBZK/mijn-bureau/blob/main/SECURITY.md) (Dutch)
+- [Governance](https://github.com/MinBZK/mijn-bureau/blob/main/GOVERNANCE.md) (Dutch)
+- [Code of conduct](https://github.com/MinBZK/mijn-bureau/blob/main/CODE_OF_CONDUCT.md) (Dutch)
+- [Contributing](https://github.com/MinBZK/mijn-bureau/blob/main/CONTRIBUTING.md) (Dutch)
+- [Security](https://github.com/MinBZK/mijn-bureau/blob/main/SECURITY.md) (Dutch)
 
 ---
 
