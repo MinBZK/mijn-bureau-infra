@@ -1,0 +1,157 @@
+server_name: chat.la-suite.apps.digilab.network
+pid_file: /data/homeserver.pid
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    resources:
+      - names: [client, federation]
+        compress: false
+  - port: 9093
+    tls: false
+    type: http
+    resources:
+      - names: [replication]
+
+
+database:
+  name: psycopg2
+  args:
+    user: chat
+    password: 'L5SbY@LcYRaJ!xVQ*She'
+    host: chat-postgres-db-rw
+    database: chat
+
+
+
+
+log_config: "/config/log.config" # check this path
+media_store_path: /data/media_store
+# registration_shared_secret: 'vb~&4W4deallg.yFkn63bM9+&pi+WitaVV66~-Tu=juzO2q#=j'
+report_stats: false
+macaroon_secret_key: 'k1znx*v+=YQqjXt1,hQle7S&.76t@Dv3QlNA=W:*TS&iLUHpz^'
+# macaroon_secret_key_path <- todo
+form_secret: 'lXe6V-ceTM4HcH_skUd,t_2ERT44cAcIpOQF#OmxfH+KaVLX,W'
+signing_key_path: "/secrets/synapse_signing_key"
+trusted_key_servers:
+  - server_name: "matrix.org"
+
+# please keep config above this point as close as possible to the original generated config
+# so that upstream generated config changes can be detected
+
+public_baseurl: https://matrix.chat.la-suite.apps.digilab.network/
+suppress_key_server_warning: true
+
+instance_map:
+  main:
+    host: 'chat-synapse-svc'
+    port: 9093
+
+redis:
+  enabled: true
+  host: chat-redis-svc
+  port: 6379
+
+# as we want our first launch and subsequent upgrades to go as fast
+# as possible don't sleep between background updates
+background_updates:
+  sleep_enabled: false
+
+email:
+  smtp_host: chat-mailcatcher-svc
+  smtp_port: 1025
+  enable_tls: false
+  notif_from: "Your %(app)s homeserver <noreply@chat.la-suite.apps.digilab.network>"
+  app_name: Matrix
+  enable_notifs: true
+  notif_for_new_users: false
+  client_base_url: https://element.chat.la-suite.apps.digilab.network
+  validation_token_lifetime: 15m
+  invite_client_location: https://element.chat.la-suite.apps.digilab.network
+  subjects:
+    message_from_person_in_room: "[%(app)s] You have a message on %(app)s from %(person)s in the %(room)s room..."
+    message_from_person: "[%(app)s] You have a message on %(app)s from %(person)s..."
+    messages_from_person: "[%(app)s] You have messages on %(app)s from %(person)s..."
+    messages_in_room: "[%(app)s] You have messages on %(app)s in the %(room)s room..."
+    messages_in_room_and_others: "[%(app)s] You have messages on %(app)s in the %(room)s room and others..."
+    messages_from_person_and_others: "[%(app)s] You have messages on %(app)s from %(person)s and others..."
+    invite_from_person_to_room: "[%(app)s] %(person)s has invited you to join the %(room)s room on %(app)s..."
+    invite_from_person: "[%(app)s] %(person)s has invited you to chat on %(app)s..."
+    password_reset: "[%(server_name)s] Password reset"
+    email_validation: "[%(server_name)s] Validate your email"
+
+
+# temporarily boost rate-limits to avoid breaking WIP MatrixRTC signalling
+rc_message:
+  per_second: 0.5
+  burst_count: 30
+
+# The maximum allowed duration by which sent events can be delayed, as
+# per MSC4140. Must be a positive value if set.  Defaults to no
+# duration (null), which disallows sending delayed events.
+# Needed for MatrixRTC to avoid stuck calls
+max_event_delay_duration: 24h
+
+# added these myself
+serve_server_wellknown: true
+max_avatar_size: 10M
+allowed_avatar_mimetypes: ["image/png", "image/jpeg"]
+forgotten_room_retention_period: 28d
+
+retention:
+  enabled: true
+  default_policy:
+    min_lifetime: 1d
+    max_lifetime: 1y
+  allowed_lifetime_min: 1d
+  allowed_lifetime_max: 1y
+
+auto_join_rooms:
+  - "#welkom:chat.la-suite.apps.digilab.network"
+
+
+oidc_providers:
+  - idp_id: lasuite
+    idp_name: "LaSuite"
+    discover: false
+    issuer: "https://id.la-suite.apps.digilab.network/realms/lasuite"
+    client_id: "chat"
+    client_secret: "v2lbnmZdsi6ilcmqEtPx44UZP1Jm5Hte"
+    #client_secret_path todo: set path
+    client_auth_method: client_secret_post
+    scopes: ["openid", "profile"]
+    authorization_endpoint: "https://id.la-suite.apps.digilab.network/realms/lasuite/protocol/openid-connect/auth"
+    token_endpoint: "https://id.la-suite.apps.digilab.network/realms/lasuite/protocol/openid-connect/token"
+    userinfo_endpoint: "https://id.la-suite.apps.digilab.network/realms/lasuite/protocol/openid-connect/userinfo"
+    jwks_uri: "https://id.la-suite.apps.digilab.network/realms/lasuite/protocol/openid-connect/certs"
+    user_mapping_provider:
+      config:
+        localpart_template: "{{ (user.given_name ~ user.family_name) | replace(' ', '') }}"
+        display_name_template: "{{ user.name }}"
+        email_template: "{{ user.email }}"
+enable_registration: false
+password_config:
+  enabled: false
+
+
+encryption_enabled_by_default_for_room_type: invite
+
+user_directory:
+  search_all_users: true
+  prefer_local_users: true
+
+# todo: user_consent
+
+
+auto_accept_invites:
+  enabled: true
+  only_for_direct_messages: true
+  only_from_local_users: true
+
+
+experimental_features:
+  # MSC3266: Room summary API. Used for knocking over federation
+  msc3266_enabled: true
+  # MSC4222 needed for syncv2 state_after. This allow clients to correctly track the state of the room.
+  msc4222_enabled: true

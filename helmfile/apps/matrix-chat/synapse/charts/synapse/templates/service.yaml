@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "synapse.fullname" . }}
+  labels:
+    {{- include "synapse.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.server.port }}
+      targetPort: http
+      protocol: TCP
+      name: {{ .Values.service.server.name }}
+  selector:
+    {{- include "synapse.selectorLabels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "synapse.replicationName" . }}
+  labels:
+    {{- include "synapse.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.replication.port }}
+      targetPort: {{ .Values.service.replication.name }}
+      protocol: TCP
+      name: {{ .Values.service.replication.name }}
+  selector:
+    {{- include "synapse.selectorLabels" . | nindent 4 }}

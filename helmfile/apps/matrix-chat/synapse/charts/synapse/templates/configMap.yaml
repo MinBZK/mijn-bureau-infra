@@ -1,0 +1,9 @@
+{{- if .Values.synapse.config.localConfigFiles }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "synapse.fullname" . }}
+data:
+{{ $paths := .Values.synapse.config.localConfigFiles }}
+{{ (.Files.Glob $paths).AsConfig | indent 2 }}
+{{- end }}
