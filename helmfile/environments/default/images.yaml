@@ -1,0 +1,4 @@
+images:
+  ollama:
+    registry: "registry-1.docker.io"
+    repository: "ollama/ollama"

@@ -9,11 +9,11 @@ environments:
       - "helmfile/environments/default/*.yaml*"
 
 helmfiles:
-  - path: "helmfile/apps/keycloak/helmfile-child.yaml"
-    values: *values
-  - path: "helmfile/apps/docs/helmfile-child.yaml"
+  # - path: "helmfile/apps/keycloak/helmfile-child.yaml"
+  #   values: *values
+  # - path: "helmfile/apps/docs/helmfile-child.yaml"
+  #   values: *values
+  - path: "helmfile/apps/ollama/helmfile-child.yaml.gotmpl"
     values: *values
   # - path: "helmfile/apps/element/helmfile-child.yaml"
-  #   values: *values
-  # - path: "helmfile/apps/ollama/helmfile-child.yaml"
   #   values: *values

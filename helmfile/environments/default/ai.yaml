@@ -1,5 +1,17 @@
 ai:
-  selfhost: true
+  selfhost:
+    enabled: true
+    gpu:
+      enabled: false
+      type:
+      number:
+      mig:
+        enabled:
+        devices:
+    resources:
+      limits:
+        memory: "4Gi"
+        cpu: "750m"
   llm:
     model:
     endpoint:
