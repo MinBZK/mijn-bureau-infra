@@ -1,5 +1,7 @@
 ai:
-  selfhost: true
+  selfhost:
+    enabled: true
+    namespace: "icbr-poc-ai-endpoint"
   llm:
     model:
     endpoint:

@@ -1,0 +1,29 @@
+{{- if .Values.ai.selfhost.enabled }}
+image:
+  repository: "rcr.rijksapps.nl/dockerhub-icbr/ollama/ollama"
+  pullPolicy: "IfNotPresent"
+
+imagePullSecrets:
+  - name: dockerhub-icbr-robot-pull-secret
+
+# We need to specify the mountPath to point
+# to a directory we have access to as non-root user.
+ollama:
+  models:
+    pull:
+      - llama3.2
+  mountPath: "/home/ollama/.ollama"
+
+# We need to specify the environment variable HOME used by Ollama to point
+# to a directory we have access to as non-root user. This needs to be the
+# directory the .ollama file above is mounted in.
+extraEnv:
+  - name: HOME
+    value: "/home/ollama"
+
+persistentVolume:
+  enabled: true
+  size: 15Gi
+  accessModes:
+    - ReadWriteOnce
+{{- end }}
