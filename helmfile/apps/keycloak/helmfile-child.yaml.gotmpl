@@ -1,18 +1,25 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
 repositories:
-  - name: bitnami
-    url: registry-1.docker.io/bitnamicharts
-    oci: true
+  - name: keycloak
+    url: "{{ .Values.global.helmRegistry | default .Values.helmchart.keycloak.registry }}/{{ .Values.helmchart.keycloak.repository }}"
+    oci: {{ .Values.helmchart.keycloak.oci }}
+    verify: {{ .Values.helmchart.keycloak.verify }}
+    username: {{ .Values.helmchart.keycloak.username | quote }}
+    password: {{ .Values.helmchart.keycloak.password | quote }}
 
 releases:
   - name: "keycloak"
-    chart: "bitnami/keycloak"
-    version: "24.6.7"
-    namespace: "{{ .Values.application.keycloak.namespace }}"
+    chart: "keycloak/{{ .Values.helmchart.keycloak.name }}"
+    version: "{{ .Values.helmchart.keycloak.version }}"
+    namespace: {{ .Values.application.keycloak.namespace }}
     installed: {{ .Values.application.keycloak.enabled }}
     values:
       - keycloak.yaml.gotmpl
 
-
-commonLabels:
-  app.kubernetes.io/mijnbureau: authentication
-
+  # - name: "keycloak-postgresql"
+  #   chart: "bitnami/postgresql"
+  #   version: "16.7.10"
+  #   namespace: {{ .Values.application.keycloak.namespace }}
+  #   installed: {{ eq .Environment.Name "demo" | toYaml }}

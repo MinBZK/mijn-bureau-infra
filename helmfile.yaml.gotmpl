@@ -1,24 +1,24 @@
-helmDefaults: &defaults
-  verify: true
-  createNamespace: {{ env "MIJNBUREAU_CREATE_NAMESPACES" | default false | toYaml }}
-  timeout: 600
-  insecureSkipTLSVerify: false
-  plainHttp: false
-
-missingFileHandler: "Error"
-
-commonLabels:
-  app.kubernetes.io/mijnbureau: core
-
 environments:
   default:
-    values: &values
-      - "helmfile/environments/default/*.yaml*"
+  demo:
+    values:
+      - "helmfile/environments/demo/*.yaml.gotmpl"
+    secrets:
+      - "helmfile/environments/{{ .Environment.Name }}/*.secrets.yaml"
+  production:
+    values:
+      - "helmfile/environments/production/*.yaml.gotmpl"
+    secrets:
+      - "helmfile/environments/{{ .Environment.Name }}/*.secrets.yaml"
+
+bases:
+  - "helmfile/bases/default.yaml.gotmpl"
 
 helmfiles:
   - path: "helmfile/apps/keycloak/helmfile-child.yaml.gotmpl"
-    values: *values
-    <<: *defaults
+    values: &values
+      - "helmfile/environments/default/*.yaml*"
+      - "helmfile/environments/{{ .Environment.Name }}/*.yaml.gotmpl"
   - path: "helmfile/apps/docs/helmfile-child.yaml.gotmpl"
     values: *values
   # - path: "helmfile/apps/element/helmfile-child.yaml"

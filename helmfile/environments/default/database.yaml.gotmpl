@@ -1,0 +1,13 @@
+database:
+  keycloak:
+    name: keycloak
+    host: postgresql
+    port: 5432
+    user: keycloak
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "database" | sha1sum | quote}}
+  docs:
+    name: docs
+    host: postgresql
+    port: 5432
+    user: docs
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "docs" "database" | sha1sum | quote}}

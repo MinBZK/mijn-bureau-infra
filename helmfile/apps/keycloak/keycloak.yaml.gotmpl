@@ -19,13 +19,13 @@ global:
   ##   - myRegistryKeySecretName
   ##
   imagePullSecrets: []
-  defaultStorageClass: ""
+  defaultStorageClass: "{{ .Values.cluster.storageClassNames.RWO }}"
   storageClass: ""
   ## Security parameters
   ##
   security:
     ## @param global.security.allowInsecureImages Allows skipping image verification
-    allowInsecureImages: false
+    allowInsecureImages: true
   ## Compatibility adaptations for Kubernetes platforms
   ##
   compatibility:
@@ -75,7 +75,7 @@ dnsPolicy: ""
 dnsConfig: {}
 ## @param clusterDomain Default Kubernetes cluster domain
 ##
-clusterDomain: cluster.local
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
 ## @param extraDeploy Array of extra objects to deploy with the release
 ##
 extraDeploy: []
@@ -109,9 +109,9 @@ diagnosticMode:
 ## @param image.debug Specify if debug logs should be enabled
 ##
 image:
-  registry: docker.io
-  repository: bitnami/keycloak
-  tag: 26.2.5-debian-12-r3
+  registry: {{ coalesce .Values.container.keycloak.registry .Values.container.default.registry | default "docker.io" | quote }}
+  repository:  {{ .Values.container.keycloak.repository | default "bitnami/keycloak" | quote }}
+  tag: {{ .Values.container.keycloak.tag | default "26.2.5-debian-12-r3" | quote }}
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -124,7 +124,8 @@ image:
   ## pullSecrets:
   ##   - myRegistryKeySecretName
   ##
-  pullSecrets: []
+  pullSecrets:
+    - {{ coalesce .Values.container.keycloak.imagePullSecrets .Values.container.default.imagePullSecrets | toYaml | nindent 6 }}
   ## Set to true if you would like to see extra information on logs
   ##
   debug: false
@@ -134,10 +135,10 @@ image:
 auth:
   ## @param auth.adminUser Keycloak administrator user
   ##
-  adminUser: user
+  adminUser: {{ .Values.secret.keycloak.adminUser | quote }}
   ## @param auth.adminPassword Keycloak administrator password for the new user
   ##
-  adminPassword: ""
+  adminPassword: {{ .Values.secret.keycloak.adminPassword | quote }}
   ## @param auth.existingSecret Existing secret containing Keycloak admin password
   ##
   existingSecret: ""
@@ -221,7 +222,7 @@ spi:
 adminRealm: "master"
 ## @param production Run Keycloak in production mode. TLS configuration is required except when using proxy=edge.
 ##
-production: false
+production: true
 ## @param proxyHeaders Set Keycloak proxy headers
 ##
 proxyHeaders: ""
@@ -229,7 +230,7 @@ proxyHeaders: ""
 ## DEPRECATED: use proxyHeaders instead
 ## ref: https://www.keycloak.org/server/reverseproxy
 ##
-proxy: ""
+proxy: "edge"
 ## @param httpRelativePath Set the path relative to '/' for serving resources. Useful if you are migrating from older version which were using '/auth/'
 ## ref: https://www.keycloak.org/migration/migrating-to-quarkus#_default_context_path_changed
 ##
@@ -358,7 +359,7 @@ containerSecurityContext:
 ## @param resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set (resources is recommended for production).
 ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
 ##
-resourcesPreset: "small"
+resourcesPreset: {{ .Values.global.resourcePreset | quote }}
 ## @param resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
 ## Example:
 ## resources:
@@ -369,7 +370,7 @@ resourcesPreset: "small"
 ##     cpu: 3
 ##     memory: 1024Mi
 ##
-resources: {}
+resources: {{ .Values.resource.keycloak | toYaml | nindent 2 }}
 ## Configure extra options for Keycloak containers' liveness, readiness and startup probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes
 ## @param livenessProbe.enabled Enable livenessProbe on Keycloak containers
@@ -395,7 +396,7 @@ livenessProbe:
 ##
 readinessProbe:
   enabled: true
-  initialDelaySeconds: 30
+  initialDelaySeconds: 60
   periodSeconds: 10
   timeoutSeconds: 1
   failureThreshold: 3
@@ -429,7 +430,7 @@ customStartupProbe: {}
 lifecycleHooks: {}
 ## @param automountServiceAccountToken Mount Service Account token in pod
 ##
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 ## @param hostAliases Deployment pod host aliases
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
 ##
@@ -619,12 +620,12 @@ service:
 ingress:
   ## @param ingress.enabled Enable ingress record generation for Keycloak
   ##
-  enabled: false
+  enabled: true
   ## @param ingress.ingressClassName IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)
   ## This is supported in Kubernetes 1.18+ and required if you have more than one IngressClass marked as the default for your cluster .
   ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
   ##
-  ingressClassName: ""
+  ingressClassName: {{.Values.cluster.ingress.ingressClassName | quote }}
   ## @param ingress.pathType Ingress path type
   ##
   pathType: ImplementationSpecific
@@ -638,7 +639,7 @@ ingress:
   controller: default
   ## @param ingress.hostname Default host for the ingress record (evaluated as template)
   ##
-  hostname: keycloak.local
+  hostname: {{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}
   ## @param ingress.hostnameStrict Disables dynamically resolving the hostname from request headers.
   ## Should always be set to true in production, unless your reverse proxy overwrites the Host header.
   ## If enabled, the hostname option needs to be specified.
@@ -659,7 +660,7 @@ ingress:
   ##   kubernetes.io/ingress.class: nginx
   ##   cert-manager.io/cluster-issuer: cluster-issuer-name
   ##
-  annotations: {}
+  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
   ## @param ingress.labels Additional labels for the Ingress resource.
   ## e.g:
   ## labels:
@@ -673,7 +674,7 @@ ingress:
   ##   - Rely on cert-manager to create it by setting the corresponding annotations
   ##   - Rely on Helm to create self-signed certificates by setting `ingress.selfSigned=true`
   ##
-  tls: false
+  tls: true
   ## @param ingress.selfSigned Create a TLS secret for this ingress record using self-signed certificates generated by Helm
   ##
   selfSigned: false
@@ -736,12 +737,12 @@ ingress:
 adminIngress:
   ## @param adminIngress.enabled Enable admin ingress record generation for Keycloak
   ##
-  enabled: false
+  enabled: true
   ## @param adminIngress.ingressClassName IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)
   ## This is supported in Kubernetes 1.18+ and required if you have more than one IngressClass marked as the default for your cluster .
   ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
   ##
-  ingressClassName: ""
+  ingressClassName: {{.Values.cluster.ingress.ingressClassName | quote }}
   ## @param adminIngress.pathType Ingress path type
   ##
   pathType: ImplementationSpecific
@@ -755,7 +756,7 @@ adminIngress:
   controller: default
   ## @param adminIngress.hostname Default host for the admin ingress record (evaluated as template)
   ##
-  hostname: keycloak.local
+  hostname: {{ .Values.global.hostname.keycloak }}-admin.{{ .Values.global.domain }}
   ## @param adminIngress.path [string] Default path for the admin ingress record (evaluated as template)
   ##
   path: ""
@@ -771,7 +772,7 @@ adminIngress:
   ##   kubernetes.io/ingress.class: nginx
   ##   cert-manager.io/cluster-issuer: cluster-issuer-name
   ##
-  annotations: {}
+  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
   ## @param adminIngress.labels Additional labels for the Ingress resource.
   ## e.g:
   ## labels:
@@ -785,7 +786,7 @@ adminIngress:
   ##   - Rely on cert-manager to create it by setting the corresponding annotations
   ##   - Rely on Helm to create self-signed certificates by setting `adminIngress.selfSigned=true`
   ##
-  tls: false
+  tls: true
   ## @param adminIngress.selfSigned Create a TLS secret for this ingress record using self-signed certificates generated by Helm
   ##
   selfSigned: false
@@ -963,11 +964,11 @@ pdb:
 ## @param autoscaling.targetMemory Target Memory utilization percentage
 ##
 autoscaling:
-  enabled: false
+  enabled: true
   minReplicas: 1
   maxReplicas: 11
-  targetCPU: ""
-  targetMemory: ""
+  targetCPU: "80"
+  targetMemory: "80"
   ## HPA Scaling Behavior
   ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#configurable-scaling-behavior
   ##
@@ -1174,7 +1175,7 @@ keycloakConfigCli:
   ## @param keycloakConfigCli.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if keycloakConfigCli.resources is set (keycloakConfigCli.resources is recommended for production).
   ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
   ##
-  resourcesPreset: "small"
+  resourcesPreset: {{ .Values.global.resourcePreset | quote }}
   ## @param keycloakConfigCli.resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
   ## Example:
   ## resources:
@@ -1185,7 +1186,7 @@ keycloakConfigCli:
   ##     cpu: 3
   ##     memory: 1024Mi
   ##
-  resources: {}
+  resources: {{ .Values.resource.keycloa | toYaml | nindent 4 }}
   ## keycloak-config-cli containers' Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
   ## @param keycloakConfigCli.containerSecurityContext.enabled Enabled keycloak-config-cli Security Context
@@ -1336,7 +1337,7 @@ keycloakConfigCli:
 ## @param postgresql.architecture PostgreSQL architecture (`standalone` or `replication`)
 ##
 postgresql:
-  enabled: true
+  enabled: false
   auth:
     postgresPassword: ""
     username: bn_keycloak
@@ -1361,12 +1362,13 @@ postgresql:
 ## @param externalDatabase.existingSecretPasswordKey Name of an existing secret key containing the database credentials
 ## @param externalDatabase.annotations Additional custom annotations for external database secret object
 ##
+
 externalDatabase:
-  host: ""
-  port: 5432
-  user: bn_keycloak
-  database: bitnami_keycloak
-  password: ""
+  host: "{{ .StateValues.database.keycloak.host }}"
+  port: "{{ .StateValues.database.keycloak.port }}"
+  user: "{{ .StateValues.database.keycloak.user }}"
+  database: "{{ .StateValues.database.keycloak.name }}"
+  password: "{{ .StateValues.database.keycloak.password }}"
   existingSecret: ""
   existingSecretHostKey: ""
   existingSecretPortKey: ""

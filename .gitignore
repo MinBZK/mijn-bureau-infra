@@ -1,2 +1,6 @@
 __pycache__/
 *.py[cod]
+
+example-manifests/
+debug.log
+mykey.txt
