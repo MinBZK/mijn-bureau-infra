@@ -10,7 +10,9 @@ database:
     host: postgresql
     port: 5432
   synapse:
-    type: postgresql
-    name: synapse
-    host: postgresql
+    type: "postgresql"
+    name: "synapse"
+    host: "postgresql"
     port: 5432
+    username: "matrix_user"
+    password: ""

@@ -40,6 +40,20 @@ spec:
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              export POSTGRES_PASSWORD=$(echo "${POSTGRES_PASSWORD:-}" | sed 's/\//\\\//g' | sed 's/\&/\\\&/g') && \
+              export REDIS_PASSWORD=$(echo "${REDIS_PASSWORD:-}" | sed 's/\//\\\//g' | sed 's/\&/\\\&/g') && \
+              cat /synapse/secrets/*.yaml | \
+                sed -e "s/@@POSTGRES_PASSWORD@@/${POSTGRES_PASSWORD:-}/" \
+                    -e "s/@@REDIS_PASSWORD@@/${REDIS_PASSWORD:-}/" \
+                       > /synapse/config/conf.d/secrets.yaml
+
+              exec python -B -m synapse.app.homeserver \
+                          -c /synapse/config/homeserver.yaml \
+                          -c /synapse/config/conf.d/
           ports:
             - name: {{ .Values.service.server.name }}
               containerPort: {{ .Values.service.server.port }}
@@ -66,12 +80,10 @@ spec:
               value: {{ .Values.synapse.config.synapseConfigPath }}
           volumeMounts:
             - name: data
-              mountPath: /data
-            {{- if .Values.synapse.signingKey.localConfigLocation }}
+              mountPath: /synapse/data
             - name: synapse-signing-key
-              mountPath: /secrets/
+              mountPath: /synapse/keys
               readOnly: true
-            {{- end }}
             - name: synapse-config
               mountPath: /config
               readOnly: true
@@ -79,11 +91,9 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "synapse.fullname" . }}
-        {{- if .Values.synapse.signingKey.localConfigLocation }}
         - name: synapse-signing-key
           secret:
             secretName: synapse-signing-key
-        {{- end }}
         - name: synapse-config
           configMap:
             name: {{ include "synapse.fullname" . }}

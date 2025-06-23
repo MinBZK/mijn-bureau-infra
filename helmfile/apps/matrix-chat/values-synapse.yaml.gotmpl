@@ -97,14 +97,14 @@ resources:
    memory: 256Mi
 
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-livenessProbe:
-  httpGet:
-    path: /
-    port: http
-readinessProbe:
-  httpGet:
-    path: /
-    port: http
+#livenessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+#readinessProbe:
+#  httpGet:
+#    path: /
+#    port: http
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
@@ -126,10 +126,14 @@ persistence:
   storageClassName: ocs-storagecluster-ceph-rbd
 
 synapse:
+  serverName: synapse.chat.icbr.prd1.gn2.quattro.rijksapps.nl
+  reportStats: false
   config:
-    synapseConfigDir: "/data"
-    synapseConfigPath: "/config/homeserver.yaml"
-    localConfigFiles: "config/*"
-  signingKey:
-    # If not configured, a new key will be generated with each deployment.
-    localConfigLocation: "" # synapse_signing_key
+    synapseConfigDir: "/synapse/data"
+    synapseConfigPath: "/synapse/config/homeserver.yaml"
+  logging:
+    logLevel: "DEBUG"
+  trustedKeyServers:
+    - server_name: "matrix.org"
+  registrationSharedSecret: {{ .Values.secrets.synapse.registrationSharedSecret }}
+  formSecret: {{ .Values.secrets.synapse.formSecret }}
