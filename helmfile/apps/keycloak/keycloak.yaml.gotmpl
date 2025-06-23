@@ -19,8 +19,8 @@ global:
   ##   - myRegistryKeySecretName
   ##
   imagePullSecrets: []
-  defaultStorageClass: ""
-  storageClass: ""
+  defaultStorageClass: "{{ .Values.cluster.storageClassNames.RWO }}"
+  storageClass: "{{ .Values.cluster.storageClassNames.RWO }}"
   ## Security parameters
   ##
   security:
@@ -1336,7 +1336,7 @@ keycloakConfigCli:
 ## @param postgresql.architecture PostgreSQL architecture (`standalone` or `replication`)
 ##
 postgresql:
-  enabled: true
+  enabled: false
   auth:
     postgresPassword: ""
     username: bn_keycloak
@@ -1361,12 +1361,13 @@ postgresql:
 ## @param externalDatabase.existingSecretPasswordKey Name of an existing secret key containing the database credentials
 ## @param externalDatabase.annotations Additional custom annotations for external database secret object
 ##
+
 externalDatabase:
-  host: ""
-  port: 5432
-  user: bn_keycloak
-  database: bitnami_keycloak
-  password: ""
+  host: "{{ .StateValues.database.keycloak.host }}"
+  port: "{{ .StateValues.database.keycloak.port }}"
+  user: "{{ .StateValues.database.keycloak.user }}"
+  database: "{{ .StateValues.database.keycloak.name }}"
+  password: "{{ .StateValues.database.keycloak.password }}"
   existingSecret: ""
   existingSecretHostKey: ""
   existingSecretPortKey: ""

@@ -1,20 +1,20 @@
 ---
 global:
 
-  # demo mode allows you to run all applications including datastores
-  demo: {{ env "MIJNBUREAU_DEMO" | default "false" | quote }}
+  domain: "mijnbureau.internal"
 
-  domain: {{ env "MIJNBUREAU_DOMAIN" | default "mijnbureau.internal" | quote }}
-  matrixDomain: {{ env "MIJNBUREAU_MATRIX_DOMAIN" | quote }}
+  # resourcePreset sets the default resources for all applications
+  # allowed values "nano" "micro" "small" "medium" "large" "xlarge" "2xlarge"
+  resourcePreset: "nano"
 
-  hosts:
+  # specify the subdomain for each component. this name will be combined with the base domain specified in the `domain` variable above`
+  hostname:
     docs: "docs"
     keycloak: "id"
     element: "chat"
     synapse: "matrix"
 
-  imageRegistry:
-    # some organizations use proxies. With these variables you can set the registry URLs
-    dockerhub: {{ env "MIJNBUREAU_IMAGE_REGISTRY_DOCKERIO" | default "registry-1.docker.io" | quote }}
-    quay: {{ env "MIJNBUREAU_IMAGE_REGISTRY_QUAY" | default "quay.io" | quote }}
-    ghcr: {{ env "MIJNBUREAU_IMAGE_REGISTRY_GHCR" | default "ghcr.io" | quote }}
+  # if you want to set a custom registry used by all helm charts specify it here.
+  # if you want to configure the registry per component you can do that in the helmchart.yaml.gotmpl
+  helmRegistry: ~
+

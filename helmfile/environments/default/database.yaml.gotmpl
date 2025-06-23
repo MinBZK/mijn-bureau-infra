@@ -1,16 +1,13 @@
 database:
   keycloak:
-    type: postgresql
     name: keycloak
     host: postgresql
     port: 5432
+    user: keycloak
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "database" | sha1sum | quote}}
   docs:
     type: postgresql
     name: docs
     host: postgresql
     port: 5432
-  synapse:
-    type: postgresql
-    name: synapse
-    host: postgresql
-    port: 5432
+

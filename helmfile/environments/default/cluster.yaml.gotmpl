@@ -6,18 +6,6 @@ cluster:
     cidr:
       - "10.0.0.0/8"
 
-  container:
-    engine: cri-o
-
-  operator:
-    prometheus: # https://prometheus-operator.dev/
-      enabled: true
-    cert-manager:
-      enabled: true
-    cloudnativepg: # https://cloudnative-pg.io/
-      enabled: true
-    #todo: add other ingressess
-
   ingress:
     type: nginx
     ingressClassName: ""
@@ -26,6 +14,9 @@ cluster:
     RWX: ""
     RWO: ""
 
+  service:
+    # select the available implementation. this can be ClusterIP, NodePort, or LoadBalancer
+    type: LoadBalancer
 
   certificate:
     issuerRef:

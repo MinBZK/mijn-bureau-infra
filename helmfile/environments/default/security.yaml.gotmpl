@@ -1,0 +1,27 @@
+security:
+  containerSecurityContext:
+    enabled: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - "ALL"
+    privileged: false
+    runAsUser: 1000
+    runAsGroup: 1000
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1000
+
+  # add a default deny policy to all namespaces
+  networkPolicyDefaultDeny: false
+
+
+  # todo: add support for the following security features
+  # seLinuxOptions: {}
+  # seccompProfile:
+  # apparmorProfile
+  # container runtime sandboxes (gvisor, kata containers, etc)
+
