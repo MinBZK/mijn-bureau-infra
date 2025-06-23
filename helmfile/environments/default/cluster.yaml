@@ -1,18 +1,36 @@
 ---
+### This file contains all the kubernetes cluster-wide settings, please edit it to match your environment.
 cluster:
   networking:
     domain: cluster.local
     cidr:
       - "10.0.0.0/8"
+
   container:
     engine: cri-o
 
   operator:
-    prometheus:
+    prometheus: # https://prometheus-operator.dev/
       enabled: true
     cert-manager:
       enabled: true
-    external-dns:
+    cloudnativepg: # https://cloudnative-pg.io/
       enabled: true
-    ingress-nginx:
-      enabled: true
+    #todo: add other ingressess
+
+  ingress:
+    type: nginx
+    ingressClassName: ""
+
+  storageClassNames:
+    RWX: ""
+    RWO: ""
+
+
+  certificate:
+    issuerRef:
+      name: letsencrypt-prod
+      kind: ClusterIssuer
+
+
+

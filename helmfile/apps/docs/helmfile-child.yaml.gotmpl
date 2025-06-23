@@ -8,4 +8,6 @@ repositories:
 releases:
   - name: "docs"
     chart: "docs-repo/docs"
+    namespace: "{{ .Values.application.docs.namespace }}"
+    installed: {{ .Values.application.docs.enabled }}
 # todo: postgresql minio redis

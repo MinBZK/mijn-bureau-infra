@@ -1,0 +1,11 @@
+application:
+  # keycloak is an identity and access management solution. If you have your own identity provider please disable this system and configure the OIDC settings in the authentication.yaml file.
+  keycloak:
+    enabled: true
+    namespace: ~
+
+  # Docs is a notes application that allows you to work on documents collaboratively.
+  docs:
+    enabled: false
+    namespace: ~
+

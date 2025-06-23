@@ -1,10 +1,20 @@
 ---
 global:
-  domain: {{ env "DOMAIN" | default "mijnbureau.internal" | quote }}
-  matrixDomain: {{ env "MATRIX_DOMAIN" | quote }}
+
+  # demo mode allows you to run all applications including datastores
+  demo: {{ env "MIJNBUREAU_DEMO" | default "false" | quote }}
+
+  domain: {{ env "MIJNBUREAU_DOMAIN" | default "mijnbureau.internal" | quote }}
+  matrixDomain: {{ env "MIJNBUREAU_MATRIX_DOMAIN" | quote }}
 
   hosts:
     docs: "docs"
     keycloak: "id"
     element: "chat"
     synapse: "matrix"
+
+  imageRegistry:
+    # some organizations use proxies. With these variables you can set the registry URLs
+    dockerhub: {{ env "MIJNBUREAU_IMAGE_REGISTRY_DOCKERIO" | default "registry-1.docker.io" | quote }}
+    quay: {{ env "MIJNBUREAU_IMAGE_REGISTRY_QUAY" | default "quay.io" | quote }}
+    ghcr: {{ env "MIJNBUREAU_IMAGE_REGISTRY_GHCR" | default "ghcr.io" | quote }}
