@@ -1,0 +1,26 @@
+---
+### This file contains all the kubernetes cluster-wide settings, please edit it to match your environment.
+cluster:
+  networking:
+    domain: cluster.local
+    podSubnet:
+      - "10.244.0.0/16"
+    serviceSubnet:
+      - "10.96.0.0/12"
+
+  ingress:
+    ingressClassName: ~
+    annotations: {}
+
+  sandbox:
+    gvisor:
+      enabled: false
+
+  service:
+    # select the available implementation. this can be ClusterIP, NodePort, or LoadBalancer
+    type: LoadBalancer
+
+  certificate:
+    issuerRef:
+      name: letsencrypt-prod
+      kind: ClusterIssuer

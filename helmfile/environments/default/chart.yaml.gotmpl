@@ -1,4 +1,4 @@
-charts:
+chart:
   default:
     registry: ~
 
@@ -7,25 +7,47 @@ charts:
     repository: "bitnamicharts"
     name: "common"
     version: "2.31.3"
+    verify: false
     oci: true
+    username: ~
+    password: ~
 
   postgresql:
     registry: registry-1.docker.io
     repository: "bitnamicharts"
     name: "postgresql"
-    version: "16.7.14"
+    version: "16.7.18"
+    verify: false
     oci: true
+    username: ~
+    password: ~
 
   redis:
     registry: registry-1.docker.io
     repository: "bitnamicharts"
     name: "redis"
     version: "21.2.6"
+    verify: false
     oci: true
+    username: ~
+    password: ~
 
   minio:
     registry: registry-1.docker.io
     repository: "bitnamicharts"
     name: "minio"
     version: "17.0.11"
+    verify: false
     oci: true
+    username: ~
+    password: ~
+
+  keycloak:
+    name: keycloak
+    registry: registry-1.docker.io
+    repository: bitnamicharts
+    version: "24.6.7"
+    verify: false
+    oci: true
+    username: ~
+    password: ~

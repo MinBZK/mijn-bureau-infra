@@ -1,44 +1,141 @@
-# Mijn Bureau deployment automation
+# MijnBureau deployment automation
 
-`MijnBureau` is a collaboration suite. This repo is the deployment automation for MijnBureau.
+`MijnBureau` is a collaboration suite for civil servants. This repository contains the deployment automation scripts and configuration for setting up MijnBureau using Kubernetes and Helm.
 
 > [!IMPORTANT]
-> This is still a prototype
+> This project is currently a prototype and under active development
 
 ## Overview
 
-MijnBureau is a Kubernetes-based, open-source, and cloud-native digital workplace suite. It is designed to replace functional components with your own hosted solution like the identity management and portal which often already exist in organisations.
+MijnBureau is a Kubernetes-native, cloud-first, and open-source digital workplace suite designed to be flexible, secure, and modular.
 
-MijnBureau currently features the following main components:
+It currently includes the following components:
 
 | Function          | Functional Component | Component Version                                                  | Upstream Documentation                                        | LICENSE    |
 | ----------------- | -------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------- | ---------- |
-| Identity Provider | Keycloak             | [26.2.4](https://github.com/keycloak/keycloak/releases/tag/26.2.4) | [documentation](https://www.keycloak.org/documentation)       | Apache-2.0 |
+| Identity Provider | Keycloak             | [26.2.5](https://github.com/keycloak/keycloak/releases/tag/26.2.5) | [documentation](https://www.keycloak.org/documentation)       | Apache-2.0 |
 | Chat              | Element synapse      | [v1.129](https://github.com/element-hq/synapse/tree/v1.129.0)      | [documentation](https://element-hq.github.io/synapse/latest/) | AGPL-3.0   |
 | Notes             | Docs                 | [v3.2.1](https://github.com/suitenumerique/docs/tree/v3.2.1)       |                                                               | MIT        |
-| AI LLM            | Ollama               | [v0.7.0](https://github.com/ollama/ollama/tree/v0.7.0)             | [documentation](https://ollama.com/)                          | MIT        |
 | Spreadsheet       | Grist                | [v1.6.1](https://github.com/gristlabs/grist-core/tree/v1.6.1)      | [documentation](https://support.getgrist.com/self-managed/)   | Apache-2.0 |
+| AI LLM            | Ollama               | [v0.9.5](https://github.com/ollama/ollama/tree/v0.9.5)             | [documentation](https://ollama.com/)                          | MIT        |
 
 ## Requirements
 
-MijnBureau is a Kubernetes-only solution and requires an existing Kubernetes (K8s) cluster. You also need a domain.
+- A Kubernetes cluster (self-managed or cloud-hosted).
+- A domain name to expose the applications.
+- (Optional) Production setups should use external datastores conforming to your organization's disaster recovery and security policies.
 
 ## Getting started
 
-We use [Helmfile](https://helmfile.readthedocs.io/en/latest/) to generate all Kubernetes manifests. Before you can generate the manifests, you need to install [Helm](https://helm.sh/) and [helm-secrets](https://github.com/jkroepke/helm-secret). The Helmfile entrypoint is the [helmfile.yaml](helmfile.yaml).
+We use [Helmfile](https://helmfile.readthedocs.io/en/latest/) for managing and deploying all components.
 
-To generate all manifests, use the following command in the base directory:
+### Prerequisites
+
+- [Helm](https://helm.sh/)
+- [helm-secrets](https://github.com/jkroepke/helm-secret).
+- [sops](https://getsops.io/)
+- [age](https://github.com/FiloSottile/age)
+
+### Setup
+
+Initialize Helm dependencies:
+
+```bash
+helmfile init
+```
+
+Generate all manifests:
 
 ```bash
 export MIJNBUREAU_MASTER_PASSWORD=changethis
 helmfile template
 ```
 
-## Commit rules
+Deploy all components to Kubernetes:
+
+```bash
+export MIJNBUREAU_MASTER_PASSWORD=changethis
+helmfile apply
+```
+
+## Environments & Customization
+
+Helmfile supports multiple environments. The default environment is used if none is specified. Available environments:
+
+- `default`: baseline configuration
+- `demo`: includes internal datastores (e.g., PostgreSQL, S3) — great for quick setups
+- `production`: excludes internal datastores — assumes preconfigured external services
+
+To deploy a specific environment with a custom namespace:
+
+```bash
+export MIJNBUREAU_MASTER_PASSWORD=changethis
+helmfile -e production -n icbr-poc-id apply
+```
+
+### Overriding Configuration
+
+Override default variables in:
+
+```bash
+./helmfile/environments/{environment}/mijnbureau.yaml.gotmpl
+```
+
+For example, to change the domainname in the production environment we overwrite the /helmfile/environments/default/global.yaml.gotmpl from the default environment in the file /helmfile/environments/{environment}/mijnbureau.yaml.gotmpl by setting the following content. this can be done for all variables in the default environment.
+
+```yaml
+global:
+  domain: "mijnbureau.icbr.prd1.gn2.quattro.rijksapps.nl"
+```
+
+## Secrets management
+
+Sensitive values (like database passwords) can be securely stored using helm-secrets and sops. We prepared the setup an give an example.secrets.yaml
+
+```bash
+./helmfile/environments/{environment}/mijnbureau.yaml.gotmpl
+```
+
+### Step-by-step
+
+1. Generate an Age key pair:
+
+```bash
+age-keygen -o mykey.txt
+```
+
+2. Update .sops.yaml:
+   Replace the sample age: entry with your public key.
+
+3. Encrypt a file:
+
+add some values in the example.secrets.yaml and encrypt it.
+
+```bash
+helm secrets encrypt -i ./helmfile/environments/production/example.secrets.yaml
+```
+
+4. Decrypt for local use:
+
+```bash
+export SOPS_AGE_KEY_FILE=./mykey.txt
+helm secrets decrypt -i ./helmfile/environments/production/example.secrets.yaml
+```
+
+5. Use with helmfile
+
+```bash
+export MIJNBUREAU_MASTER_PASSWORD=changethis
+export SOPS_AGE_KEY_FILE=./mykey.txt
+helmfile template
+helmfile apply
+```
+
+## Commit Conventions
 
 We use the [gitmoji](https://gitmoji.dev/) commit convention with the following scopes: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 
-## Mijn Bureau
+## Additional Resources
 
 For more detailed information, see the [MijnBureau docs](https://minbzk.github.io/mijn-bureau/).
 

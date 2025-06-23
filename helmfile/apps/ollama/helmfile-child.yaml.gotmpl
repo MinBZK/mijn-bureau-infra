@@ -4,8 +4,8 @@ bases:
 releases:
   - name: "ollama"
     chart: "./charts/ollama"
-    condition: ai.selfhost.enabled
-    namespace: {{ .Values.applications.ai.namespace }}
+    condition: application.ai.enabled
+    namespace: {{ .Values.application.ai.namespace }}
     createNamespace: false
     values:
       - "values.yaml.gotmpl"

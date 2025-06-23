@@ -1,22 +1,17 @@
 database:
   grist:
     type: postgresql
-    name: grist
     host: grist-postgresql
-    username: grist
+    name: grist
+    user: grist
     port: 5432
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "grist" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "grist" "database_admin" | sha1sum | quote}}
+
   keycloak:
-    type: postgresql
     name: keycloak
     host: postgresql
     port: 5432
-  docs:
-    type: postgresql
-    name: docs
-    host: postgresql
-    port: 5432
-  synapse:
-    type: postgresql
-    name: synapse
-    host: postgresql
-    port: 5432
+    user: keycloak
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "database_admin" | sha1sum | quote}}

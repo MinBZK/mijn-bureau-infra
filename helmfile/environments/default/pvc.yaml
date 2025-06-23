@@ -1,0 +1,17 @@
+# PVC are presistent volume claims that are used to store data that needs to persist across pod restarts.
+pvc:
+  default:
+    storageClass: ~
+    size: "1Gi"
+    accessModes:
+      - ReadWriteOnce
+
+  postgresql:
+    storageClass: ~
+    size: ~
+    accessModes: []
+
+  keycloak:
+    storageClass: ~
+    size: ~
+    accessModes: []

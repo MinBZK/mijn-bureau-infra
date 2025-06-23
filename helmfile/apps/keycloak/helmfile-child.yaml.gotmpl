@@ -1,0 +1,38 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+repositories:
+  - name: bitnami-keycloak
+    url: "{{ .Values.chart.keycloak.registry | default .Values.chart.default.registry }}/{{ .Values.chart.keycloak.repository }}"
+    oci: {{ .Values.chart.keycloak.oci }}
+    verify: {{ .Values.chart.keycloak.verify }}
+    username: {{ .Values.chart.keycloak.username | quote }}
+    password: {{ .Values.chart.keycloak.password | quote }}
+
+  - name: bitnami-postgres
+    oci: {{ .Values.chart.postgresql.oci }}
+    url: "{{ .Values.chart.postgresql.registry | default .Values.chart.default.registry }}/{{ .Values.chart.postgresql.repository }}"
+    verify: {{ .Values.chart.postgresql.verify }}
+    username: {{ .Values.chart.postgresql.username | quote }}
+    password: {{ .Values.chart.postgresql.password | quote }}
+
+releases:
+  - name: "keycloak-keycloak"
+    chart: "bitnami-keycloak/{{ .Values.chart.keycloak.name }}"
+    version: "{{ .Values.chart.keycloak.version }}"
+    namespace: {{ .Values.application.keycloak.namespace }}
+    installed: {{ .Values.application.keycloak.enabled }}
+    {{- if and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) }}
+    needs:
+      - {{ .Values.application.keycloak.namespace }}/keycloak-postgresql
+    {{- end }}
+    values:
+      - keycloak.yaml.gotmpl
+
+  - name: "keycloak-postgresql"
+    chart: "bitnami-postgres/{{ .Values.chart.postgresql.name }}"
+    version: {{ .Values.chart.postgresql.version | quote }}
+    namespace: {{ .Values.application.keycloak.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) | toYaml }}
+    values:
+      - "postgresql.yaml.gotmpl"

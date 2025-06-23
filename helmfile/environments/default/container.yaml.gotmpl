@@ -1,0 +1,46 @@
+container:
+  default:
+    registry: ~
+    imagePullSecrets: ~
+
+  ollama:
+    registry: "docker.io"
+    repository: "ollama/ollama"
+    tag: "0.9.5"
+    imagePullSecrets: ~
+
+  keycloak:
+    registry:  "docker.io"
+    repository: bitnami/keycloak
+    tag: 26.2.5-debian-12-r3
+    imagePullSecrets: ~
+
+  keycloak_cli:
+    registry:  "docker.io"
+    repository: bitnami/keycloak-config-cli
+    tag: 6.4.0-debian-12-r8
+    imagePullSecrets: ~
+
+  grist:
+    registry: "registry-1.docker.io"
+    repository: "gristlabs/grist"
+    tag: "1.6.1"
+    imagePullSecrets: ~
+
+  minio:
+    registry: "registry-1.docker.io"
+    repository: "minio/minio"
+    tag: "RELEASE.2024-10-01T23-28-11"
+    imagePullSecrets: ~
+
+  postgres:
+    registry: "registry-1.docker.io"
+    repository: "bitnami/postgresql"
+    tag: "17-debian-12"
+    imagePullSecrets: ~
+
+  redis:
+    registry: "registry-1.docker.io"
+    repository: "bitnami/redis"
+    tag: "8.0-debian-12"
+    imagePullSecrets: ~
