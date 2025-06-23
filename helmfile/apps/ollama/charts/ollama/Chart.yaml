@@ -1,0 +1,33 @@
+apiVersion: v2
+name: ollama
+description: Get up and running with large language models locally.
+
+type: application
+
+version: 1.20.0
+
+appVersion: "0.9.2"
+
+annotations:
+  artifacthub.io/category: ai-machine-learning
+  artifacthub.io/changes: |
+    - kind: changed
+      description: upgrade app version to 0.9.2
+      links:
+        - name: Ollama release v0.9.2
+          url: https://github.com/ollama/ollama/releases/tag/v0.9.2
+
+kubeVersion: "^1.16.0-0"
+home: https://ollama.ai/
+icon: https://ollama.ai/public/ollama.png
+keywords:
+  - ai
+  - llm
+  - llama
+  - mistral
+sources:
+  - https://github.com/ollama/ollama
+  - https://github.com/otwld/ollama-helm
+maintainers:
+  - name: OTWLD
+    email: contact@otwld.com
