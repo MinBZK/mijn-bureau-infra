@@ -1,0 +1,22 @@
+global:
+  security:
+    allowInsecureImages: true
+
+  imagePullSecrets:
+    - name: {{ .Values.container.default.imagePullSecrets | quote }}
+
+image:
+  registry: {{(coalesce .Values.container.default.registry .Values.container.grist.registry) | quote }}
+
+auth:
+  rootPassword: {{ .Values.secrets.minio.rootPassword }}
+
+defaultBuckets: {{ .Values.objectstore.grist.bucket | quote }}
+
+service.ports.api: {{ .Values.objectstore.grist.port | quote }}
+
+provisioning:
+  enabled: true
+  buckets:
+    - name: {{ .Values.objectstore.grist.bucket | quote }}
+      versioning: true

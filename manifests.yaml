@@ -1,0 +1,2184 @@
+---
+# Source: postgresql/templates/primary/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: grist-postgresql
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 17.5.0
+    helm.sh/chart: postgresql-16.7.15
+    app.kubernetes.io/component: primary
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-postgresql
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/component: primary
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    - ports:
+        - port: 5432
+---
+# Source: postgresql/templates/primary/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: grist-postgresql
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 17.5.0
+    helm.sh/chart: postgresql-16.7.15
+    app.kubernetes.io/component: primary
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-postgresql
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/component: primary
+---
+# Source: postgresql/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grist-postgresql
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 17.5.0
+    helm.sh/chart: postgresql-16.7.15
+automountServiceAccountToken: false
+---
+# Source: postgresql/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grist-postgresql
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 17.5.0
+    helm.sh/chart: postgresql-16.7.15
+type: Opaque
+data:
+  postgres-password: "N2FmZjU2OWZhYmRiY2IwODUzMDU4ZTE4MDMwNjU1OGRmMGNmYzFmNw=="
+  password: "NTZlN2QwZmNjODU0YTUxZTA4ZWZjOGM4YTlmNzVkNTM2ODJhZGIxOQ=="
+  # We don't auto-generate LDAP password when it's not provided as we do for other passwords
+---
+# Source: postgresql/templates/primary/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: grist-postgresql-hl
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 17.5.0
+    helm.sh/chart: postgresql-16.7.15
+    app.kubernetes.io/component: primary
+  annotations:
+spec:
+  type: ClusterIP
+  clusterIP: None
+  # We want all pods in the StatefulSet to have their addresses published for
+  # the sake of the other Postgresql pods even before they're ready, since they
+  # have to be able to talk to each other in order to become ready.
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+  selector:
+    app.kubernetes.io/instance: grist-postgresql
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/component: primary
+---
+# Source: postgresql/templates/primary/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: grist-postgresql
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 17.5.0
+    helm.sh/chart: postgresql-16.7.15
+    app.kubernetes.io/component: primary
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: grist-postgresql
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/component: primary
+---
+# Source: postgresql/templates/primary/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: grist-postgresql
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 17.5.0
+    helm.sh/chart: postgresql-16.7.15
+    app.kubernetes.io/component: primary
+spec:
+  replicas: 1
+  serviceName: grist-postgresql-hl
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-postgresql
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/component: primary
+  template:
+    metadata:
+      name: grist-postgresql
+      labels:
+        app.kubernetes.io/instance: grist-postgresql
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: postgresql
+        app.kubernetes.io/version: 17.5.0
+        helm.sh/chart: postgresql-16.7.15
+        app.kubernetes.io/component: primary
+    spec:
+      serviceAccountName: grist-postgresql
+      imagePullSecrets:
+        - name: dockerhub-icbr-robot-pull-secret
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: grist-postgresql
+                    app.kubernetes.io/name: postgresql
+                    app.kubernetes.io/component: primary
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      hostNetwork: false
+      hostIPC: false
+      containers:
+        - name: postgresql
+          image: rcr.rijksapps.nl/dockerhub-icbr/bitnami/postgresql:17.5.0-debian-12-r16
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: POSTGRESQL_PORT_NUMBER
+              value: "5432"
+            - name: POSTGRESQL_VOLUME_DIR
+              value: "/bitnami/postgresql"
+            - name: PGDATA
+              value: "/bitnami/postgresql/data"
+            # Authentication
+            - name: POSTGRES_USER
+              value: "grist"
+            - name: POSTGRES_PASSWORD_FILE
+              value: /opt/bitnami/postgresql/secrets/password
+            - name: POSTGRES_POSTGRES_PASSWORD_FILE
+              value: /opt/bitnami/postgresql/secrets/postgres-password
+            - name: POSTGRES_DATABASE
+              value: "grist"
+            # LDAP
+            - name: POSTGRESQL_ENABLE_LDAP
+              value: "no"
+            # TLS
+            - name: POSTGRESQL_ENABLE_TLS
+              value: "no"
+            # Audit
+            - name: POSTGRESQL_LOG_HOSTNAME
+              value: "false"
+            - name: POSTGRESQL_LOG_CONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_LOG_DISCONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
+              value: "off"
+            # Others
+            - name: POSTGRESQL_CLIENT_MIN_MESSAGES
+              value: "error"
+            - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
+              value: "pgaudit"
+          ports:
+            - name: tcp-postgresql
+              containerPort: 5432
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "grist" -d "dbname=grist" -h 127.0.0.1 -p 5432
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - -e
+                - |
+                  exec pg_isready -U "grist" -d "dbname=grist" -h 127.0.0.1 -p 5432
+                  [ -f /opt/bitnami/postgresql/tmp/.initialized ] || [ -f /bitnami/postgresql/.initialized ]
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/postgresql/conf
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/postgresql/tmp
+              subPath: app-tmp-dir
+            - name: postgresql-password
+              mountPath: /opt/bitnami/postgresql/secrets/
+            - name: dshm
+              mountPath: /dev/shm
+            - name: data
+              mountPath: /bitnami/postgresql
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: postgresql-password
+          secret:
+            secretName: grist-postgresql
+        - name: dshm
+          emptyDir:
+            medium: Memory
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+
+---
+# Source: redis/templates/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: grist-redis
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-redis
+      app.kubernetes.io/name: redis
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    # Allow inbound connections
+    - ports:
+        - port: 6379
+---
+# Source: redis/templates/master/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: grist-redis-master
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+    app.kubernetes.io/component: master
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-redis
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: master
+---
+# Source: redis/templates/replicas/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: grist-redis-replicas
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+    app.kubernetes.io/component: replica
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-redis
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: replica
+---
+# Source: redis/templates/master/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: false
+metadata:
+  name: grist-redis-master
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+---
+# Source: redis/templates/replicas/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: false
+metadata:
+  name: grist-redis-replica
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+---
+# Source: redis/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grist-redis
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+type: Opaque
+data:
+  redis-password: "OWQ2NjUyMzJmZTllOTllMjI4YmI0YTJlM2M4ZjQ3NDRmNmVjODRlNw=="
+---
+# Source: redis/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grist-redis-configuration
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+data:
+  redis.conf: |-
+    # User-supplied common configuration:
+    # Enable AOF https://redis.io/topics/persistence#append-only-file
+    appendonly yes
+    # Disable RDB persistence, AOF persistence already enabled.
+    save ""
+    # End of common configuration
+  master.conf: |-
+    dir /data
+    # User-supplied master configuration:
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    # End of master configuration
+  replica.conf: |-
+    dir /data
+    # User-supplied replica configuration:
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    # End of replica configuration
+  users.acl: |-
+---
+# Source: redis/templates/health-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grist-redis-health
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+data:
+  ping_readiness_local.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
+    response=$(
+      timeout -s 15 $1 \
+      redis-cli \
+        -h localhost \
+        -p $REDIS_PORT \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    if [ "$response" != "PONG" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_liveness_local.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
+    response=$(
+      timeout -s 15 $1 \
+      redis-cli \
+        -h localhost \
+        -p $REDIS_PORT \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    responseFirstWord=$(echo $response | head -n1 | awk '{print $1;}')
+    if [ "$response" != "PONG" ] && [ "$responseFirstWord" != "LOADING" ] && [ "$responseFirstWord" != "MASTERDOWN" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_readiness_master.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    [[ -n "$REDIS_MASTER_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_MASTER_PASSWORD"
+    response=$(
+      timeout -s 15 $1 \
+      redis-cli \
+        -h $REDIS_MASTER_HOST \
+        -p $REDIS_MASTER_PORT_NUMBER \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    if [ "$response" != "PONG" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_liveness_master.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    [[ -n "$REDIS_MASTER_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_MASTER_PASSWORD"
+    response=$(
+      timeout -s 15 $1 \
+      redis-cli \
+        -h $REDIS_MASTER_HOST \
+        -p $REDIS_MASTER_PORT_NUMBER \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    responseFirstWord=$(echo $response | head -n1 | awk '{print $1;}')
+    if [ "$response" != "PONG" ] && [ "$responseFirstWord" != "LOADING" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_readiness_local_and_master.sh: |-
+    script_dir="$(dirname "$0")"
+    exit_status=0
+    "$script_dir/ping_readiness_local.sh" $1 || exit_status=$?
+    "$script_dir/ping_readiness_master.sh" $1 || exit_status=$?
+    exit $exit_status
+  ping_liveness_local_and_master.sh: |-
+    script_dir="$(dirname "$0")"
+    exit_status=0
+    "$script_dir/ping_liveness_local.sh" $1 || exit_status=$?
+    "$script_dir/ping_liveness_master.sh" $1 || exit_status=$?
+    exit $exit_status
+---
+# Source: redis/templates/scripts-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grist-redis-scripts
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+data:
+  start-master.sh: |
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    if [[ -f /opt/bitnami/redis/mounted-etc/master.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/master.conf /opt/bitnami/redis/etc/master.conf
+    fi
+    if [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
+    fi
+    if [[ -f /opt/bitnami/redis/mounted-etc/users.acl ]];then
+        cp /opt/bitnami/redis/mounted-etc/users.acl /opt/bitnami/redis/etc/users.acl
+    fi
+    ARGS=("--port" "${REDIS_PORT}")
+    ARGS+=("--requirepass" "${REDIS_PASSWORD}")
+    ARGS+=("--masterauth" "${REDIS_PASSWORD}")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/redis.conf")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/master.conf")
+    exec redis-server "${ARGS[@]}"
+  start-replica.sh: |
+    #!/bin/bash
+
+    get_port() {
+        hostname="$1"
+        type="$2"
+
+        port_var=$(echo "${hostname^^}_SERVICE_PORT_$type" | sed "s/-/_/g")
+        port=${!port_var}
+
+        if [ -z "$port" ]; then
+            case $type in
+                "SENTINEL")
+                    echo 26379
+                    ;;
+                "REDIS")
+                    echo 6379
+                    ;;
+            esac
+        else
+            echo $port
+        fi
+    }
+
+    get_full_hostname() {
+        hostname="$1"
+        full_hostname="${hostname}.${HEADLESS_SERVICE}"
+        echo "${full_hostname}"
+    }
+
+    REDISPORT=$(get_port "$HOSTNAME" "REDIS")
+    HEADLESS_SERVICE="grist-redis-headless.icbr-poc-grist.svc.cluster.local"
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    if [[ -f /opt/bitnami/redis/mounted-etc/replica.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/replica.conf /opt/bitnami/redis/etc/replica.conf
+    fi
+    if [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
+    fi
+    if [[ -f /opt/bitnami/redis/mounted-etc/users.acl ]];then
+        cp /opt/bitnami/redis/mounted-etc/users.acl /opt/bitnami/redis/etc/users.acl
+    fi
+
+    echo "" >> /opt/bitnami/redis/etc/replica.conf
+    echo "replica-announce-port $REDISPORT" >> /opt/bitnami/redis/etc/replica.conf
+    echo "replica-announce-ip $(get_full_hostname "$HOSTNAME")" >> /opt/bitnami/redis/etc/replica.conf
+    ARGS=("--port" "${REDIS_PORT}")
+    ARGS+=("--replicaof" "${REDIS_MASTER_HOST}" "${REDIS_MASTER_PORT_NUMBER}")
+    ARGS+=("--requirepass" "${REDIS_PASSWORD}")
+    ARGS+=("--masterauth" "${REDIS_MASTER_PASSWORD}")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/redis.conf")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/replica.conf")
+    exec redis-server "${ARGS[@]}"
+---
+# Source: redis/templates/headless-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: grist-redis-headless
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+  selector:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/name: redis
+---
+# Source: redis/templates/master/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: grist-redis-master
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+    app.kubernetes.io/component: master
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  sessionAffinity: None
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: master
+---
+# Source: redis/templates/replicas/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: grist-redis-replicas
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+    app.kubernetes.io/component: replica
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  sessionAffinity: None
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: replica
+---
+# Source: redis/templates/master/application.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: grist-redis-master
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+    app.kubernetes.io/component: master
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-redis
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: master
+  serviceName: grist-redis-headless
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: grist-redis
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/version: 8.0.2
+        helm.sh/chart: redis-21.2.6
+        app.kubernetes.io/component: master
+      annotations:
+        checksum/configmap: 2a9ab4a5432825504d910f022638674ce88eaefe9f9f595ad8bc107377d104fb
+        checksum/health: aff24913d801436ea469d8d374b2ddb3ec4c43ee7ab24663d5f8ff1a1b6991a9
+        checksum/scripts: bb86153a18dd20b26662ccbba167ab180534ca96afcc82708cc52b21acb03ff1
+        checksum/secret: b98b3e477f23c132f63ee826dab553d9ddd0ad03b72dd8987ae398ffa30266ca
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-icbr-robot-pull-secret
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      serviceAccountName: grist-redis-master
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: grist-redis
+                    app.kubernetes.io/name: redis
+                    app.kubernetes.io/component: master
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+
+      enableServiceLinks: true
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redis
+          image: rcr.rijksapps.nl/dockerhub-icbr/bitnami/redis:8.0.2-debian-12-r4
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - /opt/bitnami/scripts/start-scripts/start-master.sh
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: REDIS_REPLICATION_MODE
+              value: master
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: REDIS_PASSWORD_FILE
+              value: "/opt/bitnami/redis/secrets/redis-password"
+            - name: REDIS_TLS_ENABLED
+              value: "no"
+            - name: REDIS_PORT
+              value: "6379"
+          ports:
+            - name: redis
+              containerPort: 6379
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            # One second longer than command timeout should prevent generation of zombie processes.
+            timeoutSeconds: 6
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - "/health/ping_liveness_local.sh 5"
+          readinessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - "/health/ping_readiness_local.sh 1"
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          volumeMounts:
+            - name: start-scripts
+              mountPath: /opt/bitnami/scripts/start-scripts
+            - name: health
+              mountPath: /health
+            - name: redis-password
+              mountPath: /opt/bitnami/redis/secrets/
+            - name: redis-data
+              mountPath: /data
+            - name: config
+              mountPath: /opt/bitnami/redis/mounted-etc
+            - name: empty-dir
+              mountPath: /opt/bitnami/redis/etc/
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+      volumes:
+        - name: start-scripts
+          configMap:
+            name: grist-redis-scripts
+            defaultMode: 0755
+        - name: health
+          configMap:
+            name: grist-redis-health
+            defaultMode: 0755
+        - name: redis-password
+
+          secret:
+            secretName: grist-redis
+            items:
+              - key: redis-password
+                path: redis-password
+        - name: config
+          configMap:
+            name: grist-redis-configuration
+        - name: empty-dir
+          emptyDir: {}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: redis-data
+        labels:
+          app.kubernetes.io/instance: grist-redis
+          app.kubernetes.io/name: redis
+          app.kubernetes.io/component: master
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+---
+# Source: redis/templates/replicas/application.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: grist-redis-replicas
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.0.2
+    helm.sh/chart: redis-21.2.6
+    app.kubernetes.io/component: replica
+spec:
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-redis
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: replica
+  serviceName: grist-redis-headless
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: grist-redis
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/version: 8.0.2
+        helm.sh/chart: redis-21.2.6
+        app.kubernetes.io/component: replica
+      annotations:
+        checksum/configmap: 2a9ab4a5432825504d910f022638674ce88eaefe9f9f595ad8bc107377d104fb
+        checksum/health: aff24913d801436ea469d8d374b2ddb3ec4c43ee7ab24663d5f8ff1a1b6991a9
+        checksum/scripts: bb86153a18dd20b26662ccbba167ab180534ca96afcc82708cc52b21acb03ff1
+        checksum/secret: b98b3e477f23c132f63ee826dab553d9ddd0ad03b72dd8987ae398ffa30266ca
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-icbr-robot-pull-secret
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      serviceAccountName: grist-redis-replica
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: grist-redis
+                    app.kubernetes.io/name: redis
+                    app.kubernetes.io/component: replica
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+
+      enableServiceLinks: true
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redis
+          image: rcr.rijksapps.nl/dockerhub-icbr/bitnami/redis:8.0.2-debian-12-r4
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - /opt/bitnami/scripts/start-scripts/start-replica.sh
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: REDIS_REPLICATION_MODE
+              value: replica
+            - name: REDIS_MASTER_HOST
+              value: grist-redis-master-0.grist-redis-headless.icbr-poc-grist.svc.cluster.local
+            - name: REDIS_MASTER_PORT_NUMBER
+              value: "6379"
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: REDIS_PASSWORD_FILE
+              value: "/opt/bitnami/redis/secrets/redis-password"
+            - name: REDIS_MASTER_PASSWORD_FILE
+              value: "/opt/bitnami/redis/secrets/redis-password"
+            - name: REDIS_TLS_ENABLED
+              value: "no"
+            - name: REDIS_PORT
+              value: "6379"
+          ports:
+            - name: redis
+              containerPort: 6379
+          startupProbe:
+            failureThreshold: 22
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            tcpSocket:
+              port: redis
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 6
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - "/health/ping_liveness_local_and_master.sh 5"
+          readinessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - "/health/ping_readiness_local_and_master.sh 1"
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          volumeMounts:
+            - name: start-scripts
+              mountPath: /opt/bitnami/scripts/start-scripts
+            - name: health
+              mountPath: /health
+            - name: redis-password
+              mountPath: /opt/bitnami/redis/secrets/
+            - name: redis-data
+              mountPath: /data
+            - name: config
+              mountPath: /opt/bitnami/redis/mounted-etc
+            - name: empty-dir
+              mountPath: /opt/bitnami/redis/etc
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+      volumes:
+        - name: start-scripts
+          configMap:
+            name: grist-redis-scripts
+            defaultMode: 0755
+        - name: health
+          configMap:
+            name: grist-redis-health
+            defaultMode: 0755
+        - name: redis-password
+
+          secret:
+            secretName: grist-redis
+            items:
+              - key: redis-password
+                path: redis-password
+        - name: config
+          configMap:
+            name: grist-redis-configuration
+        - name: empty-dir
+          emptyDir: {}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: redis-data
+        labels:
+          app.kubernetes.io/instance: grist-redis
+          app.kubernetes.io/name: redis
+          app.kubernetes.io/component: replica
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+
+---
+# Source: minio/templates/console/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: grist-minio-console
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2.0.2
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/component: console
+    app.kubernetes.io/part-of: minio
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-minio
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: console
+      app.kubernetes.io/part-of: minio
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    # Allow inbound connections
+    - ports:
+        - port: 9090
+---
+# Source: minio/templates/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: grist-minio
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.6.13
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-minio
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: minio
+      app.kubernetes.io/part-of: minio
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    # Allow inbound connections
+    - ports:
+        - port: 9000
+---
+# Source: minio/templates/provisioning/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: grist-minio-provisioning
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.6.13
+    helm.sh/chart: minio-17.0.9
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: provisioning
+      app.kubernetes.io/part-of: minio
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+---
+# Source: minio/templates/console/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: grist-minio-console
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2.0.2
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/component: console
+    app.kubernetes.io/part-of: minio
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-minio
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: console
+      app.kubernetes.io/part-of: minio
+---
+# Source: minio/templates/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: grist-minio
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.6.13
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-minio
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: minio
+      app.kubernetes.io/part-of: minio
+---
+# Source: minio/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grist-minio
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.6.13
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/part-of: minio
+automountServiceAccountToken: false
+secrets:
+  - name: grist-minio
+---
+# Source: minio/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grist-minio
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.6.13
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+type: Opaque
+data:
+  root-user: "YWRtaW4="
+  root-password: "OWE2MWIyZDk2ZGUzMTBjYzU1ZDllNGZjOTE1MjU0ZjU0MTg3OGQ1MQ=="
+---
+# Source: minio/templates/provisioning/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grist-minio-provisioning
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.6.13
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/component: provisioning
+    app.kubernetes.io/part-of: minio
+data:
+---
+# Source: minio/templates/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: grist-minio
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.6.13
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "8Gi"
+---
+# Source: minio/templates/console/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: grist-minio-console
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2.0.2
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/component: console
+    app.kubernetes.io/part-of: minio
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 9090
+      targetPort: http
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: console
+    app.kubernetes.io/part-of: minio
+---
+# Source: minio/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: grist-minio
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.6.13
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp-api
+      port: 9000
+      targetPort: api
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+---
+# Source: minio/templates/application.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grist-minio
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.6.13
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/component: minio
+    app.kubernetes.io/part-of: minio
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-minio
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: minio
+      app.kubernetes.io/part-of: minio
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: grist-minio
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: minio
+        app.kubernetes.io/version: 2025.6.13
+        helm.sh/chart: minio-17.0.9
+        app.kubernetes.io/component: minio
+        app.kubernetes.io/part-of: minio
+      annotations:
+        checksum/credentials-secret: d23baa6e7bd5eb1f83df51dc2fe1144e4a2919158fd2c58369638be50f2262fd
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-icbr-robot-pull-secret
+      serviceAccountName: grist-minio
+      affinity:
+        podAffinity:
+
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: grist-minio
+                    app.kubernetes.io/name: minio
+                    app.kubernetes.io/component: minio
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: OnRootMismatch
+        supplementalGroups: []
+        sysctls: []
+      initContainers:
+      containers:
+        - name: minio
+          image: rcr.rijksapps.nl/dockerhub-icbr/bitnami/minio:2025.6.13-debian-12-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MINIO_DISTRIBUTED_MODE_ENABLED
+              value: "no"
+            - name: MINIO_SCHEME
+              value: "http"
+            - name: MINIO_FORCE_NEW_KEYS
+              value: "no"
+            - name: MINIO_ROOT_USER_FILE
+              value: /opt/bitnami/minio/secrets/root-user
+            - name: MINIO_ROOT_PASSWORD_FILE
+              value: /opt/bitnami/minio/secrets/root-password
+            - name: MINIO_SKIP_CLIENT
+              value: "no"
+            - name: MINIO_DEFAULT_BUCKETS
+              value: grist-docs
+            - name: MINIO_API_PORT_NUMBER
+              value: "9000"
+            - name: MINIO_BROWSER
+              value: "off"
+            - name: MINIO_PROMETHEUS_AUTH_TYPE
+              value: "public"
+            - name: MINIO_DATA_DIR
+              value: "/bitnami/minio/data"
+          ports:
+            - name: api
+              containerPort: 9000
+          livenessProbe:
+            httpGet:
+              path: /minio/health/live
+              port: api
+              scheme: "HTTP"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: api
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          resources:
+            limits:
+              cpu: 375m
+              ephemeral-storage: 2Gi
+              memory: 384Mi
+            requests:
+              cpu: 250m
+              ephemeral-storage: 50Mi
+              memory: 256Mi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/minio/tmp
+              subPath: app-tmp-dir
+            - name: empty-dir
+              mountPath: /.mc
+              subPath: app-mc-dir
+            - name: minio-credentials
+              mountPath: /opt/bitnami/minio/secrets/
+            - name: data
+              mountPath: /bitnami/minio/data
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: minio-credentials
+          secret:
+            secretName: grist-minio
+        - name: data
+          persistentVolumeClaim:
+            claimName: grist-minio
+---
+# Source: minio/templates/console/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grist-minio-console
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2.0.2
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/component: console
+    app.kubernetes.io/part-of: minio
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: grist-minio
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/component: console
+      app.kubernetes.io/part-of: minio
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: grist-minio
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: minio
+        app.kubernetes.io/version: 2025.6.13
+        helm.sh/chart: minio-17.0.9
+        app.kubernetes.io/component: console
+        app.kubernetes.io/part-of: minio
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-icbr-robot-pull-secret
+      serviceAccountName: grist-minio
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: grist-minio
+                    app.kubernetes.io/name: minio
+                    app.kubernetes.io/component: console
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      containers:
+        - name: console
+          image: docker.io/bitnami/minio-object-browser:2.0.2-debian-12-r0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          args:
+            - server
+            - --host
+            - "0.0.0.0"
+            - --port
+            - "9090"
+          env:
+            - name: CONSOLE_MINIO_SERVER
+              value: "http://grist-minio:9000"
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          ports:
+            - name: http
+              containerPort: 9090
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+            tcpSocket:
+              port: http
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /minio
+              port: http
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /.console
+              subPath: app-console-dir
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+---
+# Source: minio/templates/provisioning/job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: grist-minio-provisioning
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist-minio
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/version: 2025.6.13
+    helm.sh/chart: minio-17.0.9
+    app.kubernetes.io/component: provisioning
+    app.kubernetes.io/part-of: minio
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/version: 2025.6.13
+        helm.sh/chart: minio-17.0.9
+        app.kubernetes.io/component: provisioning
+        app.kubernetes.io/part-of: minio
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-icbr-robot-pull-secret
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      serviceAccountName: grist-minio
+      initContainers:
+        - name: wait-for-available-minio
+          image: docker.io/bitnami/os-shell:12-debian-12-r47
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/bash
+            - -c
+            - |-
+              set -e;
+              echo "Waiting for Minio";
+              wait-for-port \
+                --host=grist-minio \
+                --state=inuse \
+                --timeout=120 \
+                9000;
+              echo "Minio is available";
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+      containers:
+        - name: minio
+          image: rcr.rijksapps.nl/dockerhub-icbr/bitnami/minio:2025.6.13-debian-12-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/bash
+            - -c
+            - |-
+              set -e;
+              echo "Start Minio provisioning";
+
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+
+              function attachPolicy() {
+                local tmp=$(mc admin $1 info provisioning $2 | sed -n -e 's/^Policy.*: \(.*\)$/\1/p');
+                IFS=',' read -r -a CURRENT_POLICIES <<< "$tmp";
+                if [[ ! "${CURRENT_POLICIES[*]}" =~ "$3" ]]; then
+                  mc admin policy attach provisioning $3 --$1=$2;
+                fi;
+              };
+
+              function detachDanglingPolicies() {
+                local tmp=$(mc admin $1 info provisioning $2 | sed -n -e 's/^Policy.*: \(.*\)$/\1/p');
+                IFS=',' read -r -a CURRENT_POLICIES <<< "$tmp";
+                IFS=',' read -r -a DESIRED_POLICIES <<< "$3";
+                for current in "${CURRENT_POLICIES[@]}"; do
+                  if [[ ! "${DESIRED_POLICIES[*]}" =~ "${current}" ]]; then
+                    mc admin policy detach provisioning $current --$1=$2;
+                  fi;
+                done;
+              }
+
+              function addUsersFromFile() {
+                local username=$(grep -oP '^username=\K.+' $1);
+                local password=$(grep -oP '^password=\K.+' $1);
+                local disabled=$(grep -oP '^disabled=\K.+' $1);
+                local policies_list=$(grep -oP '^policies=\K.+' $1);
+                local set_policies=$(grep -oP '^setPolicies=\K.+' $1);
+
+                mc admin user add provisioning "${username}" "${password}";
+
+                IFS=',' read -r -a POLICIES <<< "${policies_list}";
+                for policy in "${POLICIES[@]}"; do
+                  attachPolicy user "${username}" "${policy}";
+                done;
+                if [ "${set_policies}" == "true" ]; then
+                  detachDanglingPolicies user "${username}" "${policies_list}";
+                fi;
+
+                local user_status="enable";
+                if [[ "${disabled}" != "" && "${disabled,,}" == "true" ]]; then
+                  user_status="disable";
+                fi;
+
+                mc admin user "${user_status}" provisioning "${username}";
+              };
+              mc alias set provisioning $MINIO_SCHEME://grist-minio:9000 $(<$MINIO_ROOT_USER_FILE) $(<$MINIO_ROOT_PASSWORD_FILE);
+
+              mc admin service restart provisioning --wait --json;
+
+              # Adding a sleep to ensure that the check below does not cause
+              # a race condition. We check for the MinIO port because the
+              # "mc admin service restart --wait" command is not working as expected
+              sleep 5;
+              echo "Waiting for Minio to be available after restart";
+              if ! retry_while "mc admin info provisioning"; then
+                  echo "Error connecting to Minio"
+                  exit 1
+              fi
+              echo "Minio is available. Executing provisioning commands";
+              mc mb provisioning/grist-docs --ignore-existing  ;
+              mc version enable provisioning/grist-docs;
+
+              echo "End Minio provisioning";
+          env:
+            - name: MINIO_SCHEME
+              value: "http"
+            - name: MINIO_ROOT_USER_FILE
+              value: /opt/bitnami/minio/secrets/root-user
+            - name: MINIO_ROOT_PASSWORD_FILE
+              value: /opt/bitnami/minio/secrets/root-password
+          envFrom:
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /.mc
+              subPath: app-mc-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/minio/tmp
+              subPath: app-tmp-dir
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: minio-provisioning
+              mountPath: /etc/ilm
+            - name: minio-credentials
+              mountPath: /opt/bitnami/minio/secrets/
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: minio-provisioning
+          configMap:
+            name: grist-minio-provisioning
+        - name: minio-credentials
+          secret:
+            secretName: grist-minio
+
+---
+# Source: grist/templates/networkpolicy.yaml.gotmpl
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: grist
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grist
+    app.kubernetes.io/version: 1.6.1
+    helm.sh/chart: grist-0.1.0
+    app.kubernetes.io/component: grist
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: grist
+      app.kubernetes.io/name: grist
+      app.kubernetes.io/component: grist
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    - ports:
+        - port: 8484
+        - port:
+---
+# Source: grist/templates/pdb.yaml.gotmpl
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: grist
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grist
+    app.kubernetes.io/version: 1.6.1
+    helm.sh/chart: grist-0.1.0
+    app.kubernetes.io/component: grist
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: grist
+      app.kubernetes.io/name: grist
+      app.kubernetes.io/component: grist
+---
+# Source: grist/templates/service-account.yaml.gotmpl
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grist
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grist
+    app.kubernetes.io/version: 1.6.1
+    helm.sh/chart: grist-0.1.0
+    app.kubernetes.io/component: "grist"
+automountServiceAccountToken: true
+---
+# Source: grist/templates/pvc.yaml.gotmpl
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-grist
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grist
+    app.kubernetes.io/version: 1.6.1
+    helm.sh/chart: grist-0.1.0
+    app.kubernetes.io/component: grist
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "8Gi"
+---
+# Source: grist/templates/service.yaml.gotmpl
+apiVersion: v1
+kind: Service
+metadata:
+  name: grist
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grist
+    app.kubernetes.io/version: 1.6.1
+    helm.sh/chart: grist-0.1.0
+    app.kubernetes.io/component: grist
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 8484
+      protocol: TCP
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: grist
+    app.kubernetes.io/name: grist
+    app.kubernetes.io/component: grist
+---
+# Source: grist/templates/deployment.yaml.gotmpl
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grist
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grist
+    app.kubernetes.io/version: 1.6.1
+    helm.sh/chart: grist-0.1.0
+    app.kubernetes.io/component: grist
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: grist
+      app.kubernetes.io/name: grist
+      app.kubernetes.io/component: grist
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: grist
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: grist
+        app.kubernetes.io/version: 1.6.1
+        helm.sh/chart: grist-0.1.0
+        app.kubernetes.io/component: grist
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-icbr-robot-pull-secret
+      serviceAccountName: grist
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: grist
+                    app.kubernetes.io/name: grist
+                    app.kubernetes.io/component: grist
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      initContainers:
+      containers:
+        - name: "grist"
+          image: rcr.rijksapps.nl/dockerhub-icbr/gristlabs/grist:1.6.1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: REDIS_URL
+              value: "redis://default:9d665232fe9e99e228bb4a2e3c8f4744f6ec84e7@grist-redis-master:6379"
+            - name: GRIST_DOCS_MINIO_ACCESS_KEY
+              value: "admin"
+            - name: GRIST_DOCS_MINIO_SECRET_KEY
+              value: "9a61b2d96de310cc55d9e4fc915254f541878d51"
+            - name: GRIST_DOCS_MINIO_USE_SSL
+              value: "false"
+            - name: GRIST_DOCS_MINIO_BUCKET
+              value: "grist-docs"
+            - name: GRIST_DOCS_MINIO_ENDPOINT
+              value: "grist-minio"
+            - name: GRIST_DOCS_MINIO_PORT
+              value: "9000"
+            - name: TYPEORM_DATABASE
+              value: "grist"
+            - name: TYPEORM_USERNAME
+              value: "grist"
+            - name: TYPEORM_HOST
+              value: "grist-postgresql"
+            - name: TYPEORM_LOGGING
+              value: "true"
+            - name: TYPEORM_PASSWORD
+              value: "56e7d0fcc854a51e08efc8c8a9f75d53682adb19"
+            - name: TYPEORM_PORT
+              value: "5432"
+            - name: TYPEORM_TYPE
+              value: "postgres"
+          envFrom:
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          ports:
+            - name: http
+              containerPort: 8484
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: 8484
+              scheme: HTTP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: 8484
+              scheme: HTTP
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: grist-data
+              mountPath: /persist
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: grist-data
+          persistentVolumeClaim:
+            claimName: data-grist
+---
+# Source: grist/templates/ingress.yaml.gotmpl
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grist
+  namespace: "icbr-poc-grist"
+  labels:
+    app.kubernetes.io/instance: grist
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grist
+    app.kubernetes.io/version: 1.6.1
+    helm.sh/chart: grist-0.1.0
+    app.kubernetes.io/component: grist
+spec:
+  rules:
+    - host: cluster-api.apps.prd1.gn2.quattro.rijksapps.nl
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: grist
+                port:
+                  name: http

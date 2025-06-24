@@ -1,0 +1,10 @@
+container:
+  default:
+    registry: "rcr.rijksapps.nl/dockerhub-icbr"
+    imagePullSecrets: "dockerhub-icbr-robot-pull-secret"
+
+  grist:
+    registry: "registry-1.docker.io"
+    repository: "gristlabs/grist"
+    tag: "1.6.1"
+    imagePullSecrets: ~

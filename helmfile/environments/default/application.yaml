@@ -1,0 +1,4 @@
+applications:
+  grist:
+    namespace: "icbr-poc-grist"
+    endpoint: "grist.mijnbureau.icbr.prd1.gn2.quattro.rijksapps.nl"
