@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "grist.fullname" . }}
+  labels:
+    {{- include "grist.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "grist.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "grist.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+        ports:
+          - name: http
+            protocol: TCP
+            containerPort: 8484
+        volumeMounts:
+          - name: files-grist
+            mountPath: /persist
+      volumes:
+        - name: files-grist
+          persistentVolumeClaim:
+            claimName: {{ include "grist.fullname" .}}-data
