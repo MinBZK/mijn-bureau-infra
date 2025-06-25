@@ -70,3 +70,10 @@ sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list   # helps tools such as c
 sudo apt-get update
 sudo apt-get install -y kubectl
 
+# install sops
+# Download the binary
+curl -LO https://github.com/getsops/sops/releases/download/v3.10.2/sops-v3.10.2.linux.${ARCH}
+# Move the binary in to your PATH
+sudo mv sops-v3.10.2.linux.${ARCH} /usr/local/bin/sops
+# Make the binary executable
+sudo chmod +x /usr/local/bin/sops
