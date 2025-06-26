@@ -1,8 +1,7 @@
 image:
-  repository: {{ printf "%s/%s" (coalesce .Values.global.imageRegistry.dockerhub .Values.images.grist.registry) (.Values.images.grist.repository) | quote }}
+  registry: {{(coalesce .Values.global.imageRegistry.dockerhub .Values.images.grist.registry) | quote }}
+  repository: {{ .Values.images.grist.repository | quote }}
   pullPolicy: "IfNotPresent"
 
 imagePullSecrets:
   - name: {{ .Values.global.imagePullSecrets.dockerhub | quote }}
-
-nameOverride: {{ .Values.db.name }}
