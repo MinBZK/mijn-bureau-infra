@@ -1,0 +1,11 @@
+containerRegistry:
+  # some organizations use proxies. With these variables you can set the registry URLs
+  dockerhub:
+    registry: {{ "registry-1.docker.io" | quote }}
+    secret: ~
+  quay:
+    registry: {{  "quay.io" | quote }}
+    secret: ~
+  ghcr:
+    registry: {{ "ghcr.io" | quote }}
+    secret: ~

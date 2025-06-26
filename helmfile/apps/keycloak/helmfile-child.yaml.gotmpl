@@ -1,0 +1,37 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+repositories:
+  - name: keycloak
+    url: "{{ .Values.global.helmRegistry | default .Values.helmchart.keycloak.registry }}/{{ .Values.helmchart.keycloak.repository }}"
+    oci: {{ .Values.helmchart.keycloak.oci }}
+    verify: {{ .Values.helmchart.keycloak.verify }}
+    username: {{ .Values.helmchart.keycloak.username | quote }}
+    password: {{ .Values.helmchart.keycloak.password | quote }}
+
+releases:
+  - name: "keycloak"
+    chart: "keycloak/{{ .Values.helmchart.keycloak.name }}"
+    version: "{{ .Values.helmchart.keycloak.version }}"
+    namespace: {{ .Values.application.keycloak.namespace }}
+    installed: {{ .Values.application.keycloak.enabled }}
+    values:
+      - keycloak.yaml.gotmpl
+
+  # - name: "keycloak-postgresql"
+  #   chart: "bitnami/postgresql"
+  #   version: "16.7.10"
+  #   namespace: {{ .Values.application.keycloak.namespace }}
+  #   installed: {{ .Environment.Name | eq "demo" }}
+
+  # - name: "keycloak-redis"
+  #   chart: "bitnami/redis"
+  #   version: "21.2.3"
+  #   namespace: {{ .Values.application.keycloak.namespace }}
+  #   installed: {{ .Environment.Name | eq "demo" }}
+
+  # - name: "keycloak-minio"
+  #   chart: "bitnami/minio"
+  #   version: "17.0.4"
+  #   namespace: {{ .Values.application.keycloak.namespace }}
+  #   installed: {{ .Environment.Name | eq "demo" }}
