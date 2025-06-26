@@ -1,0 +1,6 @@
+image:
+  repository: {{ printf "%s/%s" (coalesce .Values.global.imageRegistry.dockerhub .Values.images.grist.registry) (.Values.images.grist.repository) | quote }}
+  pullPolicy: "IfNotPresent"
+
+imagePullSecrets:
+  - name: {{ .Values.global.imagePullSecrets.dockerhub | quote }}

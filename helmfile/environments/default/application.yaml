@@ -1,0 +1,3 @@
+applications:
+  grist:
+    namespace: "icbr-poc-grist"

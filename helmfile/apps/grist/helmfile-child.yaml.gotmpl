@@ -1,0 +1,7 @@
+releases:
+  - name: grist
+    chart: charts/grist
+    namespace: {{ .Values.applications.grist.namespace }}
+    createNamespace: false
+    values:
+      - "values.yaml.gotmpl"
