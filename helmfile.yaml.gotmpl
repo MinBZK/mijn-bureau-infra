@@ -1,0 +1,20 @@
+helmDefaults:
+  verify: true
+
+missingFileHandler: "Error"
+
+environments:
+  demo:
+    values:
+      - "helmfile/environments/demo/*.yaml*"
+  production:
+    values:
+      - "helmfile/environments/production/*.yaml*"
+
+---
+
+helmfiles:
+  - path: "helmfile/apps/grist/helmfile-child.yaml.gotmpl"
+    values: &values
+      - "helmfile/environments/default/*.yaml*"
+      - {{ toYaml .Values | nindent 8 }}

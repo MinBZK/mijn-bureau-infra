@@ -4,3 +4,5 @@ image:
 
 imagePullSecrets:
   - name: {{ .Values.global.imagePullSecrets.dockerhub | quote }}
+
+nameOverride: {{ .Values.db.name }}
