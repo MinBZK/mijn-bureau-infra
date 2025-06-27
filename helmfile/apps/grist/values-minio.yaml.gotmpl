@@ -1,0 +1,21 @@
+global:
+  security:
+    allowInsecureImages: true
+
+  imagePullSecrets:
+    - name: {{ .Values.global.imagePullSecrets.dockerhub | quote }}
+
+image:
+  registry: {{(coalesce .Values.global.imageRegistry.dockerhub .Values.images.grist.registry) | quote }}
+
+
+auth:
+  rootPassword: {{ .Values.secrets.minio.rootPassword }}
+
+defaultBuckets: "grist-docs"
+
+provisioning:
+  enabled: true
+  buckets:
+    - name: "grist-docs"
+      versioning: true

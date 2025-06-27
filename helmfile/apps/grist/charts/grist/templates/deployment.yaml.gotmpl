@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "grist.fullname" . }}
+  labels:
+    {{- include "grist.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "grist.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "grist.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+        ports:
+          - name: http
+            protocol: TCP
+            containerPort: 8484
+        env:
+          {{- if .Values.redis.enabled }}
+          - name: REDIS_URL
+            value: {{ .Values.redis.url | quote }}
+          {{- end }}
+          {{- if .Values.minio.enabled }}
+          - name: GRIST_DOCS_MINIO_ACCESS_KEY
+            value: {{ .Values.minio.gristDocsMinioAccessKey | quote }}
+          - name: GRIST_DOCS_MINIO_SECRET_KEY
+            value: {{ .Values.minio.gristDocsMinioSecretKey | quote }}
+          - name: GRIST_DOCS_MINIO_USE_SSL
+            value: {{ .Values.minio.gristDocsMinioUseSSL | quote }}
+          - name: GRIST_DOCS_MINIO_BUCKET
+            value: {{ .Values.minio.gristDocsMinioBucket | quote }}
+          - name: GRIST_DOCS_MINIO_ENDPOINT
+            value: {{ .Values.minio.gristDocsMinioEndpoint | quote }}
+          - name: GRIST_DOCS_MINIO_PORT
+            value: {{ .Values.minio.gristDocsMinioPort | quote }}
+          {{- end }}
+          {{- if .Values.postgresql.enabled }}
+          - name: TYPEORM_DATABASE
+            value: {{ .Values.postgresql.typeormDatabase | quote }}
+          - name: TYPEORM_USERNAME
+            value: {{ .Values.postgresql.typeormUsername | quote }}
+          - name: TYPEORM_HOST
+            value: {{ .Values.postgresql.typeormHost | quote }}
+          - name: TYPEORM_LOGGING
+            value: {{ .Values.postgresql.typeormLogging | quote }}
+          - name: TYPEORM_PASSWORD
+            value: {{ .Values.postgresql.typeormPassword | quote }}
+          - name: TYPEORM_PORT
+            value: {{ .Values.postgresql.typeormPort | quote }}
+          - name: TYPEORM_TYPE
+            value: {{ .Values.postgresql.typeormType | quote }}
+          {{- end }}
+        volumeMounts:
+          - name: files-grist
+            mountPath: /persist
+      volumes:
+        - name: files-grist
+          persistentVolumeClaim:
+            claimName: {{ include "grist.fullname" .}}-data

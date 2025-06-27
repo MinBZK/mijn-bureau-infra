@@ -1,0 +1,18 @@
+global:
+  security:
+    allowInsecureImages: true
+
+  imagePullSecrets:
+    - name: {{ .Values.global.imagePullSecrets.dockerhub | quote }}
+
+image:
+  registry: {{(coalesce .Values.global.imageRegistry.dockerhub .Values.images.grist.registry) | quote }}
+
+imagePullSecrets:
+  - name: {{ .Values.global.imagePullSecrets.dockerhub | quote }}
+
+auth:
+  postgresPassword: {{ .Values.secrets.postgresql.rootPassword }}
+  username: "grist"
+  password: {{ .Values.secrets.postgresql.gristUser }}
+  database: "grist"

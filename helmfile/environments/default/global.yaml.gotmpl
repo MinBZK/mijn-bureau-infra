@@ -3,6 +3,15 @@ global:
   domain: {{ env "DOMAIN" | default "mijnbureau.internal" | quote }}
   matrixDomain: {{ env "MATRIX_DOMAIN" | quote }}
 
+  # some organizations use proxies. With these variables you can set the registry URLs.
+  imageRegistry:
+      dockerhub: {{ env "MIJNBUREAU_IMAGE_REGISTRY_DOCKERIO" | default "registry-1.docker.io" | quote }}
+      quay: {{ env "MIJNBUREAU_IMAGE_REGISTRY_QUAY" | default "quay.io" | quote }}
+      ghcr: {{ env "MIJNBUREAU_IMAGE_REGISTRY_GHCR" | default "ghcr.io" | quote }}
+
+  imagePullSecrets:
+      dockerhub: "dockerhub-icbr-robot-pull-secret"
+
   hosts:
     docs: "docs"
     keycloak: "id"

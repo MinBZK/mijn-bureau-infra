@@ -1,0 +1,66 @@
+# Default values for helm_test.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- Replicaset count
+replicaCount: 1
+
+# -- Container image
+image:
+  # -- Container registry
+  registry: registry-1.docker.io
+  # -- Container image repository
+  repository: gristlabs/grist
+  # -- Repository pull policty
+  pullPolicy: IfNotPresent
+  # -- Repository image tag
+  tag: ""
+
+# -- Secrets for pulling an image from a private repository
+imagePullSecrets: []
+
+# -- Override the chart name.
+nameOverride: ""
+
+# -- Override the full application name
+fullnameOverride: ""
+
+# -- Setting up a service
+service:
+  # -- Service type
+  type: ClusterIP
+  # -- Service port
+  port: 8484
+  # -- Service node port
+  nodePort: 8484
+
+# -- PVC to store persistent data
+persistentVolumeClaim:
+  # -- PVC access mode
+  accessModes:
+    - ReadWriteOnce
+  # -- PVC storage size
+  size: 10Gi
+
+redis:
+  enabled: false
+  url:
+
+minio:
+  enabled: false
+  gristDocsMinioAccessKey:
+  gristDocsMinioSecretKey:
+  gristDocsMinioUseSSL:
+  gristDocsMinioBucket:
+  gristDocsMinioEndpoint:
+  gristDocsMinioPort:
+
+postgresql:
+  enabled: false
+  typeormDatabase:
+  typeormUsername:
+  typeormHost:
+  typeormLogging:
+  typeormPassword:
+  typeormPort:
+  typeormType:

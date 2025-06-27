@@ -1,0 +1,4 @@
+images:
+  grist:
+    registry: "registry-1.docker.io"
+    repository: "gristlabs/grist"
