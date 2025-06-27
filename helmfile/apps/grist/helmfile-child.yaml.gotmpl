@@ -3,11 +3,11 @@ repositories:
     url: https://charts.bitnami.com/bitnami
 
 releases:
-  #- name: grist-postgresql
-  #  chart: bitnami/postgresql
-  #  namespace: {{ .Values.applications.grist.namespace }}
-  #  createNamespace: false
-  #  installed: {{ eq .Environment.Name "demo" | toYaml }}
+  - name: grist-postgresql
+    chart: bitnami/postgresql
+    namespace: {{ .Values.applications.grist.namespace }}
+    createNamespace: false
+    installed: {{ eq .Environment.Name "demo" | toYaml }}
 
   - name: grist-redis
     chart: bitnami/redis
@@ -31,7 +31,7 @@ releases:
     createNamespace: false
     needs:
       {{- if eq .Environment.Name "demo" }}
-      #- {{ .Values.applications.grist.namespace }}/grist-postgresql
+      - {{ .Values.applications.grist.namespace }}/grist-postgresql
       - {{ .Values.applications.grist.namespace }}/grist-redis
       - {{ .Values.applications.grist.namespace }}/grist-minio
       {{- end }}

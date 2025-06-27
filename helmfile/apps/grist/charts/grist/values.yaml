@@ -54,3 +54,13 @@ minio:
   gristMinioBucket:
   gristDocsMinioEndpoint:
   gristDocsMinioPort:
+
+postgresql:
+  enabled: false
+  typeormDatabase:
+  typeormUsername:
+  typeormHost:
+  typeormLogging:
+  typeormPassword:
+  typeormPort:
+  typeormType:

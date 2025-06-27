@@ -19,4 +19,14 @@ minio:
   gristMinioBucket: "grist-docs"
   gristDocsMinioEndpoint: "grist-minio"
   gristDocsMinioPort: "9000"
+
+postgresql:
+  enabled: true
+  typeormDatabase: "grist"
+  typeormUsername: "grist"
+  typeormHost: "grist-postgresql"
+  typeormLogging: true
+  typeormPassword: {{ .Values.secrets.postgresql.gristUser | quote }}
+  typeormPort: 5432
+  typeormType: "postgres"
 {{- end}}

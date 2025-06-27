@@ -32,15 +32,31 @@ spec:
           {{- end }}
           {{- if .Values.minio.enabled }}
           - name: GRIST_DOCS_MINIO_ACCESS_KEY
-            value: {{ .Values.minio.gristDocsMinioAccessKey }}
+            value: {{ .Values.minio.gristDocsMinioAccessKey | quote }}
           - name: GRIST_DOCS_MINIO_SECRET_KEY
-            value: {{ .Values.minio.gristDocsMinioSecretKey }}
+            value: {{ .Values.minio.gristDocsMinioSecretKey | quote }}
           - name: GRIST_DOCS_MINIO_USE_SSL
-            value: {{ .Values.minio.gristDocsMinioUseSSL }}
+            value: {{ .Values.minio.gristDocsMinioUseSSL | quote }}
           - name: GRIST_DOCS_MINIO_ENDPOINT
-            value: {{ .Values.minio.gristDocsMinioEndpoint }}
+            value: {{ .Values.minio.gristDocsMinioEndpoint | quote }}
           - name: GRIST_DOCS_MINIO_PORT
-            value: {{ .Values.minio.gristDocsMinioPort }}
+            value: {{ .Values.minio.gristDocsMinioPort | quote }}
+          {{- end }}
+          {{- if .Values.postgresql.enabled }}
+          - name: TYPEORM_DATABASE
+            value: {{ .Values.postgresql.typeormDatabase | quote }}
+          - name: TYPEORM_USERNAME
+            value: {{ .Values.postgresql.typeormUsername | quote }}
+          - name: TYPEORM_HOST
+            value: {{ .Values.postgresql.typeormHost | quote }}
+          - name: TYPEORM_LOGGING
+            value: {{ .Values.postgresql.typeormLogging | quote }}
+          - name: TYPEORM_PASSWORD
+            value: {{ .Values.postgresql.typeormPassword | quote }}
+          - name: TYPEORM_PORT
+            value: {{ .Values.postgresql.typeormPort | quote }}
+          - name: TYPEORM_TYPE
+            value: {{ .Values.postgresql.typeormType | quote }}
           {{- end }}
         volumeMounts:
           - name: files-grist
