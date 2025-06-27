@@ -16,7 +16,7 @@ minio:
   gristDocsMinioAccessKey: "admin"
   gristDocsMinioSecretKey: {{ .Values.secrets.minio.rootPassword | quote }}
   gristDocsMinioUseSSL: "0"
-  gristMinioBucket: "grist-docs"
+  gristDocsMinioBucket: "grist-docs"
   gristDocsMinioEndpoint: "grist-minio"
   gristDocsMinioPort: "9000"
 

@@ -37,6 +37,8 @@ spec:
             value: {{ .Values.minio.gristDocsMinioSecretKey | quote }}
           - name: GRIST_DOCS_MINIO_USE_SSL
             value: {{ .Values.minio.gristDocsMinioUseSSL | quote }}
+          - name: GRIST_DOCS_MINIO_BUCKET
+            value: {{ .Values.minio.gristDocsMinioBucket | quote }}
           - name: GRIST_DOCS_MINIO_ENDPOINT
             value: {{ .Values.minio.gristDocsMinioEndpoint | quote }}
           - name: GRIST_DOCS_MINIO_PORT

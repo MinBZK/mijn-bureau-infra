@@ -51,7 +51,7 @@ minio:
   gristDocsMinioAccessKey:
   gristDocsMinioSecretKey:
   gristDocsMinioUseSSL:
-  gristMinioBucket:
+  gristDocsMinioBucket:
   gristDocsMinioEndpoint:
   gristDocsMinioPort:
 
