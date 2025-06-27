@@ -41,3 +41,16 @@ persistentVolumeClaim:
     - ReadWriteOnce
   # -- PVC storage size
   size: 10Gi
+
+redis:
+  enabled: false
+  url:
+
+minio:
+  enabled: false
+  gristDocsMinioAccessKey:
+  gristDocsMinioSecretKey:
+  gristDocsMinioUseSSL:
+  gristMinioBucket:
+  gristDocsMinioEndpoint:
+  gristDocsMinioPort:

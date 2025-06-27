@@ -5,3 +5,18 @@ image:
 
 imagePullSecrets:
   - name: {{ .Values.global.imagePullSecrets.dockerhub | quote }}
+
+{{- if eq .Environment.Name "demo" }}
+redis:
+  enabled: true
+  url: "redis://grist-redis-master"
+
+minio:
+  enabled: true
+  gristDocsMinioAccessKey: "admin"
+  gristDocsMinioSecretKey: {{ .Values.secrets.minio.rootPassword | quote }}
+  gristDocsMinioUseSSL: "0"
+  gristMinioBucket: "grist-docs"
+  gristDocsMinioEndpoint: "grist-minio"
+  gristDocsMinioPort: "9000"
+{{- end}}

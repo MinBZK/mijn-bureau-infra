@@ -25,6 +25,23 @@ spec:
           - name: http
             protocol: TCP
             containerPort: 8484
+        env:
+          {{- if .Values.redis.enabled }}
+          - name: REDIS_URL
+            value: {{ .Values.redis.url | quote }}
+          {{- end }}
+          {{- if .Values.minio.enabled }}
+          - name: GRIST_DOCS_MINIO_ACCESS_KEY
+            value: {{ .Values.minio.gristDocsMinioAccessKey }}
+          - name: GRIST_DOCS_MINIO_SECRET_KEY
+            value: {{ .Values.minio.gristDocsMinioSecretKey }}
+          - name: GRIST_DOCS_MINIO_USE_SSL
+            value: {{ .Values.minio.gristDocsMinioUseSSL }}
+          - name: GRIST_DOCS_MINIO_ENDPOINT
+            value: {{ .Values.minio.gristDocsMinioEndpoint }}
+          - name: GRIST_DOCS_MINIO_PORT
+            value: {{ .Values.minio.gristDocsMinioPort }}
+          {{- end }}
         volumeMounts:
           - name: files-grist
             mountPath: /persist

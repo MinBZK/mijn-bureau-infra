@@ -3,21 +3,52 @@ repositories:
     url: https://charts.bitnami.com/bitnami
 
 releases:
-  - name: grist-postgresql
-    chart: bitnami/postgresql
-    namespace: {{ .Values.applications.grist.namespace }}
-    createNamespace: false
-    installed: {{ eq .Environment.Name "demo" | toYaml }}
+  #- name: grist-postgresql
+  #  chart: bitnami/postgresql
+  #  namespace: {{ .Values.applications.grist.namespace }}
+  #  createNamespace: false
+  #  installed: {{ eq .Environment.Name "demo" | toYaml }}
 
   - name: grist-redis
     chart: bitnami/redis
     namespace: {{ .Values.applications.grist.namespace }}
     createNamespace: false
     installed: {{ eq .Environment.Name "demo" | toYaml }}
+    values:
+      - "values-redis.yaml.gotmpl"
+
+  - name: grist-minio
+    chart: bitnami/minio
+    namespace: {{ .Values.applications.grist.namespace }}
+    createNamespace: false
+    installed: {{ eq .Environment.Name "demo" | toYaml }}
+    values:
+      - "values-minio.yaml.gotmpl"
 
   - name: grist
     chart: charts/grist
     namespace: {{ .Values.applications.grist.namespace }}
     createNamespace: false
+    needs:
+      {{- if eq .Environment.Name "demo" }}
+      #- {{ .Values.applications.grist.namespace }}/grist-postgresql
+      - {{ .Values.applications.grist.namespace }}/grist-redis
+      - {{ .Values.applications.grist.namespace }}/grist-minio
+      {{- end }}
     values:
       - "values.yaml.gotmpl"
+    hooks:
+      - events: ["prepare"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "network-policies/"
+      - events: ["postuninstall"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          - "delete"
+          - "-f"
+          - "network-policies/"
