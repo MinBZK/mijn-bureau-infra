@@ -8,6 +8,8 @@ releases:
     namespace: {{ .Values.applications.grist.namespace }}
     createNamespace: false
     installed: {{ eq .Environment.Name "demo" | toYaml }}
+    values:
+      - "values-postgresql.yaml.gotmpl"
 
   - name: grist-redis
     chart: bitnami/redis
