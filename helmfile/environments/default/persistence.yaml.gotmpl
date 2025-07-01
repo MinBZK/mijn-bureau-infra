@@ -1,0 +1,16 @@
+persistence:
+  # Will be used as default if not otherwise define on the component level
+  storageClassNames:
+    RWX: "ocs-storagecluster-cephfs"
+    RWO: "ocs-storagecluster-ceph-rbd"
+
+  storages:
+    postgresql:
+      size: "2Gi"
+      storageClassName: ~
+    redis:
+      size: "1Gi"
+      storageClassName: ~
+    synapse:
+      size: "50Gi"
+      storageClassName: ~

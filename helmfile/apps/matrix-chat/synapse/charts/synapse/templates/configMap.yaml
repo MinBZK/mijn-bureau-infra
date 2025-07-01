@@ -40,8 +40,8 @@ data:
 
     ## Server ##
 
-    server_name: {{ required "You need to specify a serverName" .Values.synapse.serverName | quote }}
-    public_baseurl: {{ .Values.synapse.publicBaseurl | default (printf "https://%s" (.Values.synapse.publicServerName | default .Values.synapse.serverName)) | quote }}
+    server_name: {{ .Values.global.hosts.synapse }}.{{ .Values.global.matrixDomain | default .Values.global.domain }}
+    public_baseurl: {{ (printf "https://%s.%s" .Values.global.hosts.synapse ( .Values.global.matrixDomain | default .Values.global.domain )) }}
     pid_file: /homeserver.pid
     web_client: False
     soft_file_limit: 0
@@ -51,10 +51,10 @@ data:
     instance_map:
       main:
         host: {{ include "synapse.replicationName" . }}
-        port: 9093
+        port: {{ .Values.service.replication.port }}
 
     listeners:
-      - port: 8008
+      - port: {{ .Values.service.server.port }}
         tls: false
         type: http
         x_forwarded: true
@@ -63,13 +63,13 @@ data:
               - client
               - federation
             compress: false
-      - port: 9093
+      - port: {{ .Values.service.replication.port }}
         tls: false
         type: http
         resources:
           - names: [replication]
             compress: false
-      - port: 9090
+      - port: {{ .Values.service.metrics.port }}
         tls: false
         type: http
         resources:
@@ -111,29 +111,24 @@ data:
     # The trusted servers to download signing keys from.
     trusted_key_servers: {{- .Values.synapse.trustedKeyServers | toYaml | nindent 6 }}
 
-    {{- with .Values.synapse.extraConfig }}
-
     database:
       name: psycopg2
       args:
         host: {{ .Values.databases.synapse.host | quote }}
         port: {{ .Values.databases.synapse.port }}
-        name: {{ .Values.databases.synapse.name | qoute }}
         user: {{ .Values.databases.synapse.username | quote }}
-        password:
-          value: {{ .Values.databases.synapse.password | default .Values.secrets.postgresql.matrixUser | quote }}
+        password: {{ .Values.databases.synapse.password | default .Values.secrets.postgresql.matrixUser | quote }}
 
-    registration_shared_secret: {{ .Values.synapse.registrationSharedSecret | qoute }}
+    registration_shared_secret: {{ .Values.synapse.registrationSharedSecret | quote }}
     form_secret: {{ .Values.synapse.formSecret }}
 
     suppress_key_server_warning: true
 
     redis:
-      enabled: true
-      host: {{ .Values.redis.synapse.host | quote }}
-      port: {{ .Values.redis.synapse.port }}
-      password:
-        value: {{ .Values.redis.synapse.password | default .Values.secrets.redis.password | quote }}
+      enabled: {{ .Values.cache.synapse.host | quote }}
+      host: {{ .Values.cache.synapse.host | quote }}
+      port: {{ .Values.cache.synapse.port }}
+      password: {{ .Values.cache.synapse.password | default .Values.secrets.redis.password | quote }}
 
     # as we want our first launch and subsequent upgrades to go as fast
     # as possible don't sleep between background updates
@@ -141,16 +136,16 @@ data:
       sleep_enabled: false
 
     email:
-      smtp_host: chat-mailcatcher-svc
-      smtp_port: 1025
-      enable_tls: false
-      notif_from: "Your %(app)s homeserver <noreply@chat.la-suite.apps.digilab.network>"
+      smtp_host: {{ .Values.smtp.host }}
+      smtp_port: {{ .Values.smtp.port }}
+      enable_tls: {{ .Values.smtp.tls }}
+      notif_from: {{ (printf "Your %%(app)s homeserver <noreply@%s>" ( .Values.global.matrixDomain | default .Values.global.domain )) | quote }}
       app_name: Matrix
       enable_notifs: true
       notif_for_new_users: false
-      client_base_url: https://element.chat.la-suite.apps.digilab.network
+      client_base_url: {{ (printf "https://%s.%s" .Values.global.hosts.element ( .Values.global.matrixDomain | default .Values.global.domain )) | quote }}
       validation_token_lifetime: 15m
-      invite_client_location: https://element.chat.la-suite.apps.digilab.network
+      invite_client_location: {{ (printf "https://%s.%s" .Values.global.hosts.element ( .Values.global.matrixDomain | default .Values.global.domain )) | quote }}
       subjects:
         message_from_person_in_room: "[%(app)s] You have a message on %(app)s from %(person)s in the %(room)s room..."
         message_from_person: "[%(app)s] You have a message on %(app)s from %(person)s..."
@@ -189,7 +184,7 @@ data:
       allowed_lifetime_max: 1y
 
     auto_join_rooms:
-      - "#welkom:chat.la-suite.apps.digilab.network"
+      - {{ (printf "#%s:%s.%s" .Values.synapse.autoJoinRoom .Values.global.hosts.synapse ( .Values.global.matrixDomain | default .Values.global.domain )) | quote }}
 
 
 {{/*    oidc_providers:*/}}
@@ -208,9 +203,9 @@ data:
 {{/*        jwks_uri: "https://id.la-suite.apps.digilab.network/realms/lasuite/protocol/openid-connect/certs"*/}}
 {{/*        user_mapping_provider:*/}}
 {{/*          config:*/}}
-{{/*            localpart_template: "{{ (user.given_name ~ user.family_name) | replace(' ', '') }}"*/}}
-{{/*            display_name_template: "{{ user.name }}"*/}}
-{{/*            email_template: "{{ user.email }}"*/}}
+{{/*            localpart_template: {{`{{ (user.given_name ~ user.family_name) | replace(' ', '') }}`}}*/}}
+{{/*            display_name_template: {{`{{ user.name }}"`}}*/}}
+{{/*            email_template: {{`{{ user.email }}"`}}*/}}
 {{/*    password_config:*/}}
 {{/*      enabled: false*/}}
 
@@ -235,8 +230,3 @@ data:
       msc3266_enabled: true
       # MSC4222 needed for syncv2 state_after. This allow clients to correctly track the state of the room.
       msc4222_enabled: true
-
-
-    ## Extra config ##
-    {{ . | toYaml | nindent 4 }}
-    {{- end }}

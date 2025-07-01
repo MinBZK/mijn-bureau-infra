@@ -7,15 +7,14 @@ replicaCount: 1
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: rcr.rijksapps.nl/dockerhub-icbr/matrixdotorg/synapse
+  repository: {{ .Values.images.synapse.registry }}/{{ .Values.images.synapse.repository }}
   # This sets the pull policy for images.
-  pullPolicy: IfNotPresent
+  pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+#  tag: {{ .Values.images.synapse.tag }}
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-imagePullSecrets:
-  - name: "dockerhub-icbr-robot-pull-secret"
+imagePullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 2}}
 # This is to override the chart name.
 nameOverride: ""
 fullnameOverride: ""
@@ -61,25 +60,17 @@ service:
   replication:
     port: 9093
     name: replication
+  metrics:
+    port: 9090
+    name: metrics
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   enabled: true
-  className: ""
-  annotations:
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      location = /.well-known/matrix/server {
-        default_type application/json;
-        return 200 '{"m.server": "https://synapse.chat.icbr.prd1.gn2.quattro.rijksapps.nl"}';
-      }
-      location = /.well-known/matrix/client {
-        default_type application/json;
-        return 200 '{"m.homeserver": "https://synapse.chat.icbr.prd1.gn2.quattro.rijksapps.nl", "org.matrix.msc4143.rtc_foci":[{"type":"livekit","livekit_service_url":"https://livekit-jwt.chat.icbr.prd1.gn2.quattro.rijksapps.nl"}]}';
-      }
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: synapse.chat.icbr.prd1.gn2.quattro.rijksapps.nl
+    - host: {{ .Values.global.hosts.synapse }}.{{ .Values.global.matrixDomain | default .Values.global.domain }}
       paths:
         - path: /
           pathType: Prefix
@@ -89,22 +80,22 @@ ingress:
   #      - chart-example.local
 
 resources:
-#  limits:
-#   cpu: 100m
-#   memory: 512Mi
-  requests:
-   cpu: 100m
-   memory: 256Mi
+  {{ .Values.resources.synapse | toYaml | nindent 2 }}
 
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-#livenessProbe:
-#  httpGet:
-#    path: /
-#    port: http
-#readinessProbe:
-#  httpGet:
-#    path: /
-#    port: http
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+startupProbe:
+  failureThreshold: 5
+  httpGet:
+    path: /health
+    port: http
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
@@ -122,18 +113,18 @@ affinity: {}
 
 persistence:
   accessMode: ReadWriteOnce
-  size: 50Gi
-  storageClassName: ocs-storagecluster-ceph-rbd
+  size: {{ .Values.persistence.storages.synapse.size }}
+  storageClassName: {{ coalesce .Values.persistence.storages.synapse.storageClassName .Values.persistence.storageClassNames.RWO }}
 
 synapse:
-  serverName: synapse.chat.icbr.prd1.gn2.quattro.rijksapps.nl
   reportStats: false
   config:
     synapseConfigDir: "/synapse/data"
     synapseConfigPath: "/synapse/config/homeserver.yaml"
   logging:
-    logLevel: "DEBUG"
+    logLevel: "INFO"
   trustedKeyServers:
     - server_name: "matrix.org"
   registrationSharedSecret: {{ .Values.secrets.synapse.registrationSharedSecret }}
   formSecret: {{ .Values.secrets.synapse.formSecret }}
+  autoJoinRoom: "welkom"

@@ -1,0 +1,15 @@
+images:
+  postgresql:
+    registry: {{ coalesce (env "MIJNBUREAU_IMAGE_REGISTRY_DOCKERIO") "registry-1.docker.io" | quote }}
+    repository: "bitnami/postgresql"
+    # TODO upgrade
+    tag: "17.5.0-debian-12-r14@sha256:a03ee8687be8b34020165fe3fe99efdfbb66bc2628ba2c42cb21aa4e646c12b0"
+  synapse:
+    registry: {{ coalesce (env "MIJNBUREAU_IMAGE_REGISTRY_DOCKERIO") "registry-1.docker.io" | quote }}
+    repository: "matrixdotorg/synapse"
+    tag: "v1.132.0@sha256:3036ec25dfb5fcc5120942465788c1e1f2bb3671e28b04d7b3a1db4400ac84f4"
+  redis:
+    registry: {{ coalesce (env "MIJNBUREAU_IMAGE_REGISTRY_DOCKERIO") "registry-1.docker.io" | quote }}
+    repository: "bitnami/redis"
+    # TODO upgrade
+    tag: "7.4.3-debian-12-r0@sha256:a25b5d07a14ec13730022c7cd9bab6308d55ccd86b74af7315553c17be884889"

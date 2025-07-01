@@ -7,4 +7,19 @@ global:
     docs: "docs"
     keycloak: "id"
     element: "chat"
-    synapse: "matrix"
+    livekit: "livekit"
+    synapse: "synapse"
+
+  ## Credentials to fetch images from private registry
+  ## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  #
+  imagePullSecrets:
+    {{- $pullSecrets := list (env "MIJNBUREAU_IMAGE_PULL_SECRET_DOCKERIO") (env "MIJNBUREAU_IMAGE_PULL_SECRET_QUAY") (env "MIJNBUREAU_IMAGE_PULL_SECRET_GHCR") }}
+    {{- range $pullSecret := $pullSecrets }}
+    - name: {{ $pullSecret | quote }}
+    {{ end }}
+
+  ## Define the policy to pull container images.
+  ## Ref: https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy
+  #
+  imagePullPolicy: "IfNotPresent"

@@ -22,6 +22,12 @@ spec:
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+        {{- if .Values.cache.synapse.host }}
+        redis-client: "true"
+        {{- end }}
+        {{- if .Values.databases.synapse.host }}
+        postgresql-client: "true"
+        {{- end }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -40,20 +46,6 @@ spec:
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command:
-            - sh
-            - -c
-            - |
-              export POSTGRES_PASSWORD=$(echo "${POSTGRES_PASSWORD:-}" | sed 's/\//\\\//g' | sed 's/\&/\\\&/g') && \
-              export REDIS_PASSWORD=$(echo "${REDIS_PASSWORD:-}" | sed 's/\//\\\//g' | sed 's/\&/\\\&/g') && \
-              cat /synapse/secrets/*.yaml | \
-                sed -e "s/@@POSTGRES_PASSWORD@@/${POSTGRES_PASSWORD:-}/" \
-                    -e "s/@@REDIS_PASSWORD@@/${REDIS_PASSWORD:-}/" \
-                       > /synapse/config/conf.d/secrets.yaml
-
-              exec python -B -m synapse.app.homeserver \
-                          -c /synapse/config/homeserver.yaml \
-                          -c /synapse/config/conf.d/
           ports:
             - name: {{ .Values.service.server.name }}
               containerPort: {{ .Values.service.server.port }}
@@ -61,12 +53,19 @@ spec:
             - name: {{ .Values.service.replication.name }}
               containerPort: {{ .Values.service.replication.port }}
               protocol: TCP
+            - name: {{ .Values.service.metrics.name }}
+              containerPort: {{ .Values.service.metrics.port }}
+              protocol: TCP
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.readinessProbe }}
           readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.startupProbe }}
+          startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- with .Values.resources }}
@@ -85,7 +84,7 @@ spec:
               mountPath: /synapse/keys
               readOnly: true
             - name: synapse-config
-              mountPath: /config
+              mountPath: /synapse/config
               readOnly: true
       volumes:
         - name: data

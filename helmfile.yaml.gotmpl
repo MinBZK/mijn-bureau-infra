@@ -1,0 +1,15 @@
+helmDefaults:
+  verify: true
+
+missingFileHandler: "Error"
+
+environments:
+  default:
+    values: &values
+      - "helmfile/environments/default/*.yaml*"
+
+helmfiles:
+  - path: "helmfile/apps/matrix-chat/helmfile-child.yaml.gotmpl"
+    values: *values
+  - path: "helmfile/apps/services-external/helmfile-child.yaml.gotmpl"
+    values: *values

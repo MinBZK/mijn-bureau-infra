@@ -1,4 +1,6 @@
-database:
+databases:
+  defaults:
+    userConnectionLimit: 100
   keycloak:
     type: postgresql
     name: keycloak
@@ -12,7 +14,7 @@ database:
   synapse:
     type: "postgresql"
     name: "synapse"
-    host: "postgresql"
+    host: "postgresql.icbr-poc-chat.svc.cluster.local"
     port: 5432
-    username: "matrix_user"
-    password: ""
+    username: "synapse"
+
