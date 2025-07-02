@@ -56,7 +56,7 @@ primary:
   # FIXME this crashes the container
   # TODO This is only needed for Synapse (probably)
   initdb:
-    args: "--encoding=UTF8 --locale=C --template=template0"
+    args: "--encoding=UTF8 --locale=C"
 
 image:
   registry: {{ .Values.images.postgresql.registry | quote }}
