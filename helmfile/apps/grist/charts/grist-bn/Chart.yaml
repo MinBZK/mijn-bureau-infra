@@ -1,0 +1,25 @@
+# Copyright Broadcom, Inc. All Rights Reserved.
+# SPDX-License-Identifier: APACHE-2.0
+
+annotations:
+  category: ProductivityTools
+  licenses: Apache-2.0
+apiVersion: v2
+appVersion: 1.6.1
+dependencies:
+  - name: common
+    repository: oci://registry-1.docker.io/bitnamicharts
+    tags:
+      - bitnami-common
+    version: 2.31.3
+description: "Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database."
+keywords:
+  - grist
+  - relational spreadsheet
+maintainers:
+  - name: Government of the Netherlands, Ministry of Interior and Kingdom Relations
+    url: ""
+name: grist
+sources:
+  - https://github.com/gristlabs/grist-core
+version: 0.1.0

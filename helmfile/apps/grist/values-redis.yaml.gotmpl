@@ -1,0 +1,15 @@
+global:
+  security:
+    allowInsecureImages: true
+
+  imagePullSecrets:
+    - name: {{ .Values.container.default.imagePullSecrets | quote }}
+
+image:
+  registry: {{(coalesce .Values.container.default.registry .Values.container.grist.registry) | quote }}
+
+auth:
+  enabled: true
+  password: {{ .Values.secrets.redis.password | quote }}
+
+service.ports.redis: {{ .Values.cache.grist.port | quote }}

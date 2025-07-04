@@ -1,0 +1,37 @@
+global:
+  security:
+    allowInsecureImages: true
+
+  imagePullSecrets:
+    - name: {{ .Values.container.default.imagePullSecrets | quote }}
+
+image:
+  registry: {{(coalesce .Values.container.default.registry .Values.container.grist.registry) | quote }}
+  repository: {{ .Values.container.grist.repository | quote }}
+  tag: {{ .Values.container.grist.tag | quote }}
+
+ingress:
+  enabled: true
+  hostname: {{ .Values.applications.grist.endpoint | quote }}
+
+externalRedis:
+  host: {{ .Values.cache.grist.host | quote }}
+  port: {{ .Values.cache.grist.port | quote }}
+  password: {{ .Values.secrets.redis.password | quote }}
+
+externalMinio:
+  endpoint: {{ .Values.objectstore.grist.endpoint | quote }}
+  port: {{ .Values.objectstore.grist.port | quote }}
+  accessKey: {{ .Values.objectstore.grist.username | quote }}
+  secretKey: {{ .Values.secrets.minio.rootPassword | quote }}
+  bucket: {{ .Values.objectstore.grist.bucket | quote }}
+  useSSL: {{ .Values.objectstore.grist.useSSL | quote }}
+
+externalDatabase:
+  database: {{ .Values.database.grist.name | quote }}
+  username: {{ .Values.database.grist.username | quote }}
+  host: {{ .Values.database.grist.host | quote }}
+  password: {{ .Values.secrets.postgresql.gristUser | quote }}
+  port: {{ .Values.database.grist.port | quote }}
+  type: {{ if eq .Values.database.grist.type "postgresql" }}"postgres"{{ else }}{{ .Values.database.grist.type | quote }}{{ end }}
+  logging: true

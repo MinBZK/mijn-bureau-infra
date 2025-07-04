@@ -1,0 +1,17 @@
+global:
+  security:
+    allowInsecureImages: true
+
+  imagePullSecrets:
+    - name: {{ .Values.container.default.imagePullSecrets | quote }}
+
+image:
+  registry: {{(coalesce .Values.container.default.registry .Values.container.grist.registry) | quote }}
+
+auth:
+  postgresPassword: {{ .Values.secrets.postgresql.rootPassword | quote }}
+  username: {{ .Values.database.grist.username | quote }}
+  password: {{ .Values.secrets.postgresql.gristUser | quote }}
+  database: {{ .Values.database.grist.name | quote }}
+
+primary.service.ports.postgresql: {{ .Values.database.grist.port | quote }}
