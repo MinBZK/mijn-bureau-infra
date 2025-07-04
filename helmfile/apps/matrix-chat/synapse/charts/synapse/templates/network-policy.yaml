@@ -1,0 +1,36 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "synapse.fullname" . }}
+  labels:
+    {{- include "synapse.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ include "synapse.fullname" . }}
+  policyTypes:
+    - Egress
+    - Ingress
+  egress:
+    - to:
+        # TODO: What if it's outside of the cluster?
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: redis
+      ports:
+        - protocol: TCP
+          port: {{ .Values.cache.synapse.port }}
+    - to:
+        # TODO: What if it's outside of the cluster?
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: postgresql
+      ports:
+        - protocol: TCP
+          port: {{ .Values.databases.synapse.port }}
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: {{ .Values.service.server.port }}
+        - protocol: TCP
+          port: {{ .Values.service.replication.port }}

@@ -1,0 +1,12 @@
+helmDefaults:
+  createNamespace: false
+
+releases:
+  - name: "synapse"
+    chart: "synapse/charts/synapse"
+    namespace: "icbr-poc-chat"
+    values:
+      - "values-synapse.yaml.gotmpl"
+      - {{ toYaml .Values | nindent 8 }}
+#  - name: "livekit-jwt"
+#    chart: "livekit-jwt/"
