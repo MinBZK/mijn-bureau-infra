@@ -29,8 +29,47 @@ We use [Helmfile](https://helmfile.readthedocs.io/en/latest/) to generate all Ku
 To generate all manifests, use the following command in the base directory:
 
 ```bash
-export MASTER_PASSWORD=changethis
+export MIJNBUREAU_MASTER_PASSWORD=changethis
 helmfile template
+```
+
+## Secrets
+
+You will often need to supply secrets in a configuration file like databases passwords. To store these securely in a git repository you can use the helm secrets command which is also used by the helmfile software. Every file within the helmfile/environments/ folder that ends with secrets.yaml can be encrypted and decrypted.
+
+before you can use secrets you will need to install [sops](https://getsops.io/) and [age](https://github.com/FiloSottile/age). Once installed you will need to generate en age key to encrypt your secrets with.
+
+```bash
+age-keygen -o mykey.txt
+```
+
+If you open mykey.txt you will see a public key and an AGE-SECRET-KEY. Make sure you store the AGE-SECRET-KEY somewhere safe because you need that to decrypt all secrets.
+
+To encrypt a secret you will fist need to edit the .sops.yaml file in the root of this folder. it currenlty contains an example `age:` string. you will need to replace everything after the age: with your public key from the mykey.txt file.
+
+Once that is done you can test the encryption with the following command
+
+```bash
+helm secrets encrypt -i ./helmfile/environments/production/example.secrets.yaml
+```
+
+to decrypt you will need to make the AGE-SECRET-KEY from your mykey.txt known to the helm secrets plugin this can be done in several ways.
+
+You can specify the location of this file manually by setting the environment variable SOPS_AGE_KEY_FILE=./mykey.txt. Alternatively, you can provide the key(s) directly by setting the SOPS_AGE_KEY=`<yourkey>` environment variable.
+
+```bash
+SOPS_AGE_KEY_FILE=./mykey.txt helm secrets decrypt -i ./helmfile/environments/production/example.secrets.yaml
+```
+
+If you are using tools like argocd and flux. these have similar systems available to descrypt secrets. However they need to be made aware of the AGE-SECRET-KEY.
+
+for helmfile you can do the same
+
+```bash
+export MIJNBUREAU_MASTER_PASSWORD=changethis
+export SOPS_AGE_KEY_FILE=./mykey.txt
+helmfile template
+
 ```
 
 ## Commit rules

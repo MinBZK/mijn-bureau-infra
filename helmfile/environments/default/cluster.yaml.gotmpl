@@ -1,0 +1,28 @@
+---
+### This file contains all the kubernetes cluster-wide settings, please edit it to match your environment.
+cluster:
+  networking:
+    domain: cluster.local
+    cidr:
+      - "10.0.0.0/8"
+
+  ingress:
+    type: nginx
+    ingressClassName: ~
+    annotations: {}
+
+  storageClassNames:
+    RWX: ""
+    RWO: ""
+
+  service:
+    # select the available implementation. this can be ClusterIP, NodePort, or LoadBalancer
+    type: LoadBalancer
+
+  certificate:
+    issuerRef:
+      name: letsencrypt-prod
+      kind: ClusterIssuer
+
+
+
