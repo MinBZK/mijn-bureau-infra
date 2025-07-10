@@ -1,0 +1,10 @@
+container:
+  default:
+    registry: "rcr.rijksapps.nl/dockerhub-icbr"
+    imagePullSecrets: "dockerhub-icbr-robot-pull-secret"
+
+  ollama:
+    registry: "registry-1.docker.io"
+    repository: "ollama/ollama"
+    tag: "0.9.5"
+    imagePullSecrets: ~

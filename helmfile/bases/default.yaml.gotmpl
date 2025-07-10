@@ -1,0 +1,7 @@
+helmDefaults:
+  createNamespace: {{ env "MIJNBUREAU_CREATE_NAMESPACES" | default false  }}
+  timeout: 600
+  insecureSkipTLSVerify: false
+  plainHttp: false
+
+missingFileHandler: "Error"

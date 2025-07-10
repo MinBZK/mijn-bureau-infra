@@ -1,0 +1,53 @@
+{{- if .Values.ai.selfhost.enabled }}
+image:
+  repository: {{ printf "%s/%s" (coalesce .Values.container.default.registry .Values.container.ollama.registry) (.Values.container.ollama.repository) | quote }}
+  tag: {{ .Values.container.ollama.tag | quote }}
+  pullPolicy: "IfNotPresent"
+
+imagePullSecrets:
+  - name: {{ .Values.container.default.imagePullSecrets | quote }}
+
+# We need to specify the mountPath to point
+# to a directory we have access to as non-root user.
+ollama:
+  models:
+    pull:
+      - llama3.2
+    run:
+      - llama3.2
+  mountPath: "/home/ollama/.ollama"
+  gpu:
+    enabled: {{ .Values.ai.selfhost.gpu.enabled | default false }}
+    {{- if .Values.ai.selfhost.gpu.enabled }}
+    type: {{ .Values.ai.selfhost.gpu.type | default "nvidia" | quote }}
+    number: {{ .Values.ai.selfhost.gpu.number | default 1 }}
+    {{- if .Values.ai.selfhost.gpu.mig }}
+    mig:
+      enabled: {{ .Values.ai.selfhost.gpu.mig.enabled | default false }}
+      {{- if .Values.ai.selfhost.gpu.mig.devices }}
+      devices:
+        {{- toYaml .Values.ai.selfhost.gpu.mig.devices | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+
+
+# We need to specify the environment variable HOME used by Ollama to point
+# to a directory we have access to as non-root user. This needs to be the
+# directory the .ollama file above is mounted in.
+extraEnv:
+  - name: HOME
+    value: "/home/ollama"
+
+resources:
+  limits:
+    memory: {{ .Values.ai.selfhost.resources.limits.memory | default "4Gi" | quote }}
+    cpu: {{ .Values.ai.selfhost.resources.limits.cpu | default "750m" | quote }}
+
+persistentVolume:
+  enabled: true
+  size: 15Gi
+  accessModes:
+    - ReadWriteOnce
+
+{{- end }}

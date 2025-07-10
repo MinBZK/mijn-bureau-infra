@@ -4,11 +4,27 @@ helmDefaults:
 missingFileHandler: "Error"
 
 environments:
-  default:
-    values: &values
-      - "helmfile/environments/default/*.yaml*"
+  demo:
+    values:
+      - "helmfile/environments/demo/*.yaml*"
+  production:
+    values:
+      - "helmfile/environments/production/*.yaml*"
+
+bases:
+  - "helmfile/bases/default.yaml.gotmpl"
+
+---
 
 helmfiles:
+  - path: "helmfile/apps/ollama/helmfile-child.yaml.gotmpl"
+    values: &values
+      - "helmfile/environments/default/*.yaml*"
+      - {{ toYaml .Values | nindent 8 }}
+  # - path: "helmfile/apps/keycloak/helmfile-child.yaml"
+  #   values: *values
+  # - path: "helmfile/apps/docs/helmfile-child.yaml"
+  #   values: *values
   - path: "helmfile/apps/matrix-chat/helmfile-child.yaml.gotmpl"
     values: *values
   - path: "helmfile/apps/services-external/helmfile-child.yaml.gotmpl"
