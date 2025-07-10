@@ -4,9 +4,21 @@ import rego.v1
 deny contains msg if {
   input.kind in {"Deployment", "StatefulSet", "DaemonSet", "Job", "Pod"}
   input.spec.template.spec.securityContext.runAsUser == 0
+  input.spec.template.spec.containers[_].securityContext.runAsUser == 0
 
-  msg := "Containers must not run as root"
+  msg := "Containers must not run as root, check runAsUser"
 }
+
+# Disallow containers running as root (already present, but improved)
+deny contains msg if {
+  input.kind in {"Deployment", "StatefulSet", "DaemonSet", "Job", "Pod"}
+  not input.spec.template.spec.securityContext.runAsNonRoot
+  every container in input.spec.template.spec.containers {
+    not container.securityContext.runAsNonRoot
+  }
+  msg := "Containers must not run as root, check runAsNonRoot"
+}
+
 
 #disallow latest tag
 deny contains msg if {
@@ -61,13 +73,6 @@ deny contains msg if {
   some v
   input.spec.template.spec.volumes[v].hostPath
   msg := "hostPath volumes are not allowed"
-}
-
-# Disallow containers running as root (already present, but improved)
-deny contains msg if {
-  input.kind in {"Deployment", "StatefulSet", "DaemonSet", "Job", "Pod"}
-  not input.spec.template.spec.securityContext.runAsNonRoot
-  msg := "Containers must not run as root"
 }
 
 # Disallow containers with allowPrivilegeEscalation: true
