@@ -2,7 +2,7 @@
 image:
   repository: {{ printf "%s/%s" (coalesce .Values.container.default.registry .Values.container.ollama.registry) (.Values.container.ollama.repository) | quote }}
   tag: {{ .Values.container.ollama.tag | quote }}
-  pullPolicy: "IfNotPresent"
+  pullPolicy: "Always"
 
 imagePullSecrets:
   - name: {{ .Values.container.default.imagePullSecrets | quote }}

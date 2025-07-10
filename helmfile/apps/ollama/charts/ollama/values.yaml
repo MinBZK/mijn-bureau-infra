@@ -26,7 +26,7 @@ image:
   repository: ollama/ollama
 
   # -- Docker pull policy
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
   # -- Docker image tag, overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -134,7 +134,8 @@ podAnnotations: {}
 podLabels: {}
 
 # -- Pod Security Context
-podSecurityContext: {}
+podSecurityContext:
+  runAsNonRoot: true
   # fsGroup: 2000
 
 # -- Container Security Context
@@ -412,6 +413,6 @@ extraObjects: []
 
 # -- Test connection pods
 tests:
-  enabled: true
+  enabled: false
   # -- Labels to add to the tests
   labels: {}

@@ -9,18 +9,3 @@ releases:
     createNamespace: false
     values:
       - "values.yaml.gotmpl"
-    hooks:
-      - events: ["prepare"]
-        showlogs: true
-        command: "kubectl"
-        args:
-          - "apply"
-          - "-f"
-          - "network-policies/"
-      - events: ["postuninstall"]
-        showlogs: true
-        command: "kubectl"
-        args:
-          - "delete"
-          - "-f"
-          - "network-policies/"

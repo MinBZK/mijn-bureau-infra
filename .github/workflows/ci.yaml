@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: show
+      - name: Show logs
         run: git log
 
       - name: Install gitlint
@@ -31,6 +31,76 @@ jobs:
 
       - name: Lint commit messages added to main
         run: gitlint --commits origin/${{ github.event.pull_request.base.ref }}..HEAD
+
+  render-helmfile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install helm
+        run: |
+          wget -O - https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Install helmfile
+        run: |
+          cd /tmp/
+          wget https://github.com/helmfile/helmfile/releases/download/v1.1.2/helmfile_1.1.2_linux_amd64.tar.gz
+          tar -xzf helmfile_1.1.2_linux_amd64.tar.gz
+          sudo mv helmfile /usr/local/bin/helmfile
+
+      - name: Initilize helmfile dependecies
+        run: |
+          helmfile init --force
+
+      - name: Render helmfile for all environments
+        run: |
+          helmfile -e production template --output-dir=/tmp/manifest/production
+          helmfile -e demo template --output-dir=/tmp/manifest/demo
+          helmfile template --output-dir=/tmp/manifest/default
+        env:
+          MIJNBUREAU_MASTER_PASSWORD: ${{ secrets.MIJNBUREAU_MASTER_PASSWORD }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+
+      - name: Prepare file Upload
+        run: |
+          cd /tmp/manifest/
+          find . -type f -name "*.yaml.gotmpl" | while read file; do
+            mv "$file" "${file%.gotmpl}"
+          done
+
+      - name: Upload rendered manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-manifests
+          path: /tmp/manifest/
+          if-no-files-found: error
+          retention-days: 3
+
+  verify-policies:
+    runs-on: ubuntu-latest
+    needs: [render-helmfile]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: rendered-manifests
+          path: /tmp/manifest
+
+      - name: Install conftest
+        run: |
+          wget https://github.com/open-policy-agent/conftest/releases/download/v0.61.2/conftest_0.61.2_linux_amd64.deb
+          sudo dpkg -i conftest_0.61.2_linux_amd64.deb
+
+      - name: Run conftest against rendered manifests
+        run: |
+          conftest test /tmp/manifest/production --output=github
+          conftest test /tmp/manifest/demo --output=github
+          conftest test /tmp/manifest/default --output=github
 
   check-format-rules:
     runs-on: ubuntu-latest
@@ -48,10 +118,10 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: install prettier
+      - name: Install prettier
         run: npm install -g prettier
 
-      - name: install pre-commit
+      - name: Install pre-commit
         run: pip install pre-commit
 
       - name: Run formatters
