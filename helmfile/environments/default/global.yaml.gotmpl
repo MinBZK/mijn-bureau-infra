@@ -1,7 +1,7 @@
 ---
 global:
-  domain: {{ env "DOMAIN" | default "mijnbureau.internal" | quote }}
-  matrixDomain: {{ env "MATRIX_DOMAIN" | quote }}
+  domain: {{ env "MIJNBUREAU_DOMAIN" | default "mijnbureau.internal" | quote }}
+  matrixDomain: {{ env "MIJNBUREAU_MATRIX_DOMAIN" | default "matrix.mijnbureau.internal" | quote }}
 
   hosts:
     docs: "docs"
