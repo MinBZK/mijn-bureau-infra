@@ -10,6 +10,10 @@ global:
     livekit: "livekit"
     synapse: "synapse"
 
+  # resourcePreset sets the default resources for all applications
+  # allowed values "nano" "micro" "small" "medium" "large" "xlarge" "2xlarge"
+  resourcesPreset: "small"
+
   ## Credentials to fetch images from private registry
   ## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
   #

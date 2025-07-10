@@ -2,129 +2,140 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
-replicaCount: 1
+# Architecture can be monolith for a single node, or replication when using additional worker nodes for scaling.
+# See https://element-hq.github.io/synapse/latest/workers.html
+architecture: monolith
 
-# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
-image:
-  repository: {{ .Values.images.synapse.registry }}/{{ .Values.images.synapse.repository }}
-  # This sets the pull policy for images.
-  pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
-  # Overrides the image tag whose default is the chart appVersion.
-#  tag: {{ .Values.images.synapse.tag }}
+# TODO make sure we supply all required kubernetes labels (commonLabels?)
 
-# This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-imagePullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 2}}
-# This is to override the chart name.
-nameOverride: ""
-fullnameOverride: ""
+master:
+  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+  image:
+    registry: {{ .Values.images.synapse.registry }}
+    repository: {{ .Values.images.synapse.repository }}
+    # This sets the pull policy for images.
+    pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: {{ .Values.images.synapse.tag }}
+    digest: {{ .Values.images.synapse.digest }}
+  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+  replicaCount: 1
+  # TODO rolling update is not possible as the PVC is claimed exclusively: Multi-Attach error for volume "pvc-827a4241-eb51-4d59-ab42-9bac6a4d0306" Volume is already used by pod(s) synapse-69877df8cd-n6pcl
+  updateStrategy:
+  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resources.synapse | toYaml | nindent 4 }}
+  service:
+    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 15
+  persistence:
+    size: {{ .Values.persistence.storages.synapse.size }}
+    storageClass: {{ coalesce .Values.persistence.storages.synapse.storageClassName .Values.persistence.storageClassNames.RWO }}
+
+# FIXME replication is not functional
+worker:
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+# TODO Ananace has well-known host (probably not needed), client-server host and server-2-server host, do we need those (configured)?
+ingress:
+  enabled: true
+  hostname: {{ .Values.global.hosts.synapse }}.{{ .Values.global.matrixDomain | default .Values.global.domain }}
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
   # Specifies whether a service account should be created
   create: false
   # Automatically mount a ServiceAccount's API credentials?
-  automount: false
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
-
-# This is for setting Kubernetes Annotations to a Pod.
-# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
-podAnnotations: {}
-# This is for setting Kubernetes Labels to a Pod.
-# For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-podLabels: {}
-
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
-service:
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: ClusterIP
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  server:
-    port: 8008
-    name: http
-  replication:
-    port: 9093
-    name: replication
-  metrics:
-    port: 9090
-    name: metrics
-
-# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
-ingress:
-  enabled: true
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: {{ .Values.global.hosts.synapse }}.{{ .Values.global.matrixDomain | default .Values.global.domain }}
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
-
-resources:
-  {{ .Values.resources.synapse | toYaml | nindent 2 }}
-
-# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-livenessProbe:
-  httpGet:
-    path: /health
-    port: http
-readinessProbe:
-  httpGet:
-    path: /health
-    port: http
-startupProbe:
-  failureThreshold: 5
-  httpGet:
-    path: /health
-    port: http
-
-# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
-persistence:
-  accessMode: ReadWriteOnce
-  size: {{ .Values.persistence.storages.synapse.size }}
-  storageClassName: {{ coalesce .Values.persistence.storages.synapse.storageClassName .Values.persistence.storageClassNames.RWO }}
+  automountServiceAccountToken: false
 
 synapse:
-  reportStats: false
-  config:
-    synapseConfigDir: "/synapse/data"
-    synapseConfigPath: "/synapse/config/homeserver.yaml"
+  reportStats:
+    enabled: false
   logging:
     logLevel: "INFO"
-  trustedKeyServers:
-    - server_name: "matrix.org"
+  serverName: {{ .Values.global.hosts.synapse }}.{{ .Values.global.matrixDomain | default .Values.global.domain }}
+  database:
+    name: {{ .Values.databases.synapse.type | quote }}
+    txnLimit: 10000
+    args:
+      {{- if eq .Values.databases.synapse.type "sqlite3" }}
+      database: "/synapse/data/homeserver.db"
+      {{- else }}
+      user: {{ .Values.databases.synapse.username | quote }}
+      password: {{ .Values.secrets.postgresql.matrixUser | quote }}
+      host: {{ .Values.databases.synapse.host | quote }}
+      port: {{ .Values.databases.synapse.port }}
+      {{- end }}
   registrationSharedSecret: {{ .Values.secrets.synapse.registrationSharedSecret }}
   formSecret: {{ .Values.secrets.synapse.formSecret }}
-  autoJoinRoom: "welkom"
+  suppressKeyServerWarning: true
+  redis:
+    enabled: {{ if .Values.cache.synapse }}true{{ else }}false{{ end }}
+    host: {{ .Values.cache.synapse.host | quote }}
+    port: {{ .Values.cache.synapse.port }}
+    password: {{ .Values.cache.synapse.password | default .Values.secrets.redis.password | quote }}
+  backgroundUpdates:
+    # as we want our first launch and subsequent upgrades to go as fast
+    # as possible don't sleep between background updates
+    sleepEnabled: false
+  email:
+    notifs:
+      from: {{ (printf "Your %%(app)s homeserver <noreply@%s>" ( .Values.global.matrixDomain | default .Values.global.domain )) | quote }}
+    clientBaseUrl: {{ (printf "https://%s.%s" .Values.global.hosts.element ( .Values.global.matrixDomain | default .Values.global.domain )) | quote }}
+    inviteClientLocation: {{ (printf "https://%s.%s" .Values.global.hosts.element ( .Values.global.matrixDomain | default .Values.global.domain )) | quote }}
+  rateLimiting:
+    perSeconde: 0.5
+    burstCount: 30.0
+  maxEventDelayDuration: "24h"
+  serveServerWellknown: true
+  avatar:
+    maxSize: "10M"
+    allowedMimeTypes: ["image/png", "image/jpeg"]
+  forgottenRoomRetentionPeriod: "28d"
+  retention:
+    enabled: true
+    defaultPolicy:
+      lifetime:
+        min: "1d"
+        max: "1y"
+    allowedLifetime:
+      min: "1d"
+      max: "1y"
+  autoJoinRooms: [{{ (printf "#%s:%s" "welkom" ( .Values.global.matrixDomain | default .Values.global.domain )) | quote }}]
+  oidcProviders:
+#    - idp_id: lasuite
+#      idp_name: "LaSuite"
+#      discover: false
+#      issuer: "https://id.la-suite.apps.digilab.network/realms/lasuite"
+#      client_id: "chat"
+#      client_secret: "v2lbnmZdsi6ilcmqEtPx44UZP1Jm5Hte"
+#      #client_secret_path todo: set path
+#      client_auth_method: client_secret_post
+#      scopes: ["openid", "profile"]
+#      authorization_endpoint: "https://id.la-suite.apps.digilab.network/realms/lasuite/protocol/openid-connect/auth"
+#      token_endpoint: "https://id.la-suite.apps.digilab.network/realms/lasuite/protocol/openid-connect/token"
+#      userinfo_endpoint: "https://id.la-suite.apps.digilab.network/realms/lasuite/protocol/openid-connect/userinfo"
+#      jwks_uri: "https://id.la-suite.apps.digilab.network/realms/lasuite/protocol/openid-connect/certs"
+#      user_mapping_provider:
+#        config:
+#          localpart_template: {{`'{{ (user.given_name ~ user.family_name) | replace('' '', '''') }}'`}}
+#          display_name_template: {{`'{{ user.name }}'`}}
+#          email_template: {{`'{{ user.email }}'`}}
+  passwordConfig:
+    enabled: false
+  encyptionEnabledByDefaultForRoomType: "invite"
+  userDirectory:
+    searchAllUsers: true
+    preferLocalUsers: true
+  autoAcceptInvites:
+    enabled: true
+    onlyForDirectMessages: true
+    onlyFromLocalUsers: true
+  experimentalFeatures:
+    # MSC3266: Room summary API. Used for knocking over federation
+    msc3266_enabled: true
+    # MSC4222 needed for syncv2 state_after. This allows clients to correctly track the state of the room.
+    msc4222_enabled: true

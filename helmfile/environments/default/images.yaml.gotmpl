@@ -6,7 +6,8 @@ images:
   synapse:
     registry: {{ coalesce (env "MIJNBUREAU_IMAGE_REGISTRY_DOCKERIO") "registry-1.docker.io" | quote }}
     repository: "matrixdotorg/synapse"
-    tag: "v1.132.0@sha256:3036ec25dfb5fcc5120942465788c1e1f2bb3671e28b04d7b3a1db4400ac84f4"
+    tag: "v1.133.0"
+    digest: "sha256:81d4b74fd09f8cf4e6dd978289721c4b91270649992a3f64bc8c326968c7522e"
   redis:
     registry: {{ coalesce (env "MIJNBUREAU_IMAGE_REGISTRY_DOCKERIO") "registry-1.docker.io" | quote }}
     repository: "bitnami/redis"

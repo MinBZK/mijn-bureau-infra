@@ -6,6 +6,7 @@ releases:
     chart: "synapse/charts/synapse"
     namespace: "icbr-poc-chat"
     values:
+      - "synapse/charts/synapse/values.yaml"
       - "values-synapse.yaml.gotmpl"
       - {{ toYaml .Values | nindent 8 }}
 #  - name: "livekit-jwt"
