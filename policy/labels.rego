@@ -26,7 +26,6 @@ labeled_resources := {
 	"Secret",
 	"StatefulSet",
 	"DaemonSet",
-	"Job",
 	"CronJob",
 	"Pod",
 	"Ingress",
@@ -170,7 +169,7 @@ deny contains msg if {
 
 # Additional check for Pod template specs in higher-level resources
 deny contains msg if {
-	input.kind in {"Deployment", "StatefulSet", "DaemonSet", "Job", "CronJob"}
+	input.kind in {"Deployment", "StatefulSet", "DaemonSet", "CronJob"}
 	input.spec.template.metadata.labels
 	existing_labels := {key | input.spec.template.metadata.labels[key]}
 	missing_labels := minimum_required_labels - existing_labels
@@ -184,7 +183,7 @@ deny contains msg if {
 
 # Check for label consistency between resource and pod template
 deny contains msg if {
-	input.kind in {"Deployment", "StatefulSet", "DaemonSet", "Job", "CronJob"}
+	input.kind in {"Deployment", "StatefulSet", "DaemonSet", "CronJob"}
 	input.spec.template.metadata.labels
 	input.metadata.labels
 	some label_key in minimum_required_labels
