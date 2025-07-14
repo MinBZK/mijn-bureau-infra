@@ -1,0 +1,38 @@
+helmDefaults:
+  createNamespace: false
+
+repositories:
+  - name: "postgresql-repo"
+    oci: true
+    url: "{{ .Values.charts.postgresql.registry }}/{{ .Values.charts.postgresql.repository }}"
+  - name: "redis-repo"
+    oci: true
+    url: "{{ .Values.charts.redis.registry }}/{{ .Values.charts.redis.repository }}"
+
+releases:
+  - name: "chat-postgresql"
+    chart: "postgresql-repo/{{ .Values.charts.postgresql.name }}"
+    version: "{{ .Values.charts.postgresql.version }}"
+    values:
+      - "values-postgresql.yaml.gotmpl"
+    installed: {{ eq .Environment.Name "demo" | toYaml }}
+    namespace: {{ .Values.applications.chat.namespace | quote }}
+  - name: "chat-redis"
+    chart: "redis-repo/{{ .Values.charts.redis.name }}"
+    version: {{ .Values.charts.redis.version | quote }}
+    values:
+      - "values-redis.yaml.gotmpl"
+    installed: {{ eq .Environment.Name "demo" | toYaml }}
+    namespace: {{ .Values.applications.chat.namespace | quote }}
+  - name: "synapse"
+    chart: "synapse/charts/synapse"
+    namespace: {{ .Values.applications.chat.namespace | quote }}
+    {{- if eq .Environment.Name "demo" }}
+    needs:
+      - {{ .Values.applications.chat.namespace }}/chat-postgresql
+      - {{ .Values.applications.chat.namespace }}/chat-redis
+    {{- end }}
+    values:
+      - "synapse/charts/synapse/values.yaml"
+      - "values-synapse.yaml.gotmpl"
+      - {{ toYaml .Values | nindent 8 }}
