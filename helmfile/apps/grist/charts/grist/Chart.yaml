@@ -1,0 +1,20 @@
+# Copyright Broadcom, Inc. All Rights Reserved.
+# Modified from the Bitnami Charts Template https://github.com/bitnami/charts/tree/main/template
+# SPDX-License-Identifier: EUPL-1.2
+
+annotations:
+  category: ProductivityTools
+  licenses: EUPL-1.2
+apiVersion: v2
+appVersion: 1.6.1
+description: "Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database."
+keywords:
+  - grist
+  - relational spreadsheet
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: grist
+sources:
+  - https://github.com/gristlabs/grist-core
+version: 0.1.0

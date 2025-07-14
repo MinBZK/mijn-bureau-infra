@@ -3,12 +3,12 @@ global:
   domain: "mijnbureau.internal"
   matrixDomain: "matrix.mijnbureau.internal"
 
-  hosts:
+  hostname:
     docs: "docs"
     keycloak: "id"
     element: "chat"
-    livekit: "livekit"
-    synapse: "synapse"
+    synapse: "matrix"
+    grist: "grist"
     ollama: "ollama"
 
   # resourcePreset sets the default resources for all applications
@@ -17,8 +17,8 @@ global:
 
   # if you want to set a custom registry used by all helm charts specify it here.
   # if you want to configure the registry per component you can do that in the charts.yaml.gotmpl
-  containerRegistry: ~
   helmRegistry: ~
+  containerRegistry: ~
 
   ## Credentials to fetch images from private registry
   ## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/

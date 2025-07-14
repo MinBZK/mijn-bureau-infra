@@ -1,0 +1,88 @@
+global:
+  imageRegistry: {{(coalesce .Values.global.containerRegistry .Values.containers.grist.registry) | quote }}
+
+  security:
+    allowInsecureImages: true
+
+  imagePullSecrets:
+    - name: {{ .Values.global.imagePullSecrets | quote }}
+
+image:
+  registry: {{(coalesce .Values.global.containerRegistry .Values.containers.grist.registry) | quote }}
+  pullPolicy: "Always"
+
+resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+
+podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 2 }}
+
+containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 2 }}
+
+auth:
+  rootPassword: {{ .Values.secrets.minio.rootPassword }}
+
+defaultBuckets: {{ .Values.objectstore.grist.bucket | quote }}
+
+service.ports.api: {{ .Values.objectstore.grist.port | quote }}
+
+networkPolicy:
+  enabled: true
+  # Only allow connections from within the namespace
+  allowExternal: false
+  # MinIO doesn't need external access
+  allowExternalEgress: false
+  # Allow connections from Grist pods
+  extraIngress:
+    - ports:
+        - port: {{ .Values.objectstore.grist.port }}
+          protocol: TCP
+      from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: grist
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: minio
+
+defaultInitContainers:
+  volumePermissions:
+    image:
+      pullPolicy: "Always"
+
+console:
+  image:
+    pullPolicy: "Always"
+
+  networkPolicy:
+    enabled: true
+    # Only allow connections from within the namespace
+    allowExternal: false
+    # MinIO doesn't need external access
+    allowExternalEgress: false
+    # Allow connections from Minio pods
+    extraIngress:
+      - ports:
+          - port: {{ .Values.objectstore.grist.port }}
+            protocol: TCP
+        from:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/part-of: minio
+
+
+  # WORKAROUND: Fix Bitnami MinIO chart v17.0.11 label inconsistency bug
+  # The chart incorrectly sets deployment labels to console version (2.0.2) but
+  # pod template labels to MinIO server version (2025.6.13), causing policy failures.
+  # This forces pod template to use the correct console version for consistency.
+  # TODO: Remove when Bitnami fixes upstream chart template bug
+  podLabels:
+    app.kubernetes.io/version: "2.0.2"
+
+provisioning:
+  enabled: true
+
+  buckets:
+    - name: {{ .Values.objectstore.grist.bucket | quote }}
+      versioning: true
+
+  podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 4 }}

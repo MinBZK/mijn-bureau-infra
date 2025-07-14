@@ -1,0 +1,40 @@
+global:
+  imageRegistry: {{(coalesce .Values.global.containerRegistry .Values.containers.grist.registry) | quote }}
+
+  security:
+    allowInsecureImages: true
+
+  imagePullSecrets:
+    - name: {{ .Values.global.imagePullSecrets | quote }}
+
+image:
+  registry: {{(coalesce .Values.global.containerRegistry .Values.containers.grist.registry) | quote }}
+  pullPolicy: "Always"
+
+resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+
+podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 2 }}
+
+containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 2 }}
+
+auth:
+  enabled: true
+  password: {{ .Values.secrets.redis.password | quote }}
+
+service.ports.redis: {{ .Values.cache.grist.port | quote }}
+
+networkPolicy:
+  enabled: true
+  # Only allow connections from within the namespace
+  allowExternal: false
+  # Redis doesn't need external internet access
+  allowExternalEgress: false
+  # Allow connections from Grist pods
+  extraIngress:
+    - ports:
+        - port: {{ .Values.cache.grist.port }}
+          protocol: TCP
+      from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: grist

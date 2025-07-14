@@ -1,0 +1,113 @@
+global:
+  security:
+    allowInsecureImages: true
+
+  imagePullSecrets:
+    - name: {{ .Values.global.imagePullSecrets | quote }}
+
+image:
+  registry: {{(coalesce .Values.global.containerRegistry .Values.containers.grist.registry) | quote }}
+  repository: {{ .Values.containers.grist.repository | quote }}
+  tag: {{ .Values.containers.grist.tag | quote }}
+
+autoscaling:
+  hpa: {{ .Values.autoscaling.grist.hpa | toYaml | nindent 4 }}
+
+ingress:
+  enabled: true
+  hostname: {{ .Values.global.hostname.grist }}.{{ .Values.global.domain }}
+
+resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+
+resources: {{ .Values.resources.grist | toYaml | nindent 2 }}
+
+networkPolicy:
+  enabled: true
+  # Restrict external access - only allow specific ingress sources
+  allowExternal: false
+  # Restrict external egress - only allow specific destinations
+  allowExternalEgress: false
+
+
+  extraIngress:
+   # Allow traffic from ingress controller namespace
+   - ports:
+       - port: 8484
+         protocol: TCP
+
+  # Specific egress rules for required services only
+  extraEgress:
+    # PostgreSQL connectivity
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+              app.kubernetes.io/component: primary
+      ports:
+        - port: 5432
+          protocol: TCP
+    # Redis connectivity
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+              app.kubernetes.io/component: master
+      ports:
+        - port: 6379
+          protocol: TCP
+    # MinIO connectivity
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: minio
+      ports:
+        - port: 9000
+          protocol: TCP
+    # DNS resolution (required for all pods)
+    - to: []
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+
+podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 2 }}
+
+containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 2 }}
+
+metrics: {{ .Values.monitoring.prometheus | toYaml | nindent 2 }}
+
+service:
+  type: {{ .Values.cluster.service.type | quote }}
+
+defaultLocale: {{ .Values.applications.grist.defaultLocale | quote }}
+
+orgInPath: {{ .Values.applications.grist.orgInPath | quote }}
+
+singleOrg: {{ .Values.applications.grist.singleOrg | quote }}
+
+{{- if .Values.cluster.sandbox.gvisor.enabled }}
+sandboxFlavor: "gvisor"
+{{- end }}
+
+externalRedis:
+  host: {{ .Values.cache.grist.host | quote }}
+  port: {{ .Values.cache.grist.port | quote }}
+  password: {{ .Values.secrets.redis.password | quote }}
+
+externalMinio:
+  endpoint: {{ .Values.objectstore.grist.endpoint | quote }}
+  port: {{ .Values.objectstore.grist.port | quote }}
+  accessKey: {{ .Values.objectstore.grist.username | quote }}
+  secretKey: {{ .Values.secrets.minio.rootPassword | quote }}
+  bucket: {{ .Values.objectstore.grist.bucket | quote }}
+  useSSL: {{ .Values.objectstore.grist.useSSL | quote }}
+
+externalDatabase:
+  database: {{ .Values.database.grist.name | quote }}
+  username: {{ .Values.database.grist.username | quote }}
+  host: {{ .Values.database.grist.host | quote }}
+  password: {{ .Values.secrets.postgresql.gristUser | quote }}
+  port: {{ .Values.database.grist.port | quote }}
+  type: {{ if eq .Values.database.grist.type "postgresql" }}"postgres"{{ else }}{{ .Values.database.grist.type | quote }}{{ end }}
+  logging: true
