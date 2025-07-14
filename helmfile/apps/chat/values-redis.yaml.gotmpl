@@ -4,7 +4,7 @@ auth:
   password: {{ .Values.secrets.redis.password | quote }}
 
 commonAnnotations:
-  {{ .Values.annotations.servicesExternalRedis.common | toYaml | nindent 2 }}
+  {{ .Values.annotations.redis.common | toYaml | nindent 2 }}
 
 global:
   imagePullSecrets:
@@ -31,7 +31,7 @@ networkPolicy:
 
 master:
   annotations:
-    {{ .Values.annotations.servicesExternalRedis.masterMaster | toYaml | nindent 4 }}
+    {{ .Values.annotations.redis.masterMaster | toYaml | nindent 4 }}
   containerSecurityContext:
     privileged: false
     readOnlyRootFilesystem: true
@@ -51,42 +51,42 @@ master:
   persistence:
     size: {{ .Values.persistence.storages.redis.size | quote }}
     annotations:
-      {{ .Values.annotations.servicesExternalRedis.masterPersistence | toYaml | nindent 6 }}
+      {{ .Values.annotations.redis.masterPersistence | toYaml | nindent 6 }}
   podAnnotations:
-    {{ .Values.annotations.servicesExternalRedis.masterPod | toYaml | nindent 4 }}
+    {{ .Values.annotations.redis.masterPod | toYaml | nindent 4 }}
   resources:
     {{ .Values.resources.redis | toYaml | nindent 4 }}
   service:
     annotations:
-      {{ .Values.annotations.servicesExternalRedis.masterService | toYaml | nindent 6 }}
+      {{ .Values.annotations.redis.masterService | toYaml | nindent 6 }}
   serviceAccount:
     annotations:
-      {{ .Values.annotations.servicesExternalRedis.masterServiceAccount | toYaml | nindent 6 }}
+      {{ .Values.annotations.redis.masterServiceAccount | toYaml | nindent 6 }}
 
 metrics:
   enabled: false
 
 replica:
   annotations:
-    {{ .Values.annotations.servicesExternalRedis.replicaReplica | toYaml | nindent 4 }}
+    {{ .Values.annotations.redis.replicaReplica | toYaml | nindent 4 }}
   # TODO this should probably be configured in global config?
   podSecurityContext:
     enabled: true
     fsGroup: 1001450000
   persistence:
     annotations:
-      {{ .Values.annotations.servicesExternalRedis.replicaPersistence | toYaml | nindent 6 }}
+      {{ .Values.annotations.redis.replicaPersistence | toYaml | nindent 6 }}
   podAnnotations:
-    {{ .Values.annotations.servicesExternalRedis.replicaPod | toYaml | nindent 4 }}
+    {{ .Values.annotations.redis.replicaPod | toYaml | nindent 4 }}
   service:
     annotations:
-      {{ .Values.annotations.servicesExternalRedis.replicaService | toYaml | nindent 6 }}
+      {{ .Values.annotations.redis.replicaService | toYaml | nindent 6 }}
   serviceAccount:
     annotations:
-      {{ .Values.annotations.servicesExternalRedis.replicaServiceAccount | toYaml | nindent 6 }}
+      {{ .Values.annotations.redis.replicaServiceAccount | toYaml | nindent 6 }}
 
 secretAnnotations:
-  {{ .Values.annotations.servicesExternalRedis.secret | toYaml | nindent 2 }}
+  {{ .Values.annotations.redis.secret | toYaml | nindent 2 }}
 
 sentinel:
   enabled: false

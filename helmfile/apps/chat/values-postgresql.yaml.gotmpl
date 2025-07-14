@@ -14,7 +14,7 @@ global:
       postgresPassword: {{ .Values.secrets.postgresql.postgresUser | quote }}
 
 commonAnnotations:
-  {{ .Values.annotations.servicesExternalPostgresql.common | toYaml | nindent 2 }}
+  {{ .Values.annotations.postgresql.common | toYaml | nindent 2 }}
 
 primary:
   containerSecurityContext:
@@ -41,15 +41,15 @@ primary:
   resources:
     {{ .Values.resources.postgresql | toYaml | nindent 4 }}
   podAnnotions:
-    {{ .Values.annotations.servicesExternalPostgresql.pod | toYaml | nindent 4 }}
+    {{ .Values.annotations.postgresql.pod | toYaml | nindent 4 }}
   service:
     annotations:
-      {{ .Values.annotations.servicesExternalPostgresql.service | toYaml | nindent 6 }}
+      {{ .Values.annotations.postgresql.service | toYaml | nindent 6 }}
   persistence:
     size: {{ .Values.persistence.storages.postgresql.size | quote }}
     storageClass: {{ coalesce .Values.persistence.storages.postgresql.storageClassName .Values.persistence.storageClassNames.RWO | quote }}
     annotations:
-      {{ .Values.annotations.servicesExternalPostgresql.persistence | toYaml | nindent 6 }}
+      {{ .Values.annotations.postgresql.persistence | toYaml | nindent 6 }}
   networkPolicy:
     enabled: true
     allowExternal: false
@@ -77,4 +77,4 @@ auth:
 
 serviceAccount:
   annotations:
-    {{ .Values.annotations.servicesExternalPostgresql.serviceAccount | toYaml | nindent 4 }}
+    {{ .Values.annotations.postgresql.serviceAccount | toYaml | nindent 4 }}
