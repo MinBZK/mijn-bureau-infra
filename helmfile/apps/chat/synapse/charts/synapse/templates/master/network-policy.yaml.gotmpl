@@ -62,7 +62,7 @@ spec:
     {{- end }}
   ingress:
     - ports:
-        - port: {{ .Values.master.containerPorts.synapse }}
+        - port: {{ .Values.master.containerPorts.http }}
         {{- if eq .Values.architecture "replication" }}
         - port: {{ .Values.master.containerPorts.replication }}
         {{- end }}

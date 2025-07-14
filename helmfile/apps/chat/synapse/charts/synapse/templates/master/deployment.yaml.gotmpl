@@ -117,7 +117,7 @@ spec:
           {{- end }}
           ports:
             - name: tcp-synapse
-              containerPort: {{ .Values.master.containerPorts.synapse }}
+              containerPort: {{ .Values.master.containerPorts.http }}
             - name: tcp-metrics
               containerPort: {{ .Values.master.containerPorts.metrics }}
             {{- if eq .Values.architecture "replication" }}

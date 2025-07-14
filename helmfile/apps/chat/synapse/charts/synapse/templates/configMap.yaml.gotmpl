@@ -69,7 +69,7 @@ data:
     {{- end }}
 
     listeners:
-      - port: {{ .Values.master.containerPorts.synapse }}
+      - port: {{ .Values.master.containerPorts.http }}
         tls: false
         type: http
         x_forwarded: true

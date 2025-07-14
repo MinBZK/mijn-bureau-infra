@@ -35,14 +35,14 @@ spec:
   loadBalancerIP: {{ .Values.master.service.loadBalancerIP }}
   {{- end }}
   ports:
-    - name: "synapse"
-      port: {{ .Values.master.service.ports.synapse }}
-      {{- if not (eq .Values.master.service.ports.synapse .Values.master.containerPorts.synapse) }}
-      targetPort: {{ .Values.master.containerPorts.synapse }}
+    - name: http
+      port: {{ .Values.master.service.ports.http }}
+      {{- if not (eq .Values.master.service.ports.http .Values.master.containerPorts.http) }}
+      targetPort: {{ .Values.master.containerPorts.http }}
       {{- end }}
       protocol: TCP
-      {{- if and (or (eq .Values.master.service.type "NodePort") (eq .Values.master.service.type "LoadBalancer")) (not (empty .Values.master.service.nodePorts.synapse)) }}
-      nodePort: {{ .Values.master.service.nodePorts.synapse }}
+      {{- if and (or (eq .Values.master.service.type "NodePort") (eq .Values.master.service.type "LoadBalancer")) (not (empty .Values.master.service.nodePorts.http)) }}
+      nodePort: {{ .Values.master.service.nodePorts.http }}
       {{- else if eq .Values.master.service.type "ClusterIP" }}
       nodePort: null
       {{- end }}

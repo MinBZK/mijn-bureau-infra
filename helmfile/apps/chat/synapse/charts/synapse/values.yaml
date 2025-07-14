@@ -113,12 +113,12 @@ master:
   ## @param synapse.replicaCount Number of Synapse Master replicas to deploy
   ##
   replicaCount: 1
-  ## @param synapse.containerPorts.synapse Synapse Master synapse container port
+  ## @param synapse.containerPorts.http Synapse Master synapse container port
   ## @param synapse.containerPorts.replication Synapse Master replication container port
-  ## @param synapse.containerPorts.replication Synapse Master metrics container port
+  ## @param synapse.containerPorts.metrics Synapse Master metrics container port
   ##
   containerPorts:
-    synapse: 8008
+    https: 8008
     metrics: 9090
     replication: 9093
   ## @param synapse.extraContainerPorts Optionally specify extra list of additional ports for Synapse Master containers
@@ -444,7 +444,7 @@ master:
     ## @param service.ports.https Synapse Master service HTTPS port
     ##
     ports:
-      synapse: 8008
+      http: 8008
       replication: 9093
       metrics: 9090
     ## Node ports to expose
@@ -454,7 +454,7 @@ master:
     ## NOTE: choose port between <30000-32767>
     ##
     nodePorts:
-      synapse: ""
+      http: ""
       replication: ""
       metrics: ""
     ## @param service.clusterIP Synapse Master service Cluster IP
