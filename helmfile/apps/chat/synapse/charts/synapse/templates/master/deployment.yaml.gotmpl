@@ -34,10 +34,10 @@ spec:
         app.kubernetes.io/component: master
         # FIXME This test is not correct, we need to test for "demo-mode", this is not necessary for an externally hosted redis
         {{- if .Values.synapse.redis.enabled }}
-        redis-client: "true"
+        chat-redis-client: "true"
         {{- end }}
         {{- if eq .Values.synapse.database.name "psycopg2" }}
-        postgresql-client: "true"
+        chat-postgresql-client: "true"
         {{- end }}
     spec:
       {{- include "synapse.imagePullSecrets" . | nindent 6 }}

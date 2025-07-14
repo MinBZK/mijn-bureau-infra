@@ -1,0 +1,10 @@
+global:
+  domain: "mijnbureau.icbr.prd1.gn2.quattro.rijksapps.nl"
+  matrixDomain: "synapse.mijnbureau.icbr.prd1.gn2.quattro.rijksapps.nl"
+
+  containerRegistry: "rcr.rijksapps.nl/dockerhub-icbr"
+
+  imagePullSecrets:
+    - dockerhub-icbr-robot-pull-secret
+    - quay-icbr-robot-pull-secret
+    - ghcr-icbr-robot-pull-secret

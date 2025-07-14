@@ -17,9 +17,9 @@ global:
     allowInsecureImages: true
 
 image:
-  registry: {{ .Values.images.synapse.registry | quote }}
-  repository: {{ .Values.images.redis.repository | quote }}
-  tag: {{ .Values.images.redis.tag | quote }}
+  registry: {{ coalesce .Values.global.containerRegistry .Values.containers.synapse.registry | quote }}
+  repository: {{ .Values.containers.redis.repository | quote }}
+  tag: {{ .Values.containers.redis.tag | quote }}
   pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
 
 networkPolicy:

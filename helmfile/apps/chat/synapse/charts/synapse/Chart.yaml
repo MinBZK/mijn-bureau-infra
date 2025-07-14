@@ -22,10 +22,9 @@ keywords:
   - synapse
   - element
 maintainers:
-  - name: Ministerie van Binnenlandse Zaken en Koninkrijksrelaties
-    url: https://github.com/MinBZK/mijn-bureau-infra
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
 name: synapse
 sources:
   - https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/matrix-chat/synapse/charts/synapse
-#type: application
 version: 0.1.0

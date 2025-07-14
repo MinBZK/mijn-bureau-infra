@@ -59,9 +59,9 @@ primary:
     args: "--encoding=UTF8 --locale=C"
 
 image:
-  registry: {{ .Values.images.postgresql.registry | quote }}
-  repository: {{ .Values.images.postgresql.repository | quote }}
-  tag: {{ .Values.images.postgresql.tag | quote }}
+  registry: {{ coalesce .Values.global.containerRegistry .Values.containers.postgresql.registry | quote }}
+  repository: {{ .Values.containers.postgresql.repository | quote }}
+  tag: {{ .Values.containers.postgresql.tag | quote }}
   pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
 
 auth:

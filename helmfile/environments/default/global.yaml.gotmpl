@@ -1,7 +1,7 @@
 ---
 global:
-  domain: {{ env "MIJNBUREAU_DOMAIN" | default "mijnbureau.internal" | quote }}
-  matrixDomain: {{ env "MIJNBUREAU_MATRIX_DOMAIN" | default "matrix.mijnbureau.internal" | quote }}
+  domain: "mijnbureau.internal"
+  matrixDomain: "matrix.mijnbureau.internal"
 
   hosts:
     docs: "docs"
@@ -15,14 +15,15 @@ global:
   # allowed values "nano" "micro" "small" "medium" "large" "xlarge" "2xlarge"
   resourcesPreset: "small"
 
+  # if you want to set a custom registry used by all helm charts specify it here.
+  # if you want to configure the registry per component you can do that in the charts.yaml.gotmpl
+  containerRegistry: ~
+  helmRegistry: ~
+
   ## Credentials to fetch images from private registry
   ## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
   #
-  imagePullSecrets:
-    {{- $pullSecrets := list (env "MIJNBUREAU_IMAGE_PULL_SECRET_DOCKERIO") (env "MIJNBUREAU_IMAGE_PULL_SECRET_QUAY") (env "MIJNBUREAU_IMAGE_PULL_SECRET_GHCR") }}
-    {{- range $pullSecret := $pullSecrets }}
-    - name: {{ $pullSecret | quote }}
-    {{ end }}
+  imagePullSecrets: ~
 
   ## Define the policy to pull container images.
   ## Ref: https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy
