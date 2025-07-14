@@ -6,12 +6,6 @@ annotations:
   licenses: Apache-2.0
 apiVersion: v2
 appVersion: "1.133.0"
-dependencies:
-  - name: common
-    repository: oci://registry-1.docker.io/bitnamicharts
-    tags:
-      - bitnami-common
-    version: "2.31.3"
 description: Mijn Bureau Synapse homeserver, the matrix reference implementation
 home: https://minbzk.github.io/mijn-bureau/
 icon: https://matrix.org/images/matrix-logo.svg

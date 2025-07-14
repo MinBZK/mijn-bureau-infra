@@ -67,8 +67,8 @@ image:
 auth:
   enablePostgresUser: true
   postgresPassword: {{ .Values.secrets.postgresql.postgresUser | quote }}
-  database: {{ .Values.databases.synapse.name | quote }}
-  username: {{ .Values.databases.synapse.username | quote }}
+  database: {{ .Values.database.synapse.name | quote }}
+  username: {{ .Values.database.synapse.username | quote }}
   password: {{ .Values.secrets.postgresql.matrixUser | quote }}
 
 # TODO Put multiple users in one database? See:

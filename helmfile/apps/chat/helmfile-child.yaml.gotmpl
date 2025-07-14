@@ -26,6 +26,9 @@ releases:
       - "values-redis.yaml.gotmpl"
   - name: "synapse"
     chart: "synapse/charts/synapse"
+    dependencies:
+      - chart: "oci://{{ (coalesce .Values.charts.bitnamiCommon.registry .Values.global.helmRegistry ) }}/{{ .Values.charts.bitnamiCommon.repository }}/{{ .Values.charts.bitnamiCommon.name }}"
+        version: 2.31.3
     namespace: {{ .Values.applications.chat.namespace | quote }}
     {{- if eq .Environment.Name "demo" }}
     needs:

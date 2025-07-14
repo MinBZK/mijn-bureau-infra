@@ -59,16 +59,16 @@ synapse:
     logLevel: "INFO"
   serverName: {{ .Values.global.matrixDomain | default .Values.global.domain }}
   database:
-    name: {{ .Values.databases.synapse.type | quote }}
+    name: {{ .Values.database.synapse.type | quote }}
     txnLimit: 10000
     args:
-      {{- if eq .Values.databases.synapse.type "sqlite3" }}
+      {{- if eq .Values.database.synapse.type "sqlite3" }}
       database: "/synapse/data/homeserver.db"
       {{- else }}
-      user: {{ .Values.databases.synapse.username | quote }}
+      user: {{ .Values.database.synapse.username | quote }}
       password: {{ .Values.secrets.postgresql.matrixUser | quote }}
-      host: {{ .Values.databases.synapse.host | quote }}
-      port: {{ .Values.databases.synapse.port }}
+      host: {{ .Values.database.synapse.host | quote }}
+      port: {{ .Values.database.synapse.port }}
       {{- end }}
   registrationSharedSecret: {{ .Values.secrets.synapse.registrationSharedSecret }}
   formSecret: {{ .Values.secrets.synapse.formSecret }}
@@ -85,8 +85,8 @@ synapse:
   email:
     notifs:
       from: {{ (printf "Your %%(app)s homeserver <noreply@%s>" (.Values.global.matrixDomain | default .Values.global.domain)) | quote }}
-    clientBaseUrl: {{ (printf "https://%s.%s" .Values.global.hosts.element .Values.global.domain) | quote }}
-    inviteClientLocation: {{ (printf "https://%s.%s" .Values.global.hosts.element .Values.global.domain) | quote }}
+    clientBaseUrl: {{ (printf "https://%s.%s" .Values.global.hostname.element .Values.global.domain) | quote }}
+    inviteClientLocation: {{ (printf "https://%s.%s" .Values.global.hostname.element .Values.global.domain) | quote }}
   rateLimiting:
     perSeconde: 0.5
     burstCount: 30.0
