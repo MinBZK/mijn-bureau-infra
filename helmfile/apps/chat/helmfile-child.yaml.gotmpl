@@ -28,12 +28,10 @@ releases:
     namespace: {{ .Values.applications.chat.namespace | quote }}
 
   - name: "element-web"
-    chart: "element-web"
-    namespace: {{ .Values.applications.elementweb.namespace | quote }}
+    chart: "element-web/charts/element-web"
+    namespace: {{ .Values.applications.chat.namespace | quote }}
     values:
-      - "element-web/values.yaml"
       - "values-element-web.yaml.gotmpl"
-    installed: {{ eq .Environment.Name "demo" | toYaml }}
 
   - name: "synapse"
     chart: "synapse/charts/synapse"

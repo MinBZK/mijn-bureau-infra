@@ -22,6 +22,6 @@ tolerations: []
 affinity: {}
 
 config:
-  homeserverUrl: "https://matrix.example.com"
-  serverName: "example.com"
+  homeserverUrl: "https://{{ .Values.global.matrixDomain | default "example.com" }}"
+  serverName: "{{ .Values.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}"
   brand: "Element Custom"

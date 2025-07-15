@@ -7,8 +7,8 @@ data:
     {
     "default_server_config": {
         "m.homeserver": {
-            "base_url": "https://matrix.chat.xxxxx,
-            "server_name": "LaSuite"
+            "base_url": "https://{{ .Values.global.matrixDomain | default "example.com" }}",
+            "server_name": "{{ .Values.global.domain | default "example.com" }}"
         }
     },
     "features": {
@@ -24,7 +24,7 @@ data:
     "default_country_code": "NL",
     "room_directory": {
         "servers": [
-            "chat.xxxxx,
+            "{{ .Values.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}",
             "matrix.org"
         ]
     },
@@ -32,22 +32,17 @@ data:
         "breadcrumbs": true
     },
     "default_theme": "light",
-    "brand": "LaSuite chat",
-    "permalink_prefix": "https://chat.xxxxx,
+    "brand": "{{ .Values.global.domain | default "example.com" }} chat",
+    "permalink_prefix": "https://{{ .Values.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}",
     "disable_guests": true,
     "force_verification": false,
-    "logout_redirect_url": "https://chat.xxxxx,
+    "logout_redirect_url": "https://{{ .Values.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}",
     "sso_redirect_options": {
         "immediate": true
-    },
-    "element_call": {
-        "url": "https://call.chat.xxxxx,
-        "use_exclusively": true,
-        "brand": "Meet"
     },
     "disable_custom_urls": true,
     "disable_3pid_login": true,
     "default_widget_container_height": 280,
     "show_labs_settings": true,
-    "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx"
+    "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx" # We need to make research about it and check if we really need it.
 }

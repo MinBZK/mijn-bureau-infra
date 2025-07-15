@@ -1,0 +1,40 @@
+{{- if not .Values.diagnosticMode.enabled }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: element-web
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: element-web
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: element-web
+    spec:
+      {{- include "element-web.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "element-web.serviceAccountName" . }}
+      containers:
+        - name: element-web
+          image: {{ template "element-web.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPorts.http }}
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.json
+              subPath: config.json
+          resources: {{ toYaml .Values.resources | nindent 12 }}
+          livenessProbe: {{ toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe: {{ toYaml .Values.readinessProbe | nindent 12 }}
+
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "common.names.fullname" . }}-config
+{{- end }}
