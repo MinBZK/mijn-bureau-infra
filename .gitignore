@@ -2,3 +2,5 @@ __pycache__/
 *.py[cod]
 mykey.txt
 *.tgz
+.DS_Store
+
