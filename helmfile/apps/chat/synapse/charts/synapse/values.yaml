@@ -118,7 +118,7 @@ master:
   ## @param synapse.containerPorts.metrics Synapse Master metrics container port
   ##
   containerPorts:
-    https: 8008
+    http: 8008
     metrics: 9090
     replication: 9093
   ## @param synapse.extraContainerPorts Optionally specify extra list of additional ports for Synapse Master containers
