@@ -56,6 +56,15 @@ primary:
   networkPolicy:
     enabled: true
     allowExternal: false
+    allowExternalEgress: false
+    extraIngress:
+      - ports:
+          - port: {{ .Values.database.synapse.port }}
+            protocol: TCP
+        from:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: synapse
   initdb:
     args: "--encoding=UTF8 --locale=C"
 

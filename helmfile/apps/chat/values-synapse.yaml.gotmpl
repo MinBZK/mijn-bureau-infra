@@ -36,6 +36,12 @@ master:
   persistence:
     size: {{ .Values.persistence.storages.synapse.size }}
     storageClass: {{ coalesce .Values.persistence.storages.synapse.storageClassName .Values.persistence.storageClassNames.RWO }}
+  networkPolicy:
+    extraIngress:
+      # Allow traffic from ingress controller namespace
+      - ports:
+          - port: 8008
+            protocol: TCP
 
 # FIXME replication is not functional
 worker:
@@ -45,6 +51,9 @@ worker:
 ingress:
   enabled: true
   hostname: {{ .Values.global.matrixDomain | default .Values.global.domain }}
+  extraTls: {{ .Values.tls.chat | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
+  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:

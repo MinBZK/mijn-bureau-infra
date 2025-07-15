@@ -26,6 +26,14 @@ networkPolicy:
   enabled: true
   allowExternal: false
   allowExternalEgress: false
+  extraIngress:
+    - ports:
+      - port: {{ .Values.cache.synapse.port }}
+        protocol: TCP
+      from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: synapse
   metrics:
     allowExternal: false
 
