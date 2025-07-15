@@ -1,0 +1,61 @@
+replicaCount: 1
+
+image:
+  registry: docker.io
+  repository: vectorim/element-web
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+ingress:
+  enabled: false
+  hostname: "element-web.{{ .Values.global.domain | default "example.com" }}"
+  path: /
+  annotations: {}
+  tls: false
+  extraHosts: []
+
+config:
+  default_server_config:
+    m.homeserver:
+      base_url: "https://matrix.{{ .Values.global.domain | default "example.com" }}"
+      server_name: "{{ .Values.global.domain | default "example.com" }}"
+  brand: "Element Custom"
+  integrations_ui_url: ""
+  integrations_rest_url: ""
+  integrations_widgets_urls: []
+  bug_report_endpoint_url: ""
+  default_country_code: "NL"
+  showLabsSettings: false
+  features: {}
+  default_federate: true
+  roomDirectory:
+    servers: []
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+livenessProbe:
+  enabled: true
+  path: /
+  port: http
+
+readinessProbe:
+  enabled: true
+  path: /
+  port: http

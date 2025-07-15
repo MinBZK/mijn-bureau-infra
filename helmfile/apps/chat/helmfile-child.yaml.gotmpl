@@ -8,6 +8,10 @@ repositories:
   - name: "redis-repo"
     oci: true
     url: "{{ .Values.charts.redis.registry }}/{{ .Values.charts.redis.repository }}"
+  - name: "element-web-repo"
+    oci: true
+    url: "{{ .Values.charts.elementweb.registry }}/{{ .Values.charts.elementweb.repository }}"
+
 
 releases:
   - name: "chat-postgresql"
@@ -24,6 +28,15 @@ releases:
       - "values-redis.yaml.gotmpl"
     installed: {{ eq .Environment.Name "demo" | toYaml }}
     namespace: {{ .Values.applications.chat.namespace | quote }}
+
+  - name: "element-web"
+    chart: "element-web"
+    namespace: {{ .Values.applications.elementweb.namespace | quote }}
+    values:
+      - "element-web/values.yaml"
+      - "values-element-web.yaml.gotmpl"
+      - {{ toYaml .Values | nindent 6 }}
+
   - name: "synapse"
     chart: "synapse/charts/synapse"
     namespace: {{ .Values.applications.chat.namespace | quote }}
