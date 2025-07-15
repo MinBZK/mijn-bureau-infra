@@ -56,8 +56,6 @@ primary:
   networkPolicy:
     enabled: true
     allowExternal: false
-  # FIXME this crashes the container
-  # TODO This is only needed for Synapse (probably)
   initdb:
     args: "--encoding=UTF8 --locale=C"
 
