@@ -10,7 +10,6 @@ metadata:
   name: {{ template "synapse.master.fullname" . }}
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-    # FIXME Redis has only these component labels in master and replica folders, not in the parent folder?
     app.kubernetes.io/component: master
   {{- if or .Values.master.annotations .Values.commonAnnotations }}
   {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.master.annotations .Values.commonAnnotations) "context" .) }}

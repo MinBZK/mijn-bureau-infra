@@ -1,5 +1,8 @@
 architecture: "standalone"
 
+commonLabels:
+  app.kubernetes.io/part-of: synapse
+
 global:
   imagePullSecrets:
     {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
