@@ -1,9 +1,9 @@
 replicaCount: 1
 
 image:
-  registry: docker.io
-  repository: vectorim/element-web
-  tag: latest
+  registry: docker.io {{(coalesce .Values.global.containerRegistry .Values.containers.elementweb.registry) | quote }}
+  repository: {{ .Values.containers.elementweb.repository | quote }}
+  tag: {{ .Values.containers.elementweb.tag | quote }}
   pullPolicy: IfNotPresent
 
 service:
@@ -13,7 +13,7 @@ service:
 
 ingress:
   enabled: false
-  hostname: "element-web.{{ .Values.global.domain | default "example.com" }}"
+  hostname: "{{ .Values.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}"
   path: /
   annotations: {}
   tls: false
@@ -22,9 +22,9 @@ ingress:
 config:
   default_server_config:
     m.homeserver:
-      base_url: "https://matrix.{{ .Values.global.domain | default "example.com" }}"
+      base_url: "https://{{ .Values.global.matrixDomain | default "example.com" }}"
       server_name: "{{ .Values.global.domain | default "example.com" }}"
-  brand: "Element Custom"
+  brand: "Element Web Custom"
   integrations_ui_url: ""
   integrations_rest_url: ""
   integrations_widgets_urls: []
@@ -35,14 +35,6 @@ config:
   default_federate: true
   roomDirectory:
     servers: []
-
-resources:
-  limits:
-    cpu: 200m
-    memory: 256Mi
-  requests:
-    cpu: 100m
-    memory: 128Mi
 
 nodeSelector: {}
 
