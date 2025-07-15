@@ -75,7 +75,7 @@ synapse:
   formSecret: {{ .Values.secrets.synapse.formSecret }}
   suppressKeyServerWarning: true
   redis:
-    enabled: {{ if .Values.cache.synapse }}true{{ else }}false{{ end }}
+    enabled: {{ not (empty .Values.cache.synapse) }}
     host: {{ .Values.cache.synapse.host | quote }}
     port: {{ .Values.cache.synapse.port }}
     password: {{ .Values.cache.synapse.password | default .Values.secrets.redis.password | quote }}
