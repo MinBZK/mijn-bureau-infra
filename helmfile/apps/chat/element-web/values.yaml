@@ -1,0 +1,27 @@
+image:
+  registry: docker.io
+  repository: vectorim/element-web
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  hostname: element-web.local
+  annotations: {}
+  tls: false
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+config:
+  homeserverUrl: "https://matrix.example.com"
+  serverName: "example.com"
+  brand: "My Custom Element"

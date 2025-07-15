@@ -1,0 +1,15 @@
+annotations:
+  category: "streaming-messaging"
+  licenses: "Apache-2.0"
+apiVersion: "v2"
+dependencies:
+  - name: "common"
+    version: "^2.x.x"
+    repository: "oci://registry.opencode.de/bmi/opendesk/components/external/charts/bitnami-charts"
+description: "A Bitnami-style Helm chart for Element Web"
+keywords:
+  - "jitsi"
+  - "networking"
+name: "opendesk-element"
+type: "application"
+version: "0.1.0"

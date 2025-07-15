@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "element-web.fullname" . }}-config
+data:
+  config.json: |
+    {
+    "default_server_config": {
+        "m.homeserver": {
+            "base_url": "https://matrix.chat.xxxxx,
+            "server_name": "LaSuite"
+        }
+    },
+    "features": {
+        "feature_video_rooms": true,
+        "feature_pinning": true,
+        "feature_custom_themes": true,
+        "feature_element_call_video_rooms": true,
+        "feature_group_calls": true,
+        "feature_html_topic": true,
+        "feature_ask_to_join": true
+    },
+    "default_federate": true,
+    "default_country_code": "NL",
+    "room_directory": {
+        "servers": [
+            "chat.xxxxx,
+            "matrix.org"
+        ]
+    },
+    "setting_defaults": {
+        "breadcrumbs": true
+    },
+    "default_theme": "light",
+    "brand": "LaSuite chat",
+    "permalink_prefix": "https://chat.xxxxx,
+    "disable_guests": true,
+    "force_verification": false,
+    "logout_redirect_url": "https://chat.xxxxx,
+    "sso_redirect_options": {
+        "immediate": true
+    },
+    "element_call": {
+        "url": "https://call.chat.xxxxx,
+        "use_exclusively": true,
+        "brand": "Meet"
+    },
+    "disable_custom_urls": true,
+    "disable_3pid_login": true,
+    "default_widget_container_height": 280,
+    "show_labs_settings": true,
+    "map_style_url": ""
+}
