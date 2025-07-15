@@ -2,8 +2,7 @@ global:
   security:
     allowInsecureImages: true
 
-  imagePullSecrets:
-    - name: {{ .Values.global.imagePullSecrets | quote }}
+  imagePullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
 
 image:
   registry: {{(coalesce .Values.global.containerRegistry .Values.containers.grist.registry) | quote }}
