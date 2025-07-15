@@ -1,0 +1,279 @@
+{{- /*
+Copyright Broadcom, Inc. All Rights Reserved.
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: grist
+  {{- if or .Values.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  {{- if .Values.updateStrategy }}
+  strategy: {{- toYaml .Values.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: grist
+  template:
+    metadata:
+      {{- if .Values.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: grist
+    spec:
+      {{- include "grist.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "grist.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      {{- if .Values.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset "component" "grist" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "component" "grist" "customLabels" $podLabels "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.schedulerName }}
+      schedulerName: {{ .Values.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- end }}
+      initContainers:
+        {{- if .Values.initContainers }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.initContainers "context" $) | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: "grist"
+          image: {{ template "grist.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.args "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: BITNAMI_DEBUG
+              value: {{ ternary "true" "false" (or .Values.image.debug .Values.diagnosticMode.enabled) | quote }}
+            {{- if .Values.gristDefaultLocale }}
+            - name: GRIST_DEFAULT_LOCALE
+              value: {{ .Values.defaultLocale | quote }}
+            {{- end }}
+            {{- if .Values.orgInPath }}
+            - name: GRIST_ORG_IN_PATH
+              value: {{ .Values.orgInPath | quote }}
+            {{- end }}
+            {{- if .Values.singleOrg }}
+            - name: GRIST_SINGLE_ORG
+              value: {{ .Values.singleOrg | quote }}
+            {{- end }}
+            {{- if .Values.sandboxFlavor }}
+            - name: GRIST_SANDBOX_FLAVOR
+              value: {{ .Values.sandboxFlavor | quote }}
+            {{- end }}
+            - name: GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING
+              value: {{ .Values.allowAutomaticVersionChecking | quote }}
+            - name: REDIS_URL
+              value: "redis://default:{{ .Values.externalRedis.password }}@{{ .Values.externalRedis.host }}:{{ .Values.externalRedis.port }}"
+            - name: GRIST_DOCS_MINIO_ACCESS_KEY
+              value: {{ .Values.externalMinio.accessKey | quote }}
+            - name: GRIST_DOCS_MINIO_SECRET_KEY
+              value: {{ .Values.externalMinio.secretKey | quote }}
+            - name: GRIST_DOCS_MINIO_USE_SSL
+              value: {{ .Values.externalMinio.useSSL | quote }}
+            - name: GRIST_DOCS_MINIO_BUCKET
+              value: {{ .Values.externalMinio.bucket | quote }}
+            - name: GRIST_DOCS_MINIO_ENDPOINT
+              value: {{ .Values.externalMinio.endpoint | quote }}
+            - name: GRIST_DOCS_MINIO_PORT
+              value: {{ .Values.externalMinio.port | quote }}
+            - name: TYPEORM_DATABASE
+              value: {{ .Values.externalDatabase.database | quote }}
+            - name: TYPEORM_USERNAME
+              value: {{ .Values.externalDatabase.username | quote }}
+            - name: TYPEORM_HOST
+              value: {{ .Values.externalDatabase.host | quote }}
+            - name: TYPEORM_LOGGING
+              value: {{ .Values.externalDatabase.logging | quote }}
+            - name: TYPEORM_PASSWORD
+              value: {{ .Values.externalDatabase.password | quote }}
+            - name: TYPEORM_PORT
+              value: {{ .Values.externalDatabase.port | quote }}
+            - name: TYPEORM_TYPE
+              value: {{ .Values.externalDatabase.type | quote }}
+            {{- if .Values.ai.enabled }}
+            - name: ASSISTANT_CHAT_COMPLETION_ENDPOINT
+              value: {{ .Values.ai.endpoint | quote }}
+            - name: ASSISTANT_API_KEY
+              value: {{ .Values.ai.apiKey | quote }}
+              {{- if .Values.ai.model }}
+            - name: ASSISTANT_MODEL
+              value: {{ .Values.ai.model | quote }}
+              {{- end }}
+              {{- if .Values.ai.longerContextModel }}
+            - name: ASSISTANT_LONGER_CONTEXT_MODEL
+              value: {{ .Values.ai.longerContextModel | quote }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.auth.enabled }}
+            - name: GRIST_OIDC_IDP_ISSUER
+              value: {{ .Values.auth.oidcIdpIssuer | quote }}
+            - name: GRIST_OIDC_IDP_CLIENT_ID
+              value: {{ .Values.auth.oidcIdpClientId | quote }}
+            - name: GRIST_OIDC_IDP_CLIENT_SECRET
+              value: {{ .Values.auth.oidcIdpClientSecret | quote }}
+              {{- if .Values.id.oidcIdpScopes }}
+            - name: GRIST_OIDC_IDP_SCOPES
+              value: {{ .Values.auth.oidcIdpScopes | quote }}
+              {{- end }}
+              {{- if .Values.auth.oidcSpHost }}
+            - name: GRIST_OIDC_SP_HOST
+              value: {{ .Values.auth.oidcSpHost | quote }}
+              {{- end }}
+              {{- if .Values.auth.oidcIdpEndSessionEndpoint }}
+            - name: GRIST_OIDC_IDP_END_SESSION_ENDPOINT
+              value: {{ .Values.auth.oidcIdpEndSessionEndpoint | quote }}
+              {{- end }}
+              {{- if .Values.auth.oidcIdpSkipEndSessionEndpoint }}
+            - name: GRIST_OIDC_IDP_SKIP_END_SESSION_ENDPOINT
+              value: {{ .Values.auth.oidcIdpSkipEndSessionEndpoint | quote }}
+              {{- end }}
+              {{- if .Values.auth.oidcSpProfileNameAttr }}
+            - name: GRIST_OIDC_SP_PROFILE_NAME_ATTR
+              value: {{ .Values.auth.oidcSpProfileNameAttr | quote }}
+              {{- end }}
+              {{- if .Values.auth.oidcSpProfileNameAttr }}
+            - name: GRIST_OIDC_SP_PROFILE_EMAIL_ATTR
+              value: {{ .Values.auth.oidcSpProfileEmailAttr | quote }}
+              {{- end }}
+              {{- if .Values.auth.oidcIpdEnabledProtections }}
+            - name: GRIST_OIDC_IDP_ENABLED_PROTECTIONS
+              value: {{ .Values.auth.oidcIpdEnabledProtections | quote }}
+              {{- end }}
+              {{- if .Values.auth.oidcIdpACRValues }}
+            - name: GRIST_OIDC_IDP_ACR_VALUES
+              value: {{ .Values.auth.oidcIdpACRValues | quote }}
+              {{- end }}
+              {{- if .Values.auth.oidcIdpExtraClientMetadata }}
+            - name: GRIST_OIDC_IDP_EXTRA_CLIENT_METADATA
+              value: {{ .Values.auth.oidcIdpExtraClientMetadata | quote }}
+              {{- end }}
+              {{- if .Values.auth.oidcIdpIgnoreEmailVerified }}
+            - name: GRIST_OIDC_SP_IGNORE_EMAIL_VERIFIED
+              value: {{ .Values.auth.oidcIdpIgnoreEmailVerified | quote }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          envFrom:
+            {{- if .Values.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.resources }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          {{- else if ne .Values.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPorts.http }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.livenessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /status
+              port: {{ .Values.containerPorts.http }}
+              scheme: HTTP
+          {{- end }}
+          {{- if .Values.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.readinessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /status
+              port: {{ .Values.containerPorts.http }}
+              scheme: HTTP
+          {{- end }}
+          {{- if .Values.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.startupProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /status
+              port: {{ .Values.containerPorts.http }}
+              scheme: HTTP
+          {{- end }}
+          {{- end }}
+          {{- if .Values.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: grist-data
+              mountPath: /persist
+          {{- if .Values.extraVolumeMounts }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
+          {{- end }}
+        {{- if .Values.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: grist-data
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include  "grist.pvcName" . }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

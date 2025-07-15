@@ -12,6 +12,7 @@ metadata:
   name: {{ template "common.names.fullname" . }}
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: synapse
   {{- if .Values.commonAnnotations }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
@@ -33,7 +34,7 @@ data:
     handlers:
       console:
         class: logging.StreamHandler
-        formatter: {{ if .Values.synapse.logging.useStructuredLogging }}structured{{ else }}precise{{ end }}
+        formatter: {{ ternary "structured" "precise" .Values.synapse.logging.useStructuredLogging }}
         filters: [context]
         level: {{ .Values.synapse.logging.logLevel | default "INFO" }}
     loggers:
@@ -69,7 +70,7 @@ data:
     {{- end }}
 
     listeners:
-      - port: {{ .Values.master.containerPorts.synapse }}
+      - port: {{ .Values.master.containerPorts.http }}
         tls: false
         type: http
         x_forwarded: true

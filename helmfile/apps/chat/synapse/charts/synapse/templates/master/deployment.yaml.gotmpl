@@ -10,7 +10,6 @@ metadata:
   name: {{ template "synapse.master.fullname" . }}
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-    # FIXME Redis has only these component labels in master and replica folders, not in the parent folder?
     app.kubernetes.io/component: master
   {{- if or .Values.master.annotations .Values.commonAnnotations }}
   {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.master.annotations .Values.commonAnnotations) "context" .) }}
@@ -34,10 +33,10 @@ spec:
         app.kubernetes.io/component: master
         # FIXME This test is not correct, we need to test for "demo-mode", this is not necessary for an externally hosted redis
         {{- if .Values.synapse.redis.enabled }}
-        redis-client: "true"
+        chat-redis-client: "true"
         {{- end }}
         {{- if eq .Values.synapse.database.name "psycopg2" }}
-        postgresql-client: "true"
+        chat-postgresql-client: "true"
         {{- end }}
     spec:
       {{- include "synapse.imagePullSecrets" . | nindent 6 }}
@@ -117,7 +116,7 @@ spec:
           {{- end }}
           ports:
             - name: tcp-synapse
-              containerPort: {{ .Values.master.containerPorts.synapse }}
+              containerPort: {{ .Values.master.containerPorts.http }}
             - name: tcp-metrics
               containerPort: {{ .Values.master.containerPorts.metrics }}
             {{- if eq .Values.architecture "replication" }}

@@ -17,6 +17,7 @@ MijnBureau currently features the following main components:
 | Chat              | Element synapse      | [v1.133](https://github.com/element-hq/synapse/tree/v1.133.0)      | [documentation](https://element-hq.github.io/synapse/latest/) | AGPL-3.0   |
 | Notes             | Docs                 | [v3.2.1](https://github.com/suitenumerique/docs/tree/v3.2.1)       |                                                               | MIT        |
 | AI LLM            | Ollama               | [v0.7.0](https://github.com/ollama/ollama/tree/v0.7.0)             | [documentation](https://ollama.com/)                          | MIT        |
+| Spreadsheet       | Grist                | [v1.6.1](https://github.com/gristlabs/grist-core/tree/v1.6.1)      | [documentation](https://support.getgrist.com/self-managed/)   | Apache-2.0 |
 
 ## Requirements
 
@@ -29,7 +30,7 @@ We use [Helmfile](https://helmfile.readthedocs.io/en/latest/) to generate all Ku
 To generate all manifests, use the following command in the base directory:
 
 ```bash
-export MASTER_PASSWORD=changethis
+export MIJNBUREAU_MASTER_PASSWORD=changethis
 helmfile template
 ```
 

@@ -1,6 +1,12 @@
-databases:
+database:
   defaults:
     userConnectionLimit: 100
+  grist:
+    type: postgresql
+    name: grist
+    host: grist-postgresql
+    username: grist
+    port: 5432
   keycloak:
     type: postgresql
     name: keycloak
@@ -14,6 +20,6 @@ databases:
   synapse:
     type: "psycopg2"
     name: "synapse"
-    host: "postgresql.icbr-poc-chat.svc.cluster.local"
+    host: "postgresql"
     port: 5432
     username: "synapse"

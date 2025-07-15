@@ -49,7 +49,7 @@ spec:
         # TODO: What if it's outside of the cluster?
         - podSelector:
             matchLabels:
-              app.kubernetes.io/instance: redis
+              app.kubernetes.io/instance: chat-redis
     {{- end }}
     {{- if eq .Values.synapse.database.name "psycopg2" }}
     - ports:
@@ -58,11 +58,11 @@ spec:
         # TODO: What if it's outside of the cluster?
         - podSelector:
             matchLabels:
-              app.kubernetes.io/instance: postgresql
+              app.kubernetes.io/instance: chat-postgresql
     {{- end }}
   ingress:
     - ports:
-        - port: {{ .Values.master.containerPorts.synapse }}
+        - port: {{ .Values.master.containerPorts.http }}
         {{- if eq .Values.architecture "replication" }}
         - port: {{ .Values.master.containerPorts.replication }}
         {{- end }}

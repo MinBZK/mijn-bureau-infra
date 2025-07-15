@@ -1,17 +1,19 @@
 charts:
-  bitnami-common:
+  bitnamiCommon:
     registry: "registry-1.docker.io"
     repository: "bitnamicharts"
     name: "common"
     version: "2.31.3"
+    oci: true
+
   postgresql:
-#    registry: {{ coalesce (env "MIJNBUREAU_IMAGE_REGISTRY_DOCKERIO") "registry-1.docker.io" | quote }}
     registry: registry-1.docker.io
     repository: "bitnamicharts"
     name: "postgresql"
     version: "16.7.14"
+    oci: true
+
   redis:
-#    registry: {{ coalesce (env "MIJNBUREAU_IMAGE_REGISTRY_DOCKERIO") "registry-1.docker.io" | quote }}
     registry: registry-1.docker.io
     repository: "bitnamicharts"
     name: "redis"
@@ -22,3 +24,11 @@ charts:
     name: "element-web"
     version: "1.0.0"
 
+    oci: true
+
+  minio:
+    registry: registry-1.docker.io
+    repository: "bitnamicharts"
+    name: "minio"
+    version: "17.0.11"
+    oci: true

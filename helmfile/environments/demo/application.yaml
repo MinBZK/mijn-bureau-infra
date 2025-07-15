@@ -1,5 +1,0 @@
-applications:
-  ai:
-    namespace: "icbr-poc-ai-endpoint"
-  chat:
-    namespace: "icbr-poc-chat"

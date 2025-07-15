@@ -1,5 +1,8 @@
 architecture: "standalone"
 
+commonLabels:
+  app.kubernetes.io/part-of: synapse
+
 global:
   imagePullSecrets:
     {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
@@ -14,7 +17,7 @@ global:
       postgresPassword: {{ .Values.secrets.postgresql.postgresUser | quote }}
 
 commonAnnotations:
-  {{ .Values.annotations.servicesExternalPostgresql.common | toYaml | nindent 2 }}
+  {{ .Values.annotations.postgresql.common | toYaml | nindent 2 }}
 
 primary:
   containerSecurityContext:
@@ -41,15 +44,15 @@ primary:
   resources:
     {{ .Values.resources.postgresql | toYaml | nindent 4 }}
   podAnnotions:
-    {{ .Values.annotations.servicesExternalPostgresql.pod | toYaml | nindent 4 }}
+    {{ .Values.annotations.postgresql.pod | toYaml | nindent 4 }}
   service:
     annotations:
-      {{ .Values.annotations.servicesExternalPostgresql.service | toYaml | nindent 6 }}
+      {{ .Values.annotations.postgresql.service | toYaml | nindent 6 }}
   persistence:
     size: {{ .Values.persistence.storages.postgresql.size | quote }}
     storageClass: {{ coalesce .Values.persistence.storages.postgresql.storageClassName .Values.persistence.storageClassNames.RWO | quote }}
     annotations:
-      {{ .Values.annotations.servicesExternalPostgresql.persistence | toYaml | nindent 6 }}
+      {{ .Values.annotations.postgresql.persistence | toYaml | nindent 6 }}
   networkPolicy:
     enabled: true
     allowExternal: false
@@ -59,16 +62,16 @@ primary:
     args: "--encoding=UTF8 --locale=C"
 
 image:
-  registry: {{ .Values.images.postgresql.registry | quote }}
-  repository: {{ .Values.images.postgresql.repository | quote }}
-  tag: {{ .Values.images.postgresql.tag | quote }}
+  registry: {{ coalesce .Values.global.containerRegistry .Values.containers.postgresql.registry | quote }}
+  repository: {{ .Values.containers.postgresql.repository | quote }}
+  tag: {{ .Values.containers.postgresql.tag | quote }}
   pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
 
 auth:
   enablePostgresUser: true
   postgresPassword: {{ .Values.secrets.postgresql.postgresUser | quote }}
-  database: {{ .Values.databases.synapse.name | quote }}
-  username: {{ .Values.databases.synapse.username | quote }}
+  database: {{ .Values.database.synapse.name | quote }}
+  username: {{ .Values.database.synapse.username | quote }}
   password: {{ .Values.secrets.postgresql.matrixUser | quote }}
 
 # TODO Put multiple users in one database? See:
@@ -77,4 +80,4 @@ auth:
 
 serviceAccount:
   annotations:
-    {{ .Values.annotations.servicesExternalPostgresql.serviceAccount | toYaml | nindent 4 }}
+    {{ .Values.annotations.postgresql.serviceAccount | toYaml | nindent 4 }}

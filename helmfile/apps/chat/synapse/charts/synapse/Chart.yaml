@@ -6,12 +6,6 @@ annotations:
   licenses: Apache-2.0
 apiVersion: v2
 appVersion: "1.133.0"
-dependencies:
-  - name: common
-    repository: oci://registry-1.docker.io/bitnamicharts
-    tags:
-      - bitnami-common
-    version: "2.31.3"
 description: Mijn Bureau Synapse homeserver, the matrix reference implementation
 home: https://minbzk.github.io/mijn-bureau/
 icon: https://matrix.org/images/matrix-logo.svg
@@ -22,10 +16,9 @@ keywords:
   - synapse
   - element
 maintainers:
-  - name: Ministerie van Binnenlandse Zaken en Koninkrijksrelaties
-    url: https://github.com/MinBZK/mijn-bureau-infra
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
 name: synapse
 sources:
   - https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/matrix-chat/synapse/charts/synapse
-#type: application
 version: 0.1.0

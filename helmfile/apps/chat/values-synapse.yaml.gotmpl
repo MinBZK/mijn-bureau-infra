@@ -6,18 +6,20 @@
 # See https://element-hq.github.io/synapse/latest/workers.html
 architecture: monolith
 
-# TODO make sure we supply all required kubernetes labels (commonLabels?)
+commonLabels:
+  app.kubernetes.io/part-of: synapse
 
 master:
   # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
-    registry: {{ .Values.images.synapse.registry }}
-    repository: {{ .Values.images.synapse.repository }}
+    registry: {{ coalesce .Values.global.containerRegistry .Values.containers.synapse.registry }}
+    repository: {{ .Values.containers.synapse.repository }}
     # This sets the pull policy for images.
     pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
     # Overrides the image tag whose default is the chart appVersion.
-    tag: {{ .Values.images.synapse.tag }}
-    digest: {{ .Values.images.synapse.digest }}
+    tag: {{ .Values.containers.synapse.tag }}
+    digest: {{ .Values.containers.synapse.digest }}
+    pullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 6 }}
   # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
   replicaCount: 1
   # TODO rolling update is not possible as the PVC is claimed exclusively: Multi-Attach error for volume "pvc-827a4241-eb51-4d59-ab42-9bac6a4d0306" Volume is already used by pod(s) synapse-69877df8cd-n6pcl
@@ -42,7 +44,7 @@ worker:
 # TODO Ananace has well-known host (probably not needed), client-server host and server-2-server host, do we need those (configured)?
 ingress:
   enabled: true
-  hostname: {{ .Values.global.hosts.synapse }}.{{ .Values.global.matrixDomain | default .Values.global.domain }}
+  hostname: {{ .Values.global.matrixDomain | default .Values.global.domain }}
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
@@ -56,24 +58,24 @@ synapse:
     enabled: false
   logging:
     logLevel: "INFO"
-  serverName: {{ .Values.global.hosts.synapse }}.{{ .Values.global.matrixDomain | default .Values.global.domain }}
+  serverName: {{ .Values.global.matrixDomain | default .Values.global.domain }}
   database:
-    name: {{ .Values.databases.synapse.type | quote }}
+    name: {{ .Values.database.synapse.type | quote }}
     txnLimit: 10000
     args:
-      {{- if eq .Values.databases.synapse.type "sqlite3" }}
+      {{- if eq .Values.database.synapse.type "sqlite3" }}
       database: "/synapse/data/homeserver.db"
       {{- else }}
-      user: {{ .Values.databases.synapse.username | quote }}
+      user: {{ .Values.database.synapse.username | quote }}
       password: {{ .Values.secrets.postgresql.matrixUser | quote }}
-      host: {{ .Values.databases.synapse.host | quote }}
-      port: {{ .Values.databases.synapse.port }}
+      host: {{ .Values.database.synapse.host | quote }}
+      port: {{ .Values.database.synapse.port }}
       {{- end }}
   registrationSharedSecret: {{ .Values.secrets.synapse.registrationSharedSecret }}
   formSecret: {{ .Values.secrets.synapse.formSecret }}
   suppressKeyServerWarning: true
   redis:
-    enabled: {{ if .Values.cache.synapse }}true{{ else }}false{{ end }}
+    enabled: {{ not (empty .Values.cache.synapse) }}
     host: {{ .Values.cache.synapse.host | quote }}
     port: {{ .Values.cache.synapse.port }}
     password: {{ .Values.cache.synapse.password | default .Values.secrets.redis.password | quote }}
@@ -83,9 +85,9 @@ synapse:
     sleepEnabled: false
   email:
     notifs:
-      from: {{ (printf "Your %%(app)s homeserver <noreply@%s>" ( .Values.global.matrixDomain | default .Values.global.domain )) | quote }}
-    clientBaseUrl: {{ (printf "https://%s.%s" .Values.global.hosts.element ( .Values.global.matrixDomain | default .Values.global.domain )) | quote }}
-    inviteClientLocation: {{ (printf "https://%s.%s" .Values.global.hosts.element ( .Values.global.matrixDomain | default .Values.global.domain )) | quote }}
+      from: {{ (printf "Your %%(app)s homeserver <noreply@%s>" (.Values.global.matrixDomain | default .Values.global.domain)) | quote }}
+    clientBaseUrl: {{ (printf "https://%s.%s" .Values.global.hostname.element .Values.global.domain) | quote }}
+    inviteClientLocation: {{ (printf "https://%s.%s" .Values.global.hostname.element .Values.global.domain) | quote }}
   rateLimiting:
     perSeconde: 0.5
     burstCount: 30.0
@@ -104,7 +106,7 @@ synapse:
     allowedLifetime:
       min: "1d"
       max: "1y"
-  autoJoinRooms: [{{ (printf "#%s:%s" "welkom" ( .Values.global.matrixDomain | default .Values.global.domain )) | quote }}]
+  autoJoinRooms: [{{ (printf "#%s:%s" "welkom" (.Values.global.matrixDomain | default .Values.global.domain)) | quote }}]
   oidcProviders:
 #    - idp_id:
 #      idp_name: ""
