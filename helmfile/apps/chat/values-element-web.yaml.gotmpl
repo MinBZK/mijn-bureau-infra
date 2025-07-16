@@ -1,0 +1,52 @@
+replicaCount: 1
+
+image:
+  registry: docker.io {{(coalesce .Values.global.containerRegistry .Values.containers.elementweb.registry) | quote }}
+  repository: {{ .Values.containers.elementweb.repository | quote }}
+  tag: {{ .Values.containers.elementweb.tag | quote }}
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+ingress:
+  enabled: true
+  hostname: "{{ .Values.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}"
+  extraTls: {{ .Values.tls.element | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
+  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+
+config:
+  default_server_config:
+    m.homeserver:
+      base_url: "https://{{ .Values.global.matrixDomain | default "example.com" }}"
+      server_name: "{{ .Values.global.domain | default "example.com" }}"
+  brand: "Element Web Custom"
+  integrations_ui_url: ""
+  integrations_rest_url: ""
+  integrations_widgets_urls: []
+  bug_report_endpoint_url: ""
+  default_country_code: "NL"
+  showLabsSettings: false
+  features: {}
+  default_federate: true
+  roomDirectory:
+    servers: []
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+livenessProbe:
+  enabled: true
+  path: /
+  port: http
+
+readinessProbe:
+  enabled: true
+  path: /
+  port: http
