@@ -14,14 +14,14 @@ releases:
     chart: "bitnami-postgres/{{ .Values.charts.postgresql.name }}"
     version: "{{ .Values.charts.postgresql.version }}"
     namespace: {{ .Values.applications.chat.namespace | quote }}
-    installed: {{ eq .Environment.Name "demo" | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") .Values.applications.chat.enabled }}
     values:
       - "values-postgresql.yaml.gotmpl"
   - name: "chat-redis"
     chart: "bitnami-redis/{{ .Values.charts.redis.name }}"
     version: {{ .Values.charts.redis.version | quote }}
     namespace: {{ .Values.applications.chat.namespace | quote }}
-    installed: {{ eq .Environment.Name "demo" | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") .Values.applications.chat.enabled }}
     values:
       - "values-redis.yaml.gotmpl"
     installed: {{ eq .Environment.Name "demo" | toYaml }}
@@ -39,6 +39,7 @@ releases:
       - chart: "oci://{{ (coalesce .Values.charts.bitnamiCommon.registry .Values.global.helmRegistry ) }}/{{ .Values.charts.bitnamiCommon.repository }}/{{ .Values.charts.bitnamiCommon.name }}"
         version: 2.31.3
     namespace: {{ .Values.applications.chat.namespace | quote }}
+    installed: {{ .Values.applications.chat.enabled }}
     {{- if eq .Environment.Name "demo" }}
     needs:
       - {{ .Values.applications.chat.namespace }}/chat-postgresql

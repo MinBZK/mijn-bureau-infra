@@ -325,7 +325,7 @@ master:
     ## ONLY FOR STATEFULSETS:
     ## Can be set to RollingUpdate or OnDelete
     ##
-    type: RollingUpdate
+    type: Recreate
   ## ONLY FOR STATEFULSETS:
   ## @param synapse.podManagementPolicy Pod management policy for Synapse Master statefulset
   ## Ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies

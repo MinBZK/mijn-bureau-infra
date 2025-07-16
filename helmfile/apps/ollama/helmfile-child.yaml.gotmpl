@@ -4,7 +4,7 @@ bases:
 releases:
   - name: "ollama"
     chart: "./charts/ollama"
-    condition: ai.selfhost.enabled
+    condition: applications.ai.enabled
     namespace: {{ .Values.applications.ai.namespace }}
     createNamespace: false
     values:

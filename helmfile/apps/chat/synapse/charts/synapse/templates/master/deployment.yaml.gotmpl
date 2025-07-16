@@ -31,13 +31,6 @@ spec:
       {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: master
-        # FIXME This test is not correct, we need to test for "demo-mode", this is not necessary for an externally hosted redis
-        {{- if .Values.synapse.redis.enabled }}
-        chat-redis-client: "true"
-        {{- end }}
-        {{- if eq .Values.synapse.database.name "psycopg2" }}
-        chat-postgresql-client: "true"
-        {{- end }}
     spec:
       {{- include "synapse.imagePullSecrets" . | nindent 6 }}
       serviceAccountName: {{ template "synapse.serviceAccountName" . }}
