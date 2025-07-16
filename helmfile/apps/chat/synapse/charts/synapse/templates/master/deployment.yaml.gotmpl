@@ -67,7 +67,6 @@ spec:
       {{- if .Values.master.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.master.terminationGracePeriodSeconds }}
       {{- end }}
-      # TODO choose if we want to have initContainers
       containers:
         - name: synapse
           image: {{ template "synapse.master.image" . }}
