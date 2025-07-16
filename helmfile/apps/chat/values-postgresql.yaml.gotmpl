@@ -1,46 +1,32 @@
-architecture: "standalone"
-
-commonLabels:
-  app.kubernetes.io/part-of: synapse
-
 global:
   imagePullSecrets:
     {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
-  defaultStorageClass: {{ coalesce .Values.persistence.storages.redis.storageClassName .Values.persistence.storageClassNames.RWO | quote }}
-  compatibility:
-    openshift:
-      adaptSecurityContext: "auto"
   security:
     allowInsecureImages: true
   postgresql:
     auth:
       postgresPassword: {{ .Values.secrets.postgresql.postgresUser | quote }}
 
+commonLabels:
+  app.kubernetes.io/part-of: synapse
+
 commonAnnotations:
   {{ .Values.annotations.postgresql.common | toYaml | nindent 2 }}
 
+image:
+  registry: {{ coalesce .Values.global.containerRegistry .Values.containers.postgresql.registry | quote }}
+  repository: {{ .Values.containers.postgresql.repository | quote }}
+  tag: {{ .Values.containers.postgresql.tag | quote }}
+  pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
+
+auth:
+  enablePostgresUser: true
+  postgresPassword: {{ .Values.secrets.postgresql.postgresUser | quote }}
+  database: {{ .Values.database.synapse.name | quote }}
+  username: {{ .Values.database.synapse.username | quote }}
+  password: {{ .Values.secrets.postgresql.matrixUser | quote }}
+
 primary:
-  containerSecurityContext:
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop:
-        - "ALL"
-    enabled: true
-    privileged: false
-    # TODO this should probably be configured in global config?
-    runAsUser: 1001450000
-    runAsGroup: 1001450000
-    seccompProfile:
-      type: "RuntimeDefault"
-    readOnlyRootFilesystem: true
-    runAsNonRoot: true
-    seLinuxOptions:
-      {{ .Values.seLinuxOptions.postgresql | toYaml | nindent 6 }}
-  podSecurityContext:
-    enabled: true
-    # TODO this should probably be configured in global config?
-    fsGroup: 1001450000
-    fsGroupChangePolicy: "OnRootMismatch"
   resources:
     {{ .Values.resources.postgresql | toYaml | nindent 4 }}
   podAnnotions:
@@ -49,8 +35,8 @@ primary:
     annotations:
       {{ .Values.annotations.postgresql.service | toYaml | nindent 6 }}
   persistence:
-    size: {{ .Values.persistence.storages.postgresql.size | quote }}
     storageClass: {{ coalesce .Values.persistence.storages.postgresql.storageClassName .Values.persistence.storageClassNames.RWO | quote }}
+    size: {{ .Values.persistence.storages.postgresql.size | quote }}
     annotations:
       {{ .Values.annotations.postgresql.persistence | toYaml | nindent 6 }}
   networkPolicy:
@@ -67,23 +53,6 @@ primary:
                 app.kubernetes.io/name: synapse
   initdb:
     args: "--encoding=UTF8 --locale=C"
-
-image:
-  registry: {{ coalesce .Values.global.containerRegistry .Values.containers.postgresql.registry | quote }}
-  repository: {{ .Values.containers.postgresql.repository | quote }}
-  tag: {{ .Values.containers.postgresql.tag | quote }}
-  pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
-
-auth:
-  enablePostgresUser: true
-  postgresPassword: {{ .Values.secrets.postgresql.postgresUser | quote }}
-  database: {{ .Values.database.synapse.name | quote }}
-  username: {{ .Values.database.synapse.username | quote }}
-  password: {{ .Values.secrets.postgresql.matrixUser | quote }}
-
-# TODO Put multiple users in one database? See:
-# https://gitlab.opencode.de/bmi/opendesk/deployment/opendesk/-/blob/develop/helmfile/apps/services-external/values-postgresql.yaml.gotmpl?ref_type=heads#L49
-# https://gitlab.opencode.de/bmi/opendesk/components/platform-development/charts/opendesk-postgresql/-/blob/main/charts/postgresql/templates/job.yaml
 
 serviceAccount:
   annotations:
