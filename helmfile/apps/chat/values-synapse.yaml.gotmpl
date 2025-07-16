@@ -40,6 +40,23 @@ master:
       - ports:
           - port: 8008
             protocol: TCP
+    extraEgress:
+      {{- if .Values.cache.synapse }}
+        - ports:
+            - port: {{ .Values.cache.synapse.port }}
+          to:
+            - podSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: chat-redis
+      {{- end }}
+      {{- if eq .Values.database.synapse.type "psycopg2" }}
+        - ports:
+            - port: {{ .Values.database.synapse.port }}
+          to:
+            - podSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: chat-postgresql
+      {{- end }}
 
 # FIXME replication is not functional
 worker:

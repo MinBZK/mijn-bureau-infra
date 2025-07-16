@@ -38,27 +38,9 @@ spec:
         - podSelector:
             matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 14 }}
               app.kubernetes.io/component: worker
+    {{- end }}
     {{- if .Values.master.networkPolicy.extraEgress }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.master.networkPolicy.extraEgress "context" $ ) | nindent 4 }}
-    {{- end }}
-    {{- end }}
-    {{- if .Values.synapse.redis.enabled }}
-    - ports:
-        - port: {{ .Values.synapse.redis.port }}
-      to:
-        # TODO: What if it's outside of the cluster?
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/instance: chat-redis
-    {{- end }}
-    {{- if eq .Values.synapse.database.name "psycopg2" }}
-    - ports:
-        - port: {{ .Values.synapse.database.args.port }}
-      to:
-        # TODO: What if it's outside of the cluster?
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/instance: chat-postgresql
     {{- end }}
   ingress:
     - ports:
@@ -69,7 +51,7 @@ spec:
         {{- range .Values.master.extraContainerPorts }}
         - port: {{ .containerPort }}
         {{- end }}
-        {{- if not .Values.master.networkPolicy.allowExternal }}
+      {{- if not .Values.master.networkPolicy.allowExternal }}
       from:
         - podSelector:
             matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 14 }}
@@ -91,7 +73,7 @@ spec:
               matchLabels: {{- include "common.tplvalues.render" (dict "value" .Values.master.networkPolicy.ingressNSPodMatchLabels "context" $ ) | nindent 14 }}
           {{- end }}
         {{- end }}
-        {{- end }}
+      {{- end }}
     {{- if .Values.master.networkPolicy.extraIngress }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.master.networkPolicy.extraIngress "context" $ ) | nindent 4 }}
     {{- end }}
