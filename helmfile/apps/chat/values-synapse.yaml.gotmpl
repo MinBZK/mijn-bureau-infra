@@ -22,8 +22,6 @@ master:
     pullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 6 }}
   # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
   replicaCount: 1
-  # TODO rolling update is not possible as the PVC is claimed exclusively: Multi-Attach error for volume "pvc-827a4241-eb51-4d59-ab42-9bac6a4d0306" Volume is already used by pod(s) synapse-69877df8cd-n6pcl
-  updateStrategy:
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resources.synapse | toYaml | nindent 4 }}
@@ -68,7 +66,7 @@ synapse:
   logging:
     logLevel: "INFO"
   serverName: {{ .Values.global.matrixDomain | default .Values.global.domain }}
-  webClientLocation: {{ printf "https://%s.%s" .Values.global.hosts.element .Values.global.matrixDomain }}
+  webClientLocation: {{ printf "https://%s.%s" .Values.global.hostname.element .Values.global.matrixDomain }}
   database:
     name: {{ .Values.database.synapse.type | quote }}
     txnLimit: 10000
