@@ -3,9 +3,6 @@ Copyright Broadcom, Inc. All Rights Reserved.
 SPDX-License-Identifier: APACHE-2.0
 */}}
 
-# TODO Values could either be all in .Values.config (as ananace), or in .synapse like now, or we could look into whether separate files like Bitnami Redis for master and workers is prudent.
-# TODO this is not extensible. Either add all options, or add an extraOptions-like system.
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -55,7 +52,7 @@ data:
     server_name: {{ .Values.ingress.hostname | quote }}
     public_baseurl: {{ printf "https://%s" .Values.ingress.hostname | quote }}
     pid_file: /homeserver.pid
-    web_client: False
+    web_client_location: {{ .Values.synapse.webClientLocation }}
     soft_file_limit: 0
     log_config: "/synapse/config/log.yaml"
     report_stats: {{ required "You need to specify config.reportStats" .Values.synapse.reportStats.enabled }}

@@ -68,6 +68,7 @@ synapse:
   logging:
     logLevel: "INFO"
   serverName: {{ .Values.global.matrixDomain | default .Values.global.domain }}
+  webClientLocation: {{ printf "https://%s.%s" .Values.global.hosts.element .Values.global.matrixDomain }}
   database:
     name: {{ .Values.database.synapse.type | quote }}
     txnLimit: 10000
@@ -117,6 +118,7 @@ synapse:
       max: "1y"
   autoJoinRooms: [{{ (printf "#%s:%s" "welkom" (.Values.global.matrixDomain | default .Values.global.domain)) | quote }}]
   oidcProviders:
+# TODO: connect to keycloak
 #    - idp_id:
 #      idp_name: ""
 #      discover: false

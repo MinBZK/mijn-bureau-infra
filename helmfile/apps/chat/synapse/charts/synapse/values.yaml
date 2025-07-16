@@ -890,6 +890,7 @@ synapse:
     directory: "/synapse/data"
     homeServerConfigFile: "/synapse/config/homeserver.yaml"
   serverName: "synapse.internal"
+  webClientLocation: ~
   reportStats:
     enabled: false
     endpoint: ""
