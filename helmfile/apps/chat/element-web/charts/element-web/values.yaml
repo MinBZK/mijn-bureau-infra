@@ -14,7 +14,7 @@ ingress:
   enabled: false
   hostname: element-web.local
   annotations: {}
-  tls: false
+  tls: true
 
 resources: {}
 nodeSelector: {}

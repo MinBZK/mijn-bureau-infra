@@ -12,12 +12,11 @@ service:
   annotations: {}
 
 ingress:
-  enabled: false
+  enabled: true
   hostname: "{{ .Values.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}"
-  path: /
-  annotations: {}
-  tls: false
-  extraHosts: []
+  extraTls: {{ .Values.tls.element | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
+  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
 
 config:
   default_server_config:
