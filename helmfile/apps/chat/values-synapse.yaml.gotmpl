@@ -62,7 +62,6 @@ master:
 worker:
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
-# TODO Ananace has well-known host (probably not needed), client-server host and server-2-server host, do we need those (configured)?
 ingress:
   enabled: true
   hostname: {{ .Values.global.matrixDomain | default .Values.global.domain }}
