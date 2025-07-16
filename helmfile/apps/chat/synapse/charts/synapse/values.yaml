@@ -4,7 +4,7 @@
 # TODO docs everywhere and templating values
 # TODO check for unused variables
 
-# FIXME replication is not functional
+# TODO replication is not functional
 architecture: "monolith"
 
 ## @section Global parameters
@@ -427,7 +427,7 @@ master:
     ## @param synapse.autoscaling.hpa.targetCPU Target CPU utilization percentage
     ## @param synapse.autoscaling.hpa.targetMemory Target Memory utilization percentage
     ##
-    # FIXME Check whether this is usable with Synapse replication workers.
+    # TODO Check whether this is usable with Synapse replication workers.
     hpa:
       enabled: false
       minReplicas: 1
