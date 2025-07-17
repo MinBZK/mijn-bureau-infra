@@ -13,9 +13,9 @@ commonAnnotations:
   {{ .Values.annotations.redis.common | toYaml | nindent 2 }}
 
 image:
-  registry: {{ coalesce .Values.global.containerRegistry .Values.containers.redis.registry | quote }}
-  repository: {{ .Values.containers.redis.repository | quote }}
-  tag: {{ .Values.containers.redis.tag | quote }}
+  registry: {{ coalesce .Values.global.containerRegistry .Values.container.redis.registry | quote }}
+  repository: {{ .Values.container.redis.repository | quote }}
+  tag: {{ .Values.container.redis.tag | quote }}
   pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
 
 auth:

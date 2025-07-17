@@ -12,13 +12,13 @@ commonLabels:
 master:
   # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
-    registry: {{ coalesce .Values.global.containerRegistry .Values.containers.synapse.registry }}
-    repository: {{ .Values.containers.synapse.repository }}
+    registry: {{ coalesce .Values.global.containerRegistry .Values.container.synapse.registry }}
+    repository: {{ .Values.container.synapse.repository }}
     # This sets the pull policy for images.
     pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
     # Overrides the image tag whose default is the chart appVersion.
-    tag: {{ .Values.containers.synapse.tag }}
-    digest: {{ .Values.containers.synapse.digest }}
+    tag: {{ .Values.container.synapse.tag }}
+    digest: {{ .Values.container.synapse.digest }}
     pullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 6 }}
   # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
   replicaCount: 1

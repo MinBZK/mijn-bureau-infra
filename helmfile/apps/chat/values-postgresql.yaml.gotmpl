@@ -14,9 +14,9 @@ commonAnnotations:
   {{ .Values.annotations.postgresql.common | toYaml | nindent 2 }}
 
 image:
-  registry: {{ coalesce .Values.global.containerRegistry .Values.containers.postgresql.registry | quote }}
-  repository: {{ .Values.containers.postgresql.repository | quote }}
-  tag: {{ .Values.containers.postgresql.tag | quote }}
+  registry: {{ coalesce .Values.global.containerRegistry .Values.container.postgresql.registry | quote }}
+  repository: {{ .Values.container.postgresql.repository | quote }}
+  tag: {{ .Values.container.postgresql.tag | quote }}
   pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
 
 auth:

@@ -5,9 +5,9 @@ global:
   imagePullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
 
 image:
-  registry: {{(coalesce .Values.global.containerRegistry .Values.containers.grist.registry) | quote }}
-  repository: {{ .Values.containers.grist.repository | quote }}
-  tag: {{ .Values.containers.grist.tag | quote }}
+  registry: {{(coalesce .Values.global.containerRegistry .Values.container.grist.registry) | quote }}
+  repository: {{ .Values.container.grist.repository | quote }}
+  tag: {{ .Values.container.grist.tag | quote }}
 
 autoscaling:
   hpa: {{ .Values.autoscaling.grist.hpa | toYaml | nindent 4 }}
@@ -79,11 +79,11 @@ metrics: {{ .Values.monitoring.prometheus | toYaml | nindent 2 }}
 service:
   type: {{ .Values.cluster.service.type | quote }}
 
-defaultLocale: {{ .Values.applications.grist.defaultLocale | quote }}
+defaultLocale: {{ .Values.application.grist.defaultLocale | quote }}
 
-orgInPath: {{ .Values.applications.grist.orgInPath | quote }}
+orgInPath: {{ .Values.application.grist.orgInPath | quote }}
 
-singleOrg: {{ .Values.applications.grist.singleOrg | quote }}
+singleOrg: {{ .Values.application.grist.singleOrg | quote }}
 
 {{- if .Values.cluster.sandbox.gvisor.enabled }}
 sandboxFlavor: "gvisor"
