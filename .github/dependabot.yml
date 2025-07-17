@@ -1,0 +1,29 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Europe/Amsterdam"
+    groups:
+      allgithubactions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: ":arrow_up: "
+
+  - package-ecosystem: "devcontainers"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Europe/Amsterdam"
+    groups:
+      alldevcontainers:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: ":arrow_up: "

@@ -138,3 +138,36 @@ jobs:
 
       - name: run pre-commit
         run: pre-commit run --all-files
+
+  notify-mattermost:
+    runs-on: ubuntu-latest
+    needs:
+      [
+        lint-commit-messages,
+        check-format-rules,
+        render-helmfile,
+        verify-policies,
+      ]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    steps:
+      - uses: mattermost/action-mattermost-notify@master
+        if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+        with:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK }}
+          MATTERMOST_CHANNEL: github-actions
+          TEXT: |
+            ## 🚨 CI Pipeline Failed
+
+            **Repository:** `${{ github.repository }}`
+            **Branch/Tag:** `${{ github.head_ref }}`
+            **Triggered by:** @${{ github.actor }}
+            **Event:** ${{ github.event_name }}
+
+            ### Failed Jobs:
+            ${{ needs.lint-commit-messages.result == 'failure' && '❌ Commit Message Linting' || '' }}
+            ${{ needs.check-format-rules.result == 'failure' && '❌ Format & Pre-commit Checks' || '' }}
+
+            ### Quick Actions:
+            - 🔍 [View Pipeline Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - 📝 [View Commit](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+            ${{ github.event_name == 'pull_request' && format('- 🔄 [View Pull Request]({0}/{1}/pull/{2})', github.server_url, github.repository, github.event.number) || '' }}
