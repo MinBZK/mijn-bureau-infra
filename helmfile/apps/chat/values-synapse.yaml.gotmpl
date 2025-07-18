@@ -2,6 +2,8 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# TODO docs everywhere and templating values
+
 # Architecture can be monolith for a single node, or replication when using additional worker nodes for scaling.
 # See https://element-hq.github.io/synapse/latest/workers.html
 architecture: monolith
@@ -113,8 +115,9 @@ synapse:
     clientBaseUrl: {{ (printf "https://%s.%s" .Values.global.hostname.element .Values.global.domain) | quote }}
     inviteClientLocation: {{ (printf "https://%s.%s" .Values.global.hostname.element .Values.global.domain) | quote }}
   rateLimiting:
-    perSeconde: 0.5
-    burstCount: 30.0
+    messaging:
+      perSeconde: 0.5
+      burstCount: 30.0
   maxEventDelayDuration: "24h"
   serveServerWellknown: true
   avatar:

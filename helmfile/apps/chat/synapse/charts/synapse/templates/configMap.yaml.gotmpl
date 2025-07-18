@@ -55,7 +55,7 @@ data:
     web_client_location: {{ .Values.synapse.webClientLocation }}
     soft_file_limit: 0
     log_config: "/synapse/config/log.yaml"
-    report_stats: {{ required "You need to specify config.reportStats" .Values.synapse.reportStats.enabled }}
+    report_stats: {{ required "You need to specify synapse.reportStats" .Values.synapse.reportStats.enabled }}
     report_stats_endpoint: {{ .Values.synapse.reportStats.endpoint | quote }}
 
     {{- if eq .Values.architecture "replication" }}
@@ -175,8 +175,8 @@ data:
 
     # temporarily boost rate-limits to avoid breaking WIP MatrixRTC signalling
     rc_message:
-      per_second: {{ .Values.synapse.rateLimiting.perSecond }}
-      burst_count: {{ .Values.synapse.rateLimiting.burstCount }}
+      per_second: {{ .Values.synapse.rateLimiting.messaging.perSecond }}
+      burst_count: {{ .Values.synapse.rateLimiting.messaging.burstCount }}
 
     # The maximum allowed duration by which sent events can be delayed, as
     # per MSC4140. Must be a positive value if set.  Defaults to no
@@ -196,6 +196,7 @@ data:
         max_lifetime: {{ .Values.synapse.retention.defaultPolicy.lifetime.max }}
       allowed_lifetime_min: {{ .Values.synapse.retention.allowedLifetime.min }}
       allowed_lifetime_max: {{ .Values.synapse.retention.allowedLifetime.max }}
+      purge_jobs: {{- .Values.synapse.retention.purgeJobs | toYaml | nindent 8 }}
 
     auto_join_rooms: {{- .Values.synapse.autoJoinRooms | toYaml | nindent 6 }}
 

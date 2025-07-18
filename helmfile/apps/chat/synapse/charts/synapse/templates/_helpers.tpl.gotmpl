@@ -102,3 +102,11 @@ Compile all warnings into a single message.
     "sqlite3". Please set a valid database type (--set synapse.database.name="xxxx")
   {{- end -}}
 {{- end -}}
+
+{{/* Validate values of Synapse - must provide a valid database type */}}
+{{- define "synapse.validateValues.architecture.redisReplication" -}}
+  {{- if and (eq .Values.architecture "replication") (not .Values.synapse.redis.enabled) -}}
+    synapse: replication architecture without redis
+    When using replication architecture, redis is required.
+  {{- end -}}
+{{- end -}}
