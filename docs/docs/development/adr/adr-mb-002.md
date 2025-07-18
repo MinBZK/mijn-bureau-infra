@@ -14,9 +14,14 @@ We will use Kubernetes as our standard deployment platform for all environments.
 
 ## Consequences
 
-✅ Enables a consistent deployment model across environments
-✅ Improves scalability, observability, and resilience of applications
-✅ Leverages ecosystem tools for CI/CD, monitoring, logging, and security
-❌ Increases complexity and learning curve for development teams
-❌ Requires ongoing cluster management and resource tuning
-❌ Potential overkill for small/simple apps unless managed Kubernetes (e.g., GKE, AKS, EKS) is used
+**Pros:**
+
+- ✅ Enables a consistent deployment model across environments
+- ✅ Improves scalability, observability, and resilience of applications
+- ✅ Leverages ecosystem tools for CI/CD, monitoring, logging, and security
+
+**Cons:**
+
+- ❌ Increases complexity and learning curve for development teams
+- ❌ Requires ongoing cluster management and resource tuning
+- ❌ Potential overkill for small/simple apps unless managed Kubernetes (e.g., GKE, AKS, EKS) is used

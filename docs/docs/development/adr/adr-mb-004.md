@@ -22,8 +22,13 @@ We will adopt [Gitmoji](https://gitmoji.dev/) as our commit message convention. 
 
 ## Consequences
 
-✅ Improves readability of commit logs.
-✅ Provides an at-a-glance overview of the types of changes in the codebase.
-✅ Encourages contributors to be more thoughtful and descriptive in commits.
-❌ Might have a learning curve for new team members unfamiliar with Gitmoji.
-❌ Some tools or pipelines may require extra configuration if emojis cause formatting issues
+**Pros:**
+
+- ✅ Improves readability of commit logs.
+- ✅ Provides an at-a-glance overview of the types of changes in the codebase.
+- ✅ Encourages contributors to be more thoughtful and descriptive in commits.
+
+**Cons:**
+
+- ❌ Might have a learning curve for new team members unfamiliar with Gitmoji.
+- ❌ Some tools or pipelines may require extra configuration if emojis cause formatting issues

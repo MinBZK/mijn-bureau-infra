@@ -27,9 +27,14 @@ user requirements from administrators.
 
 ## Consequences
 
-✅ With Helmfile we can leverage the existing extensive Helm Chart community ecosystem, which reduces development time.
-✅ The infrastructure will be declaratively managed in version control, ensuring reproducible deployments.
-✅ Helmfile does not require specific programming knowledge from infrastructure teams.
-❌ Helmfile does not have a type system, which increases development time due to typing mistakes.
-❌ We cannot use software development best practices and abstractions that we would be able to use in for example cdk8s or Kubernetes Operators.
-❌ Templating can become complex very quickly, increasing development time.
+**Pros:**
+
+- ✅ With Helmfile we can leverage the existing extensive Helm Chart community ecosystem, which reduces development time.
+- ✅ The infrastructure will be declaratively managed in version control, ensuring reproducible deployments.
+- ✅ Helmfile does not require specific programming knowledge from infrastructure teams.
+
+**Cons:**
+
+- ❌ Helmfile does not have a type system, which increases development time due to typing mistakes.
+- ❌ We cannot use software development best practices and abstractions that we would be able to use in for example cdk8s or Kubernetes Operators.
+- ❌ Templating can become complex very quickly, increasing development time.

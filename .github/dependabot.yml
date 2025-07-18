@@ -12,7 +12,7 @@ updates:
         patterns:
           - "*"
     commit-message:
-      prefix: ":arrow_up: "
+      prefix: ":arrow_up:(chore) "
 
   - package-ecosystem: "devcontainers"
     directory: "/"
@@ -26,4 +26,18 @@ updates:
         patterns:
           - "*"
     commit-message:
-      prefix: ":arrow_up: "
+      prefix: "⬆️(chore) "
+
+  - package-ecosystem: "npm"
+    directory: "/docs"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Europe/Amsterdam"
+    groups:
+      allnpm:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "⬆️(chore) "

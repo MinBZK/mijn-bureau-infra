@@ -60,8 +60,8 @@ jobs:
           helmfile -e demo template --output-dir=/tmp/manifest/demo
           helmfile template --output-dir=/tmp/manifest/default
         env:
-          MIJNBUREAU_MASTER_PASSWORD: ${{ secrets.MIJNBUREAU_MASTER_PASSWORD }}
-          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+          MIJNBUREAU_MASTER_PASSWORD: ${{ secrets.MIJNBUREAU_MASTER_PASSWORD || 'dependabot' }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY || 'dependabot'  }}
 
       - name: Prepare file Upload
         run: |
