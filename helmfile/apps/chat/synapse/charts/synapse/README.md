@@ -489,13 +489,13 @@ The Synapse image stores the Synapse data and configurations at the `/synapse/da
 
 ### Database configuration
 
-| Name                                 | Description                                                                                                                                                   | Value     |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| `synapse.database`                   | The database setting defines the database that synapse uses to store all of its data                                                                          |           |
-| `synapse.database.name`              | This option specifies the database engine to use: either `sqlite3` (for SQLite) or `psycopg2` (for PostgreSQL).                                               | `sqlite3` |
-| `synapse.database.txnLimit`          | Gives the maximum number of transactions to run per connection before reconnecting. 0 means no limit.                                                         | `0`       |
-| `synapse.database.allowUnsafeLocale` | This option is specific to Postgres. Under the default behavior, Synapse will refuse to start if the postgres db is set to a non-C locale.                    | `false`   |
-| `synapse.database.args`              | Gives options which are passed through to the database engine, except for options starting with cp_, which are used to configure the Twisted connection pool. | `{}`      |
+| Name                                 | Description                                                                                                                                                    | Value     |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| `synapse.database`                   | The database setting defines the database that synapse uses to store all of its data                                                                           |           |
+| `synapse.database.name`              | This option specifies the database engine to use: either `sqlite3` (for SQLite) or `psycopg2` (for PostgreSQL).                                                | `sqlite3` |
+| `synapse.database.txnLimit`          | Gives the maximum number of transactions to run per connection before reconnecting. 0 means no limit.                                                          | `0`       |
+| `synapse.database.allowUnsafeLocale` | This option is specific to Postgres. Under the default behavior, Synapse will refuse to start if the postgres db is set to a non-C locale.                     | `false`   |
+| `synapse.database.args`              | Gives options which are passed through to the database engine, except for options starting with cp\_, which are used to configure the Twisted connection pool. | `{}`      |
 
 ### Password configuration
 
@@ -557,7 +557,6 @@ The Synapse image stores the Synapse data and configurations at the `/synapse/da
 | `synapse.email.subjects.invite_from_person`              | Subject to use to notify about an invite to a room which doesn't have a name.                                                                                                                                                                                                                                                                       | `[%(app)s] %(person)s has invited you to chat on %(app)s...`                      |
 | `synapse.email.subjects.password_reset`                  | Subject to use when sending a password reset email.                                                                                                                                                                                                                                                                                                 | `[%(server_name)s] Password reset`                                                |
 | `synapse.email.subjects.email_validation`                | Subject to use when sending a verification email to assert an address's ownership.                                                                                                                                                                                                                                                                  | `[%(server_name)s] Validate your email`                                           |
-
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
