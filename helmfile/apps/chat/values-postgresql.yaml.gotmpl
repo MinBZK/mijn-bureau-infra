@@ -1,0 +1,59 @@
+global:
+  imagePullSecrets:
+    {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
+  security:
+    allowInsecureImages: true
+  postgresql:
+    auth:
+      postgresPassword: {{ .Values.secrets.postgresql.postgresUser | quote }}
+
+commonLabels:
+  app.kubernetes.io/part-of: synapse
+
+commonAnnotations:
+  {{ .Values.annotations.postgresql.common | toYaml | nindent 2 }}
+
+image:
+  registry: {{ coalesce .Values.global.containerRegistry .Values.container.postgresql.registry | quote }}
+  repository: {{ .Values.container.postgresql.repository | quote }}
+  tag: {{ .Values.container.postgresql.tag | quote }}
+  pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
+
+auth:
+  enablePostgresUser: true
+  postgresPassword: {{ .Values.secrets.postgresql.postgresUser | quote }}
+  database: {{ .Values.database.synapse.name | quote }}
+  username: {{ .Values.database.synapse.username | quote }}
+  password: {{ .Values.secrets.postgresql.matrixUser | quote }}
+
+primary:
+  resources:
+    {{ .Values.resources.postgresql | toYaml | nindent 4 }}
+  podAnnotions:
+    {{ .Values.annotations.postgresql.pod | toYaml | nindent 4 }}
+  service:
+    annotations:
+      {{ .Values.annotations.postgresql.service | toYaml | nindent 6 }}
+  persistence:
+    storageClass: {{ coalesce .Values.persistence.storages.postgresql.storageClassName .Values.persistence.storageClassNames.RWO | quote }}
+    size: {{ .Values.persistence.storages.postgresql.size | quote }}
+    annotations:
+      {{ .Values.annotations.postgresql.persistence | toYaml | nindent 6 }}
+  networkPolicy:
+    enabled: true
+    allowExternal: false
+    allowExternalEgress: false
+    extraIngress:
+      - ports:
+          - port: {{ .Values.database.synapse.port }}
+            protocol: TCP
+        from:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: synapse
+  initdb:
+    args: "--encoding=UTF8 --locale=C"
+
+serviceAccount:
+  annotations:
+    {{ .Values.annotations.postgresql.serviceAccount | toYaml | nindent 4 }}

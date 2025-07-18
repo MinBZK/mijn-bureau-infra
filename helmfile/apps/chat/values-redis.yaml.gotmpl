@@ -1,0 +1,66 @@
+architecture: "standalone"
+
+global:
+  imagePullSecrets:
+    {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
+  security:
+    allowInsecureImages: true
+
+commonLabels:
+  app.kubernetes.io/part-of: synapse
+
+commonAnnotations:
+  {{ .Values.annotations.redis.common | toYaml | nindent 2 }}
+
+image:
+  registry: {{ coalesce .Values.global.containerRegistry .Values.container.redis.registry | quote }}
+  repository: {{ .Values.container.redis.repository | quote }}
+  tag: {{ .Values.container.redis.tag | quote }}
+  pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
+
+auth:
+  password: {{ .Values.secrets.redis.password | quote }}
+
+master:
+  annotations:
+    {{ .Values.annotations.redis.masterMaster | toYaml | nindent 4 }}
+  containerSecurityContext:
+    {{ .Values.security.containerSecurityContext | toYaml | nindent 4 }}
+    seLinuxOptions:
+      {{ .Values.seLinuxOptions.redis | toYaml | nindent 6 }}
+  podSecurityContext:
+    {{ .Values.security.podSecurityContext | toYaml | nindent 4 }}
+  count: {{ .Values.replicas.redis }}
+  persistence:
+    storageClass: {{ coalesce .Values.persistence.storages.redis.storageClassName .Values.persistence.storageClassNames.RWO | quote }}
+    size: {{ .Values.persistence.storages.redis.size | quote }}
+    annotations:
+      {{ .Values.annotations.redis.masterPersistence | toYaml | nindent 6 }}
+  podAnnotations:
+    {{ .Values.annotations.redis.masterPod | toYaml | nindent 4 }}
+  resources:
+    {{ .Values.resources.redis | toYaml | nindent 4 }}
+  service:
+    annotations:
+      {{ .Values.annotations.redis.masterService | toYaml | nindent 6 }}
+  serviceAccount:
+    annotations:
+      {{ .Values.annotations.redis.masterServiceAccount | toYaml | nindent 6 }}
+
+networkPolicy:
+  enabled: true
+  allowExternal: false
+  allowExternalEgress: false
+  extraIngress:
+    - ports:
+      - port: {{ .Values.cache.synapse.port }}
+        protocol: TCP
+      from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: synapse
+  metrics:
+    allowExternal: false
+
+secretAnnotations:
+  {{ .Values.annotations.redis.secret | toYaml | nindent 2 }}

@@ -16,7 +16,7 @@ helm install my-release
 
 ## Introduction
 
-This chart bootstraps a Grist deployment on a Kubernetes clusters using the Helm package manager.
+This chart bootstraps a Grist deployment on a Kubernetes cluster using the Helm package manager.
 
 ## Prerequisites
 

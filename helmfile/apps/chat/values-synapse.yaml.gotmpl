@@ -1,0 +1,171 @@
+# Default values for matrix-synapse.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# TODO docs everywhere and templating values
+
+# Architecture can be monolith for a single node, or replication when using additional worker nodes for scaling.
+# See https://element-hq.github.io/synapse/latest/workers.html
+architecture: monolith
+
+commonLabels:
+  app.kubernetes.io/part-of: synapse
+
+master:
+  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+  image:
+    registry: {{ coalesce .Values.global.containerRegistry .Values.container.synapse.registry }}
+    repository: {{ .Values.container.synapse.repository }}
+    # This sets the pull policy for images.
+    pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: {{ .Values.container.synapse.tag }}
+    digest: {{ .Values.container.synapse.digest }}
+    pullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 6 }}
+  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+  replicaCount: 1
+  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resources.synapse | toYaml | nindent 4 }}
+  service:
+    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 15
+  persistence:
+    size: {{ .Values.persistence.storages.synapse.size }}
+    storageClass: {{ coalesce .Values.persistence.storages.synapse.storageClassName .Values.persistence.storageClassNames.RWO }}
+  networkPolicy:
+    extraIngress:
+      # Allow traffic from ingress controller namespace
+      - ports:
+          - port: 8008
+            protocol: TCP
+    extraEgress:
+      {{- if .Values.cache.synapse }}
+        - ports:
+            - port: {{ .Values.cache.synapse.port }}
+          to:
+            - podSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: chat-redis
+      {{- end }}
+      {{- if eq .Values.database.synapse.type "psycopg2" }}
+        - ports:
+            - port: {{ .Values.database.synapse.port }}
+          to:
+            - podSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: chat-postgresql
+      {{- end }}
+
+# TODO replication is not functional
+worker:
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  hostname: {{ .Values.global.matrixDomain | default .Values.global.domain }}
+  extraTls: {{ .Values.tls.chat | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
+  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Automatically mount a ServiceAccount's API credentials?
+  automountServiceAccountToken: false
+
+synapse:
+  reportStats:
+    enabled: false
+  logging:
+    logLevel: "INFO"
+  serverName: {{ .Values.global.matrixDomain | default .Values.global.domain }}
+  webClientLocation: {{ printf "https://%s.%s" .Values.global.hostname.element .Values.global.matrixDomain }}
+  database:
+    name: {{ .Values.database.synapse.type | quote }}
+    txnLimit: 10000
+    args:
+      {{- if eq .Values.database.synapse.type "sqlite3" }}
+      database: "/synapse/data/homeserver.db"
+      {{- else }}
+      user: {{ .Values.database.synapse.username | quote }}
+      password: {{ .Values.secrets.postgresql.matrixUser | quote }}
+      host: {{ .Values.database.synapse.host | quote }}
+      port: {{ .Values.database.synapse.port }}
+      {{- end }}
+  registrationSharedSecret: {{ .Values.secrets.synapse.registrationSharedSecret }}
+  formSecret: {{ .Values.secrets.synapse.formSecret }}
+  suppressKeyServerWarning: true
+  redis:
+    enabled: {{ not (empty .Values.cache.synapse) }}
+    host: {{ .Values.cache.synapse.host | quote }}
+    port: {{ .Values.cache.synapse.port }}
+    password: {{ .Values.cache.synapse.password | default .Values.secrets.redis.password | quote }}
+  backgroundUpdates:
+    # as we want our first launch and subsequent upgrades to go as fast
+    # as possible don't sleep between background updates
+    sleepEnabled: false
+  email:
+    notifs:
+      from: {{ (printf "Your %%(app)s homeserver <noreply@%s>" (.Values.global.matrixDomain | default .Values.global.domain)) | quote }}
+    clientBaseUrl: {{ (printf "https://%s.%s" .Values.global.hostname.element .Values.global.domain) | quote }}
+    inviteClientLocation: {{ (printf "https://%s.%s" .Values.global.hostname.element .Values.global.domain) | quote }}
+  rateLimiting:
+    messaging:
+      perSeconde: 0.5
+      burstCount: 30.0
+  maxEventDelayDuration: "24h"
+  serveServerWellknown: true
+  avatar:
+    maxSize: "10M"
+    allowedMimeTypes: ["image/png", "image/jpeg"]
+  forgottenRoomRetentionPeriod: "28d"
+  retention:
+    enabled: true
+    defaultPolicy:
+      lifetime:
+        min: "1d"
+        max: "1y"
+    allowedLifetime:
+      min: "1d"
+      max: "1y"
+  autoJoinRooms: [{{ (printf "#%s:%s" "welkom" (.Values.global.matrixDomain | default .Values.global.domain)) | quote }}]
+  oidcProviders:
+# TODO: connect to keycloak
+#    - idp_id:
+#      idp_name: ""
+#      discover: false
+#      issuer: ""
+#      client_id: ""
+#      client_secret:
+#      #client_secret_path todo: set path
+#      client_auth_method: client_secret_post
+#      scopes: ["openid", "profile"]
+#      authorization_endpoint: ""
+#      token_endpoint: ""
+#      userinfo_endpoint: ""
+#      jwks_uri: ""
+#      user_mapping_provider:
+#        config:
+#          localpart_template: {{`'{{ (user.given_name ~ user.family_name) | replace('' '', '''') }}'`}}
+#          display_name_template: {{`'{{ user.name }}'`}}
+#          email_template: {{`'{{ user.email }}'`}}
+  passwordConfig:
+    enabled: false
+  encyptionEnabledByDefaultForRoomType: "invite"
+  userDirectory:
+    searchAllUsers: true
+    preferLocalUsers: true
+  autoAcceptInvites:
+    enabled: true
+    onlyForDirectMessages: true
+    onlyFromLocalUsers: true
+  experimentalFeatures:
+    # MSC3266: Room summary API. Used for knocking over federation
+    msc3266_enabled: true
+    # MSC4222 needed for syncv2 state_after. This allows clients to correctly track the state of the room.
+    msc4222_enabled: true

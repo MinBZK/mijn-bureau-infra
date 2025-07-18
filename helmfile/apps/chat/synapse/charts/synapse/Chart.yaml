@@ -1,0 +1,24 @@
+# Copyright Broadcom, Inc. All Rights Reserved.
+# SPDX-License-Identifier: APACHE-2.0
+
+annotations:
+  category: Communications
+  licenses: Apache-2.0
+apiVersion: v2
+appVersion: "1.133.0"
+description: Mijn Bureau Synapse homeserver, the matrix reference implementation
+home: https://minbzk.github.io/mijn-bureau/
+icon: https://matrix.org/images/matrix-logo.svg
+keywords:
+  - communications
+  - chat
+  - matrix
+  - synapse
+  - element
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: synapse
+sources:
+  - https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/matrix-chat/synapse/charts/synapse
+version: 0.1.0

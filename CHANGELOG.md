@@ -8,3 +8,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0), 
 
 - Added Ollama v0.7.0
 - Added Grist v1.6.1
+- Added Synapse v1.33.0
