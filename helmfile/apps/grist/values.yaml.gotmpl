@@ -3,15 +3,15 @@ global:
     allowInsecureImages: true
 
   imagePullSecrets:
-    - name: {{ .Values.global.imagePullSecrets | quote }}
+    - name: {{ (coalesce .Values.container.grist.imagePullSecrets .Values.container.default.imagePullSecrets) | quote }}
 
 image:
-  registry: {{(coalesce .Values.global.containerRegistry .Values.containers.grist.registry) | quote }}
-  repository: {{ .Values.containers.grist.repository | quote }}
-  tag: {{ .Values.containers.grist.tag | quote }}
+  registry: {{(coalesce .Values.container.grist.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.grist.repository | quote }}
+  tag: {{ .Values.container.grist.tag | quote }}
 
 autoscaling:
-  hpa: {{ .Values.autoscaling.grist.hpa | toYaml | nindent 4 }}
+  hpa: {{ .Values.autoscaling.grist | toYaml | nindent 4 }}
 
 ingress:
   enabled: true
@@ -22,7 +22,7 @@ ingress:
 
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 
-resources: {{ .Values.resources.grist | toYaml | nindent 2 }}
+resources: {{ .Values.resource.grist | toYaml | nindent 2 }}
 
 networkPolicy:
   enabled: true
@@ -74,20 +74,20 @@ networkPolicy:
         - port: 53
           protocol: TCP
 
-podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 2 }}
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
 
-containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 2 }}
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
 
 metrics: {{ .Values.monitoring.prometheus | toYaml | nindent 2 }}
 
 service:
   type: {{ .Values.cluster.service.type | quote }}
 
-defaultLocale: {{ .Values.applications.grist.defaultLocale | quote }}
+defaultLocale: {{ .Values.global.defaultLocale | quote }}
 
-orgInPath: {{ .Values.applications.grist.orgInPath | quote }}
+orgInPath: {{ .Values.application.grist.orgInPath | quote }}
 
-singleOrg: {{ .Values.applications.grist.singleOrg | quote }}
+singleOrg: {{ .Values.application.grist.singleOrg | quote }}
 
 {{- if .Values.cluster.sandbox.gvisor.enabled }}
 sandboxFlavor: "gvisor"
@@ -96,21 +96,22 @@ sandboxFlavor: "gvisor"
 externalRedis:
   host: {{ .Values.cache.grist.host | quote }}
   port: {{ .Values.cache.grist.port | quote }}
-  password: {{ .Values.secrets.redis.password | quote }}
+  password: {{ .Values.cache.grist.password | quote }}
+
 
 externalMinio:
   endpoint: {{ .Values.objectstore.grist.endpoint | quote }}
   port: {{ .Values.objectstore.grist.port | quote }}
   accessKey: {{ .Values.objectstore.grist.username | quote }}
-  secretKey: {{ .Values.secrets.minio.rootPassword | quote }}
+  secretKey: {{ .Values.secret.minio.rootPassword | quote }}
   bucket: {{ .Values.objectstore.grist.bucket | quote }}
   useSSL: {{ .Values.objectstore.grist.useSSL | quote }}
 
 externalDatabase:
   database: {{ .Values.database.grist.name | quote }}
-  username: {{ .Values.database.grist.username | quote }}
+  username: {{ .Values.database.grist.user | quote }}
   host: {{ .Values.database.grist.host | quote }}
-  password: {{ .Values.secrets.postgresql.gristUser | quote }}
+  password: {{ .Values.database.grist.password | quote }}
   port: {{ .Values.database.grist.port | quote }}
   type: {{ if eq .Values.database.grist.type "postgresql" }}"postgres"{{ else }}{{ .Values.database.grist.type | quote }}{{ end }}
   logging: true

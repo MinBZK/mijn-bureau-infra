@@ -2,3 +2,4 @@ cache:
   grist:
     host: "redis-host"
     port: 6379
+    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "redis" "password" | sha1sum | quote }}

@@ -31,4 +31,4 @@ name: MijnBureau deployment
 platforms:
   - docs
 softwareType: standalone/web
-url: "https://github.com/MijnBureau/deployment-helmfile"
+url: "https://github.com/MinBZK/mijn-bureau-infra"

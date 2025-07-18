@@ -1,23 +1,21 @@
 security:
-  containerSecurityContext:
-    enabled: true
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop:
-        - "ALL"
-    privileged: false
-    runAsUser: 1001
-    runAsGroup: 1001
-    runAsNonRoot: true
-    readOnlyRootFilesystem: true
-    seccompProfile:
-      type: "RuntimeDefault"
-    seLinuxOptions: {}
+  default:
+    containerSecurityContext:
+      enabled: true
+      seLinuxOptions: {}
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - "ALL"
+      privileged: false
+      runAsUser: 1001
+      runAsGroup: 1001
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
 
-  podSecurityContext:
-    enabled: true
-    runAsNonRoot: true
-    fsGroup: 1001
-    fsGroupChangePolicy: Always
-    sysctls: []
-    supplementalGroups: []
+    podSecurityContext:
+      enabled: true
+      fsGroupChangePolicy: Always
+      sysctls: []
+      supplementalGroups: []
+      fsGroup: 1001

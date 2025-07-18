@@ -1,9 +1,18 @@
-applications:
+application:
+  # grist is a modern spreadsheet application
   grist:
     enabled: true
     namespace: ~
     defaultLocale: ""
     orgInPath: true
     singleOrg: ""
+
+  # this creates a self hosted AI LLM system using Ollama. It can handle small loads.
   ai:
+    enabled: true
+    namespace: ~
+
+  # keycloak is an identity and access management solution. If you have your own identity provider please disable this system and configure the OIDC settings in the authentication.yaml file.
+  keycloak:
+    enabled: true
     namespace: ~

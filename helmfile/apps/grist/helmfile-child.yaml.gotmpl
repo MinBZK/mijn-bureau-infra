@@ -3,52 +3,63 @@ bases:
 
 repositories:
   - name: bitnami-postgres
-    oci: {{ .Values.charts.postgresql.oci }}
-    url: "{{ .Values.global.helmRegistry | default .Values.charts.postgresql.registry }}/{{ .Values.charts.postgresql.repository }}"
+    oci: {{ .Values.chart.postgresql.oci }}
+    url: "{{ .Values.chart.postgresql.registry | default .Values.chart.default.registry }}/{{ .Values.chart.postgresql.repository }}"
+    verify: {{ .Values.chart.postgresql.verify }}
+    username: {{ .Values.chart.postgresql.username | quote }}
+    password: {{ .Values.chart.postgresql.password | quote }}
+
   - name: bitnami-redis
-    oci: {{ .Values.charts.redis.oci }}
-    url: "{{ .Values.global.helmRegistry | default .Values.charts.redis.registry }}/{{ .Values.charts.redis.repository }}"
+    oci: {{ .Values.chart.redis.oci }}
+    url: "{{ .Values.chart.redis.registry  | default .Values.chart.default.registry  }}/{{ .Values.chart.redis.repository }}"
+    verify: {{ .Values.chart.redis.verify }}
+    username: {{ .Values.chart.redis.username | quote }}
+    password: {{ .Values.chart.redis.password | quote }}
+
   - name: bitnami-minio
-    oci: {{ .Values.charts.minio.oci }}
-    url: "{{ .Values.global.helmRegistry | default .Values.charts.minio.registry }}/{{ .Values.charts.minio.repository }}"
+    oci: {{ .Values.chart.minio.oci }}
+    url: "{{ .Values.chart.minio.registry  | default .Values.chart.default.registry  }}/{{ .Values.chart.minio.repository }}"
+    verify: {{ .Values.chart.minio.verify }}
+    username: {{ .Values.chart.minio.username | quote }}
+    password: {{ .Values.chart.minio.password | quote }}
 
 releases:
   - name: grist-postgresql
-    chart: "bitnami-postgres/{{ .Values.charts.postgresql.name }}"
-    version: {{ .Values.charts.postgresql.version | quote }}
-    namespace: {{ .Values.applications.grist.namespace }}
-    installed: {{ eq .Environment.Name "demo" | toYaml }}
+    chart: "bitnami-postgres/{{ .Values.chart.postgresql.name }}"
+    version: {{ .Values.chart.postgresql.version | quote }}
+    namespace: {{ .Values.application.grist.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
 
   - name: grist-redis
-    chart: "bitnami-redis/{{ .Values.charts.redis.name }}"
-    version: {{ .Values.charts.redis.version | quote }}
-    namespace: {{ .Values.applications.grist.namespace }}
-    installed: {{ eq .Environment.Name "demo" | toYaml }}
+    chart: "bitnami-redis/{{ .Values.chart.redis.name }}"
+    version: {{ .Values.chart.redis.version | quote }}
+    namespace: {{ .Values.application.grist.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) | toYaml }}
     values:
       - "values-redis.yaml.gotmpl"
 
   - name: grist-minio
-    chart: "bitnami-minio/{{ .Values.charts.minio.name }}"
-    version: {{ .Values.charts.minio.version | quote }}
-    namespace: {{ .Values.applications.grist.namespace }}
-    installed: {{ eq .Environment.Name "demo" | toYaml }}
+    chart: "bitnami-minio/{{ .Values.chart.minio.name }}"
+    version: {{ .Values.chart.minio.version | quote }}
+    namespace: {{ .Values.application.grist.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) | toYaml }}
     values:
       - "values-minio.yaml.gotmpl"
 
   - name: grist
     chart: charts/grist
-    condition: applications.grist.enabled
+    condition: application.grist.enabled
     dependencies:
-    - chart: "oci://{{ (coalesce .Values.charts.bitnamicommon.registry .Values.global.helmRegistry ) }}/{{ .Values.charts.bitnamicommon.repository }}/{{ .Values.charts.bitnamicommon.name }}"
+    - chart: "oci://{{ (coalesce .Values.chart.bitnamicommon.registry .Values.chart.default.registry ) }}/{{ .Values.chart.bitnamicommon.repository }}/{{ .Values.chart.bitnamicommon.name }}"
       version: 2.31.3
-    namespace: {{ .Values.applications.grist.namespace }}
-    {{- if eq .Environment.Name "demo" }}
+    namespace: {{ .Values.application.grist.namespace }}
+    {{- if and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) }}
     needs:
-      - {{ .Values.applications.grist.namespace }}/grist-postgresql
-      - {{ .Values.applications.grist.namespace }}/grist-redis
-      - {{ .Values.applications.grist.namespace }}/grist-minio
+      - {{ .Values.application.grist.namespace }}/grist-postgresql
+      - {{ .Values.application.grist.namespace }}/grist-redis
+      - {{ .Values.application.grist.namespace }}/grist-minio
     {{- end }}
     values:
       - "values.yaml.gotmpl"

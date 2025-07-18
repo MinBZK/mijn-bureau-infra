@@ -1,15 +1,15 @@
-helmDefaults:
-  verify: true
-
-missingFileHandler: "Error"
-
 environments:
+  default:
   demo:
     values:
-      - "helmfile/environments/demo/*.yaml*"
+      - "helmfile/environments/demo/*.yaml.gotmpl"
+    # secrets:
+    #   - "helmfile/environments/{{ .Environment.Name }}/*.secrets.yaml"
   production:
     values:
-      - "helmfile/environments/production/*.yaml*"
+      - "helmfile/environments/production/*.yaml.gotmpl"
+    # secrets:
+    #   - "helmfile/environments/{{ .Environment.Name }}/*.secrets.yaml"
 
 bases:
   - "helmfile/bases/default.yaml.gotmpl"
@@ -21,11 +21,7 @@ helmfiles:
     values: &values
       - "helmfile/environments/default/*.yaml*"
       - {{ toYaml .Values | nindent 8 }}
-  #- path: "helmfile/apps/ollama/helmfile-child.yaml.gotmpl"
-  #  values: *values
-  # - path: "helmfile/apps/keycloak/helmfile-child.yaml"
-  #   values: *values
-  # - path: "helmfile/apps/docs/helmfile-child.yaml"
-  #   values: *values
-  # - path: "helmfile/apps/element/helmfile-child.yaml"
-  #   values: *values
+  - path: "helmfile/apps/ollama/helmfile-child.yaml.gotmpl"
+    values: *values
+  - path: "helmfile/apps/keycloak/helmfile-child.yaml.gotmpl"
+    values: *values

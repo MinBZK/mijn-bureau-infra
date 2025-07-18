@@ -1,0 +1,16 @@
+authentication:
+
+  # setup openID Connect (OIDC) authentication
+  oidc:
+    issuer: "https://id.example.com/realms/mijnbureau"
+    authorization_endpoint: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/auth"
+    token_endpoint: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/token"
+    introspection_endpoint: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/token/introspect"
+    userinfo_endpoint: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/userinfo"
+    end_session_endpoint: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/logout"
+    jwks_uri: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/certs"
+
+  client:
+    grist:
+      client_id: "grist"
+      client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "grist_client_secret" | sha1sum | quote}}

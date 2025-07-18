@@ -50,7 +50,7 @@ wget "https://github.com/open-policy-agent/conftest/releases/download/v${LATEST_
 tar xzf conftest_${LATEST_VERSION}_${SYSTEM}_${ARCH_X86_FIX}.tar.gz
 sudo mv conftest /usr/local/bin
 
-# install open plicy agent
+# install open policy agent
 wget -O opa https://github.com/open-policy-agent/opa/releases/download/v1.4.2/opa_${SYSTEM}_${ARCH}_static
 sudo mv opa /usr/local/bin
 chmod +x /usr/local/bin/opa
@@ -59,3 +59,11 @@ chmod +x /usr/local/bin/opa
 wget -O regal https://github.com/StyraInc/regal/releases/latest/download/regal_${SYSTEM}_${ARCH_X86_FIX}
 sudo mv regal /usr/local/bin
 sudo chmod +x /usr/local/bin/regal
+
+# # install age
+sudo apt install age
+
+# # install sops
+curl -LO https://github.com/getsops/sops/releases/download/v3.10.2/sops-v3.10.2.${SYSTEM}.${ARCH}
+sudo mv sops-v3.10.2.${SYSTEM}.${ARCH} /usr/local/bin/sops
+sudo chmod +x /usr/local/bin/sops

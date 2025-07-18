@@ -8,16 +8,9 @@ global:
 
   # specify the subdomain for each component. this name will be combined with the base domain specified in the `domain` variable above`
   hostname:
-    docs: "docs"
     keycloak: "id"
     element: "chat"
     synapse: "matrix"
     grist: "grist"
-    ollama: "ollama"
 
-  # if you want to set a custom registry used by all helm charts specify it here.
-  # if you want to configure the registry per component you can do that in the charts.yaml.gotmpl
-  helmRegistry: ~
-
-  containerRegistry: ~
-  imagePullSecrets: ~
+  defaultLocale: "nl"
