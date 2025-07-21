@@ -5,13 +5,13 @@ metadata:
 data:
   config.json: |
     {
-    "default_server_config": {
+      "default_server_config": {
         "m.homeserver": {
-            "base_url": "https://{{ .Values.global.matrixDomain | default "example.com" }}",
-            "server_name": "{{ .Values.global.domain | default "example.com" }}"
+          "base_url": "https://{{ .Values.config.homeserver.base_url }}",
+          "server_name": "{{ .Values.config.homeserver.server_name }}"
         }
-    },
-    "features": {
+      },
+      "features": {
         "feature_video_rooms": true,
         "feature_pinning": true,
         "feature_custom_themes": true,
@@ -19,25 +19,26 @@ data:
         "feature_group_calls": true,
         "feature_html_topic": true,
         "feature_ask_to_join": true
-    },
-    "default_federate": true,
-    "default_country_code": "NL",
-    "room_directory": {
+      },
+      "default_federate": true,
+      "default_country_code": "NL",
+      "room_directory": {
         "servers": [
-            "{{ .Values.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}",
-            "matrix.org"
+          {{- range $index, $server := .Values.config.roomDirectory.servers }}
+            {{- if $index }},{{ end }}"{{ $server }}"
+          {{- end }}
         ]
-    },
-    "setting_defaults": {
+      },
+      "setting_defaults": {
         "breadcrumbs": true
-    },
-    "default_theme": "light",
-    "brand": "{{ .Values.global.domain | default "example.com" }} chat",
-    "permalink_prefix": "https://{{ .Values.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}",
-    "disable_guests": true,
-    "force_verification": false,
-    "logout_redirect_url": "https://{{ .Values.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}",
-    "sso_redirect_options": {
+      },
+      "default_theme": "light",
+      "brand": "{{ .Values.config.brand }} chat",
+      "permalink_prefix": "https://{{ .Values.config.name }}.{{ .Values.config.homeserver.server_name }}",
+      "disable_guests": true,
+      "force_verification": false,
+      "logout_redirect_url": "https://{{ .Values.config.name }}.{{ .Values.config.homeserver.server_name }}",
+      "sso_redirect_options": {
         "immediate": true
     },
     "disable_custom_urls": true,

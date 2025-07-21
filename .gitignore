@@ -3,3 +3,5 @@ __pycache__/
 mykey.txt
 *.tgz
 .DS_Store
+
+helmfile/environments/demo/demo.yaml.gotmpl
