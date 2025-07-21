@@ -1,6 +1,9 @@
 smtp:
   host: ""
   port: 587
-  tls: true
+  tls:
+    enabled: true
+    force: true
+    requireTransportSecurity: false
   username: ""
   password: {{ env "SMTP_PASSWORD" | quote }}

@@ -22,11 +22,13 @@ master:
     tag: {{ .Values.container.synapse.tag }}
     digest: {{ .Values.container.synapse.digest }}
     pullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 6 }}
-  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
-  replicaCount: 1
+  # This will set the replicaset count, more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+  replicaCount: {{ .Values.replicas.synapse }}
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
-  resources: {{ .Values.resources.synapse | toYaml | nindent 4 }}
+  resources: {{ .Values.resources.synapse.master | toYaml | nindent 4 }}
+  hpa: {{ .Values.autoscaling.synapse.hpa | toYaml | nindent 6 }}
+  vpa: {{ .Values.autoscaling.synapse.vpa | toYaml | nindent 6 }}
   service:
     # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
@@ -67,7 +69,7 @@ worker:
 ingress:
   enabled: true
   hostname: {{ .Values.global.matrixDomain | default .Values.global.domain }}
-  extraTls: {{ .Values.tls.chat | toYaml | nindent 4 }}
+  extraTls: {{ .Values.tls.synapse | toYaml | nindent 4 }}
   ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
   annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
 
@@ -110,6 +112,14 @@ synapse:
     # as possible don't sleep between background updates
     sleepEnabled: false
   email:
+    host: {{ .Values.smtp.host | qoute }}
+    port: {{ .Values.smtp.post }}
+    user: {{ .Values.smtp.username | qoute }}
+    pass: {{ .Values.smtp.password | qoute }}
+    tls:
+      enabled: {{ .Values.smtp.tls.enabled }}
+      force: {{ .Values.smtp.tls.force }}
+      requireTransportSecurity: {{ .Values.smtp.tls.requireTransportSecurity }}
     notifs:
       from: {{ (printf "Your %%(app)s homeserver <noreply@%s>" (.Values.global.matrixDomain | default .Values.global.domain)) | quote }}
     clientBaseUrl: {{ (printf "https://%s.%s" .Values.global.hostname.element .Values.global.domain) | quote }}
