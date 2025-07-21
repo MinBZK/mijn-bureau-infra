@@ -1,29 +1,66 @@
-replicaCount: 1
+global:
+  imageRegistry: {{(coalesce .Values.global.containerRegistry .Values.containers.elementweb.registry) | quote }}
+
+  imagePullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
 
 image:
-  registry: docker.io {{(coalesce .Values.global.containerRegistry .Values.containers.elementweb.registry) | quote }}
+  registry: {{ coalesce .Values.global.containerRegistry .Values.containers.elementweb.registry | quote }}
   repository: {{ .Values.containers.elementweb.repository | quote }}
   tag: {{ .Values.containers.elementweb.tag | quote }}
   pullPolicy: IfNotPresent
 
-service:
-  type: ClusterIP
-  port: 80
-  annotations: {}
+resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+
+podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 2 }}
+
+containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 2 }}
+
+replicaCount: 1
+
+networkPolicy:
+  enabled: true
+  # Restrict external access - only allow specific ingress sources
+  allowExternal: false
+  # Restrict external egress - only allow specific destinations
+  allowExternalEgress: false
+
+  extraIngress:
+   # Allow traffic from ingress controller namespace
+   - ports:
+       - port: 8080
+         protocol: TCP
+
+extraVolumes:
+  - name: nginx-conf
+    emptyDir: {}
+
+extraVolumeMounts:
+  - name: nginx-conf
+    mountPath: /etc/nginx/conf.d
+
+livenessProbe:
+  enabled: true
+
+readinessProbe:
+  enabled: true
+
+serviceAccount:
+  create: false
+  name: ""
 
 ingress:
   enabled: true
-  hostname: "{{ .Values.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}"
-  extraTls: {{ .Values.tls.element | toYaml | nindent 4 }}
+  hostname: {{ .Values.global.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}
+  extraTls: {{ .Values.tls.chat | toYaml | nindent 4 }}
   ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
   annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
 
 config:
-  default_server_config:
-    m.homeserver:
-      base_url: "https://{{ .Values.global.matrixDomain | default "example.com" }}"
-      server_name: "{{ .Values.global.domain | default "example.com" }}"
-  brand: "Element Web Custom"
+  homeserver:
+    base_url: {{ .Values.global.matrixDomain | default "example.com" }}
+    server_name: {{ .Values.global.domain | default "example.com" }}
+  name: {{ .Values.global.hostname.element | default "element-web" }}
+  brand: {{ .Values.global.domain | default "example.com" }}
   integrations_ui_url: ""
   integrations_rest_url: ""
   integrations_widgets_urls: []
@@ -33,20 +70,12 @@ config:
   features: {}
   default_federate: true
   roomDirectory:
-    servers: []
+    servers:
+      - {{ .Values.global.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}
+      - matrix.org
 
 nodeSelector: {}
 
 tolerations: []
 
 affinity: {}
-
-livenessProbe:
-  enabled: true
-  path: /
-  port: http
-
-readinessProbe:
-  enabled: true
-  path: /
-  port: http
