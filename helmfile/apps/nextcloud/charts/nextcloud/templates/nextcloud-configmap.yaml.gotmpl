@@ -1,0 +1,68 @@
+{{- /*
+Copyright Broadcom, Inc. All Rights Reserved.
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if or .Values.configs .Values.builtinConfigs -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-config" (include "common.names.fullname" .)  }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: nextcloud
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  {{- range $filename, $content := .Values.extraConfigs }}
+  {{ $filename }}: |-
+    {{- $content | nindent 4 }}
+  {{- end }}
+  {{- with .Values.builtinConfigs }}
+  {{- if .protectConfigDir }}
+  .htaccess: |-
+    {{- include "nextcloud.htaccess-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if .prettyUrls }}
+  apache-pretty-urls.config.php: |-
+    {{- include "nextcloud.apache-pretty-urls-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if .localCache }}
+  apcu.config.php: |-
+    {{- include "nextcloud.apcu-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if .appDirectories }}
+  apps.config.php: |-
+    {{- include "nextcloud.apps-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if .autoSetup }}
+  autoconfig.php: |-
+    {{- include "nextcloud.autoconfig" $ | nindent 4 }}
+  {{- end }}
+  {{- if .redis }}
+  redis.config.php: |-
+    {{- include "nextcloud.redis-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if .reverseProxy }}
+  reverse-proxy.config.php: |-
+    {{- include "nextcloud.reverse-proxy-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if .s3Storage }}
+  s3.config.php: |-
+    {{- include "nextcloud.s3-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if .swiftStorage }}
+  swift.config.php: |-
+    {{- include "nextcloud.swift-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if .email }}
+  smtp.config.php: |-
+    {{- include "nextcloud.smtp-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if .disableWebUpdater }}
+  upgrade-disable-web.config.php: |-
+    {{- include "nextcloud.upgrade-disable-web-config" $ | nindent 4 }}
+  {{- end }}
+  {{- end }}
+{{- end }}
