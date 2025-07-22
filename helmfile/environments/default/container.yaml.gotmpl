@@ -1,0 +1,41 @@
+container:
+  default:
+    registry: ~
+    imagePullSecrets: ~
+
+  grist:
+    registry: "registry-1.docker.io"
+    repository: "gristlabs/grist"
+    tag: "1.6.1"
+    imagePullSecrets: ~
+
+  ollama:
+    registry: "registry-1.docker.io"
+    repository: "ollama/ollama"
+    tag: "0.9.5"
+    imagePullSecrets: ~
+
+  postgresql:
+    registry: "registry-1.docker.io"
+    repository: "bitnami/postgresql"
+    tag: "17.5.0-debian-12-r16@sha256:687034f33da65060d7be3a7b0ccc90080ce8fb713f8dc4efcd428f02e66b9380"
+    imagePullSecrets: ~
+
+  redis:
+    registry: "registry-1.docker.io"
+    repository: "bitnami/redis"
+    tag: "8.0.3-debian-12-r1@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096"
+    imagePullSecrets: ~
+
+  elementweb:
+    registry: "registry-1.docker.io"
+    repository: "vectorim/element-web"
+    # TODO tag should be changed
+    tag: "latest"
+
+  synapse:
+    registry: "registry-1.docker.io"
+    repository: "matrixdotorg/synapse"
+    tag: "v1.133.0"
+    digest: "sha256:81d4b74fd09f8cf4e6dd978289721c4b91270649992a3f64bc8c326968c7522e"
+    imagePullSecrets: ~

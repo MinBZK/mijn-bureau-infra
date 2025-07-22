@@ -3,9 +3,6 @@ Copyright Broadcom, Inc. All Rights Reserved.
 SPDX-License-Identifier: APACHE-2.0
 */}}
 
-# TODO Values could either be all in .Values.config (as ananace), or in .synapse like now, or we could look into whether separate files like Bitnami Redis for master and workers is prudent.
-# TODO this is not extensible. Either add all options, or add an extraOptions-like system.
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -55,10 +52,10 @@ data:
     server_name: {{ .Values.ingress.hostname | quote }}
     public_baseurl: {{ printf "https://%s" .Values.ingress.hostname | quote }}
     pid_file: /homeserver.pid
-    web_client: False
+    web_client_location: {{ .Values.synapse.webClientLocation }}
     soft_file_limit: 0
     log_config: "/synapse/config/log.yaml"
-    report_stats: {{ required "You need to specify config.reportStats" .Values.synapse.reportStats.enabled }}
+    report_stats: {{ required "You need to specify synapse.reportStats" .Values.synapse.reportStats.enabled }}
     report_stats_endpoint: {{ .Values.synapse.reportStats.endpoint | quote }}
 
     {{- if eq .Values.architecture "replication" }}
@@ -129,7 +126,7 @@ data:
 
     database:
       name: {{ .Values.synapse.database.name | quote }}
-      txn_limit: {{ .Values.synapse.database.allowUnsafeLocale }}
+      txn_limit: {{ .Values.synapse.database.txnLimit }}
       args: {{- .Values.synapse.database.args | toYaml | nindent 8 }}
 
     registration_shared_secret: {{ .Values.synapse.registrationSharedSecret | quote }}
@@ -178,8 +175,8 @@ data:
 
     # temporarily boost rate-limits to avoid breaking WIP MatrixRTC signalling
     rc_message:
-      per_second: {{ .Values.synapse.rateLimiting.perSecond }}
-      burst_count: {{ .Values.synapse.rateLimiting.burstCount }}
+      per_second: {{ .Values.synapse.rateLimiting.messaging.perSecond }}
+      burst_count: {{ .Values.synapse.rateLimiting.messaging.burstCount }}
 
     # The maximum allowed duration by which sent events can be delayed, as
     # per MSC4140. Must be a positive value if set.  Defaults to no
@@ -199,6 +196,7 @@ data:
         max_lifetime: {{ .Values.synapse.retention.defaultPolicy.lifetime.max }}
       allowed_lifetime_min: {{ .Values.synapse.retention.allowedLifetime.min }}
       allowed_lifetime_max: {{ .Values.synapse.retention.allowedLifetime.max }}
+      purge_jobs: {{- .Values.synapse.retention.purgeJobs | toYaml | nindent 8 }}
 
     auto_join_rooms: {{- .Values.synapse.autoJoinRooms | toYaml | nindent 6 }}
 
@@ -225,7 +223,7 @@ data:
       exclude_remote_users:  {{ .Values.synapse.userDirectory.excludeRemoteUsers }}
       show_locked_users:  {{ .Values.synapse.userDirectory.showLockedUsers }}
 
-    # todo: user_consent
+    # TODO: user_consent
 
     auto_accept_invites:
       enabled: {{ .Values.synapse.autoAcceptInvites.enabled }}

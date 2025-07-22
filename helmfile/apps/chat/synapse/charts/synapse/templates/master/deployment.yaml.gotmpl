@@ -16,7 +16,9 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  replicas: 1
+  {{- if not .Values.master.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.master.replicaCount }}
+  {{- end }}
   {{- if .Values.master.updateStrategy }}
   strategy: {{- toYaml .Values.master.updateStrategy | nindent 4 }}
   {{- end }}
@@ -67,7 +69,6 @@ spec:
       {{- if .Values.master.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.master.terminationGracePeriodSeconds }}
       {{- end }}
-      # TODO choose if we want to have initContainers
       containers:
         - name: synapse
           image: {{ template "synapse.master.image" . }}

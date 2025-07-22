@@ -6,3 +6,12 @@ autoscaling:
       maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
+  synapse:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: ""
+    vpa:
+      enabled: false

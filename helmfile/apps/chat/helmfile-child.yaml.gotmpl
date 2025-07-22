@@ -3,35 +3,35 @@ bases:
 
 repositories:
   - name: bitnami-postgres
-    oci: {{ .Values.charts.postgresql.oci }}
-    url: "{{ .Values.global.helmRegistry | default .Values.charts.postgresql.registry }}/{{ .Values.charts.postgresql.repository }}"
+    oci: {{ .Values.chart.postgresql.oci }}
+    url: "{{ .Values.global.helmRegistry | default .Values.chart.postgresql.registry }}/{{ .Values.chart.postgresql.repository }}"
   - name: bitnami-redis
-    oci: {{ .Values.charts.redis.oci }}
-    url: "{{ .Values.global.helmRegistry | default .Values.charts.redis.registry }}/{{ .Values.charts.redis.repository }}"
+    oci: {{ .Values.chart.redis.oci }}
+    url: "{{ .Values.global.helmRegistry | default .Values.chart.redis.registry }}/{{ .Values.chart.redis.repository }}"
 
 releases:
   {{/* - name: "chat-postgresql"
-    chart: "bitnami-postgres/{{ .Values.charts.postgresql.name }}"
-    version: "{{ .Values.charts.postgresql.version }}"
-    namespace: {{ .Values.applications.chat.namespace | quote }}
-    installed: {{ and (eq .Environment.Name "demo") .Values.applications.chat.enabled }}
+    chart: "bitnami-postgres/{{ .Values.chart.postgresql.name }}"
+    version: "{{ .Values.chart.postgresql.version }}"
+    namespace: {{ .Values.application.chat.namespace | quote }}
+    installed: {{ and (eq .Environment.Name "demo") .Values.application.chat.enabled }}
     values:
       - "values-postgresql.yaml.gotmpl"
   - name: "chat-redis"
-    chart: "bitnami-redis/{{ .Values.charts.redis.name }}"
-    version: {{ .Values.charts.redis.version | quote }}
-    namespace: {{ .Values.applications.chat.namespace | quote }}
-    installed: {{ and (eq .Environment.Name "demo") .Values.applications.chat.enabled }}
+    chart: "bitnami-redis/{{ .Values.chart.redis.name }}"
+    version: {{ .Values.chart.redis.version | quote }}
+    namespace: {{ .Values.application.chat.namespace | quote }}
+    installed: {{ and (eq .Environment.Name "demo") .Values.application.chat.enabled }}
     values:
       - "values-redis.yaml.gotmpl"
     installed: {{ eq .Environment.Name "demo" | toYaml }}
-    namespace: {{ .Values.applications.chat.namespace | quote }} */}}
+    namespace: {{ .Values.application.chat.namespace | quote }} */}}
 
   - name: "element-web"
     chart: "element-web/charts/element-web"
-    namespace: {{ .Values.applications.chat.namespace | quote }}
+    namespace: {{ .Values.application.chat.namespace | quote }}
     dependencies:
-      - chart: "oci://{{ (coalesce .Values.charts.bitnamiCommon.registry .Values.global.helmRegistry ) }}/{{ .Values.charts.bitnamiCommon.repository }}/{{ .Values.charts.bitnamiCommon.name }}"
+      - chart: "oci://{{ (coalesce .Values.chart.bitnamiCommon.registry .Values.global.helmRegistry ) }}/{{ .Values.chart.bitnamiCommon.repository }}/{{ .Values.chart.bitnamiCommon.name }}"
         version: 2.31.3
     values:
       - "values-element-web.yaml.gotmpl"
@@ -39,14 +39,14 @@ releases:
   {{/* - name: "synapse"
     chart: "synapse/charts/synapse"
     dependencies:
-      - chart: "oci://{{ (coalesce .Values.charts.bitnamiCommon.registry .Values.global.helmRegistry ) }}/{{ .Values.charts.bitnamiCommon.repository }}/{{ .Values.charts.bitnamiCommon.name }}"
+      - chart: "oci://{{ (coalesce .Values.chart.bitnamiCommon.registry .Values.global.helmRegistry ) }}/{{ .Values.chart.bitnamiCommon.repository }}/{{ .Values.chart.bitnamiCommon.name }}"
         version: 2.31.3
-    namespace: {{ .Values.applications.chat.namespace | quote }}
-    installed: {{ .Values.applications.chat.enabled }}
+    namespace: {{ .Values.application.chat.namespace | quote }}
+    installed: {{ .Values.application.chat.enabled }}
     {{- if eq .Environment.Name "demo" }}
     needs:
-      - {{ .Values.applications.chat.namespace }}/chat-postgresql
-      - {{ .Values.applications.chat.namespace }}/chat-redis
+      - {{ .Values.application.chat.namespace }}/chat-postgresql
+      - {{ .Values.application.chat.namespace }}/chat-redis
     {{- end }}
     values:
       - "values-synapse.yaml.gotmpl" */}}

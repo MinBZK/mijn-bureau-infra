@@ -2,6 +2,8 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# TODO docs everywhere and templating values
+
 # Architecture can be monolith for a single node, or replication when using additional worker nodes for scaling.
 # See https://element-hq.github.io/synapse/latest/workers.html
 architecture: monolith
@@ -12,21 +14,19 @@ commonLabels:
 master:
   # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
-    registry: {{ coalesce .Values.global.containerRegistry .Values.containers.synapse.registry }}
-    repository: {{ .Values.containers.synapse.repository }}
+    registry: {{ coalesce .Values.global.containerRegistry .Values.container.synapse.registry }}
+    repository: {{ .Values.container.synapse.repository }}
     # This sets the pull policy for images.
     pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
     # Overrides the image tag whose default is the chart appVersion.
-    tag: {{ .Values.containers.synapse.tag }}
-    digest: {{ .Values.containers.synapse.digest }}
+    tag: {{ .Values.container.synapse.tag }}
+    digest: {{ .Values.container.synapse.digest }}
     pullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 6 }}
-  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
-  replicaCount: 1
-  # TODO rolling update is not possible as the PVC is claimed exclusively: Multi-Attach error for volume "pvc-827a4241-eb51-4d59-ab42-9bac6a4d0306" Volume is already used by pod(s) synapse-69877df8cd-n6pcl
-  updateStrategy:
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
-  resources: {{ .Values.resources.synapse | toYaml | nindent 4 }}
+  resources: {{ .Values.resource.synapse.master | toYaml | nindent 4 }}
+  hpa: {{ .Values.autoscaling.synapse.hpa | toYaml | nindent 6 }}
+  vpa: {{ .Values.autoscaling.synapse.vpa | toYaml | nindent 6 }}
   service:
     # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
@@ -34,24 +34,40 @@ master:
     enabled: true
     initialDelaySeconds: 15
   persistence:
-    size: {{ .Values.persistence.storages.synapse.size }}
-    storageClass: {{ coalesce .Values.persistence.storages.synapse.storageClassName .Values.persistence.storageClassNames.RWO }}
+    size: {{ coalesce .Values.pvc.synapse.size .Values.pvc.default.size | quote }}
+    storageClass: {{ coalesce .Values.pvc.synapse.storageClass .Values.pvc.default.storageClass | quote }}
   networkPolicy:
     extraIngress:
       # Allow traffic from ingress controller namespace
       - ports:
           - port: 8008
             protocol: TCP
+    extraEgress:
+      {{- if .Values.cache.synapse }}
+        - ports:
+            - port: {{ .Values.cache.synapse.port }}
+          to:
+            - podSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: chat-redis
+      {{- end }}
+      {{- if eq .Values.database.synapse.type "psycopg2" }}
+        - ports:
+            - port: {{ .Values.database.synapse.port }}
+          to:
+            - podSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: chat-postgresql
+      {{- end }}
 
-# FIXME replication is not functional
+# TODO replication is not functional
 worker:
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
-# TODO Ananace has well-known host (probably not needed), client-server host and server-2-server host, do we need those (configured)?
 ingress:
   enabled: true
   hostname: {{ .Values.global.matrixDomain | default .Values.global.domain }}
-  extraTls: {{ .Values.tls.chat | toYaml | nindent 4 }}
+  extraTls: {{ .Values.tls.synapse | toYaml | nindent 4 }}
   ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
   annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
 
@@ -68,6 +84,7 @@ synapse:
   logging:
     logLevel: "INFO"
   serverName: {{ .Values.global.matrixDomain | default .Values.global.domain }}
+  webClientLocation: {{ printf "https://%s.%s" .Values.global.hostname.element .Values.global.matrixDomain }}
   database:
     name: {{ .Values.database.synapse.type | quote }}
     txnLimit: 10000
@@ -76,30 +93,40 @@ synapse:
       database: "/synapse/data/homeserver.db"
       {{- else }}
       user: {{ .Values.database.synapse.username | quote }}
-      password: {{ .Values.secrets.postgresql.matrixUser | quote }}
+      password: {{ .Values.secret.postgresql.matrixUser | quote }}
       host: {{ .Values.database.synapse.host | quote }}
       port: {{ .Values.database.synapse.port }}
       {{- end }}
-  registrationSharedSecret: {{ .Values.secrets.synapse.registrationSharedSecret }}
-  formSecret: {{ .Values.secrets.synapse.formSecret }}
+  registrationSharedSecret: {{ .Values.secret.synapse.registrationSharedSecret }}
+  formSecret: {{ .Values.secret.synapse.formSecret }}
   suppressKeyServerWarning: true
   redis:
     enabled: {{ not (empty .Values.cache.synapse) }}
     host: {{ .Values.cache.synapse.host | quote }}
     port: {{ .Values.cache.synapse.port }}
-    password: {{ .Values.cache.synapse.password | default .Values.secrets.redis.password | quote }}
+    password: {{ .Values.cache.synapse.password | default .Values.secret.redis.password | quote }}
   backgroundUpdates:
     # as we want our first launch and subsequent upgrades to go as fast
     # as possible don't sleep between background updates
     sleepEnabled: false
   email:
+    smtp:
+      host: {{ .Values.smtp.host | quote }}
+      port: {{ .Values.smtp.port }}
+      user: {{ .Values.smtp.username | quote }}
+      pass: {{ .Values.smtp.password | quote }}
+      tls:
+        enabled: {{ .Values.smtp.tls.enabled }}
+        force: {{ .Values.smtp.tls.force }}
+        requireTransportSecurity: {{ .Values.smtp.tls.requireTransportSecurity }}
     notifs:
       from: {{ (printf "Your %%(app)s homeserver <noreply@%s>" (.Values.global.matrixDomain | default .Values.global.domain)) | quote }}
     clientBaseUrl: {{ (printf "https://%s.%s" .Values.global.hostname.element .Values.global.domain) | quote }}
     inviteClientLocation: {{ (printf "https://%s.%s" .Values.global.hostname.element .Values.global.domain) | quote }}
   rateLimiting:
-    perSeconde: 0.5
-    burstCount: 30.0
+    messaging:
+      perSeconde: 0.5
+      burstCount: 30.0
   maxEventDelayDuration: "24h"
   serveServerWellknown: true
   avatar:
@@ -117,6 +144,7 @@ synapse:
       max: "1y"
   autoJoinRooms: [{{ (printf "#%s:%s" "welkom" (.Values.global.matrixDomain | default .Values.global.domain)) | quote }}]
   oidcProviders:
+# TODO: connect to keycloak
 #    - idp_id:
 #      idp_name: ""
 #      discover: false

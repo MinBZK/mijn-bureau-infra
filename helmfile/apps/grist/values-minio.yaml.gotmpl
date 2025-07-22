@@ -1,5 +1,5 @@
 global:
-  imageRegistry: {{(coalesce .Values.global.containerRegistry .Values.containers.grist.registry) | quote }}
+  imageRegistry: {{(coalesce .Values.global.containerRegistry .Values.container.grist.registry) | quote }}
 
   security:
     allowInsecureImages: true
@@ -7,7 +7,7 @@ global:
   imagePullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
 
 image:
-  registry: {{(coalesce .Values.global.containerRegistry .Values.containers.grist.registry) | quote }}
+  registry: {{(coalesce .Values.global.containerRegistry .Values.container.grist.registry) | quote }}
   pullPolicy: "Always"
 
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
@@ -17,7 +17,7 @@ podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 2 
 containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 2 }}
 
 auth:
-  rootPassword: {{ .Values.secrets.minio.rootPassword }}
+  rootPassword: {{ .Values.secret.minio.rootPassword }}
 
 defaultBuckets: {{ .Values.objectstore.grist.bucket | quote }}
 

@@ -1,12 +1,12 @@
 global:
-  imageRegistry: {{(coalesce .Values.global.containerRegistry .Values.containers.elementweb.registry) | quote }}
+  imageRegistry: {{(coalesce .Values.global.containerRegistry .Values.container.elementweb.registry) | quote }}
 
   imagePullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
 
 image:
-  registry: {{ coalesce .Values.global.containerRegistry .Values.containers.elementweb.registry | quote }}
-  repository: {{ .Values.containers.elementweb.repository | quote }}
-  tag: {{ .Values.containers.elementweb.tag | quote }}
+  registry: {{ coalesce .Values.global.containerRegistry .Values.container.elementweb.registry | quote }}
+  repository: {{ .Values.container.elementweb.repository | quote }}
+  tag: {{ .Values.container.elementweb.tag | quote }}
   pullPolicy: IfNotPresent
 
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}

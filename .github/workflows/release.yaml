@@ -1,0 +1,45 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  package-helmfile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Package helmfile folder
+        run: |
+          tar -czf helmfile-${{ github.ref_name }}.tar.gz helmfile/ helmfile.yaml.gotmpl CHANGELOG.md LICENSE README.md
+          sha256sum helmfile-${{ github.ref_name }}.tar.gz > helmfile-${{ github.ref_name }}.tar.gz.sha256
+
+      - name: Sign the package with Cosign
+        run: |
+          cosign sign-blob helmfile-${{ github.ref_name }}.tar.gz \
+            --output-signature helmfile-${{ github.ref_name }}.tar.gz.sig \
+            --output-certificate helmfile-${{ github.ref_name }}.tar.gz.pem
+
+          cosign sign-blob helmfile-${{ github.ref_name }}.tar.gz.sha256 \
+            --output-signature helmfile-${{ github.ref_name }}.tar.gz.sha256.sig \
+            --output-certificate helmfile-${{ github.ref_name }}.tar.gz.sha256.pem
+
+      - name: Create helmfile Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            helmfile-${{ github.ref_name }}.tar.gz
+            helmfile-${{ github.ref_name }}.tar.gz.sha256
+            helmfile-${{ github.ref_name }}.tar.gz.sig
+            helmfile-${{ github.ref_name }}.tar.gz.pem
+            helmfile-${{ github.ref_name }}.tar.gz.sha256.sig
+            helmfile-${{ github.ref_name }}.tar.gz.sha256.pem
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

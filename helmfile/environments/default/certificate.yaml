@@ -1,4 +1,0 @@
-certificate:
-  issuerRef:
-    name: letsencrypt-prod
-    kind: ClusterIssuer

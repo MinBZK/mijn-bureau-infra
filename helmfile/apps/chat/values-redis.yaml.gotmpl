@@ -1,26 +1,48 @@
 architecture: "standalone"
 
+global:
+  imagePullSecrets:
+    {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
+  security:
+    allowInsecureImages: true
+
 commonLabels:
   app.kubernetes.io/part-of: synapse
 
 commonAnnotations:
   {{ .Values.annotations.redis.common | toYaml | nindent 2 }}
 
-global:
-  imagePullSecrets:
-    {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
-  storageClass: {{ coalesce .Values.persistence.storages.redis.storageClassName .Values.persistence.storageClassNames.RWO | quote }}
-  compatibility:
-    openshift:
-      adaptSecurityContext: "auto"
-  security:
-    allowInsecureImages: true
-
 image:
-  registry: {{ coalesce .Values.global.containerRegistry .Values.containers.synapse.registry | quote }}
-  repository: {{ .Values.containers.redis.repository | quote }}
-  tag: {{ .Values.containers.redis.tag | quote }}
+  registry: {{ coalesce .Values.global.containerRegistry .Values.container.redis.registry | quote }}
+  repository: {{ .Values.container.redis.repository | quote }}
+  tag: {{ .Values.container.redis.tag | quote }}
   pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
+
+auth:
+  password: {{ .Values.secret.redis.password | quote }}
+
+master:
+  annotations:
+    {{ .Values.annotations.redis.masterMaster | toYaml | nindent 4 }}
+  containerSecurityContext:
+    {{ .Values.security.containerSecurityContext | toYaml | nindent 4 }}
+  podSecurityContext:
+    {{ .Values.security.podSecurityContext | toYaml | nindent 4 }}
+  persistence:
+    storageClass: {{ coalesce .Values.pvc.redis.storageClass .Values.pvc.default.storageClass | quote }}
+    size: {{ coalesce .Values.pvc.redis.size .Values.pvc.default.size | quote }}
+    annotations:
+      {{ .Values.annotations.redis.masterPersistence | toYaml | nindent 6 }}
+  podAnnotations:
+    {{ .Values.annotations.redis.masterPod | toYaml | nindent 4 }}
+  resources:
+    {{ .Values.resource.redis | toYaml | nindent 4 }}
+  service:
+    annotations:
+      {{ .Values.annotations.redis.masterService | toYaml | nindent 6 }}
+  serviceAccount:
+    annotations:
+      {{ .Values.annotations.redis.masterServiceAccount | toYaml | nindent 6 }}
 
 networkPolicy:
   enabled: true
@@ -37,67 +59,5 @@ networkPolicy:
   metrics:
     allowExternal: false
 
-auth:
-  password: {{ .Values.secrets.redis.password | quote }}
-
-master:
-  annotations:
-    {{ .Values.annotations.redis.masterMaster | toYaml | nindent 4 }}
-  containerSecurityContext:
-    privileged: false
-    readOnlyRootFilesystem: true
-    # TODO this should probably be configured in global config?
-    runAsUser: 1001450000
-    runAsGroup: 1001450000
-    runAsNonRoot: true
-    allowPrivilegeEscalation: false
-    seccompProfile:
-      type: "RuntimeDefault"
-    capabilities:
-      drop:
-        - "ALL"
-    seLinuxOptions:
-      {{ .Values.seLinuxOptions.redis | toYaml | nindent 6 }}
-  count: {{ .Values.replicas.redis }}
-  persistence:
-    size: {{ .Values.persistence.storages.redis.size | quote }}
-    annotations:
-      {{ .Values.annotations.redis.masterPersistence | toYaml | nindent 6 }}
-  podAnnotations:
-    {{ .Values.annotations.redis.masterPod | toYaml | nindent 4 }}
-  resources:
-    {{ .Values.resources.redis | toYaml | nindent 4 }}
-  service:
-    annotations:
-      {{ .Values.annotations.redis.masterService | toYaml | nindent 6 }}
-  serviceAccount:
-    annotations:
-      {{ .Values.annotations.redis.masterServiceAccount | toYaml | nindent 6 }}
-
-metrics:
-  enabled: false
-
-replica:
-  annotations:
-    {{ .Values.annotations.redis.replicaReplica | toYaml | nindent 4 }}
-  # TODO this should probably be configured in global config?
-  podSecurityContext:
-    enabled: true
-    fsGroup: 1001450000
-  persistence:
-    annotations:
-      {{ .Values.annotations.redis.replicaPersistence | toYaml | nindent 6 }}
-  podAnnotations:
-    {{ .Values.annotations.redis.replicaPod | toYaml | nindent 4 }}
-  service:
-    annotations:
-      {{ .Values.annotations.redis.replicaService | toYaml | nindent 6 }}
-  serviceAccount:
-    annotations:
-      {{ .Values.annotations.redis.replicaServiceAccount | toYaml | nindent 6 }}
-
 secretAnnotations:
   {{ .Values.annotations.redis.secret | toYaml | nindent 2 }}
-
-sentinel:
-  enabled: false

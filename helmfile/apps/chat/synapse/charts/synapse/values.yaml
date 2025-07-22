@@ -1,10 +1,7 @@
 # Copyright Broadcom, Inc. All Rights Reserved.
 # SPDX-License-Identifier: APACHE-2.0
 
-# TODO docs everywhere and templating values
-# TODO check for unused variables
-
-# FIXME replication is not functional
+## @param architecture Architecture to apply to Synapse. Can either be "monolith" or "replication". TODO: "replication" is not supported yet.
 architecture: "monolith"
 
 ## @section Global parameters
@@ -60,7 +57,7 @@ commonLabels: {}
 ## @param commonAnnotations Annotations to add to all deployed objects
 ##
 commonAnnotations: {}
-## @param clusterDomain Kubernetes cluster domain name
+## @param extraDeploy Array of extra objects to deploy with the release
 ##
 extraDeploy: []
 ## Diagnostic mode
@@ -75,29 +72,26 @@ diagnosticMode:
   args:
     - infinity
 
-## @section Synapse Image Parameters
-##
-
 ## @section Synapse Master Image parameters
 ##
 master:
-  ## Synapse Master name, used as postfix for kubernetes naming
+  ## @param master.name Synapse Master name, used as postfix for kubernetes naming
   name: "master"
   ## Synapse Master image
   ## ref: https://hub.docker.com/r/matrixdotorg/synapse/
-  ## @param synapse.image.registry [default: docker.io] Synapse Master image registry
-  ## @param synapse.image.repository [default: matrixdotorg/synapse] Synapse Master image repository
-  ## @skip synapse.image.tag Synapse Master image tag (immutable tags are recommended)
-  ## @param synapse.image.digest Synapse Master image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
-  ## @param synapse.image.pullPolicy Synapse Master image pull policy
-  ## @param synapse.image.pullSecrets Synapse Master image pull secrets
-  ## @param synapse.image.debug Enable Synapse Master image debug mode
+  ## @param master.image.registry [default: docker.io] Synapse Master image registry
+  ## @param master.image.repository [default: matrixdotorg/synapse] Synapse Master image repository
+  ## @param master.image.tag Synapse Master image tag (immutable tags are recommended)
+  ## @param master.image.digest Synapse Master image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
+  ## @param master.image.pullPolicy Synapse Master image pull policy
+  ## @param master.image.pullSecrets Synapse Master image pull secrets
+  ## @param master.image.debug Enable Synapse Master image debug mode
   ##
   image:
     registry: docker.io
     repository: matrixdotorg/synapse
     tag: "v1.133.0"
-    digest: "sha256:81d4b74fd09f8cf4e6dd978289721c4b91270649992a3f64bc8c326968c7522e"
+    digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
     ##
@@ -110,18 +104,18 @@ master:
     ##
     pullSecrets: []
     debug: false
-  ## @param synapse.replicaCount Number of Synapse Master replicas to deploy
+  ## @param master.replicaCount Number of Synapse Master replicas to deploy
   ##
   replicaCount: 1
-  ## @param synapse.containerPorts.http Synapse Master synapse container port
-  ## @param synapse.containerPorts.replication Synapse Master replication container port
-  ## @param synapse.containerPorts.metrics Synapse Master metrics container port
+  ## @param master.containerPorts.http Synapse Master synapse container port
+  ## @param master.containerPorts.replication Synapse Master replication container port
+  ## @param master.containerPorts.metrics Synapse Master metrics container port
   ##
   containerPorts:
     http: 8008
     metrics: 9090
     replication: 9093
-  ## @param synapse.extraContainerPorts Optionally specify extra list of additional ports for Synapse Master containers
+  ## @param master.extraContainerPorts Optionally specify extra list of additional ports for Synapse Master containers
   ## e.g:
   ## extraContainerPorts:
   ##   - name: myservice
@@ -130,12 +124,12 @@ master:
   extraContainerPorts: []
   ## Configure extra options for Synapse Master containers' liveness and readiness probes
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
-  ## @param synapse.livenessProbe.enabled Enable livenessProbe on Synapse Master containers
-  ## @param synapse.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
-  ## @param synapse.livenessProbe.periodSeconds Period seconds for livenessProbe
-  ## @param synapse.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
-  ## @param synapse.livenessProbe.failureThreshold Failure threshold for livenessProbe
-  ## @param synapse.livenessProbe.successThreshold Success threshold for livenessProbe
+  ## @param master.livenessProbe.enabled Enable livenessProbe on Synapse Master containers
+  ## @param master.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+  ## @param master.livenessProbe.periodSeconds Period seconds for livenessProbe
+  ## @param master.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+  ## @param master.livenessProbe.failureThreshold Failure threshold for livenessProbe
+  ## @param master.livenessProbe.successThreshold Success threshold for livenessProbe
   ##
   livenessProbe:
     enabled: true
@@ -144,12 +138,12 @@ master:
     timeoutSeconds: 2
     failureThreshold: 3
     successThreshold: 1
-  ## @param synapse.readinessProbe.enabled Enable readinessProbe on Synapse Master containers
-  ## @param synapse.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
-  ## @param synapse.readinessProbe.periodSeconds Period seconds for readinessProbe
-  ## @param synapse.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
-  ## @param synapse.readinessProbe.failureThreshold Failure threshold for readinessProbe
-  ## @param synapse.readinessProbe.successThreshold Success threshold for readinessProbe
+  ## @param master.readinessProbe.enabled Enable readinessProbe on Synapse Master containers
+  ## @param master.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+  ## @param master.readinessProbe.periodSeconds Period seconds for readinessProbe
+  ## @param master.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+  ## @param master.readinessProbe.failureThreshold Failure threshold for readinessProbe
+  ## @param master.readinessProbe.successThreshold Success threshold for readinessProbe
   ##
   readinessProbe:
     enabled: true
@@ -158,12 +152,12 @@ master:
     timeoutSeconds: 2
     failureThreshold: 3
     successThreshold: 1
-  ## @param synapse.startupProbe.enabled Enable startupProbe on Synapse Master containers
-  ## @param synapse.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
-  ## @param synapse.startupProbe.periodSeconds Period seconds for startupProbe
-  ## @param synapse.startupProbe.timeoutSeconds Timeout seconds for startupProbe
-  ## @param synapse.startupProbe.failureThreshold Failure threshold for startupProbe
-  ## @param synapse.startupProbe.successThreshold Success threshold for startupProbe
+  ## @param master.startupProbe.enabled Enable startupProbe on Synapse Master containers
+  ## @param master.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+  ## @param master.startupProbe.periodSeconds Period seconds for startupProbe
+  ## @param master.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+  ## @param master.startupProbe.failureThreshold Failure threshold for startupProbe
+  ## @param master.startupProbe.successThreshold Success threshold for startupProbe
   ##
   startupProbe:
     enabled: false
@@ -172,22 +166,22 @@ master:
     timeoutSeconds: 2
     failureThreshold: 5
     successThreshold: 1
-  ## @param synapse.customLivenessProbe Custom livenessProbe that overrides the default one
+  ## @param master.customLivenessProbe Custom livenessProbe that overrides the default one
   ##
   customLivenessProbe: {}
-  ## @param synapse.customReadinessProbe Custom readinessProbe that overrides the default one
+  ## @param master.customReadinessProbe Custom readinessProbe that overrides the default one
   ##
   customReadinessProbe: {}
-  ## @param synapse.customStartupProbe Custom startupProbe that overrides the default one
+  ## @param master.customStartupProbe Custom startupProbe that overrides the default one
   ##
   customStartupProbe: {}
   ## Synapse Master resource requests and limits
   ## ref: http://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
-  ## @param synapse.resourcesPreset Set Synapse Master container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if synapse.resources is set (synapse.resources is recommended for production).
+  ## @param master.resourcesPreset Set Synapse Master container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if synapse.resources is set (synapse.resources is recommended for production).
   ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
   ##
   resourcesPreset: "nano"
-  ## @param synapse.resources Set Synapse Master container requests and limits for different resources like CPU or memory (essential for production workloads)
+  ## @param master.resources Set Synapse Master container requests and limits for different resources like CPU or memory (essential for production workloads)
   ## Example:
   ## resources:
   ##   requests:
@@ -200,11 +194,11 @@ master:
   resources: {}
   ## Configure Pods Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
-  ## @param synapse.podSecurityContext.enabled Enable Synapse Master pods' Security Context
-  ## @param synapse.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy for Synapse Master pods
-  ## @param synapse.podSecurityContext.sysctls Set kernel settings using the sysctl interface for Synapse Master pods
-  ## @param synapse.podSecurityContext.supplementalGroups Set filesystem extra groups for Synapse Master pods
-  ## @param synapse.podSecurityContext.fsGroup Set fsGroup in Synapse Master pods' Security Context
+  ## @param master.podSecurityContext.enabled Enable Synapse Master pods' Security Context
+  ## @param master.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy for Synapse Master pods
+  ## @param master.podSecurityContext.sysctls Set kernel settings using the sysctl interface for Synapse Master pods
+  ## @param master.podSecurityContext.supplementalGroups Set filesystem extra groups for Synapse Master pods
+  ## @param master.podSecurityContext.fsGroup Set fsGroup in Synapse Master pods' Security Context
   ##
   podSecurityContext:
     enabled: true
@@ -214,16 +208,16 @@ master:
     fsGroup: 1001
   ## Configure Container Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
-  ## @param synapse.containerSecurityContext.enabled Enabled Synapse Master container' Security Context
-  ## @param synapse.containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in Synapse Master container
-  ## @param synapse.containerSecurityContext.runAsUser Set runAsUser in Synapse Master container' Security Context
-  ## @param synapse.containerSecurityContext.runAsGroup Set runAsGroup in Synapse Master container' Security Context
-  ## @param synapse.containerSecurityContext.runAsNonRoot Set runAsNonRoot in Synapse Master container' Security Context
-  ## @param synapse.containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in Synapse Master container' Security Context
-  ## @param synapse.containerSecurityContext.privileged Set privileged in Synapse Master container' Security Context
-  ## @param synapse.containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in Synapse Master container' Security Context
-  ## @param synapse.containerSecurityContext.capabilities.drop List of capabilities to be dropped in Synapse Master container
-  ## @param synapse.containerSecurityContext.seccompProfile.type Set seccomp profile in Synapse Master container
+  ## @param master.containerSecurityContext.enabled Enabled Synapse Master container' Security Context
+  ## @param master.containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in Synapse Master container
+  ## @param master.containerSecurityContext.runAsUser Set runAsUser in Synapse Master container' Security Context
+  ## @param master.containerSecurityContext.runAsGroup Set runAsGroup in Synapse Master container' Security Context
+  ## @param master.containerSecurityContext.runAsNonRoot Set runAsNonRoot in Synapse Master container' Security Context
+  ## @param master.containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in Synapse Master container' Security Context
+  ## @param master.containerSecurityContext.privileged Set privileged in Synapse Master container' Security Context
+  ## @param master.containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in Synapse Master container' Security Context
+  ## @param master.containerSecurityContext.capabilities.drop List of capabilities to be dropped in Synapse Master container
+  ## @param master.containerSecurityContext.seccompProfile.type Set seccomp profile in Synapse Master container
   ##
   containerSecurityContext:
     enabled: true
@@ -238,47 +232,47 @@ master:
       drop: ["ALL"]
     seccompProfile:
       type: "RuntimeDefault"
-  ## @param synapse.existingConfigmap The name of an existing ConfigMap with your custom configuration for Synapse Master
+  ## @param master.existingConfigmap The name of an existing ConfigMap with your custom configuration for Synapse Master
   ##
   existingConfigmap:
-  ## @param synapse.command Override default Synapse Master container command (useful when using custom images)
+  ## @param master.command Override default Synapse Master container command (useful when using custom images)
   ##
   command: []
-  ## @param synapse.args Override default Synapse Master container args (useful when using custom images)
+  ## @param master.args Override default Synapse Master container args (useful when using custom images)
   ##
   args: []
-  ## @param synapse.automountServiceAccountToken Mount Service Account token in Synapse Master pods
+  ## @param master.automountServiceAccountToken Mount Service Account token in Synapse Master pods
   ##
   automountServiceAccountToken: false
-  ## @param synapse.hostAliases Synapse Master pods host aliases
+  ## @param master.hostAliases Synapse Master pods host aliases
   ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
   ##
   hostAliases: []
-  ## @param synapse.daemonsetAnnotations Annotations for Synapse Master daemonset
+  ## @param master.daemonsetAnnotations Annotations for Synapse Master daemonset
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
   daemonsetAnnotations: {}
-  ## @param synapse.deploymentAnnotations Annotations for Synapse Master deployment
+  ## @param master.deploymentAnnotations Annotations for Synapse Master deployment
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
   deploymentAnnotations: {}
-  ## @param synapse.statefulsetAnnotations Annotations for Synapse Master statefulset
+  ## @param master.statefulsetAnnotations Annotations for Synapse Master statefulset
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
   statefulsetAnnotations: {}
-  ## @param synapse.podLabels Extra labels for Synapse Master pods
+  ## @param master.podLabels Extra labels for Synapse Master pods
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
   ##
   podLabels: {}
-  ## @param synapse.podAnnotations Annotations for Synapse Master pods
+  ## @param master.podAnnotations Annotations for Synapse Master pods
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
   podAnnotations: {}
-  ## @param synapse.podAffinityPreset Pod affinity preset. Ignored if `synapse.affinity` is set. Allowed values: `soft` or `hard`
+  ## @param master.podAffinityPreset Pod affinity preset. Ignored if `synapse.affinity` is set. Allowed values: `soft` or `hard`
   ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
   ##
   podAffinityPreset: ""
-  ## @param synapse.podAntiAffinityPreset Pod anti-affinity preset. Ignored if `synapse.affinity` is set. Allowed values: `soft` or `hard`
+  ## @param master.podAntiAffinityPreset Pod anti-affinity preset. Ignored if `synapse.affinity` is set. Allowed values: `soft` or `hard`
   ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
   ##
   podAntiAffinityPreset: soft
@@ -286,37 +280,37 @@ master:
   ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
   ##
   nodeAffinityPreset:
-    ## @param synapse.nodeAffinityPreset.type Node affinity preset type. Ignored if `synapse.affinity` is set. Allowed values: `soft` or `hard`
+    ## @param master.nodeAffinityPreset.type Node affinity preset type. Ignored if `synapse.affinity` is set. Allowed values: `soft` or `hard`
     ##
     type: ""
-    ## @param synapse.nodeAffinityPreset.key Node label key to match. Ignored if `synapse.affinity` is set
+    ## @param master.nodeAffinityPreset.key Node label key to match. Ignored if `synapse.affinity` is set
     ##
     key: ""
-    ## @param synapse.nodeAffinityPreset.values Node label values to match. Ignored if `synapse.affinity` is set
+    ## @param master.nodeAffinityPreset.values Node label values to match. Ignored if `synapse.affinity` is set
     ## E.g.
     ## values:
     ##   - e2e-az1
     ##   - e2e-az2
     ##
     values: []
-  ## @param synapse.affinity Affinity for Synapse Master pods assignment
+  ## @param master.affinity Affinity for Synapse Master pods assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
   ## NOTE: `synapse.podAffinityPreset`, `synapse.podAntiAffinityPreset`, and `synapse.nodeAffinityPreset` will be ignored when it's set
   ##
   affinity: {}
-  ## @param synapse.nodeSelector Node labels for Synapse Master pods assignment
+  ## @param master.nodeSelector Node labels for Synapse Master pods assignment
   ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
   ##
   nodeSelector: {}
-  ## @param synapse.tolerations Tolerations for Synapse Master pods assignment
+  ## @param master.tolerations Tolerations for Synapse Master pods assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   ##
   tolerations: []
   ## ONLY FOR DEPLOYMENTS:
-  ## @param synapse.updateStrategy.type Synapse Master deployment strategy type
+  ## @param master.updateStrategy.type Synapse Master deployment strategy type
   ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
   ## ONLY FOR STATEFULSETS:
-  ## @param synapse.updateStrategy.type Synapse Master statefulset strategy type
+  ## @param master.updateStrategy.type Synapse Master statefulset strategy type
   ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
   ##
   updateStrategy:
@@ -327,48 +321,48 @@ master:
     ##
     type: Recreate
   ## ONLY FOR STATEFULSETS:
-  ## @param synapse.podManagementPolicy Pod management policy for Synapse Master statefulset
+  ## @param master.podManagementPolicy Pod management policy for Synapse Master statefulset
   ## Ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
   ##
   podManagementPolicy: OrderedReady
-  ## @param synapse.priorityClassName Synapse Master pods' priorityClassName
+  ## @param master.priorityClassName Synapse Master pods' priorityClassName
   ##
   priorityClassName: ""
-  ## @param synapse.topologySpreadConstraints Topology Spread Constraints for Synapse Master pod assignment spread across your cluster among failure-domains
+  ## @param master.topologySpreadConstraints Topology Spread Constraints for Synapse Master pod assignment spread across your cluster among failure-domains
   ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
   ##
   topologySpreadConstraints: []
-  ## @param synapse.schedulerName Name of the k8s scheduler (other than default) for Synapse Master pods
+  ## @param master.schedulerName Name of the k8s scheduler (other than default) for Synapse Master pods
   ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
   ##
   schedulerName: ""
-  ## @param synapse.terminationGracePeriodSeconds Seconds Synapse Master pods need to terminate gracefully
+  ## @param master.terminationGracePeriodSeconds Seconds Synapse Master pods need to terminate gracefully
   ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
   ##
   terminationGracePeriodSeconds: ""
-  ## @param synapse.lifecycleHooks for Synapse Master containers to automate configuration before or after startup
+  ## @param master.lifecycleHooks for Synapse Master containers to automate configuration before or after startup
   ##
   lifecycleHooks: {}
-  ## @param synapse.extraEnvVars Array with extra environment variables to add to Synapse Master containers
+  ## @param master.extraEnvVars Array with extra environment variables to add to Synapse Master containers
   ## e.g:
   ## extraEnvVars:
   ##   - name: FOO
   ##     value: "bar"
   ##
   extraEnvVars: []
-  ## @param synapse.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for Synapse Master containers
+  ## @param master.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for Synapse Master containers
   ##
   extraEnvVarsCM: ""
-  ## @param synapse.extraEnvVarsSecret Name of existing Secret containing extra env vars for Synapse Master containers
+  ## @param master.extraEnvVarsSecret Name of existing Secret containing extra env vars for Synapse Master containers
   ##
   extraEnvVarsSecret: ""
-  ## @param synapse.extraVolumes Optionally specify extra list of additional volumes for the Synapse Master pods
+  ## @param master.extraVolumes Optionally specify extra list of additional volumes for the Synapse Master pods
   ##
   extraVolumes: []
-  ## @param synapse.extraVolumeMounts Optionally specify extra list of additional volumeMounts for the Synapse Master containers
+  ## @param master.extraVolumeMounts Optionally specify extra list of additional volumeMounts for the Synapse Master containers
   ##
   extraVolumeMounts: []
-  ## @param synapse.sidecars Add additional sidecar containers to the Synapse Master pods
+  ## @param master.sidecars Add additional sidecar containers to the Synapse Master pods
   ## e.g:
   ## sidecars:
   ##   - name: your-image-name
@@ -379,21 +373,11 @@ master:
   ##         containerPort: 1234
   ##
   sidecars: []
-  ## @param synapse.initContainers Add additional init containers to the Synapse Master pods
-  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
-  ## e.g:
-  ## initContainers:
-  ##  - name: your-image-name
-  ##    image: your-image
-  ##    imagePullPolicy: Always
-  ##    command: ['sh', '-c', 'echo "hello world"']
-  ##
-  initContainers: []
   ## Pod Disruption Budget configuration
   ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb
-  ## @param synapse.pdb.create Enable/disable a Pod Disruption Budget creation
-  ## @param synapse.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
-  ## @param synapse.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable. Defaults to `1` if both `synapse.pdb.minAvailable` and `synapse.pdb.maxUnavailable` are empty.
+  ## @param master.pdb.create Enable/disable a Pod Disruption Budget creation
+  ## @param master.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param master.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable. Defaults to `1` if both `synapse.pdb.minAvailable` and `synapse.pdb.maxUnavailable` are empty.
   ##
   pdb:
     create: false
@@ -403,11 +387,11 @@ master:
   ## ref: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   ##
   autoscaling:
-    ## @param synapse.autoscaling.vpa.enabled Enable VPA for Synapse Master pods
-    ## @param synapse.autoscaling.vpa.annotations Annotations for VPA resource
-    ## @param synapse.autoscaling.vpa.controlledResources VPA List of resources that the vertical pod autoscaler can control. Defaults to cpu and memory
-    ## @param synapse.autoscaling.vpa.maxAllowed VPA Max allowed resources for the pod
-    ## @param synapse.autoscaling.vpa.minAllowed VPA Min allowed resources for the pod
+    ## @param master.autoscaling.vpa.enabled Enable VPA for Synapse Master pods
+    ## @param master.autoscaling.vpa.annotations Annotations for VPA resource
+    ## @param master.autoscaling.vpa.controlledResources VPA List of resources that the vertical pod autoscaler can control. Defaults to cpu and memory
+    ## @param master.autoscaling.vpa.maxAllowed VPA Max allowed resources for the pod
+    ## @param master.autoscaling.vpa.minAllowed VPA Min allowed resources for the pod
     ##
     vpa:
       enabled: false
@@ -415,19 +399,19 @@ master:
       controlledResources: []
       maxAllowed: {}
       minAllowed: {}
-      ## @param synapse.autoscaling.vpa.updatePolicy.updateMode Autoscaling update policy
+      ## @param master.autoscaling.vpa.updatePolicy.updateMode Autoscaling update policy
       ## Specifies whether recommended updates are applied when a Pod is started and whether recommended updates are applied during the life of a Pod
       ## Possible values are "Off", "Initial", "Recreate", and "Auto".
       ##
       updatePolicy:
         updateMode: Auto
-    ## @param synapse.autoscaling.hpa.enabled Enable HPA for Synapse Master pods
-    ## @param synapse.autoscaling.hpa.minReplicas Minimum number of replicas
-    ## @param synapse.autoscaling.hpa.maxReplicas Maximum number of replicas
-    ## @param synapse.autoscaling.hpa.targetCPU Target CPU utilization percentage
-    ## @param synapse.autoscaling.hpa.targetMemory Target Memory utilization percentage
+    ## @param master.autoscaling.hpa.enabled Enable HPA for Synapse Master pods
+    ## @param master.autoscaling.hpa.minReplicas Minimum number of replicas
+    ## @param master.autoscaling.hpa.maxReplicas Maximum number of replicas
+    ## @param master.autoscaling.hpa.targetCPU Target CPU utilization percentage
+    ## @param master.autoscaling.hpa.targetMemory Target Memory utilization percentage
     ##
-    # FIXME Check whether this is usable with Synapse replication workers.
+    # TODO Check whether this is usable with Synapse replication workers.
     hpa:
       enabled: false
       minReplicas: 1
@@ -437,58 +421,59 @@ master:
   ## Synapse Master service parameters
   ##
   service:
-    ## @param service.type Synapse Master service type
+    ## @param master.service.type Synapse Master service type
     ##
     type: LoadBalancer
-    ## @param service.ports.http Synapse Master service HTTP port
-    ## @param service.ports.https Synapse Master service HTTPS port
+    ## @param master.service.ports.http Synapse Master service HTTP port
+    ## @param master.service.ports.replication Synapse Master service replication port
+    ## @param master.service.ports.metrics Synapse Master metrics replication port
     ##
     ports:
       http: 8008
       replication: 9093
       metrics: 9090
     ## Node ports to expose
-    ## @param service.nodePorts.http Node port for synapse
-    ## @param service.nodePorts.https Node port for replication
-    ## @param service.nodePorts.https Node port for metrics
+    ## @param master.service.nodePorts.http Node port for synapse
+    ## @param master.service.nodePorts.replication Node port for replication
+    ## @param master.service.nodePorts.metrics Node port for metrics
     ## NOTE: choose port between <30000-32767>
     ##
     nodePorts:
       http: ""
       replication: ""
       metrics: ""
-    ## @param service.clusterIP Synapse Master service Cluster IP
+    ## @param master.service.clusterIP Synapse Master service Cluster IP
     ## e.g.:
     ## clusterIP: None
     ##
     clusterIP: ""
-    ## @param service.loadBalancerIP Synapse Master service Load Balancer IP
+    ## @param master.service.loadBalancerIP Synapse Master service Load Balancer IP
     ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
     ##
     loadBalancerIP: ""
-    ## @param service.loadBalancerSourceRanges Synapse Master service Load Balancer sources
+    ## @param master.service.loadBalancerSourceRanges Synapse Master service Load Balancer sources
     ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
     ## e.g:
     ## loadBalancerSourceRanges:
     ##   - 10.10.10.0/24
     ##
     loadBalancerSourceRanges: []
-    ## @param service.externalTrafficPolicy Synapse Master service external traffic policy
+    ## @param master.service.externalTrafficPolicy Synapse Master service external traffic policy
     ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
     ##
     externalTrafficPolicy: Cluster
-    ## @param service.annotations Additional custom annotations for Synapse Master service
+    ## @param master.service.annotations Additional custom annotations for Synapse Master service
     ##
     annotations: {}
-    ## @param service.extraPorts Extra ports to expose in Synapse Master service (normally used with the `sidecars` value)
+    ## @param master.service.extraPorts Extra ports to expose in Synapse Master service (normally used with the `sidecars` value)
     ##
     extraPorts: []
-    ## @param service.sessionAffinity Control where client requests go, to the same pod or round-robin
+    ## @param master.service.sessionAffinity Control where client requests go, to the same pod or round-robin
     ## Values: ClientIP or None
     ## ref: https://kubernetes.io/docs/concepts/services-networking/service/
     ##
     sessionAffinity: None
-    ## @param service.sessionAffinityConfig Additional settings for the sessionAffinity
+    ## @param master.service.sessionAffinityConfig Additional settings for the sessionAffinity
     ## sessionAffinityConfig:
     ##   clientIP:
     ##     timeoutSeconds: 300
@@ -498,23 +483,23 @@ master:
   ## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
   ##
   networkPolicy:
-    ## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+    ## @param master.networkPolicy.enabled Specifies whether a NetworkPolicy should be created
     ##
     enabled: true
-    ## @param networkPolicy.allowExternal Don't require server label for connections
+    ## @param master.networkPolicy.allowExternal Don't require server label for connections
     ## The Policy model to apply. When set to false, only pods with the correct
     ## server label will have network access to the ports server is listening
     ## on. When true, server will accept connections from any source
     ## (with the correct destination port).
     ##
     allowExternal: false
-    ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+    ## @param master.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
     ##
     allowExternalEgress: false
-    ## @param networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+    ## @param master.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
     ##
     addExternalClientAccess: true
-    ## @param networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+    ## @param master.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
     ## e.g:
     ## extraIngress:
     ##   - ports:
@@ -530,7 +515,7 @@ master:
     ##                 values:
     ##                   - frontend
     extraIngress: []
-    ## @param networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+    ## @param master.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
     ## e.g:
     ## extraEgress:
     ##   - ports:
@@ -547,14 +532,14 @@ master:
     ##                   - frontend
     ##
     extraEgress: []
-    ## @param networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param master.networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
     ## e.g:
     ## ingressPodMatchLabels:
     ##   my-client: "true"
     #
     ingressPodMatchLabels: {}
-    ## @param networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
-    ## @param networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param master.networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param master.networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
     ##
     ingressNSMatchLabels: {}
     ingressNSPodMatchLabels: {}
@@ -562,19 +547,19 @@ master:
   ## ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
   ##
   persistence:
-    ## @param persistence.enabled Enable persistence using Persistent Volume Claims
+    ## @param master.persistence.enabled Enable persistence using Persistent Volume Claims
     ##
     enabled: true
-    ## @param persistence.mountPath Path to mount the volume at.
+    ## @param master.persistence.mountPath Path to mount the volume at.
     ##
     mountPath: /synapse/data
-    ## @param persistence.subPath The subdirectory of the volume to mount to, useful in dev environments and one PV for multiple services
+    ## @param master.persistence.subPath The subdirectory of the volume to mount to, useful in dev environments and one PV for multiple services
     ##
     subPath: ""
-    ## @param replica.persistence.subPathExpr Used to construct the subPath subdirectory of the volume to mount on Synapse Master containers
+    ## @param master.persistence.subPathExpr Used to construct the subPath subdirectory of the volume to mount on Synapse Master containers
     ##
     subPathExpr: ""
-    ## @param persistence.storageClass Storage class of backing PVC
+    ## @param master.persistence.storageClass Storage class of backing PVC
     ## If defined, storageClassName: <storageClass>
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
     ## If undefined (the default) or set to null, no storageClassName spec is
@@ -582,26 +567,26 @@ master:
     ##   GKE, AWS & OpenStack)
     ##
     storageClass: ""
-    ## @param persistence.annotations Persistent Volume Claim annotations
+    ## @param master.persistence.annotations Persistent Volume Claim annotations
     ##
     annotations: {}
-    ## @param readReplicas.persistence.labels Persistent Volume Claim labels
+    ## @param master.persistence.labels Persistent Volume Claim labels
     ##
     labels: {}
-    ## @param persistence.accessModes Persistent Volume Access Modes
+    ## @param master.persistence.accessModes Persistent Volume Access Modes
     ##
     accessModes:
       - ReadWriteOnce
-    ## @param persistence.size Size of data volume
+    ## @param master.persistence.size Size of data volume
     ##
     size: 8Gi
-    ## @param persistence.dataSource Custom PVC data source
+    ## @param master.persistence.dataSource Custom PVC data source
     ##
     dataSource: {}
-    ## @param persistence.existingClaim The name of an existing PVC to use for persistence
+    ## @param master.persistence.existingClaim The name of an existing PVC to use for persistence
     ##
     existingClaim: ""
-    ## @param persistence.selector Selector to match an existing Persistent Volume for WordPress data PVC
+    ## @param master.persistence.selector Selector to match an existing Persistent Volume for WordPress data PVC
     ## If set, the PVC can't have a PV dynamically provisioned for it
     ## E.g.
     ## selector:
@@ -612,52 +597,52 @@ master:
   ## Prometheus metrics
   ##
   metrics:
-    ## @param metrics.enabled Enable the export of Prometheus metrics
+    ## @param master.metrics.enabled Enable the export of Prometheus metrics
     ##
     enabled: false
     ## Prometheus Operator ServiceMonitor configuration
     ##
     serviceMonitor:
-      ## @param metrics.serviceMonitor.enabled if `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.enabled` to be `true`)
+      ## @param master.metrics.serviceMonitor.enabled if `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.enabled` to be `true`)
       ##
       enabled: false
-      ## @param metrics.serviceMonitor.namespace Namespace in which Prometheus is running
+      ## @param master.metrics.serviceMonitor.namespace Namespace in which Prometheus is running
       ##
       namespace: ""
-      ## @param metrics.serviceMonitor.annotations Additional custom annotations for the ServiceMonitor
+      ## @param master.metrics.serviceMonitor.annotations Additional custom annotations for the ServiceMonitor
       ##
       annotations: {}
-      ## @param metrics.serviceMonitor.labels Extra labels for the ServiceMonitor
+      ## @param master.metrics.serviceMonitor.labels Extra labels for the ServiceMonitor
       ##
       labels: {}
-      ## @param metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in Prometheus
+      ## @param master.metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in Prometheus
       ##
       jobLabel: ""
-      ## @param metrics.serviceMonitor.honorLabels honorLabels chooses the metric's labels on collisions with target labels
+      ## @param master.metrics.serviceMonitor.honorLabels honorLabels chooses the metric's labels on collisions with target labels
       ##
       honorLabels: false
-      ## @param metrics.serviceMonitor.tlsConfig [object] TLS configuration used for scrape endpoints used by Prometheus
+      ## @param master.metrics.serviceMonitor.tlsConfig [object] TLS configuration used for scrape endpoints used by Prometheus
       ##
       tlsConfig: {}
-      ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped.
+      ## @param master.metrics.serviceMonitor.interval Interval at which metrics should be scraped.
       ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
       ## e.g:
       ## interval: 10s
       ##
       interval: ""
-      ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+      ## @param master.metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
       ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
       ## e.g:
       ## scrapeTimeout: 10s
       ##
       scrapeTimeout: ""
-      ## @param metrics.serviceMonitor.metricRelabelings Specify additional relabeling of metrics
+      ## @param master.metrics.serviceMonitor.metricRelabelings Specify additional relabeling of metrics
       ##
       metricRelabelings: []
-      ## @param metrics.serviceMonitor.relabelings Specify general relabeling
+      ## @param master.metrics.serviceMonitor.relabelings Specify general relabeling
       ##
       relabelings: []
-      ## @param metrics.serviceMonitor.selector Prometheus instance selector labels
+      ## @param master.metrics.serviceMonitor.selector Prometheus instance selector labels
       ## ref: https://github.com/bitnami/charts/tree/main/bitnami/prometheus-operator#prometheus-configuration
       ## selector:
       ##   prometheus: my-prometheus
@@ -671,7 +656,7 @@ master:
 ###
 ##
 worker:
-  ## Synapse Worker name, used as postfix for kubernetes naming
+  ## @param worker.name Synapse Worker name, used as postfix for kubernetes naming
   name: "worker"
 
 ## @section Traffic Exposure Parameters
@@ -880,36 +865,194 @@ serviceAccount:
   ##
   automountServiceAccountToken: true
 
-# TODO docs
+## @section Synapse Homeserver configuration
+##
+
+## Ref: https://element-hq.github.io/synapse/latest/usage/configuration/config_documentation.html
 synapse:
+  ## @param synapse.logging.logLevel The minimum loglevel to filter log messages by
+  ## @param synapse.logging.useStructuredLogging The TerseJsonLogger is used if `true`, precise logging is used otherwise.
+  ## @param synapse.logging.extraLoggers A list of extra loggers to configure
   logging:
     logLevel: "INFO"
     useStructuredLogging: false
     extraLoggers: []
+  ## @param synapse.config.directory The folder in which configuration is read and placed
+  ## @param synapse.config.homeServerConfigFile The location of the home server configuration file
   config:
     directory: "/synapse/data"
     homeServerConfigFile: "/synapse/config/homeserver.yaml"
+  ## @param synapse.serverName The hostname of the synapse server.
   serverName: "synapse.internal"
+  ## @param synapse.webClientLocation The URL to the web client
+  webClientLocation: ~
+  ## @param synapse.reportStats.enabled Whether to report homeserver usage statistics
+  ## @param synapse.reportStats.endpoint The endpoint to report homeserver usage statistics to.
   reportStats:
     enabled: false
     endpoint: ""
-  metrics:
-    enabled: metrics
+  ## @param synapse.recaptcha.enabled Set to true to require users to complete a CAPTCHA test when registering an account. Requires a valid ReCaptcha public/private key.
+  ## @param synapse.recaptcha.publicKey This homeserver's ReCAPTCHA public key. Must be specified if `synapse.recaptcha.enabled` is `true`.
   recaptcha:
     enabled: false
     publicKey: ""
+  ## @param synapse.turnUris The public URIs of the TURN server to give to clients.
   turnUris: []
+  ## @param synapse.enableRegistration Enable registration for new users.
   enableRegistration: false
+  ## @extra synapse.trustedKeyServers The trusted servers to download signing keys from (default the matrix.org server is trusted, without verifying it's key).
+  ## E.g:
+  ##  trusted_key_servers:
+  ##    - server_name: my_trusted_server.example.com
+  ##      verify_keys:
+  ##        ed25519:auto: abcdefghijklmnopqrstuvwxyzabcdefghijklmopqr
+  ##    - server_name: my_other_trusted_server.example.com
+  ## @skip synapse.trustedKeyServers[0].server_name
   trustedKeyServers:
     - server_name: "matrix.org"
-  database:
-    name: "sqlite3"
-    txnLimit: 0
-    allowUnsafeLocale: false
-    args: {}
+  ## @param synapse.registrationSharedSecret If set, allows registration of standard or admin accounts by anyone who has the shared secret, even if enable_registration is not set.
   registrationSharedSecret: ""
+  ## @param synapse.formSecret A secret which is used to calculate HMACs for form values, to stop falsification of values. Must be specified for the User Consent forms to work.
   formSecret: ""
+  ## @param synapse.suppressKeyServerWarning Set the following to true to disable the warning that is emitted when the trusted_key_servers include "matrix.org".
   suppressKeyServerWarning: false
+  ## Background updates are database updates that are run in the background in batches. The duration, minimum batch size, default batch size, whether to sleep between batches and if so, how long to sleep can all be configured. This is helpful to speed up or slow down the updates.
+  ## @param synapse.backgroundUpdates.duration How long in milliseconds to run a batch of background updates for.
+  ## @param synapse.backgroundUpdates.sleepEnabled Whether to sleep between updates.
+  ## @param synapse.backgroundUpdates.sleepDuration If sleeping between updates, how long in milliseconds to sleep for.
+  ## @param synapse.backgroundUpdates.minBatchSize Minimum size a batch of background updates can be. Must be greater than 0.
+  ## @param synapse.backgroundUpdates.defaultBatchSize The batch size to use for the first iteration of a new background update.
+  backgroundUpdates:
+    duration: 100
+    sleepEnabled: true
+    sleepDuration: 1000
+    minBatchSize: 1
+    defaultBatchSize: 100
+  ## Rate limiting
+  ## This is a ratelimiting option for messages that ratelimits sending based on the account the client is using.
+  ## @param synapse.rateLimiting.messaging.perSecond Number of requests a client can send per second.
+  ## @param synapse.rateLimiting.messaging.burstCount Number of requests a client can send before being throttled.
+  rateLimiting:
+    messaging:
+      perSecond: 0.2
+      burstCount: 10.0
+  ## @param synapse.maxEventDelayDuration The maximum allowed duration by which sent events can be delayed, as per MSC4140. Must be a positive value if set. If `null` or unset, sending of delayed events is disallowed.
+  ## ref: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
+  maxEventDelayDuration: null
+  ## @param synapse.serveServerWellknown By default, other servers will try to reach our server on port 8448, which can be inconvenient in some environments. Provided `https://<server_name>/` on port 443 is routed to Synapse, this option configures Synapse to serve a file at `https://<server_name>/.well-known/matrix/server`. This will tell other servers to send traffic to port 443 instead.
+  ## ref: https://element-hq.github.io/synapse/latest/delegate.html
+  serveServerWellknown: false
+  ## @param synapse.avatar.maxSize The largest permissible file size in bytes for a user avatar. Defaults to no restriction. Use M for MB and K for KBNote that user avatar changes will not work if this is set without using Synapse's media repository.
+  ## @param synapse.avatar.allowedMimeTypes The MIME types allowed for user avatars. Defaults to no restriction. Note that user avatar changes will not work if this is set without using Synapse's media repository.
+  avatar:
+    maxSize: null
+    allowedMimeTypes: null
+  ## @param synapse.forgottenRoomRetentionPeriod How long to keep locally forgotten rooms before purging them from the DB. A value of null means it's disabled.
+  forgottenRoomRetentionPeriod: null
+  retention:
+    ## @param synapse.retention.enabled If this feature is enabled, Synapse will regularly look for and purge events which are older than the room's maximum retention period. Synapse will also filter events received over federation so that events that should have been purged are ignored and not stored again.
+    ## ref: https://element-hq.github.io/synapse/latest/message_retention_policies.html
+    enabled: false
+    ## @extra synapse.retention.defaultPolicy Default message retention policy. If set, Synapse will apply it to rooms that lack the `m.room.retention` state event.
+    defaultPolicy:
+      lifetime:
+        ## @param synapse.retention.defaultPolicy.lifetime.min Minimum message retention time of the default message retention policy. Synapse doesn't take this option into account yet.
+        min: null
+        ## @param synapse.retention.defaultPolicy.lifetime.max Maximum message retention time of the default message retention policy.
+        max: null
+    allowedLifetime:
+      ## @param synapse.retention.allowedLifetime.min Retention policy limit. If set, and the state of a room contains a `m.room.retention` event in its state which contains a `min_lifetime` that's beyond this bound, Synapse will cap the room's policy to these limits when running purge jobs.
+      min: null
+      ## @param synapse.retention.allowedLifetime.max Retention policy limit. If set, and the state of a room contains a `m.room.retention` event in its state which contains a `max_lifetime` that's beyond this bound, Synapse will cap the room's policy to these limits when running purge jobs.
+      max: null
+    ## @param synapse.retention.purgeJobs Server admins can define the settings of the background jobs purging the events whose lifetime has expired under the purge_jobs section.
+    purgeJobs: []
+  ## @param synapse.autoJoinRooms Users who register on this homeserver will automatically be joined to the rooms listed under this option. By default, any room aliases included in this list will be created as a publicly joinable room when the first user registers for the homeserver. If the room already exists, make certain it is a publicly joinable room, i.e. the join rule of the room must be set to public. As Spaces are just rooms under the hood, Space aliases may also be used.
+  autoJoinRooms: []
+  ## @param synapse.oidcProviders List of OpenID Connect (OIDC) / OAuth 2.0 identity providers, for registration and login.
+  ## ref: https://element-hq.github.io/synapse/latest/openid.html
+  oidcProviders: []
+  ## @param synapse.encyptionEnabledByDefaultForRoomType Controls whether locally-created rooms should be end-to-end encrypted by default. Possible options are "all", "invite", and "off".
+  encyptionEnabledByDefaultForRoomType: "off"
+  ## @param synapse.userDirectory.enabled Defines whether users can search the user directory. If false then empty responses are returned to all queries.
+  ## @param synapse.userDirectory.searchAllUsers Defines whether to search all users visible to your homeserver at the time the search is performed. If set to true, will return all users known to the homeserver matching the search query. If false, search results will only contain users visible in public rooms and users sharing a room with the requester.
+  ## @param synapse.userDirectory.preferLocalUsers Defines whether to prefer local users in search query results. If set to `true`, local users are more likely to appear above remote users when searching the user directory.
+  ## @param synapse.userDirectory.excludeRemoteUsers If set to true, the search will only return local users.
+  ## @param synapse.userDirectory.showLockedUsers Defines whether to show locked users in search query results.
+  userDirectory:
+    enabled: true
+    searchAllUsers: false
+    preferLocalUsers: false
+    excludeRemoteUsers: false
+    showLockedUsers: false
+  ## @param synapse.autoAcceptInvites.enabled Automatically accepting invites controls whether users are presented with an invite request or if they are instead automatically joined to a room when receiving an invite.
+  ## @param synapse.autoAcceptInvites.onlyForDirectMessages Whether invites should be automatically accepted for all room types, or only for direct messages.
+  ## @param synapse.autoAcceptInvites.onlyFromLocalUsers Whether to only automatically accept invites from users on this homeserver.
+  ## @param synapse.autoAcceptInvites.workerToRunOn Which worker to run this module on. This must match the "worker_name". If not set or null, invites will be accepted on the main process.
+  autoAcceptInvites:
+    enabled: false
+    onlyForDirectMessages: false
+    onlyFromLocalUsers: false
+    workerToRunOn: null
+  ## @param synapse.experimentalFeatures Enable experimental features by adding entries with format `<feature name>: true`.
+  experimentalFeatures: {}
+  ## @section Database configuration
+  ## @extra synapse.database The database setting defines the database that synapse uses to store all of its data
+  ## ref: https://element-hq.github.io/synapse/latest/postgres.html
+  ## E.g:
+  ##  database:
+  ##    name: psycopg2
+  ##    txnLimit: 10000
+  ##    args:
+  ##      user: synapse_user
+  ##      password: secretpassword
+  ##      dbname: synapse
+  ##      host: localhost
+  ##      port: 5432
+  ##      cp_min: 5
+  ##      cp_max: 10
+  database:
+    ## @param synapse.database.name This option specifies the database engine to use: either `sqlite3` (for SQLite) or `psycopg2` (for PostgreSQL).
+    name: "sqlite3"
+    ## @param synapse.database.txnLimit Gives the maximum number of transactions to run per connection before reconnecting. 0 means no limit.
+    txnLimit: 0
+    ## @param synapse.database.allowUnsafeLocale This option is specific to Postgres. Under the default behavior, Synapse will refuse to start if the postgres db is set to a non-C locale.
+    allowUnsafeLocale: false
+    ## @param synapse.database.args Gives options which are passed through to the database engine, except for options starting with cp_, which are used to configure the Twisted connection pool.
+    args: {}
+  ## @section Password configuration
+  ## @param synapse.passwordConfig.enabled Set to `false` to disable password authentication. Set to `only_for_reauth` to allow users with existing passwords to use them to reauthenticate (not log in), whilst preventing new users from setting passwords.
+  ## @param synapse.passwordConfig.localdbEnabled Set to `false` to disable authentication against the local password database. This is ignored if enabled is `false`, and is only useful if you have other `password_providers`.
+  ## @param synapse.passwordConfig.pepper Set the value here to a secret random string for extra security. DO NOT CHANGE THIS AFTER INITIAL SETUP!
+  ## @param synapse.passwordConfig.policy.enabled Define and enforce a password policy, such as minimum lengths for passwords, etc. This is an implementation of MSC2000. Set to true to enable.
+  ## @param synapse.passwordConfig.policy.minimumLength Minimum accepted length for a password.
+  ## @param synapse.passwordConfig.policy.requireDigit Whether a password must contain at least one digit.
+  ## @param synapse.passwordConfig.policy.requireSymbol Whether a password must contain at least one symbol. A symbol is any character that's not a number or a letter.
+  ## @param synapse.passwordConfig.policy.requireLowercase Whether a password must contain at least one lowercase letter.
+  ## @param synapse.passwordConfig.policy.requireUppercase Whether a password must contain at least one uppercase letter.
+  passwordConfig:
+    enabled: true
+    localdbEnabled: true
+    pepper: null
+    policy:
+      enabled: false
+      minimumLength: 0
+      requireDigit: false
+      requireSymbol: false
+      requireLowercase: false
+      requireUppercase: false
+  ## @section Redis configuration
+  ## @param synapse.redis.enabled Configuration for Redis when using workers. This must be enabled when using workers.
+  ## @param synapse.redis.host Optional host to use to connect to Redis.
+  ## @param synapse.redis.port Optional port to use to connect to Redis.
+  ## @param synapse.redis.password Optional password if configured on the Redis instance.
+  ## @param synapse.redis.passwordPath Alternative to password, reading the password from an external file. The file should be a plain text file, containing only the password. Synapse reads the password from the given file once at startup.
+  ## @param synapse.redis.dbid Optional redis dbid if needs to connect to specific redis logical db.
+  ## @param synapse.redis.useTls Whether to use a TLS connection.
+  ## @param synapse.redis.certificateFile Optional path to the certificate file.
+  ## @param synapse.redis.privateKeyFile Optional path to the private key file.
+  ## @param synapse.redis.caFile Optional path to the CA certificate file.
+  ## @param synapse.redis.caPath Optional path to the folder containing the CA certificate file.
   redis:
     enabled: false
     host: "localhost"
@@ -922,13 +1065,16 @@ synapse:
     privateKeyFile: null
     caFile: null
     caPath: null
-  backgroundUpdates:
-    duration: 100
-    sleepEnabled: true
-    sleepDuration: 1000
-    minBatchSize: 1
-    defaultBatchSize: 100
+  ## @section E-mail configuration
   email:
+    ## @param synapse.email.smtp.host The hostname of the outgoing SMTP server to use.
+    ## @param synapse.email.smtp.port The port on the mail server for outgoing SMTP. If null or unset, 465 is used if force_tls is true, else 25.
+    ## @param synapse.email.smtp.user Username for authentication to the SMTP server.
+    ## @param synapse.email.smtp.pass Password for authentication to the SMTP server.
+    ## @param synapse.email.smtp.tls.enabled By default, if the server supports TLS, it will be used, and the server must present a certificate that is valid for tlsname. If this option is set to false, TLS will not be used.
+    ## @param synapse.email.smtp.tls.name The domain name the SMTP server's TLS certificate must be valid for, defaulting to `synapse.email.smtp.host`.
+    ## @param synapse.email.smtp.tls.force By default, Synapse connects over plain text and then optionally upgrades to TLS via STARTTLS. If this option is set to true, TLS is used from the start (Implicit TLS), and the option `synapse.email.smtp.requireTransportSecurity` is ignored. It is recommended to enable this if supported by your mail server.
+    ## @param synapse.email.smtp.tls.requireTransportSecurity Set to true to require TLS transport security for SMTP. By default, Synapse will connect over plain text, and will then switch to TLS via STARTTLS if the SMTP server supports it. If this option is set, Synapse will refuse to connect unless the server supports STARTTLS.
     smtp:
       host: "localhost"
       port: null
@@ -939,16 +1085,34 @@ synapse:
         name: ""
         force: false
         requireTransportSecurity: false
+    ## @param synapse.email.notifs.enabled
+    ## @param synapse.email.notifs.from Defines the "From" address to use when sending emails. It must be set if email sending is enabled. The placeholder `%(app)s` will be replaced by the application name, which is normally set in `appName`, but may be overridden by the Matrix client application. Note that the placeholder must be written `%(app)s`, including the trailing 's'.
+    ## @param synapse.email.notifs.appName Defines the default value for `%(app)s` in `notifs.from` and email subjects.
+    ## @param synapse.email.notifs.forNewUsers Set to `false` to disable automatic subscription to email notifications for new users.
+    ## @param synapse.email.notifs.delayBeforeMail The time to wait before emailing about a notification. This gives the user a chance to view the message via push or an open client.
     notifs:
       enabled: false
       from: null
       appName: "Matrix"
       forNewUsers: true
       delayBeforeMail: "10m"
+    ## @param synapse.email.clientBaseUrl Custom URL for client links within the email notifications.
     clientBaseUrl: "https://matrix.to"
+    ## @param synapse.email.validationTokenLifetime Configures the time that a validation email will expire after sending.
     validationTokenLifetime: "1h"
+    ## @param synapse.email.inviteClientLocation The web client location to direct users to during an invite. This is passed to the identity server as the `org.matrix.web_client_location` key. If null or unset no guidance is given to the identity server.
     inviteClientLocation: null
     subjects:
+      ## @param synapse.email.subjects.message_from_person_in_room Subject to use to notify about one message from one or more user(s) in a room which has a name.
+      ## @param synapse.email.subjects.message_from_person Subject to use to notify about one message from one or more user(s) in a room which doesn't have a name.
+      ## @param synapse.email.subjects.messages_from_person Subject to use to notify about multiple messages from one or more users in a room which doesn't have a name.
+      ## @param synapse.email.subjects.messages_in_room Subject to use to notify about multiple messages in a room which has a name.
+      ## @param synapse.email.subjects.messages_in_room_and_others Subject to use to notify about multiple messages in multiple rooms.
+      ## @param synapse.email.subjects.messages_from_person_and_others Subject to use to notify about multiple messages from multiple persons in multiple rooms. This is similar to the setting above except it's used when the room in which the notification was triggered has no name.
+      ## @param synapse.email.subjects.invite_from_person_to_room Subject to use to notify about an invite to a room which has a name.
+      ## @param synapse.email.subjects.invite_from_person Subject to use to notify about an invite to a room which doesn't have a name.
+      ## @param synapse.email.subjects.password_reset Subject to use when sending a password reset email.
+      ## @param synapse.email.subjects.email_validation Subject to use when sending a verification email to assert an address's ownership.
       message_from_person_in_room: "[%(app)s] You have a message on %(app)s from %(person)s in the %(room)s room..."
       message_from_person: "[%(app)s] You have a message on %(app)s from %(person)s..."
       messages_from_person: "[%(app)s] You have messages on %(app)s from %(person)s..."
@@ -959,48 +1123,3 @@ synapse:
       invite_from_person: "[%(app)s] %(person)s has invited you to chat on %(app)s..."
       password_reset: "[%(server_name)s] Password reset"
       email_validation: "[%(server_name)s] Validate your email"
-  rateLimiting:
-    perSecond: 0.2
-    burstCount: 10.0
-  maxEventDelayDuration: null
-  serveServerWellknown: false
-  avatar:
-    maxSize: null
-    allowedMimeTypes: null
-  forgottenRoomRetentionPeriod: null
-  retention:
-    enabled: false
-    defaultPolicy:
-      lifetime:
-        min: null
-        max: null
-    allowedLifetime:
-      min: null
-      max: null
-    purge_jobs: null
-  autoJoinRooms: []
-  oidcProviders: []
-  passwordConfig:
-    enabled: true
-    localdbEnabled: true
-    pepper: null
-    policy:
-      enabled: false
-      minimumLength: 0
-      requireDigit: false
-      requireSymbol: false
-      requireLowercase: false
-      requireUppercase: false
-  encyptionEnabledByDefaultForRoomType: "off"
-  userDirectory:
-    enabled: true
-    searchAllUsers: false
-    preferLocalUsers: false
-    excludeRemoteUsers: false
-    showLockedUsers: false
-  autoAcceptInvites:
-    enabled: false
-    onlyForDirectMessages: false
-    onlyFromLocalUsers: false
-    workerToRunOn: null
-  experimentalFeatures: {}
