@@ -3,35 +3,35 @@ bases:
 
 repositories:
   - name: bitnami-postgres
-    oci: {{ .Values.charts.postgresql.oci }}
-    url: "{{ .Values.global.helmRegistry | default .Values.charts.postgresql.registry }}/{{ .Values.charts.postgresql.repository }}"
+    oci: {{ .Values.chart.postgresql.oci }}
+    url: "{{ .Values.global.helmRegistry | default .Values.chart.postgresql.registry }}/{{ .Values.chart.postgresql.repository }}"
   - name: bitnami-redis
-    oci: {{ .Values.charts.redis.oci }}
-    url: "{{ .Values.global.helmRegistry | default .Values.charts.redis.registry }}/{{ .Values.charts.redis.repository }}"
+    oci: {{ .Values.chart.redis.oci }}
+    url: "{{ .Values.global.helmRegistry | default .Values.chart.redis.registry }}/{{ .Values.chart.redis.repository }}"
   - name: bitnami-minio
-    oci: {{ .Values.charts.minio.oci }}
-    url: "{{ .Values.global.helmRegistry | default .Values.charts.minio.registry }}/{{ .Values.charts.minio.repository }}"
+    oci: {{ .Values.chart.minio.oci }}
+    url: "{{ .Values.global.helmRegistry | default .Values.chart.minio.registry }}/{{ .Values.chart.minio.repository }}"
 
 releases:
   - name: grist-postgresql
-    chart: "bitnami-postgres/{{ .Values.charts.postgresql.name }}"
-    version: {{ .Values.charts.postgresql.version | quote }}
+    chart: "bitnami-postgres/{{ .Values.chart.postgresql.name }}"
+    version: {{ .Values.chart.postgresql.version | quote }}
     namespace: {{ .Values.application.grist.namespace }}
     installed: {{ and (eq .Environment.Name "demo") .Values.application.grist.enabled }}
     values:
       - "values-postgresql.yaml.gotmpl"
 
   - name: grist-redis
-    chart: "bitnami-redis/{{ .Values.charts.redis.name }}"
-    version: {{ .Values.charts.redis.version | quote }}
+    chart: "bitnami-redis/{{ .Values.chart.redis.name }}"
+    version: {{ .Values.chart.redis.version | quote }}
     namespace: {{ .Values.application.grist.namespace }}
     installed: {{ and (eq .Environment.Name "demo") .Values.application.grist.enabled }}
     values:
       - "values-redis.yaml.gotmpl"
 
   - name: grist-minio
-    chart: "bitnami-minio/{{ .Values.charts.minio.name }}"
-    version: {{ .Values.charts.minio.version | quote }}
+    chart: "bitnami-minio/{{ .Values.chart.minio.name }}"
+    version: {{ .Values.chart.minio.version | quote }}
     namespace: {{ .Values.application.grist.namespace }}
     installed: {{ and (eq .Environment.Name "demo") .Values.application.grist.enabled }}
     values:
@@ -41,7 +41,7 @@ releases:
     chart: charts/grist
     installed: {{ .Values.application.grist.enabled }}
     dependencies:
-    - chart: "oci://{{ (coalesce .Values.charts.bitnamiCommon.registry .Values.global.helmRegistry ) }}/{{ .Values.charts.bitnamiCommon.repository }}/{{ .Values.charts.bitnamiCommon.name }}"
+    - chart: "oci://{{ (coalesce .Values.chart.bitnamiCommon.registry .Values.global.helmRegistry ) }}/{{ .Values.chart.bitnamiCommon.repository }}/{{ .Values.chart.bitnamiCommon.name }}"
       version: 2.31.3
     namespace: {{ .Values.application.grist.namespace }}
     {{- if eq .Environment.Name "demo" }}

@@ -17,9 +17,9 @@ podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 2 
 containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 2 }}
 
 auth:
-  postgresPassword: {{ .Values.secrets.postgresql.rootPassword | quote }}
+  postgresPassword: {{ .Values.secret.postgresql.rootPassword | quote }}
   username: {{ .Values.database.grist.username | quote }}
-  password: {{ .Values.secrets.postgresql.gristUser | quote }}
+  password: {{ .Values.secret.postgresql.gristUser | quote }}
   database: {{ .Values.database.grist.name | quote }}
 
 primary.service.ports.postgresql: {{ .Values.database.grist.port | quote }}

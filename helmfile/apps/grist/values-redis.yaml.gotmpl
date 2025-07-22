@@ -18,7 +18,7 @@ containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml 
 
 auth:
   enabled: true
-  password: {{ .Values.secrets.redis.password | quote }}
+  password: {{ .Values.secret.redis.password | quote }}
 
 service.ports.redis: {{ .Values.cache.grist.port | quote }}
 

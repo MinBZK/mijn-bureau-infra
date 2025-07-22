@@ -1,11 +1,11 @@
 global:
   imagePullSecrets:
-    {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
+    - name: {{ (coalesce .Values.container.postgresql.imagePullSecrets .Values.container.default.imagePullSecrets) | quote }}
   security:
     allowInsecureImages: true
   postgresql:
     auth:
-      postgresPassword: {{ .Values.secrets.postgresql.postgresUser | quote }}
+      postgresPassword: {{ .Values.secret.postgresql.postgresUser | quote }}
 
 commonLabels:
   app.kubernetes.io/part-of: synapse
@@ -21,22 +21,22 @@ image:
 
 auth:
   enablePostgresUser: true
-  postgresPassword: {{ .Values.secrets.postgresql.postgresUser | quote }}
+  postgresPassword: {{ .Values.secret.postgresql.postgresUser | quote }}
   database: {{ .Values.database.synapse.name | quote }}
   username: {{ .Values.database.synapse.username | quote }}
-  password: {{ .Values.secrets.postgresql.matrixUser | quote }}
+  password: {{ .Values.secret.postgresql.matrixUser | quote }}
 
 primary:
   resources:
-    {{ .Values.resources.postgresql | toYaml | nindent 4 }}
+    {{ .Values.resource.postgresql | toYaml | nindent 4 }}
   podAnnotions:
     {{ .Values.annotations.postgresql.pod | toYaml | nindent 4 }}
   service:
     annotations:
       {{ .Values.annotations.postgresql.service | toYaml | nindent 6 }}
   persistence:
-    storageClass: {{ coalesce .Values.persistence.storages.postgresql.storageClassName .Values.persistence.storageClassNames.RWO | quote }}
-    size: {{ .Values.persistence.storages.postgresql.size | quote }}
+    storageClass: {{ coalesce .Values.pvc.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+    size: {{ coalesce .Values.pvc.postgresql.size .Values.pvc.default.size | quote }}
     annotations:
       {{ .Values.annotations.postgresql.persistence | toYaml | nindent 6 }}
   networkPolicy:

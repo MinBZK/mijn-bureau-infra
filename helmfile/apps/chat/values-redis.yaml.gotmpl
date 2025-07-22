@@ -19,27 +19,24 @@ image:
   pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
 
 auth:
-  password: {{ .Values.secrets.redis.password | quote }}
+  password: {{ .Values.secret.redis.password | quote }}
 
 master:
   annotations:
     {{ .Values.annotations.redis.masterMaster | toYaml | nindent 4 }}
   containerSecurityContext:
     {{ .Values.security.containerSecurityContext | toYaml | nindent 4 }}
-    seLinuxOptions:
-      {{ .Values.seLinuxOptions.redis | toYaml | nindent 6 }}
   podSecurityContext:
     {{ .Values.security.podSecurityContext | toYaml | nindent 4 }}
-  count: {{ .Values.replicas.redis }}
   persistence:
-    storageClass: {{ coalesce .Values.persistence.storages.redis.storageClassName .Values.persistence.storageClassNames.RWO | quote }}
-    size: {{ .Values.persistence.storages.redis.size | quote }}
+    storageClass: {{ coalesce .Values.pvc.redis.storageClass .Values.pvc.default.storageClass | quote }}
+    size: {{ coalesce .Values.pvc.redis.size .Values.pvc.default.size | quote }}
     annotations:
       {{ .Values.annotations.redis.masterPersistence | toYaml | nindent 6 }}
   podAnnotations:
     {{ .Values.annotations.redis.masterPod | toYaml | nindent 4 }}
   resources:
-    {{ .Values.resources.redis | toYaml | nindent 4 }}
+    {{ .Values.resource.redis | toYaml | nindent 4 }}
   service:
     annotations:
       {{ .Values.annotations.redis.masterService | toYaml | nindent 6 }}

@@ -126,7 +126,7 @@ data:
 
     database:
       name: {{ .Values.synapse.database.name | quote }}
-      txn_limit: {{ .Values.synapse.database.allowUnsafeLocale }}
+      txn_limit: {{ .Values.synapse.database.txnLimit }}
       args: {{- .Values.synapse.database.args | toYaml | nindent 8 }}
 
     registration_shared_secret: {{ .Values.synapse.registrationSharedSecret | quote }}

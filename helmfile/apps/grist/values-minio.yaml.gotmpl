@@ -17,7 +17,7 @@ podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 2 
 containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 2 }}
 
 auth:
-  rootPassword: {{ .Values.secrets.minio.rootPassword }}
+  rootPassword: {{ .Values.secret.minio.rootPassword }}
 
 defaultBuckets: {{ .Values.objectstore.grist.bucket | quote }}
 

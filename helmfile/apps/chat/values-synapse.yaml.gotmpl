@@ -22,11 +22,9 @@ master:
     tag: {{ .Values.container.synapse.tag }}
     digest: {{ .Values.container.synapse.digest }}
     pullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 6 }}
-  # This will set the replicaset count, more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
-  replicaCount: {{ .Values.replicas.synapse }}
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
-  resources: {{ .Values.resources.synapse.master | toYaml | nindent 4 }}
+  resources: {{ .Values.resource.synapse.master | toYaml | nindent 4 }}
   hpa: {{ .Values.autoscaling.synapse.hpa | toYaml | nindent 6 }}
   vpa: {{ .Values.autoscaling.synapse.vpa | toYaml | nindent 6 }}
   service:
@@ -36,8 +34,8 @@ master:
     enabled: true
     initialDelaySeconds: 15
   persistence:
-    size: {{ .Values.persistence.storages.synapse.size }}
-    storageClass: {{ coalesce .Values.persistence.storages.synapse.storageClassName .Values.persistence.storageClassNames.RWO }}
+    size: {{ coalesce .Values.pvc.synapse.size .Values.pvc.default.size | quote }}
+    storageClass: {{ coalesce .Values.pvc.synapse.storageClass .Values.pvc.default.storageClass | quote }}
   networkPolicy:
     extraIngress:
       # Allow traffic from ingress controller namespace
@@ -95,31 +93,32 @@ synapse:
       database: "/synapse/data/homeserver.db"
       {{- else }}
       user: {{ .Values.database.synapse.username | quote }}
-      password: {{ .Values.secrets.postgresql.matrixUser | quote }}
+      password: {{ .Values.secret.postgresql.matrixUser | quote }}
       host: {{ .Values.database.synapse.host | quote }}
       port: {{ .Values.database.synapse.port }}
       {{- end }}
-  registrationSharedSecret: {{ .Values.secrets.synapse.registrationSharedSecret }}
-  formSecret: {{ .Values.secrets.synapse.formSecret }}
+  registrationSharedSecret: {{ .Values.secret.synapse.registrationSharedSecret }}
+  formSecret: {{ .Values.secret.synapse.formSecret }}
   suppressKeyServerWarning: true
   redis:
     enabled: {{ not (empty .Values.cache.synapse) }}
     host: {{ .Values.cache.synapse.host | quote }}
     port: {{ .Values.cache.synapse.port }}
-    password: {{ .Values.cache.synapse.password | default .Values.secrets.redis.password | quote }}
+    password: {{ .Values.cache.synapse.password | default .Values.secret.redis.password | quote }}
   backgroundUpdates:
     # as we want our first launch and subsequent upgrades to go as fast
     # as possible don't sleep between background updates
     sleepEnabled: false
   email:
-    host: {{ .Values.smtp.host | qoute }}
-    port: {{ .Values.smtp.post }}
-    user: {{ .Values.smtp.username | qoute }}
-    pass: {{ .Values.smtp.password | qoute }}
-    tls:
-      enabled: {{ .Values.smtp.tls.enabled }}
-      force: {{ .Values.smtp.tls.force }}
-      requireTransportSecurity: {{ .Values.smtp.tls.requireTransportSecurity }}
+    smtp:
+      host: {{ .Values.smtp.host | quote }}
+      port: {{ .Values.smtp.port }}
+      user: {{ .Values.smtp.username | quote }}
+      pass: {{ .Values.smtp.password | quote }}
+      tls:
+        enabled: {{ .Values.smtp.tls.enabled }}
+        force: {{ .Values.smtp.tls.force }}
+        requireTransportSecurity: {{ .Values.smtp.tls.requireTransportSecurity }}
     notifs:
       from: {{ (printf "Your %%(app)s homeserver <noreply@%s>" (.Values.global.matrixDomain | default .Values.global.domain)) | quote }}
     clientBaseUrl: {{ (printf "https://%s.%s" .Values.global.hostname.element .Values.global.domain) | quote }}
