@@ -9,9 +9,6 @@ clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | 
 commonLabels:
   app.kubernetes.io/part-of: synapse
 
-commonAnnotations:
-  {{ .Values.annotations.postgresql.common | toYaml | nindent 2 }}
-
 image:
   registry: {{ coalesce .Values.container.postgres.registry .Values.container.default.registry | default "docker.io" | quote }}
   repository: {{ .Values.container.postgres.repository | default "bitnami/postgresql" | quote }}
@@ -43,8 +40,6 @@ primary:
     storageClass: {{ coalesce .Values.pvc.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
     accessModes: {{ coalesce .Values.pvc.postgresql.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
     size: {{ coalesce .Values.pvc.postgresql.size .Values.pvc.default.size | toYaml | nindent 6 }}
-    annotations:
-      {{ .Values.annotations.postgresql.persistence | toYaml | nindent 6 }}
 
   networkPolicy:
     enabled: true
@@ -63,7 +58,3 @@ primary:
                 app.kubernetes.io/name: synapse
   initdb:
     args: "--encoding=UTF8 --locale=C"
-
-serviceAccount:
-  annotations:
-    {{ .Values.annotations.postgresql.serviceAccount | toYaml | nindent 4 }}

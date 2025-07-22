@@ -12,9 +12,6 @@ global:
 commonLabels:
   app.kubernetes.io/part-of: synapse
 
-commonAnnotations:
-  {{ .Values.annotations.redis.common | toYaml | nindent 2 }}
-
 image:
   registry: {{(coalesce .Values.container.redis.registry .Values.container.default.registry) | quote }}
   pullPolicy: Always
@@ -27,25 +24,14 @@ auth:
   password: {{ .Values.cache.synapse.password | quote }}
 
 master:
-  annotations:
-    {{ .Values.annotations.redis.masterMaster | toYaml | nindent 4 }}
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   persistence:
     storageClass: {{ coalesce .Values.pvc.redis.storageClass .Values.pvc.default.storageClass | quote }}
     size: {{ coalesce .Values.pvc.redis.size .Values.pvc.default.size | quote }}
-    annotations:
-      {{ .Values.annotations.redis.masterPersistence | toYaml | nindent 6 }}
-  podAnnotations:
-    {{ .Values.annotations.redis.masterPod | toYaml | nindent 4 }}
   service:
     ports:
       redis: {{ .Values.cache.synapse.port }}
-    annotations:
-      {{ .Values.annotations.redis.masterService | toYaml | nindent 6 }}
-  serviceAccount:
-    annotations:
-      {{ .Values.annotations.redis.masterServiceAccount | toYaml | nindent 6 }}
 
 networkPolicy:
   enabled: true
@@ -64,6 +50,3 @@ networkPolicy:
               app.kubernetes.io/name: synapse
   metrics:
     allowExternal: false
-
-secretAnnotations:
-  {{ .Values.annotations.redis.secret | toYaml | nindent 2 }}
