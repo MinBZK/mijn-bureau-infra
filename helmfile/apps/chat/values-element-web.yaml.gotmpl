@@ -53,7 +53,12 @@ ingress:
   hostname: {{ .Values.global.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}
   extraTls: {{ .Values.tls.chat | toYaml | nindent 4 }}
   ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
-  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/hsts: "true"
+    nginx.ingress.kubernetes.io/hsts-max-age: "63072000"
+    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+    nginx.ingress.kubernetes.io/hsts-preload: "true"
 
 config:
   homeserver:
