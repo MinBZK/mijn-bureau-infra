@@ -13,11 +13,19 @@ autoscaling:
       targetCPU: 75
       targetMemory: ""
     synapse:
-      enabled: false
-      minReplicas: 1
-      maxReplicas: 3
-      targetCPU: 75
-      targetMemory: ""
+      master:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 75
+        targetMemory: ""
   vertical:
     synapse:
-      enabled: false
+        master:
+          enabled: false
+          annotations: {}
+          controlledResources: []
+          maxAllowed: {}
+          minAllowed: {}
+          updatePolicy:
+            updateMode: Auto

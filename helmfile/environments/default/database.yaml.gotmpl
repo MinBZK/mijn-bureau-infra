@@ -1,7 +1,4 @@
 database:
-  defaults:
-    userConnectionLimit: 100
-
   grist:
     type: postgresql
     host: grist-postgresql
@@ -24,4 +21,6 @@ database:
     name: synapse
     host: postgresql
     port: 5432
-    username: synapse
+    user: synapse
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "synapse" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "synapse" "database_admin" | sha1sum | quote}}

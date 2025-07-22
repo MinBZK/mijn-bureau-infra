@@ -14,19 +14,19 @@ commonLabels:
 master:
   # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
   image:
-    registry: {{ coalesce .Values.global.containerRegistry .Values.container.synapse.registry }}
+    registry: {{ coalesce .Values.container.synapse.registry .Values.container.default.registry | quote }}
     repository: {{ .Values.container.synapse.repository }}
     # This sets the pull policy for images.
-    pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
+    pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
     tag: {{ .Values.container.synapse.tag }}
-    digest: {{ .Values.container.synapse.digest }}
-    pullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 6 }}
+    pullSecrets:
+     - {{ coalesce .Values.container.synapse.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 8 }}
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.synapse.master | toYaml | nindent 4 }}
-  hpa: {{ .Values.autoscaling.synapse.hpa | toYaml | nindent 6 }}
-  vpa: {{ .Values.autoscaling.synapse.vpa | toYaml | nindent 6 }}
+  hpa: {{ .Values.autoscaling.horizontal.synapse.master | toYaml | nindent 6 }}
+  vpa: {{ .Values.autoscaling.vertical.synapse.master | toYaml | nindent 6 }}
   service:
     # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
     type: ClusterIP
@@ -92,8 +92,8 @@ synapse:
       {{- if eq .Values.database.synapse.type "sqlite3" }}
       database: "/synapse/data/homeserver.db"
       {{- else }}
-      user: {{ .Values.database.synapse.username | quote }}
-      password: {{ .Values.secret.postgresql.matrixUser | quote }}
+      user: {{ .Values.database.synapse.user | quote }}
+      password: {{ .Values.database.synapse.password | quote }}
       host: {{ .Values.database.synapse.host | quote }}
       port: {{ .Values.database.synapse.port }}
       {{- end }}
@@ -104,7 +104,7 @@ synapse:
     enabled: {{ not (empty .Values.cache.synapse) }}
     host: {{ .Values.cache.synapse.host | quote }}
     port: {{ .Values.cache.synapse.port }}
-    password: {{ .Values.cache.synapse.password | default .Values.secret.redis.password | quote }}
+    password: {{ .Values.cache.synapse.password | quote }}
   backgroundUpdates:
     # as we want our first launch and subsequent upgrades to go as fast
     # as possible don't sleep between background updates

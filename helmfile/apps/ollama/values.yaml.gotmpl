@@ -1,6 +1,6 @@
 {{- if .Values.application.ai.enabled }}
 image:
-  repository: {{ printf "%s/%s" (coalesce .Values.global.containerRegistry .Values.container.ollama.registry) (.Values.container.ollama.repository) | quote }}
+  repository: {{ printf "%s/%s" (coalesce .Values.container.ollama.registry .Values.container.default.registry) (.Values.container.ollama.repository) | quote }}
   tag: {{ .Values.container.ollama.tag | quote }}
   pullPolicy: "Always"
 

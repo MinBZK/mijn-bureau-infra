@@ -51,7 +51,7 @@ It is strongly recommended to use immutable tags in a production environment. Th
 
 ### External database support
 
-You must have Grist connect to an external database, except for the demo environment. Typical reasons for this are to use a managed database service, or to share a common database server for all your applications. To achieve this, the chart allows you to specify credentials for an external database with the [`externalDatabase` parameter](#parameters). Here is an example:
+You must have Synapse connect to an external database, except for the demo environment. Typical reasons for this are to use a managed database service, or to share a common database server for all your applications. To achieve this, the chart allows you to specify credentials for an external database with the [`externalDatabase` parameter](#parameters). Here is an example:
 
 ```console
 synapse:
@@ -67,7 +67,7 @@ synapse:
 
 ### External Redis support
 
-You must have Grist connect to an external redis, except for the demo environment. Here is an example:
+You must have Synapse connect to an external redis, except for the demo environment. Here is an example:
 
 ```console
 synapse:
