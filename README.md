@@ -1,5 +1,8 @@
 # MijnBureau deployment automation
 
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/minbzk/mijn-bureau-infra/ci.yaml)
+![GitHub License](https://img.shields.io/github/license/minbzk/mijn-bureau-infra)
+
 `MijnBureau` is a collaboration suite for civil servants. This repository contains the deployment automation scripts and configuration for setting up MijnBureau using Kubernetes and Helm.
 
 > [!IMPORTANT]
