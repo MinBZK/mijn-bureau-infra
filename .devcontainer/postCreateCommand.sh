@@ -50,7 +50,7 @@ wget "https://github.com/open-policy-agent/conftest/releases/download/v${LATEST_
 tar xzf conftest_${LATEST_VERSION}_${SYSTEM}_${ARCH_X86_FIX}.tar.gz
 sudo mv conftest /usr/local/bin
 
-# install open plicy agent
+# install open policy agent
 wget -O opa https://github.com/open-policy-agent/opa/releases/download/v1.4.2/opa_${SYSTEM}_${ARCH}_static
 sudo mv opa /usr/local/bin
 chmod +x /usr/local/bin/opa
@@ -60,20 +60,10 @@ wget -O regal https://github.com/StyraInc/regal/releases/latest/download/regal_$
 sudo mv regal /usr/local/bin
 sudo chmod +x /usr/local/bin/regal
 
-# install kubectl
-sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg # allow unprivileged APT programs to read this keyring
-# This overwrites any existing configuration in /etc/apt/sources.list.d/kubernetes.list
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
-sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list   # helps tools such as command-not-found to work correctly
-sudo apt-get update
-sudo apt-get install -y kubectl
+# # install age
+sudo apt install age
 
-# install sops
-# Download the binary
-curl -LO https://github.com/getsops/sops/releases/download/v3.10.2/sops-v3.10.2.linux.${ARCH}
-# Move the binary in to your PATH
-sudo mv sops-v3.10.2.linux.${ARCH} /usr/local/bin/sops
-# Make the binary executable
+# # install sops
+curl -LO https://github.com/getsops/sops/releases/download/v3.10.2/sops-v3.10.2.${SYSTEM}.${ARCH}
+sudo mv sops-v3.10.2.${SYSTEM}.${ARCH} /usr/local/bin/sops
 sudo chmod +x /usr/local/bin/sops

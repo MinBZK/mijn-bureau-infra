@@ -1,23 +1,24 @@
 global:
-  imageRegistry: {{(coalesce .Values.global.containerRegistry .Values.container.grist.registry) | quote }}
+  imageRegistry: {{(coalesce .Values.container.minio.registry .Values.container.default.registry) | quote }}
 
   security:
     allowInsecureImages: true
 
-  imagePullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
+  imagePullSecrets:
+    - name: {{ (coalesce .Values.container.minio.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
 
 image:
-  registry: {{(coalesce .Values.global.containerRegistry .Values.container.grist.registry) | quote }}
+  registry: {{(coalesce .Values.container.minio.registry .Values.container.default.registry) | quote }}
   pullPolicy: "Always"
 
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 
-podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 2 }}
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
 
-containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 2 }}
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
 
 auth:
-  rootPassword: {{ .Values.secret.minio.rootPassword }}
+  rootPassword: {{ .Values.objectstore.grist.rootPassword }}
 
 defaultBuckets: {{ .Values.objectstore.grist.bucket | quote }}
 
@@ -83,5 +84,5 @@ provisioning:
     - name: {{ .Values.objectstore.grist.bucket | quote }}
       versioning: true
 
-  podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 4 }}
-  containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}

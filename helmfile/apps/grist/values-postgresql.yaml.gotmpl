@@ -1,30 +1,44 @@
 global:
-  imageRegistry: {{(coalesce .Values.global.containerRegistry .Values.container.grist.registry) | quote }}
-
   security:
     allowInsecureImages: true
+  defaultStorageClass: {{ coalesce .Values.pvc.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+  storageClass: {{ coalesce .Values.pvc.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
 
-  imagePullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
 
 image:
-  registry: {{(coalesce .Values.global.containerRegistry .Values.container.grist.registry) | quote }}
+  registry: {{ coalesce .Values.container.postgres.registry .Values.container.default.registry | default "docker.io" | quote }}
+  repository: {{ .Values.container.postgres.repository | default "bitnami/postgresql" | quote }}
+  tag: {{ .Values.container.postgres.tag | default "17.5.0-debian-12-r18" | quote }}
   pullPolicy: "Always"
+  pullSecrets:
+    - {{ coalesce .Values.container.postgres.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 6 }}
+
 
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 
-podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 2 }}
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
 
-containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 2 }}
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
 
 auth:
-  postgresPassword: {{ .Values.secret.postgresql.rootPassword | quote }}
-  username: {{ .Values.database.grist.username | quote }}
-  password: {{ .Values.secret.postgresql.gristUser | quote }}
-  database: {{ .Values.database.grist.name | quote }}
+  postgresPassword: {{ .Values.database.grist.adminpassword | quote}}
+  username: {{ .Values.database.grist.user | quote}}
+  password: {{ .Values.database.grist.password | quote}}
+  database: {{ .Values.database.grist.name | quote}}
+
+
+
 
 primary.service.ports.postgresql: {{ .Values.database.grist.port | quote }}
 
 primary:
+  persistence:
+    storageClass: {{ coalesce .Values.pvc.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+    accessModes: {{ coalesce .Values.pvc.postgresql.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
+    size: {{ coalesce .Values.pvc.postgresql.size .Values.pvc.default.size | toYaml | nindent 6 }}
+
+
   networkPolicy:
     enabled: true
     # Only allow connections from within the namespace

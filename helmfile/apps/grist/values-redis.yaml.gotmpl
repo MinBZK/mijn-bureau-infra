@@ -1,24 +1,25 @@
 global:
-  imageRegistry: {{(coalesce .Values.global.containerRegistry .Values.container.grist.registry) | quote }}
+  imageRegistry: {{(coalesce .Values.container.redis.registry .Values.container.default.registry) | quote }}
 
   security:
     allowInsecureImages: true
 
-  imagePullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
+  imagePullSecrets:
+    - name: {{ (coalesce .Values.container.redis.imagePullSecret .Values.container.default.imagePullSecret)  | quote }}
 
 image:
-  registry: {{(coalesce .Values.global.containerRegistry .Values.container.grist.registry) | quote }}
+  registry: {{(coalesce .Values.container.redis.registry .Values.container.default.registry) | quote }}
   pullPolicy: "Always"
 
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 
-podSecurityContext: {{ .Values.security.podSecurityContext | toYaml | nindent 2 }}
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
 
-containerSecurityContext: {{ .Values.security.containerSecurityContext | toYaml | nindent 2 }}
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
 
 auth:
   enabled: true
-  password: {{ .Values.secret.redis.password | quote }}
+  password: {{ .Values.cache.grist.password | quote }}
 
 service.ports.redis: {{ .Values.cache.grist.port | quote }}
 
