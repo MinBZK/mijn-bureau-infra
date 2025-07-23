@@ -1326,6 +1326,7 @@ keycloakConfigCli:
     mijnbureau.json: |
       {
         "realm" : "mijnbureau",
+        "enabled": true,
         "displayName": "Mijn Bureau",
         "displayNameHtml": "<b>Mijn Bureau</b>",
         "defaultSignatureAlgorithm": "RS256",
@@ -1352,6 +1353,25 @@ keycloakConfigCli:
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.grist }}.{{ .Values.global.domain }}"
+            ],
+            "protocol": "openid-connect"
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.synapse.client_id }}",
+            "name": "Chat",
+            "description": "Matrix-based chat with Synapse",
+            "rootUrl": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}",
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": {{ .Values.authentication.client.synapse.client_secret | quote }},
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}"
             ],
             "protocol": "openid-connect"
           }

@@ -14,3 +14,6 @@ authentication:
     grist:
       client_id: "grist"
       client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "grist_client_secret" | sha1sum | quote}}
+    synapse:
+      client_id: "synapse"
+      client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "synapse_client_secret" | sha1sum | quote}}
