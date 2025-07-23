@@ -1,7 +1,7 @@
 # Matrix Chat with Synapse and Element
 
 MijnBureau supplies an installation of [Matrix](https://matrix.org/) based chat. The reference Homeserver implementation
-[Synapse]() is combined with the [Element](https://element.io/) chat web client.
+[Synapse](https://element-hq.github.io/synapse/latest/) is combined with the [Element](https://element.io/) chat web client.
 
 ## Configuration
 
