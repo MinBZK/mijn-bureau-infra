@@ -69,7 +69,7 @@ worker:
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   enabled: true
-  hostname: {{ .Values.global.matrixDomain | default .Values.global.domain }}
+  hostname: {{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}
   extraTls: {{ .Values.tls.synapse | toYaml | nindent 4 }}
   ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
   annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
