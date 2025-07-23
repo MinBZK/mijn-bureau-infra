@@ -1,0 +1,10 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: ai-assistant
+    chart: charts/openwebui
+    condition: application.ai_assistant.enabled
+    namespace: {{ .Values.application.ai_assistant.namespace }}
+    values:
+      - "values.yaml.gotmpl"

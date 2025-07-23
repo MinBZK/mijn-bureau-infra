@@ -1,0 +1,18 @@
+# Copyright Broadcom, Inc. All Rights Reserved.
+# SPDX-License-Identifier: APACHE-2.0
+
+annotations:
+  category: ProductivityTools
+  licenses: Apache-2.0
+apiVersion: v2
+appVersion: 0.6.18
+description: An opensource web UI for AI assistants
+keywords:
+  - ai-assistant
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: openwebui
+sources:
+  - https://github.com/open-webui/open-webui
+version: 0.1.0
