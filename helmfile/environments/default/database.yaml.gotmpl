@@ -10,7 +10,7 @@ database:
 
   keycloak:
     name: keycloak
-    host: postgresql
+    host: keycloak-postgresql
     port: 5432
     user: keycloak
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "database" | sha1sum | quote}}
