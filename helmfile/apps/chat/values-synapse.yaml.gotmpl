@@ -2,8 +2,6 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# TODO docs everywhere and templating values
-
 {{- /*
   $serverName is the name of the server in the Matrix ecosystem
   $hostName is the hostname the server is available at
@@ -90,13 +88,19 @@ serviceAccount:
   # Automatically mount a ServiceAccount's API credentials?
   automountServiceAccountToken: false
 
+# This section is for configuration of Synapse.
 synapse:
+  # Report statistics to Matrix.org
   reportStats:
     enabled: false
+  # Logging configuration
   logging:
     logLevel: "INFO"
+  # The name of the server in the Matrix ecosystem.
   serverName: {{ $serverName | quote }}
+  # The location of the web client
   webClientLocation: {{ printf "https://%s" $clientHostName | quote }}
+  # Database configuration
   database:
     name: {{ .Values.database.synapse.type | quote }}
     txnLimit: 10000
@@ -109,18 +113,24 @@ synapse:
       host: {{ .Values.database.synapse.host | quote }}
       port: {{ .Values.database.synapse.port }}
       {{- end }}
+  # Allows registration of standard or admin accounts by anyone who has the shared secret, even if enable_registration is not set.
   registrationSharedSecret: {{ .Values.secret.synapse.registrationSharedSecret | quote }}
+  # A secret which is used to calculate HMACs for form values, to stop falsification of values. Must be specified for the User Consent forms to work.
   formSecret: {{ .Values.secret.synapse.formSecret | quote }}
+  # Disable the warning that is emitted when the trusted_key_servers include "matrix.org".
   suppressKeyServerWarning: true
+  # Redis configuration
   redis:
     enabled: {{ not (empty .Values.cache.synapse) }}
     host: {{ .Values.cache.synapse.host | quote }}
     port: {{ .Values.cache.synapse.port }}
     password: {{ .Values.cache.synapse.password | quote }}
+  # Database updates that are run in the background in batches.
   backgroundUpdates:
-    # as we want our first launch and subsequent upgrades to go as fast
+    # As we want our first launch and subsequent upgrades to go as fast
     # as possible don't sleep between background updates
     sleepEnabled: false
+  # Email configuration
   email:
     smtp:
       host: {{ .Values.smtp.host | quote }}
@@ -135,16 +145,23 @@ synapse:
       from: {{ printf "Your %%(app)s homeserver <noreply@%s>" $serverName | quote }}
     clientBaseUrl: {{ printf "https://%s" $clientHostName | quote }}
     inviteClientLocation: {{ printf "https://%s" $clientHostName | quote }}
+  # Options related to ratelimiting in Synapse.
   rateLimiting:
+    # This is a ratelimiting option for messages that ratelimits sending based on the account the client is using.
     messaging:
       perSeconde: 0.5
       burstCount: 30.0
+  # The maximum allowed duration by which sent events can be delayed, as per MSC4140.
   maxEventDelayDuration: "24h"
+  # Redirect traffic to port 443 when server_name and hostname are identical and tls is enabled.
   serveServerWellknown: {{ and .Values.tls.synapse (eq $serverName $hostName ) }}
+  # Avatar image settings
   avatar:
     maxSize: "10M"
     allowedMimeTypes: ["image/png", "image/jpeg"]
+  # How long to keep locally forgotten rooms before purging them from the DB.
   forgottenRoomRetentionPeriod: "28d"
+  # Message retention policy at the server level.
   retention:
     enabled: true
     defaultPolicy:
@@ -154,7 +171,9 @@ synapse:
     allowedLifetime:
       min: "1d"
       max: "1y"
+  # Users who register on this homeserver will automatically be joined to the rooms listed under this option.
   autoJoinRooms: [{{ (printf "#%s:%s" "welkom" $serverName) | quote }}]
+  # List of OpenID Connect (OIDC) / OAuth 2.0 identity providers, for registration and login.
   oidcProviders:
     - idp_id: mijnbureau
       idp_name: "MijnBureau authenticatie"
@@ -173,12 +192,17 @@ synapse:
           localpart_template: {{`'{{ (user.given_name ~ user.family_name) | replace('' '', '''') }}'`}}
           display_name_template: {{`'{{ user.name }}'`}}
           email_template: {{`'{{ user.email }}'`}}
+  # Disable password configuration, we only allow OIDC
   passwordConfig:
     enabled: false
+  # E2E any room created with the private_chat or trusted_private_chat room creation presets.
   encryptionEnabledByDefaultForRoomType: "invite"
+  # Options related to the user directory, allowing to search through all users and prefer local ones.
   userDirectory:
     searchAllUsers: true
     preferLocalUsers: true
+  # Automatically accepting invites controls whether users are presented with an invite request or if
+  # they are instead automatically joined to a room when receiving an invite.
   autoAcceptInvites:
     enabled: true
     onlyForDirectMessages: true

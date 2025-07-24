@@ -1,7 +1,5 @@
 <!--- app-name: synapse -->
 
-<!-- TODO fill this out further -->
-
 # Mijn Bureau package for Synapse
 
 Synapse is an open source [Matrix](https://matrix.org/) homeserver implementation, written and maintained by
