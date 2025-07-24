@@ -92,21 +92,12 @@ sandboxFlavor: "gvisor"
 {{- end }}
 
 externalRedis:
-  {{ if eq .Environment.Name "demo"}}
-  host: "grist-redis-headless"
-  {{ else }}
   host: {{ .Values.cache.grist.host | quote }}
-  {{ end }}
   port: {{ .Values.cache.grist.port | quote }}
   password: {{ .Values.cache.grist.password | quote }}
 
-
 externalMinio:
-  {{ if eq .Environment.Name "demo"}}
-  endpoint: "grist-minio"
-  {{ else }}
   endpoint: {{ .Values.objectstore.grist.endpoint | quote }}
-  {{ end }}
   port: {{ .Values.objectstore.grist.port | quote }}
   accessKey: {{ .Values.objectstore.grist.username | quote }}
   secretKey: {{ .Values.objectstore.grist.rootPassword | quote }}
@@ -116,11 +107,7 @@ externalMinio:
 externalDatabase:
   database: {{ .Values.database.grist.name | quote }}
   username: {{ .Values.database.grist.user | quote }}
-  {{ if eq .Environment.Name "demo"}}
-  host: "grist-postgresql"
-  {{ else }}
   host: {{ .Values.database.grist.host | quote }}
-  {{ end }}
   password: {{ .Values.database.grist.password | quote }}
   port: {{ .Values.database.grist.port | quote }}
   type: {{ if eq .Values.database.grist.type "postgresql" }}"postgres"{{ else }}{{ .Values.database.grist.type | quote }}{{ end }}

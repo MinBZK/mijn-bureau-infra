@@ -10,7 +10,7 @@ database:
 
   keycloak:
     name: keycloak
-    host: postgresql
+    host: keycloak-postgresql
     port: 5432
     user: keycloak
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "database" | sha1sum | quote}}
@@ -19,7 +19,7 @@ database:
   synapse:
     type: psycopg2
     name: synapse
-    host: postgresql
+    host: chat-postgresql
     port: 5432
     user: synapse
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "synapse" "database" | sha1sum | quote}}

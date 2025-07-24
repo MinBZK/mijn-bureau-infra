@@ -1459,11 +1459,7 @@ postgresql:
 ##
 
 externalDatabase:
-  {{- if eq .Environment.Name "demo" }}
-  host: "keycloak-postgresql"
-  {{- else }}
   host: {{ .StateValues.database.keycloak.host | quote }}
-  {{- end }}
   port: {{ .StateValues.database.keycloak.port | quote }}
   user: {{ .StateValues.database.keycloak.user | quote }}
   database: {{ .StateValues.database.keycloak.name | quote }}
