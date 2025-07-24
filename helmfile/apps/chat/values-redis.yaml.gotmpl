@@ -27,8 +27,8 @@ master:
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   persistence:
-    storageClass: {{ coalesce .Values.pvc.redis.storageClass .Values.pvc.default.storageClass | quote }}
-    size: {{ coalesce .Values.pvc.redis.size .Values.pvc.default.size | quote }}
+    storageClass: {{ coalesce .Values.pvc.synapse.redis.storageClass .Values.pvc.default.storageClass | quote }}
+    size: {{ coalesce .Values.pvc.synapse.redis.size .Values.pvc.default.size | quote }}
   service:
     ports:
       redis: {{ .Values.cache.synapse.port }}

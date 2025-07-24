@@ -34,8 +34,8 @@ master:
     enabled: true
     initialDelaySeconds: 15
   persistence:
-    size: {{ coalesce .Values.pvc.synapse.size .Values.pvc.default.size | quote }}
-    storageClass: {{ coalesce .Values.pvc.synapse.storageClass .Values.pvc.default.storageClass | quote }}
+    size: {{ coalesce .Values.pvc.synapse.synapse.size .Values.pvc.default.size | quote }}
+    storageClass: {{ coalesce .Values.pvc.synapse.synapse.storageClass .Values.pvc.default.storageClass | quote }}
   networkPolicy:
     extraIngress:
       # Allow traffic from ingress controller namespace

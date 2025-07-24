@@ -1,8 +1,8 @@
 global:
   security:
     allowInsecureImages: true
-  defaultStorageClass: {{ coalesce .Values.pvc.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
-  storageClass: {{ coalesce .Values.pvc.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+  defaultStorageClass: {{ coalesce .Values.pvc.synapse.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+  storageClass: {{ coalesce .Values.pvc.synapse.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
 
 clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
 
@@ -37,9 +37,9 @@ primary.service.ports.postgresql: {{ .Values.database.synapse.port | quote }}
 
 primary:
   persistence:
-    storageClass: {{ coalesce .Values.pvc.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
-    accessModes: {{ coalesce .Values.pvc.postgresql.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
-    size: {{ coalesce .Values.pvc.postgresql.size .Values.pvc.default.size | toYaml | nindent 6 }}
+    storageClass: {{ coalesce .Values.pvc.synapse.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+    accessModes: {{ coalesce .Values.pvc.synapse.postgresql.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
+    size: {{ coalesce .Values.pvc.synapse.postgresql.size .Values.pvc.default.size | toYaml | nindent 6 }}
 
   networkPolicy:
     enabled: true
