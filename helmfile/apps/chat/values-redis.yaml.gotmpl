@@ -1,63 +1,52 @@
 architecture: "standalone"
 
 global:
-  imagePullSecrets:
-    {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
+  imageRegistry: {{(coalesce .Values.container.redis.registry .Values.container.default.registry) | quote }}
+
   security:
     allowInsecureImages: true
+
+  imagePullSecrets:
+    - name: {{ (coalesce .Values.container.redis.imagePullSecret .Values.container.default.imagePullSecret)  | quote }}
 
 commonLabels:
   app.kubernetes.io/part-of: synapse
 
-commonAnnotations:
-  {{ .Values.annotations.redis.common | toYaml | nindent 2 }}
-
 image:
-  registry: {{ coalesce .Values.global.containerRegistry .Values.container.redis.registry | quote }}
-  repository: {{ .Values.container.redis.repository | quote }}
-  tag: {{ .Values.container.redis.tag | quote }}
-  pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
+  registry: {{(coalesce .Values.container.redis.registry .Values.container.default.registry) | quote }}
+  pullPolicy: Always
+
+resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+
 
 auth:
-  password: {{ .Values.secret.redis.password | quote }}
+  enabled: true
+  password: {{ .Values.cache.synapse.password | quote }}
 
 master:
-  annotations:
-    {{ .Values.annotations.redis.masterMaster | toYaml | nindent 4 }}
-  containerSecurityContext:
-    {{ .Values.security.containerSecurityContext | toYaml | nindent 4 }}
-  podSecurityContext:
-    {{ .Values.security.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   persistence:
-    storageClass: {{ coalesce .Values.pvc.redis.storageClass .Values.pvc.default.storageClass | quote }}
-    size: {{ coalesce .Values.pvc.redis.size .Values.pvc.default.size | quote }}
-    annotations:
-      {{ .Values.annotations.redis.masterPersistence | toYaml | nindent 6 }}
-  podAnnotations:
-    {{ .Values.annotations.redis.masterPod | toYaml | nindent 4 }}
-  resources:
-    {{ .Values.resource.redis | toYaml | nindent 4 }}
+    storageClass: {{ coalesce .Values.pvc.synapse.redis.storageClass .Values.pvc.default.storageClass | quote }}
+    size: {{ coalesce .Values.pvc.synapse.redis.size .Values.pvc.default.size | quote }}
   service:
-    annotations:
-      {{ .Values.annotations.redis.masterService | toYaml | nindent 6 }}
-  serviceAccount:
-    annotations:
-      {{ .Values.annotations.redis.masterServiceAccount | toYaml | nindent 6 }}
+    ports:
+      redis: {{ .Values.cache.synapse.port }}
 
 networkPolicy:
   enabled: true
+  # Only allow connections from within the namespace
   allowExternal: false
+  # Redis doesn't need external internet access
   allowExternalEgress: false
+  # Allow connections from Synapse pods
   extraIngress:
     - ports:
-      - port: {{ .Values.cache.synapse.port }}
-        protocol: TCP
+        - port: {{ .Values.cache.synapse.port }}
+          protocol: TCP
       from:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: synapse
   metrics:
     allowExternal: false
-
-secretAnnotations:
-  {{ .Values.annotations.redis.secret | toYaml | nindent 2 }}

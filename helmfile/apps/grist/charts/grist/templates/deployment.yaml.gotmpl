@@ -108,6 +108,8 @@ spec:
             - name: GRIST_SANDBOX_FLAVOR
               value: {{ .Values.sandboxFlavor | quote }}
             {{- end }}
+            - name: APP_HOME_URL
+              value: "https://{{ .Values.ingress.hostname }}"
             - name: GRIST_ALLOW_AUTOMATIC_VERSION_CHECKING
               value: {{ .Values.allowAutomaticVersionChecking | quote }}
             - name: REDIS_URL
@@ -134,6 +136,10 @@ spec:
               value: {{ .Values.externalDatabase.logging | quote }}
             - name: TYPEORM_PASSWORD
               value: {{ .Values.externalDatabase.password | quote }}
+            - name: GRIST_FORCE_LOGIN
+              value: "true"
+            - name: GRIST_OFFER_ALL_LANGUAGES
+              value: "true"
             - name: TYPEORM_PORT
               value: {{ .Values.externalDatabase.port | quote }}
             - name: TYPEORM_TYPE
@@ -159,7 +165,7 @@ spec:
               value: {{ .Values.auth.oidcIdpClientId | quote }}
             - name: GRIST_OIDC_IDP_CLIENT_SECRET
               value: {{ .Values.auth.oidcIdpClientSecret | quote }}
-              {{- if .Values.id.oidcIdpScopes }}
+              {{- if .Values.auth.oidcIdpScopes }}
             - name: GRIST_OIDC_IDP_SCOPES
               value: {{ .Values.auth.oidcIdpScopes | quote }}
               {{- end }}

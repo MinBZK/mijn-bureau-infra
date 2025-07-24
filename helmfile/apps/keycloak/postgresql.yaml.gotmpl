@@ -13,13 +13,12 @@ global:
   ## imagePullSecrets:
   ##   - myRegistryKeySecretName
   ##
-  imagePullSecrets:
-    - {{ (coalesce .Values.container.postgres.imagePullSecret .Values.container.default.imagePullSecret)  | quote }}
+  imagePullSecrets: []
   ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
 ## @param global.storageClass DEPRECATED: use global.defaultStorageClass instead
   ##
-  defaultStorageClass: {{ coalesce .Values.pvc.grist.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
-  storageClass: {{ coalesce .Values.pvc.grist.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+  defaultStorageClass: {{ coalesce .Values.pvc.keycloak.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+  storageClass: {{ coalesce .Values.pvc.keycloak.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
   ## Security parameters
   ##
   security:
@@ -123,12 +122,11 @@ image:
   registry: {{ coalesce .Values.container.postgres.registry .Values.container.default.registry | default "docker.io" | quote }}
   repository: {{ .Values.container.postgres.repository | default "bitnami/postgresql" | quote }}
   tag: {{ .Values.container.postgres.tag | default "17.5.0-debian-12-r18" | quote }}
-
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
   ##
-  pullPolicy: "Always"
+  pullPolicy: Always
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -152,16 +150,16 @@ auth:
   enablePostgresUser: true
   ## @param auth.postgresPassword Password for the "postgres" admin user. Ignored if `auth.existingSecret` is provided
   ##
-  postgresPassword: {{ .Values.database.grist.adminpassword | quote}}
+  postgresPassword: {{ .Values.database.keycloak.adminpassword | quote}}
   ## @param auth.username Name for a custom user to create
   ##
-  username: {{ .Values.database.grist.user | quote}}
+  username: {{ .Values.database.keycloak.user | quote}}
   ## @param auth.password Password for the custom user to create. Ignored if `auth.existingSecret` is provided
   ##
-  password: {{ .Values.database.grist.password | quote}}
+  password: {{ .Values.database.keycloak.password | quote}}
   ## @param auth.database Name for a custom database to create
   ##
-  database: {{ .Values.database.grist.name | quote}}
+  database: {{ .Values.database.keycloak.name | quote}}
   ## @param auth.replicationUsername Name of the replication user
   ##
   replicationUsername: repl_user
@@ -201,7 +199,7 @@ replication:
 ## @param containerPorts.postgresql PostgreSQL container port
 ##
 containerPorts:
-  postgresql: 5432
+  postgresql: {{ .Values.database.keycloak.port | default 5432  }}
 ## Audit settings
 ## https://github.com/bitnami/containers/tree/main/bitnami/postgresql#auditing
 ## @param audit.logHostname Log client hostnames
@@ -280,7 +278,7 @@ shmVolume:
   ## e.g:
   ## sizeLimit: 1Gi
   ##
-  sizeLimit: ""
+  sizeLimit: "1Gi"
 ## TLS configuration
 ##
 tls:
@@ -493,7 +491,7 @@ primary:
   ##     cpu: 3
   ##     memory: 1024Mi
   ##
-  resources: {}
+  resources: {{ .Values.resource.keycloak | toYaml | nindent 4 }}
   ## Pod Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   ## @param primary.podSecurityContext.enabled Enable security context
@@ -502,7 +500,8 @@ primary:
   ## @param primary.podSecurityContext.supplementalGroups Set filesystem extra groups
   ## @param primary.podSecurityContext.fsGroup Group ID for the pod
   ##
-  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  podSecurityContext:
+    {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   ## Container Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   ## @param primary.containerSecurityContext.enabled Enabled containers' Security Context
@@ -516,7 +515,8 @@ primary:
   ## @param primary.containerSecurityContext.capabilities.drop List of capabilities to be dropped
   ## @param primary.containerSecurityContext.seccompProfile.type Set container's Security Context seccomp profile
   ##
-  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext:
+    {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   ## @param primary.automountServiceAccountToken Mount Service Account token in pod
   ##
   automountServiceAccountToken: false
@@ -656,10 +656,10 @@ primary:
     ## on. When true, server will accept connections from any source
     ## (with the correct destination port).
     ##
-    allowExternal: true
+    allowExternal: false
     ## @param primary.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
     ##
-    allowExternalEgress: true
+    allowExternalEgress: false
     ## @param primary.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
     ## e.g:
     ## extraIngress:
@@ -675,7 +675,14 @@ primary:
     ##                 operator: In
     ##                 values:
     ##                   - frontend
-    extraIngress: []
+    extraIngress:
+      - ports:
+          - port: {{ .Values.database.keycloak.port }}
+            protocol: TCP
+        from:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: keycloak
     ## @param primary.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy
     ## e.g:
     ## extraEgress:
@@ -707,7 +714,7 @@ primary:
     ## @param primary.service.ports.postgresql PostgreSQL service port
     ##
     ports:
-      postgresql: {{ .Values.database.grist.port | quote }}
+      postgresql: {{ .Values.database.keycloak.port }}
     ## Node ports to expose
     ## NOTE: choose port between <30000-32767>
     ## @param primary.service.nodePorts.postgresql Node port for PostgreSQL
@@ -793,13 +800,14 @@ primary:
     ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
     ##   GKE, AWS & OpenStack)
     ##
-    storageClass:  {{ coalesce .Values.pvc.grist.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+    storageClass: {{ coalesce .Values.pvc.keycloak.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
     ## @param primary.persistence.accessModes PVC Access Mode for PostgreSQL volume
     ##
-    accessModes: {{ coalesce .Values.pvc.grist.postgresql.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
+    accessModes: {{ coalesce .Values.pvc.keycloak.postgresql.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
+
     ## @param primary.persistence.size PVC Storage Request for PostgreSQL volume
     ##
-    size: {{ coalesce .Values.pvc.grist.postgresql.size .Values.pvc.default.size | toYaml | nindent 6 }}
+    size: {{ coalesce .Values.pvc.keycloak.postgresql.size .Values.pvc.default.size | toYaml | nindent 6 }}
     ## @param primary.persistence.annotations Annotations for the PVC
     ##
     annotations: {}
@@ -1112,10 +1120,10 @@ readReplicas:
     ## on. When true, server will accept connections from any source
     ## (with the correct destination port).
     ##
-    allowExternal: false
+    allowExternal: true
     ## @param readReplicas.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
     ##
-    allowExternalEgress: false
+    allowExternalEgress: true
     ## @param readReplicas.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
     ## e.g:
     ## extraIngress:
@@ -1131,14 +1139,7 @@ readReplicas:
     ##                 operator: In
     ##                 values:
     ##                   - frontend
-    extraIngress:
-      - ports:
-          - port: {{ .Values.database.grist.port }}
-            protocol: TCP
-        from:
-          - podSelector:
-              matchLabels:
-                app.kubernetes.io/name: grist
+    extraIngress: []
     ## @param readReplicas.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy
     ## e.g:
     ## extraEgress:
@@ -1591,7 +1592,7 @@ volumePermissions:
   image:
     registry: docker.io
     repository: bitnami/os-shell
-    tag: 12-debian-12-r49
+    tag: 12-debian-12-r47
     digest: ""
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
@@ -1700,7 +1701,7 @@ metrics:
   image:
     registry: docker.io
     repository: bitnami/postgres-exporter
-    tag: 0.17.1-debian-12-r13
+    tag: 0.17.1-debian-12-r12
     digest: ""
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
@@ -1910,16 +1911,6 @@ metrics:
     ## @param metrics.prometheusRule.labels Additional labels that can be used so PrometheusRule will be discovered by Prometheus
     ##
     labels: {}
-    ## @param metrics.prometheusRule.rules PrometheusRule definitions
-    ## Make sure to constraint the rules to the current postgresql service.
-    ## rules:
-    ##   - alert: HugeReplicationLag
-    ##     expr: pg_replication_lag{service=""} / 3600 > 1
-    ##     for: 1m
-    ##     labels:
-    ##       severity: critical
-    ##     annotations:
-    ##       description: replication for  PostgreSQL is lagging by  hour(s).
-    ##       summary: PostgreSQL replication is lagging by  hour(s).
+
     ##
     rules: []

@@ -1,32 +1,26 @@
 ---
+### This file contains all the kubernetes cluster-wide settings, please edit it to match your environment.
 cluster:
-  # Based on the available Implementations of your cluster, choose the type of Service.
-  # Choose out of "ClusterIP", "NodePort" or "LoadBalancer.
-  service:
-    type: "ClusterIP"
-
   networking:
     domain: cluster.local
-    cidr:
-      - "10.0.0.0/8"
+    podSubnet:
+      - "10.244.0.0/16"
+    serviceSubnet:
+      - "10.96.0.0/12"
 
   ingress:
     ingressClassName: ~
     annotations: {}
 
-  container:
-    engine: cri-o
-
   sandbox:
     gvisor:
       enabled: false
 
-  operator:
-    prometheus:
-      enabled: true
-    cert-manager:
-      enabled: true
-    external-dns:
-      enabled: true
-    ingress-nginx:
-      enabled: true
+  service:
+    # select the available implementation. this can be ClusterIP, NodePort, or LoadBalancer
+    type: LoadBalancer
+
+  certificate:
+    issuerRef:
+      name: letsencrypt-prod
+      kind: ClusterIssuer

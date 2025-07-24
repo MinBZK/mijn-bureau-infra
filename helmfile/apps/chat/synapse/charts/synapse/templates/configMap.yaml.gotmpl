@@ -49,7 +49,7 @@ data:
 
     ## Server ##
 
-    server_name: {{ .Values.ingress.hostname | quote }}
+    server_name: {{ .Values.synapse.serverName | quote }}
     public_baseurl: {{ printf "https://%s" .Values.ingress.hostname | quote }}
     pid_file: /homeserver.pid
     web_client_location: {{ .Values.synapse.webClientLocation }}
@@ -214,7 +214,7 @@ data:
         require_lowercase: {{ .Values.synapse.passwordConfig.policy.requireLowercase }}
         require_uppercase: {{ .Values.synapse.passwordConfig.policy.requireUppercase }}
 
-    encryption_enabled_by_default_for_room_type: {{ .Values.synapse.encyptionEnabledByDefaultForRoomType | quote }}
+    encryption_enabled_by_default_for_room_type: {{ .Values.synapse.encryptionEnabledByDefaultForRoomType | quote }}
 
     user_directory:
       enabled: {{ .Values.synapse.userDirectory.enabled }}

@@ -1,11 +1,11 @@
-{{- if .Values.ai.selfhost.enabled }}
+{{- if .Values.application.ai.enabled }}
 image:
-  repository: {{ printf "%s/%s" (coalesce .Values.global.containerRegistry .Values.container.ollama.registry) (.Values.container.ollama.repository) | quote }}
+  repository: {{ printf "%s/%s" (coalesce .Values.container.ollama.registry .Values.container.default.registry) (.Values.container.ollama.repository) | quote }}
   tag: {{ .Values.container.ollama.tag | quote }}
   pullPolicy: "Always"
 
 imagePullSecrets:
-  - name: {{ .Values.global.imagePullSecrets | default .Values.container.ollama.imagePullSecrets | quote }}
+  - name: {{ .Values.container.default.imagePullSecret | quote }}
 
 # We need to specify the mountPath to point
 # to a directory we have access to as non-root user.
@@ -40,14 +40,22 @@ extraEnv:
     value: "/home/ollama"
 
 resources:
+  {{- if .Values.resource.ollama }}
+  {{- toYaml .Values.resource.ollama | nindent 2 }}
+  {{- else }}
   limits:
-    memory: {{ .Values.ai.selfhost.resources.limits.memory | default "4Gi" | quote }}
-    cpu: {{ .Values.ai.selfhost.resources.limits.cpu | default "750m" | quote }}
+    memory: "4Gi"
+    cpu:  "750m"
+  requests:
+    memory: "2Gi"
+    cpu: "400m"
+  {{- end }}
 
 persistentVolume:
   enabled: true
   size: 15Gi
   accessModes:
     - ReadWriteOnce
+  storageClass: {{ coalesce .Values.pvc.ollama.storageClass .Values.pvc.default.storageClass | quote }}
 
 {{- end }}

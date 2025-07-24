@@ -19,19 +19,21 @@ spec:
   {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.master.podLabels .Values.commonLabels ) "context" . ) }}
   podSelector:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+    app.kubernetes.io/component: master
   policyTypes:
     - Ingress
     - Egress
   egress:
     {{- if .Values.master.networkPolicy.allowExternalEgress }}
     - {}
-    {{- else if eq .Values.architecture "replication" }}
+    {{- else }}
     - ports:
         # Allow dns resolution
         - port: 53
           protocol: UDP
         - port: 53
           protocol: TCP
+    {{- if eq .Values.architecture "replication" }}
     - ports:
         - port: {{ .Values.master.containerPorts.replication }}
       to:
@@ -41,6 +43,7 @@ spec:
     {{- end }}
     {{- if .Values.master.networkPolicy.extraEgress }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.master.networkPolicy.extraEgress "context" $ ) | nindent 4 }}
+    {{- end }}
     {{- end }}
   ingress:
     - ports:

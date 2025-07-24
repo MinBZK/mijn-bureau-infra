@@ -1,8 +1,9 @@
 cache:
   grist:
-    host: "redis-host"
+    host: "grist-redis-headless"
     port: 6379
+    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "redis" "password" | sha1sum | quote }}
   synapse:
-    host: "redis"
+    host: "chat-redis-master"
     port: 6379
-    password: ""
+    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "synapse" "password" | sha1sum | quote }}

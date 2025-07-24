@@ -1,25 +1,26 @@
 database:
-  defaults:
-    userConnectionLimit: 100
   grist:
     type: postgresql
-    name: grist
     host: grist-postgresql
-    username: grist
+    name: grist
+    user: grist
     port: 5432
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "grist" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "grist" "database_admin" | sha1sum | quote}}
+
   keycloak:
-    type: postgresql
     name: keycloak
-    host: postgresql
+    host: keycloak-postgresql
     port: 5432
-  docs:
-    type: postgresql
-    name: docs
-    host: postgresql
-    port: 5432
+    user: keycloak
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "database_admin" | sha1sum | quote}}
+
   synapse:
-    type: "psycopg2"
-    name: "synapse"
-    host: "postgresql"
+    type: psycopg2
+    name: synapse
+    host: chat-postgresql
     port: 5432
-    username: "synapse"
+    user: synapse
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "synapse" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "synapse" "database_admin" | sha1sum | quote}}

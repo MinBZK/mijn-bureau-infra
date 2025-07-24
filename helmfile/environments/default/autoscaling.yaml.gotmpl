@@ -1,17 +1,31 @@
 autoscaling:
-  grist:
-    hpa:
+  horizontal:
+    grist:
       enabled: false
       minReplicas: 1
       maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
-  synapse:
-    hpa:
-      enabled: false
-      minReplicas: 1
+    keycloak:
+      enabled: true
+      minReplicas: 2
       maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
-    vpa:
-      enabled: false
+    synapse:
+      master:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 75
+        targetMemory: ""
+  vertical:
+    synapse:
+        master:
+          enabled: false
+          annotations: {}
+          controlledResources: []
+          maxAllowed: {}
+          minAllowed: {}
+          updatePolicy:
+            updateMode: Auto

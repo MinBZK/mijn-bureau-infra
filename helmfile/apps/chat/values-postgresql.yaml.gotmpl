@@ -1,48 +1,53 @@
 global:
-  imagePullSecrets:
-    - name: {{ (coalesce .Values.container.postgresql.imagePullSecrets .Values.container.default.imagePullSecrets) | quote }}
   security:
     allowInsecureImages: true
-  postgresql:
-    auth:
-      postgresPassword: {{ .Values.secret.postgresql.postgresUser | quote }}
+  defaultStorageClass: {{ coalesce .Values.pvc.synapse.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+  storageClass: {{ coalesce .Values.pvc.synapse.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
 
 commonLabels:
   app.kubernetes.io/part-of: synapse
 
-commonAnnotations:
-  {{ .Values.annotations.postgresql.common | toYaml | nindent 2 }}
-
 image:
-  registry: {{ coalesce .Values.global.containerRegistry .Values.container.postgresql.registry | quote }}
-  repository: {{ .Values.container.postgresql.repository | quote }}
-  tag: {{ .Values.container.postgresql.tag | quote }}
-  pullPolicy: {{ .Values.global.imagePullPolicy | quote }}
+  registry: {{ coalesce .Values.container.postgres.registry .Values.container.default.registry | default "docker.io" | quote }}
+  repository: {{ .Values.container.postgres.repository | default "bitnami/postgresql" | quote }}
+  tag: {{ .Values.container.postgres.tag | default "17.5.0-debian-12-r18" | quote }}
+  pullPolicy: "Always"
+  pullSecrets:
+    - {{ coalesce .Values.container.postgres.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 6 }}
+
+
+resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
+
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
 
 auth:
-  enablePostgresUser: true
-  postgresPassword: {{ .Values.secret.postgresql.postgresUser | quote }}
-  database: {{ .Values.database.synapse.name | quote }}
-  username: {{ .Values.database.synapse.username | quote }}
-  password: {{ .Values.secret.postgresql.matrixUser | quote }}
+  postgresPassword: {{ .Values.database.synapse.adminpassword | quote}}
+  username: {{ .Values.database.synapse.user | quote}}
+  password: {{ .Values.database.synapse.password | quote}}
+  database: {{ .Values.database.synapse.name | quote}}
+
+
+
+
+primary.service.ports.postgresql: {{ .Values.database.synapse.port | quote }}
 
 primary:
-  resources:
-    {{ .Values.resource.postgresql | toYaml | nindent 4 }}
-  podAnnotions:
-    {{ .Values.annotations.postgresql.pod | toYaml | nindent 4 }}
-  service:
-    annotations:
-      {{ .Values.annotations.postgresql.service | toYaml | nindent 6 }}
   persistence:
-    storageClass: {{ coalesce .Values.pvc.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
-    size: {{ coalesce .Values.pvc.postgresql.size .Values.pvc.default.size | quote }}
-    annotations:
-      {{ .Values.annotations.postgresql.persistence | toYaml | nindent 6 }}
+    storageClass: {{ coalesce .Values.pvc.synapse.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+    accessModes: {{ coalesce .Values.pvc.synapse.postgresql.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
+    size: {{ coalesce .Values.pvc.synapse.postgresql.size .Values.pvc.default.size | toYaml | nindent 6 }}
+
   networkPolicy:
     enabled: true
+    # Only allow connections from within the namespace
     allowExternal: false
+    # PostgreSQL doesn't need external internet access
     allowExternalEgress: false
+    # Allow connections from synapse pods
     extraIngress:
       - ports:
           - port: {{ .Values.database.synapse.port }}
@@ -53,7 +58,3 @@ primary:
                 app.kubernetes.io/name: synapse
   initdb:
     args: "--encoding=UTF8 --locale=C"
-
-serviceAccount:
-  annotations:
-    {{ .Values.annotations.postgresql.serviceAccount | toYaml | nindent 4 }}

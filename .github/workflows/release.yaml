@@ -29,7 +29,7 @@ jobs:
             --output-certificate helmfile-${{ github.ref_name }}.tar.gz.sha256.pem
 
       - name: Create helmfile Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             helmfile-${{ github.ref_name }}.tar.gz
