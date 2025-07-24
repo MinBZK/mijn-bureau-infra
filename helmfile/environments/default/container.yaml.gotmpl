@@ -29,8 +29,20 @@ container:
 
   minio:
     registry: "registry-1.docker.io"
-    repository: "minio/minio"
-    tag: "RELEASE.2025-06-13T11-33-47Z"
+    repository: "bitnami/minio"
+    tag: "2025.7.18-debian-12-r0"
+    imagePullSecret: ~
+
+  minio_shell:
+    registry: "registry-1.docker.io"
+    repository: "bitnami/os-shell"
+    tag: "12-debian-12-r49"
+    imagePullSecret: ~
+
+  minio_console:
+    registry: "registry-1.docker.io"
+    repository: "bitnami/minio-object-browser"
+    tag: "2.0.2-debian-12-r1"
     imagePullSecret: ~
 
   postgres:
@@ -42,7 +54,7 @@ container:
   redis:
     registry: "registry-1.docker.io"
     repository: "bitnami/redis"
-    tag: "8.0-debian-12"
+    tag: "8.0.3-debian-12-r1"
     imagePullSecret: ~
 
   synapse:

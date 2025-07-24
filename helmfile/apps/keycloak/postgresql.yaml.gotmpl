@@ -17,8 +17,8 @@ global:
   ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
 ## @param global.storageClass DEPRECATED: use global.defaultStorageClass instead
   ##
-  defaultStorageClass: {{ coalesce .Values.pvc.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
-  storageClass: {{ coalesce .Values.pvc.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+  defaultStorageClass: {{ coalesce .Values.pvc.keycloak.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+  storageClass: {{ coalesce .Values.pvc.keycloak.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
   ## Security parameters
   ##
   security:
@@ -800,14 +800,14 @@ primary:
     ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
     ##   GKE, AWS & OpenStack)
     ##
-    storageClass: {{ coalesce .Values.pvc.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
+    storageClass: {{ coalesce .Values.pvc.keycloak.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
     ## @param primary.persistence.accessModes PVC Access Mode for PostgreSQL volume
     ##
-    accessModes: {{ coalesce .Values.pvc.postgresql.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
+    accessModes: {{ coalesce .Values.pvc.keycloak.postgresql.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
 
     ## @param primary.persistence.size PVC Storage Request for PostgreSQL volume
     ##
-    size: {{ coalesce .Values.pvc.postgresql.size .Values.pvc.default.size | toYaml | nindent 6 }}
+    size: {{ coalesce .Values.pvc.keycloak.postgresql.size .Values.pvc.default.size | toYaml | nindent 6 }}
     ## @param primary.persistence.annotations Annotations for the PVC
     ##
     annotations: {}

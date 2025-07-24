@@ -56,6 +56,6 @@ persistentVolume:
   size: 15Gi
   accessModes:
     - ReadWriteOnce
-  storageClass: {{ coalesce .Values.pvc.keycloak.storageClass .Values.pvc.default.storageClass | quote }}
+  storageClass: {{ coalesce .Values.pvc.ollama.storageClass .Values.pvc.default.storageClass | quote }}
 
 {{- end }}

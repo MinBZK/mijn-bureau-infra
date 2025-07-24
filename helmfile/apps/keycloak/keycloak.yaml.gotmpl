@@ -19,8 +19,8 @@ global:
   ##   - myRegistryKeySecretName
   ##
   imagePullSecrets: []
-  defaultStorageClass: {{ coalesce .Values.pvc.keycloak.storageClass .Values.pvc.default.storageClass | quote }}
-  storageClass: {{ coalesce .Values.pvc.keycloak.storageClass .Values.pvc.default.storageClass | quote }}
+  defaultStorageClass: {{ coalesce .Values.pvc.keycloak.keycloak.storageClass .Values.pvc.default.storageClass | quote }}
+  storageClass: {{ coalesce .Values.pvc.keycloak.keycloak.storageClass .Values.pvc.default.storageClass | quote }}
   ## Security parameters
   ##
   security:
@@ -1330,6 +1330,7 @@ keycloakConfigCli:
         "displayName": "Mijn Bureau",
         "displayNameHtml": "<b>Mijn Bureau</b>",
         "defaultSignatureAlgorithm": "RS256",
+        "enabled" : true,
         "revokeRefreshToken": true,
         "editUsernameAllowed": false,
         "registrationAllowed": false,
@@ -1402,7 +1403,7 @@ keycloakConfigCli:
           "en",
           "nl"
         ],
-        "defaultLocale": "{{ .Values.global.defaultLocale }}",
+        "defaultLocale": "{{ .Values.global.defaultLocale }}"
       }
 
   ## @param keycloakConfigCli.existingConfigmap ConfigMap with keycloak-config-cli configuration
@@ -1459,7 +1460,7 @@ postgresql:
 
 externalDatabase:
   {{- if eq .Environment.Name "demo" }}
-  host: {{ .StateValues.database.keycloak.host | quote }}
+  host: "keycloak-postgresql"
   {{- else }}
   host: {{ .StateValues.database.keycloak.host | quote }}
   {{- end }}

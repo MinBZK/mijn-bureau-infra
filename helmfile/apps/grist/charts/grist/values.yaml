@@ -176,11 +176,11 @@ externalDatabase:
 ## @param auth.oidcSpIgnoreEmailVerified Ignore email verified flag
 ## ref: https://support.getgrist.com/install/oidc/
 auth:
-  enabled: false
+  enabled: true
   oidcIdpIssuer: ""
   oidcIdpClientId: ""
   oidcIdpClientSecret: ""
-  oidcIdpScopes: ""
+  oidcIdpScopes: "openid profile email"
   oidcSpHost: ""
   oidcIdpEndSessionEndpoint: ""
   oidcIdpSkipEndSessionEndpoint: ""

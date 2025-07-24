@@ -1,8 +1,8 @@
 objectstore:
   grist:
-    bucket: "bucketName"
-    username: "username"
-    endpoint: "endpoint"
+    bucket: "grist"
+    username: "admin"
+    endpoint: "grist-minio"
     port: 9000
     useSSL: false
     rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "root_password" | sha1sum | quote }}

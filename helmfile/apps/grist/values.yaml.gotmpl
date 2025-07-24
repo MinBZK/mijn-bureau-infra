@@ -10,6 +10,12 @@ image:
   repository: {{ .Values.container.grist.repository | quote }}
   tag: {{ .Values.container.grist.tag | quote }}
 
+auth:
+  oidcIdpIssuer: {{ .Values.authentication.oidc.issuer | quote }}
+  oidcIdpClientId: {{ .Values.authentication.client.grist.client_id | quote }}
+  oidcIdpClientSecret: {{ .Values.authentication.client.grist.client_secret | quote }}
+  oidcSpHost: "https://{{ .Values.global.hostname.grist }}.{{ .Values.global.domain }}"
+
 autoscaling:
   hpa: {{ .Values.autoscaling.horizontal.grist | toYaml | nindent 4 }}
 
@@ -29,7 +35,7 @@ networkPolicy:
   # Restrict external access - only allow specific ingress sources
   allowExternal: false
   # Restrict external egress - only allow specific destinations
-  allowExternalEgress: false
+  allowExternalEgress: true
 
 
   extraIngress:
@@ -40,6 +46,7 @@ networkPolicy:
 
   # Specific egress rules for required services only
   extraEgress:
+    # Openid connect connectivity
     # PostgreSQL connectivity
     - to:
         - podSelector:
@@ -66,22 +73,13 @@ networkPolicy:
       ports:
         - port: 9000
           protocol: TCP
-    # DNS resolution (required for all pods)
-    - to: []
-      ports:
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
+
 
 podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
 
 containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
 
 metrics: {{ .Values.monitoring.prometheus | toYaml | nindent 2 }}
-
-service:
-  type: {{ .Values.cluster.service.type | quote }}
 
 defaultLocale: {{ .Values.global.defaultLocale | quote }}
 
@@ -94,13 +92,21 @@ sandboxFlavor: "gvisor"
 {{- end }}
 
 externalRedis:
+  {{ if eq .Environment.Name "demo"}}
+  host: "grist-redis-headless"
+  {{ else }}
   host: {{ .Values.cache.grist.host | quote }}
+  {{ end }}
   port: {{ .Values.cache.grist.port | quote }}
   password: {{ .Values.cache.grist.password | quote }}
 
 
 externalMinio:
+  {{ if eq .Environment.Name "demo"}}
+  endpoint: "grist-minio"
+  {{ else }}
   endpoint: {{ .Values.objectstore.grist.endpoint | quote }}
+  {{ end }}
   port: {{ .Values.objectstore.grist.port | quote }}
   accessKey: {{ .Values.objectstore.grist.username | quote }}
   secretKey: {{ .Values.objectstore.grist.rootPassword | quote }}
@@ -110,7 +116,11 @@ externalMinio:
 externalDatabase:
   database: {{ .Values.database.grist.name | quote }}
   username: {{ .Values.database.grist.user | quote }}
+  {{ if eq .Environment.Name "demo"}}
+  host: "grist-postgresql"
+  {{ else }}
   host: {{ .Values.database.grist.host | quote }}
+  {{ end }}
   password: {{ .Values.database.grist.password | quote }}
   port: {{ .Values.database.grist.port | quote }}
   type: {{ if eq .Values.database.grist.type "postgresql" }}"postgres"{{ else }}{{ .Values.database.grist.type | quote }}{{ end }}

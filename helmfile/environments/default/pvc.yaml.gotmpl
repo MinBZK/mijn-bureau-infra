@@ -6,15 +6,42 @@ pvc:
     accessModes:
       - ReadWriteOnce
 
-  postgresql:
+  ollama:
     storageClass: ~
     size: ~
     accessModes: []
 
+  grist:
+    grist:
+      storageClass: ~
+      size: ~
+      accessModes: []
+
+    postgresql:
+      storageClass: ~
+      size: ~
+      accessModes: []
+
+    minio:
+      storageClass: ~
+      size: ~
+      accessModes: []
+
+    redis:
+      storageClass: ~
+      size: ~
+      accessModes: []
+
   keycloak:
-    storageClass: ~
-    size: ~
-    accessModes: []
+    keycloak:
+      storageClass: ~
+      size: ~
+      accessModes: []
+
+    postgresql:
+      storageClass: ~
+      size: ~
+      accessModes: []
 
   redis:
     storageClass: ~
