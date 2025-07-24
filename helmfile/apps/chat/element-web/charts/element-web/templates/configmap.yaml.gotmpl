@@ -34,10 +34,10 @@ data:
       },
       "default_theme": "light",
       "brand": "{{ .Values.config.brand }} chat",
-      "permalink_prefix": "https://{{ .Values.config.name }}.{{ .Values.config.homeserver.server_name }}",
+      "permalink_prefix": "https://{{ .Values.config.name }}.{{ .Values.config.homeserver.domain }}",
       "disable_guests": true,
       "force_verification": false,
-      "logout_redirect_url": "https://{{ .Values.config.name }}.{{ .Values.config.homeserver.server_name }}",
+      "logout_redirect_url": "https://{{ .Values.config.name }}.{{ .Values.config.homeserver.domain }}",
       "sso_redirect_options": {
         "immediate": true
       },

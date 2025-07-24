@@ -29,6 +29,7 @@ releases:
 
   - name: "element-web"
     chart: "element-web/charts/element-web"
+    condition: application.chat.enabled
     namespace: {{ .Values.application.chat.namespace | quote }}
     dependencies:
       - chart: "oci://{{ (coalesce .Values.chart.bitnamiCommon.registry .Values.global.helmRegistry ) }}/{{ .Values.chart.bitnamiCommon.repository }}/{{ .Values.chart.bitnamiCommon.name }}"
@@ -36,14 +37,14 @@ releases:
     values:
       - "values-element-web.yaml.gotmpl"
 
-  {{/* - name: "synapse"
-    chart: "synapse/charts/synapse"
+  {{/* - name: synapse
+    chart: synapse/charts/synapse
+    condition: application.chat.enabled
     dependencies:
-      - chart: "oci://{{ (coalesce .Values.chart.bitnamiCommon.registry .Values.global.helmRegistry ) }}/{{ .Values.chart.bitnamiCommon.repository }}/{{ .Values.chart.bitnamiCommon.name }}"
-        version: 2.31.3
-    namespace: {{ .Values.application.chat.namespace | quote }}
-    installed: {{ .Values.application.chat.enabled }}
-    {{- if eq .Environment.Name "demo" }}
+    - chart: "oci://{{ (coalesce .Values.chart.bitnamicommon.registry .Values.chart.default.registry ) }}/{{ .Values.chart.bitnamicommon.repository }}/{{ .Values.chart.bitnamicommon.name }}"
+      version: 2.31.3
+    namespace: {{ .Values.application.chat.namespace }}
+    {{- if and (eq .Environment.Name "demo") ( .Values.application.chat.enabled) }}
     needs:
       - {{ .Values.application.chat.namespace }}/chat-postgresql
       - {{ .Values.application.chat.namespace }}/chat-redis
