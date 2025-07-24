@@ -128,7 +128,7 @@ image:
   ## pullSecrets:
   ##   - myRegistryKeySecretName
   ##
-  imagePullSecrets:
+  pullSecrets:
     - name: {{ (coalesce .Values.container.redis.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
   ## Enable debug mode
   ##
@@ -139,7 +139,7 @@ image:
 
 ## @param architecture Redis(R) architecture. Allowed values: `standalone` or `replication`
 ##
-architecture: replication
+architecture: standalone
 ## Redis(R) Authentication parameters
 ## ref: https://github.com/bitnami/containers/tree/main/bitnami/redis#setting-the-server-password-on-first-run
 ##
@@ -316,7 +316,7 @@ master:
   ## @param master.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if master.resources is set (master.resources is recommended for production).
   ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
   ##
-  resourcesPreset:  {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   ## @param master.resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
   ## Example:
   ## resources:
@@ -667,7 +667,7 @@ replica:
   kind: StatefulSet
   ## @param replica.replicaCount Number of Redis(R) replicas to deploy
   ##
-  replicaCount: 1
+  replicaCount: 3
   ## @param replica.revisionHistoryLimit The number of old history to retain to allow rollback
   ## NOTE: Explicitly setting this field to 0, will result in cleaning up all the history, breaking ability to rollback
   revisionHistoryLimit: 10
@@ -982,7 +982,7 @@ replica:
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
     ## If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner
     ##
-    storageClass: {{ (coalesce .Values.pvc.grist.redis.storageClass .Values.pvc.default.storageClass) | quote }}
+    storageClass: {{ coalesce .Values.pvc.grist.redis.storageClass .Values.pvc.default.storageClass | quote }}
     ## @param replica.persistence.accessModes Persistent Volume access modes
     ##
     accessModes: {{ coalesce .Values.pvc.grist.redis.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
@@ -1028,7 +1028,7 @@ replica:
     ## @param replica.service.ports.redis Redis(R) replicas service port
     ##
     ports:
-      redis: 6379
+      redis: {{ .Values.cache.grist.port | default 6379 }}
     ## @param replica.service.nodePorts.redis Node port for Redis(R) replicas
     ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
     ## NOTE: choose port between <30000-32767>
@@ -1351,7 +1351,7 @@ sentinel:
   ## @param sentinel.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if sentinel.resources is set (sentinel.resources is recommended for production).
   ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
   ##
-  resourcesPreset: "nano"
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   ## @param sentinel.resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
   ## Example:
   ## resources:
@@ -1406,7 +1406,7 @@ sentinel:
     ## @param sentinel.service.ports.sentinel Redis(R) service port for Redis(R) Sentinel
     ##
     ports:
-      redis: 6379
+      redis: {{ .Values.cache.grist.port | default 6379 }}
       sentinel: 26379
     ## @param sentinel.service.nodePorts.redis Node port for Redis(R)
     ## @param sentinel.service.nodePorts.sentinel Node port for Sentinel
@@ -1490,7 +1490,7 @@ sentinel:
     ## @param sentinel.masterService.ports.redis Redis(R) service port for Redis(R)
     ##
     ports:
-      redis: 6379
+      redis: {{ .Values.cache.grist.port | default 6379 }}
     ## @param sentinel.masterService.nodePorts.redis Node port for Redis(R)
     ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
     ## NOTE: choose port between <30000-32767>
@@ -1550,36 +1550,35 @@ sentinel:
     ##
     enabled: false
     service:
-        ## @param sentinel.externalAccess.service.loadBalancerIPAnnotaion Name of annotation to specify fixed IP for service in.
-        ##
+      ## @param sentinel.externalAccess.service.loadBalancerIPAnnotaion Name of annotation to specify fixed IP for service in.
+      ##
       loadBalancerIPAnnotaion: ""
-        ## @param sentinel.externalAccess.service.type Type for the services used to expose every Pod
-        ## At this moment only LoadBalancer is supported
-        ##
+      ## @param sentinel.externalAccess.service.type Type for the services used to expose every Pod
+      ## At this moment only LoadBalancer is supported
+      ##
       type: LoadBalancer
       ## @param sentinel.externalAccess.service.redisPort Port for the services used to expose redis-server
-        ##
+      ##
       redisPort: 6379
-
       ## @param sentinel.externalAccess.service.sentinelPort Port for the services used to expose redis-sentinel
-        ##
+      ##
       sentinelPort: 26379
-        ## @param sentinel.externalAccess.service.loadBalancerIP Array of load balancer IPs for each Redis(R) node. Length must be the same as sentinel.replicaCount
-        ##
+      ## @param sentinel.externalAccess.service.loadBalancerIP Array of load balancer IPs for each Redis(R) node. Length must be the same as sentinel.replicaCount
+      ##
       loadBalancerIP: []
-        ## @param sentinel.externalAccess.service.loadBalancerClass Load Balancer class if service type is `LoadBalancer` (optional, cloud specific)
-        ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
-        ##
+      ## @param sentinel.externalAccess.service.loadBalancerClass Load Balancer class if service type is `LoadBalancer` (optional, cloud specific)
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
+      ##
       loadBalancerClass: ""
-        ## @param sentinel.externalAccess.service.loadBalancerSourceRanges Service Load Balancer sources
-        ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
-        ## e.g:
-        ## loadBalancerSourceRanges:
-        ##   - 10.10.10.0/24
-        ##
+      ## @param sentinel.externalAccess.service.loadBalancerSourceRanges Service Load Balancer sources
+      ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+      ## e.g:
+      ## loadBalancerSourceRanges:
+      ##   - 10.10.10.0/24
+      ##
       loadBalancerSourceRanges: []
-        ## @param sentinel.externalAccess.service.annotations Annotations to add to the services used to expose every Pod of the Redis(R) Cluster
-        ##
+      ## @param sentinel.externalAccess.service.annotations Annotations to add to the services used to expose every Pod of the Redis(R) Cluster
+      ##
       annotations: {}
 
 ## @section Other Parameters
@@ -1624,13 +1623,12 @@ networkPolicy:
   ##
   extraIngress:
     - ports:
-        - port: {{ .Values.cache.grist.port }}
+        - port: {{ .Values.cache.grist.port | default 6379 }}
           protocol: TCP
       from:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: grist
-
   ## @param networkPolicy.extraEgress Add extra egress rules to the NetworkPolicy
   ## e.g:
   ## extraEgress:

@@ -14,9 +14,9 @@ global:
   ##   - myRegistryKeySecretName
   ##
   imagePullSecrets:
-    - {{ (coalesce .Values.container.postgres.imagePullSecret .Values.container.default.imagePullSecret)  | quote }}
+    - {{ coalesce .Values.container.postgres.imagePullSecret .Values.container.default.imagePullSecret | quote }}
   ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
-## @param global.storageClass DEPRECATED: use global.defaultStorageClass instead
+  ## @param global.storageClass DEPRECATED: use global.defaultStorageClass instead
   ##
   defaultStorageClass: {{ coalesce .Values.pvc.grist.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
   storageClass: {{ coalesce .Values.pvc.grist.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
@@ -123,12 +123,11 @@ image:
   registry: {{ coalesce .Values.container.postgres.registry .Values.container.default.registry | default "docker.io" | quote }}
   repository: {{ .Values.container.postgres.repository | default "bitnami/postgresql" | quote }}
   tag: {{ .Values.container.postgres.tag | default "17.5.0-debian-12-r18" | quote }}
-
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
   ##
-  pullPolicy: "Always"
+  pullPolicy: Always
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -656,10 +655,10 @@ primary:
     ## on. When true, server will accept connections from any source
     ## (with the correct destination port).
     ##
-    allowExternal: true
+    allowExternal: false
     ## @param primary.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
     ##
-    allowExternalEgress: true
+    allowExternalEgress: false
     ## @param primary.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
     ## e.g:
     ## extraIngress:
@@ -675,7 +674,14 @@ primary:
     ##                 operator: In
     ##                 values:
     ##                   - frontend
-    extraIngress: []
+    extraIngress:
+      - ports:
+          - port: {{ .Values.database.grist.port }}
+            protocol: TCP
+        from:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: grist
     ## @param primary.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy
     ## e.g:
     ## extraEgress:
