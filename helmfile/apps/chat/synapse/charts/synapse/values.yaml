@@ -112,7 +112,7 @@ master:
   ## @param master.containerPorts.metrics Synapse Master metrics container port
   ##
   containerPorts:
-    http: 8008
+    http: 8448
     metrics: 9090
     replication: 9093
   ## @param master.extraContainerPorts Optionally specify extra list of additional ports for Synapse Master containers
@@ -429,7 +429,7 @@ master:
     ## @param master.service.ports.metrics Synapse Master metrics replication port
     ##
     ports:
-      http: 8008
+      http: 8448
       replication: 9093
       metrics: 9090
     ## Node ports to expose
@@ -882,7 +882,17 @@ synapse:
   config:
     directory: "/synapse/data"
     homeServerConfigFile: "/synapse/config/homeserver.yaml"
-  ## @param synapse.serverName The hostname of the synapse server.
+  ## @param synapse.serverName This sets the public-facing domain of the server.
+  # The `server_name` name will appear at the end of usernames and room addresses created on your server. For example
+  # if the `server_name` was `example.com`, usernames on your server would be in the format `@user:example.com`.
+  #
+  # In most cases you should avoid using a matrix specific subdomain such as `matrix.example.com`
+  # `synapse.example.com` as the `server_name` for the same reasons you wouldn't use `user@email.example.com` as you
+  # email address. See [here](https://element-hq.github.io/synapse/latest/delegate.html) for information on how to
+  # host Synapse on a subdomain while preserving a clean `server_name`.
+  #
+  # The `server_name` cannot be changed later so it is important to configure this correctly before you start Synapse.
+  # It should be all lowercase and may contain an explicit port.
   serverName: "synapse.internal"
   ## @param synapse.webClientLocation The URL to the web client
   webClientLocation: ~
@@ -972,8 +982,8 @@ synapse:
   ## @param synapse.oidcProviders List of OpenID Connect (OIDC) / OAuth 2.0 identity providers, for registration and login.
   ## ref: https://element-hq.github.io/synapse/latest/openid.html
   oidcProviders: []
-  ## @param synapse.encyptionEnabledByDefaultForRoomType Controls whether locally-created rooms should be end-to-end encrypted by default. Possible options are "all", "invite", and "off".
-  encyptionEnabledByDefaultForRoomType: "off"
+  ## @param synapse.encryptionEnabledByDefaultForRoomType Controls whether locally-created rooms should be end-to-end encrypted by default. Possible options are "all", "invite", and "off".
+  encryptionEnabledByDefaultForRoomType: "off"
   ## @param synapse.userDirectory.enabled Defines whether users can search the user directory. If false then empty responses are returned to all queries.
   ## @param synapse.userDirectory.searchAllUsers Defines whether to search all users visible to your homeserver at the time the search is performed. If set to true, will return all users known to the homeserver matching the search query. If false, search results will only contain users visible in public rooms and users sharing a room with the requester.
   ## @param synapse.userDirectory.preferLocalUsers Defines whether to prefer local users in search query results. If set to `true`, local users are more likely to appear above remote users when searching the user directory.

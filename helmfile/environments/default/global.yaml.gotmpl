@@ -1,7 +1,20 @@
 ---
 global:
   domain: "mijnbureau.internal"
-  matrixDomain: "matrix.mijnbureau.internal"
+  # global.matrixDomain sets the `server_name` setting for Synapse, which is the public-facing domain of the synapse server.
+  # The `server_name` name will appear at the end of usernames and room addresses created on your server. For example
+  # if the `server_name` was `example.com`, usernames on your server would be in the format `@user:example.com`.
+  #
+  # In most cases you should avoid using a matrix specific subdomain such as `matrix.example.com`
+  # `synapse.example.com` as the `server_name` for the same reasons you wouldn't use `user@email.example.com` as you
+  # email address. See [here](https://element-hq.github.io/synapse/latest/delegate.html) for information on how to
+  # host Synapse on a subdomain while preserving a clean `server_name`.
+  #
+  # The `server_name` cannot be changed later so it is important to configure this correctly before you start Synapse.
+  # It should be all lowercase and may contain an explicit port.
+  #
+  # If `global.matrixDomain` is not set, `server_name` will be `<global.hostname.synapse>.<global.domain>`
+  matrixDomain: ""
 
   # resourcePreset sets the default resources for all applications
   # allowed values "nano" "micro" "small" "medium" "large" "xlarge" "2xlarge"
