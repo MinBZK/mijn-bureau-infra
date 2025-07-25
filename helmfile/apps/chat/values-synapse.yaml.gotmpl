@@ -34,9 +34,6 @@ master:
   resources: {{ .Values.resource.synapse.master | toYaml | nindent 4 }}
   hpa: {{ .Values.autoscaling.horizontal.synapse.master | toYaml | nindent 6 }}
   vpa: {{ .Values.autoscaling.vertical.synapse.master | toYaml | nindent 6 }}
-  service:
-    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-    type: ClusterIP
   startupProbe:
     enabled: true
     initialDelaySeconds: 15

@@ -423,7 +423,7 @@ master:
   service:
     ## @param master.service.type Synapse Master service type
     ##
-    type: LoadBalancer
+    type: ClusterIP
     ## @param master.service.ports.http Synapse Master service HTTP port
     ## @param master.service.ports.replication Synapse Master service replication port
     ## @param master.service.ports.metrics Synapse Master metrics replication port
