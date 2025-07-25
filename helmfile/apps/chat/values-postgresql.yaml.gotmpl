@@ -806,7 +806,7 @@ primary:
     accessModes: {{ coalesce .Values.pvc.synapse.postgresql.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
     ## @param primary.persistence.size PVC Storage Request for PostgreSQL volume
     ##
-    size: {{ coalesce .Values.pvc.synapse.postgresql.size .Values.pvc.default.size }}
+    size: {{ coalesce .Values.pvc.synapse.postgresql.size .Values.pvc.default.size "8Gi" }}
     ## @param primary.persistence.annotations Annotations for the PVC
     ##
     annotations: {}

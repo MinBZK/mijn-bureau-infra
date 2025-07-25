@@ -520,7 +520,7 @@ master:
     accessModes: {{ coalesce .Values.pvc.grist.redis.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
     ## @param master.persistence.size Persistent Volume size
     ##
-    size: {{ coalesce .Values.pvc.grist.redis.size .Values.pvc.default.size | toYaml | nindent 6 }}
+    size: {{ coalesce .Values.pvc.grist.redis.size .Values.pvc.default.size "1Gi" }}
     ## @param master.persistence.annotations Additional custom annotations for the PVC
     ##
     annotations: {}
@@ -988,7 +988,7 @@ replica:
     accessModes: {{ coalesce .Values.pvc.grist.redis.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
     ## @param replica.persistence.size Persistent Volume size
     ##
-    size: {{ coalesce .Values.pvc.grist.redis.size .Values.pvc.default.size | toYaml | nindent 6 }}
+    size: {{ coalesce .Values.pvc.grist.redis.size .Values.pvc.default.size "1Gi" }}
     ## @param replica.persistence.annotations Additional custom annotations for the PVC
     ##
     annotations: {}

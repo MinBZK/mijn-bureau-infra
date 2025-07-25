@@ -38,7 +38,7 @@ master:
     enabled: true
     initialDelaySeconds: 15
   persistence:
-    size: {{ coalesce .Values.pvc.synapse.synapse.size .Values.pvc.default.size | quote }}
+    size: {{ coalesce .Values.pvc.synapse.synapse.size .Values.pvc.default.size "8Gi" }}
     storageClass: {{ coalesce .Values.pvc.synapse.synapse.storageClass .Values.pvc.default.storageClass | quote }}
   networkPolicy:
     extraIngress:

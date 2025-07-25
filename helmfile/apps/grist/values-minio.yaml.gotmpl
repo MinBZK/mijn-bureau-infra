@@ -820,7 +820,7 @@ persistence:
   accessModes: {{ coalesce .Values.pvc.grist.minio.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
   ## @param persistence.size PVC Storage Request for MinIO&reg; data volume
   ##
-  size: {{ coalesce .Values.pvc.grist.minio.size .Values.pvc.default.size | toYaml | nindent 6 }}
+  size: {{ coalesce .Values.pvc.grist.minio.size .Values.pvc.default.size "8Gi" }}
   ## @param persistence.annotations Annotations for the PVC
   ##
   annotations: {}
