@@ -34,7 +34,7 @@ releases:
       - "values-redis.yaml.gotmpl"
 
   - name: synapse
-    chart: synapse/charts/synapse
+    chart: charts/synapse
     condition: application.chat.enabled
     dependencies:
     - chart: "oci://{{ (coalesce .Values.chart.bitnamicommon.registry .Values.chart.default.registry ) }}/{{ .Values.chart.bitnamicommon.repository }}/{{ .Values.chart.bitnamicommon.name }}"
