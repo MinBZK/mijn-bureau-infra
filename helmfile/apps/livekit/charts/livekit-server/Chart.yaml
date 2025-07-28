@@ -1,0 +1,22 @@
+#
+# SPDX-License-Identifier: APACHE-2.0
+
+annotations:
+  category: video
+  licenses: Apache-2.0
+apiVersion: v2
+appVersion: v1.9
+dependencies:
+  - name: common
+    repository: "file://../../../common/charts/common"
+    version: 2.31.1
+description: video conferencing backend platform
+home: https://bitnami.com
+keywords:
+  - Video
+  - livekit
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: livekit_server
+version: 0.1.0

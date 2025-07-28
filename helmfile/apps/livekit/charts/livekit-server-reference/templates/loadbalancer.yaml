@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "livekit-server.fullname" . }}-loadbalancer
+  labels:
+    {{- include "livekit-server.labels" . | nindent 4 }}
+  annotations: {}
+spec:
+  externalTrafficPolicy: Local
+  type: LoadBalancer
+  ports:
+    {{- range $port := untilStep (int .Values.livekit.rtc.port_range_start)  (int ( add (int64 .Values.livekit.rtc.port_range_end) 1)) 1 }}
+    - name: port-{{  $port }}
+      port: {{  $port  }}
+      nodePort: {{  $port  }}
+      targetPort: port-{{  $port }}
+      protocol: UDP
+    {{- end }}
+    {{- if .Values.livekit.rtc.tcp_port }}
+    - name: rtc-tcp
+      port: {{ .Values.livekit.rtc.tcp_port }}
+      protocol: TCP
+      nodePort: {{ .Values.livekit.rtc.tcp_port }}
+      targetPort: rtc-tcp
+    {{- end }}
+    {{- if  .Values.livekit.rtc.udp_port }}
+    - name: rtc-udp
+      port: {{ .Values.livekit.rtc.udp_port }}
+      protocol: UDP
+      nodePort: {{ .Values.livekit.rtc.udp_port }}
+      targetPort: rtc-udp
+    {{- end }}
+  selector:
+    {{- include "livekit-server.selectorLabels" . | nindent 4 }}

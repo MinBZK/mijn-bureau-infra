@@ -19,8 +19,8 @@ application:
   chat:
     namespace: chat
 
-  video:
-    namespace: video
+  livekit:
+    namespace: livekit
 
   nextcloud:
     namespace: nextcloud

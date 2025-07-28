@@ -23,6 +23,11 @@ autoscaling:
       minReplicas: 1
       maxReplicas: 3
       targetCPU: 75
+    livekit:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 60
       targetMemory: ""
     nextcloud:
       enabled: true

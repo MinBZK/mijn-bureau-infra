@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: edit-deployment-env
+spec:
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: {{ include "livekit-server.serviceAccountName" . }}
+          containers:
+            - name: kubectl
+              image: bitnami/kubectl:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  ip=$(kubectl get service livekit-server-loadbalancer -o yaml -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+                  kubectl set env deployment/livekit-server NODE_IP=$ip
+          restartPolicy: OnFailure

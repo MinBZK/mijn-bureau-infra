@@ -1,0 +1,175 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: livekit_server
+  {{- if or .Values.livekit.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.livekit.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.livekit.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.livekit.replicaCount }}
+  {{- end }}
+  {{- if .Values.livekit.updateStrategy }}
+  strategy: {{- toYaml .Values.livekit.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.livekit.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: livekit_server
+  template:
+    metadata:
+      {{- if .Values.livekit.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: livekit_server
+    spec:
+      {{- include "livekit_server.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "livekit_server.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.livekit.automountServiceAccountToken }}
+      {{- if .Values.livekit.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.livekit.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.livekit.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.livekit.podAffinityPreset "component" "livekit_server" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.livekit.podAntiAffinityPreset "component" "livekit_server" "customLabels" $podLabels "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.livekit.nodeAffinityPreset.type "key" .Values.livekit.nodeAffinityPreset.key "values" .Values.livekit.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.livekit.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.livekit.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.livekit.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.livekit.priorityClassName }}
+      priorityClassName: {{ .Values.livekit.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.livekit.schedulerName }}
+      schedulerName: {{ .Values.livekit.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.livekit.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.livekit.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.livekit.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.livekit.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.livekit.terminationGracePeriodSeconds }}
+      {{- end }}
+      initContainers:
+        {{- if and .Values.defaultInitContainers.volumePermissions.enabled .Values.persistence.enabled }}
+        {{- include "livekit_server.defaultInitContainers.volumePermissions" (dict "context" . "component" "livekit") | nindent 8 }}
+        {{- end }}
+        {{- if .Values.livekit.initContainers }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.livekit.initContainers "context" $) | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: livekit_server
+          image: {{ template "livekit_server.image" . }}
+          imagePullPolicy: {{ .Values.livekit.image.pullPolicy }}
+          {{- if .Values.livekit.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.livekit.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.livekit.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.livekit.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.args "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: BITNAMI_DEBUG
+              value: {{ ternary "true" "false" (or .Values.livekit.image.debug .Values.diagnosticMode.enabled) | quote }}
+            - name: foo
+              value: bar
+            {{- if .Values.livekit.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.livekit.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          envFrom:
+            {{- if .Values.livekit.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.livekit.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.livekit.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.livekit.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.livekit.resources }}
+          resources: {{- toYaml .Values.livekit.resources | nindent 12 }}
+          {{- else if ne .Values.livekit.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.livekit.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.livekit.containerPorts.http }}
+            - name: https
+              containerPort: {{ .Values.livekit.containerPorts.https }}
+            {{- if .Values.livekit.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.livekit.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.livekit.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.livekit.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.livekit.livenessProbe "enabled") "context" $) | nindent 12 }}
+            %%httpGet || command || etc%%
+          {{- end }}
+          {{- if .Values.livekit.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.livekit.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.livekit.readinessProbe "enabled") "context" $) | nindent 12 }}
+            %%httpGet || command || etc%%
+          {{- end }}
+          {{- if .Values.livekit.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.livekit.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.livekit.startupProbe "enabled") "context" $) | nindent 12 }}
+            %%httpGet || command || etc%%
+          {{- end }}
+          {{- end }}
+          {{- if .Values.livekit.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+              {{- if .Values.persistence.subPath }}
+              subPath: {{ .Values.persistence.subPath }}
+              {{- end }}
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+          {{- if .Values.livekit.extraVolumeMounts }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.livekit.extraVolumeMounts "context" $) | nindent 12 }}
+          {{- end }}
+        {{- if .Values.livekit.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.livekit.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: data
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ default (include "common.names.fullname" .) .Values.persistence.existingClaim }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.livekit.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.livekit.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}
