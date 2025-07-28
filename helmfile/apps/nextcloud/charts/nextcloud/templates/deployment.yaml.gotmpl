@@ -69,9 +69,6 @@ spec:
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       {{- end }}
       initContainers:
-        {{- if and .Values.defaultInitContainers.volumePermissions.enabled .Values.persistence.enabled }}
-        {{- include "nextcloud.defaultInitContainers.volumePermissions" (dict "context" . "component") | nindent 8 }}
-        {{- end }}
         {{- if .Values.initContainers }}
           {{- include "common.tplvalues.render" (dict "value" .Values.initContainers "context" $) | nindent 8 }}
         {{- end }}
