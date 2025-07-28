@@ -32,8 +32,8 @@ master:
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.synapse.master | toYaml | nindent 4 }}
-  hpa: {{ .Values.autoscaling.horizontal.synapse.master | toYaml | nindent 6 }}
-  vpa: {{ .Values.autoscaling.vertical.synapse.master | toYaml | nindent 6 }}
+  autoscaling:
+    vpa: {{ .Values.autoscaling.vertical.synapse.master | toYaml | nindent 6 }}
   startupProbe:
     enabled: true
     initialDelaySeconds: 15
