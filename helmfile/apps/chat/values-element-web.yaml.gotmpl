@@ -1,0 +1,86 @@
+image:
+  registry: {{ coalesce .Values.container.elementweb.registry .Values.container.default.registry | quote }}
+  repository: {{ .Values.container.elementweb.repository }}
+  # This sets the pull policy for images.
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: {{ .Values.container.elementweb.tag }}
+  pullSecrets:
+    - {{ coalesce .Values.container.elementweb.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 8 }}
+
+resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
+
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
+
+replicaCount: 1
+
+networkPolicy:
+  enabled: true
+  # Restrict external access - only allow specific ingress sources
+  allowExternal: false
+  # Restrict external egress - only allow specific destinations
+  allowExternalEgress: false
+
+  extraIngress:
+   # Allow traffic from ingress controller namespace
+   - ports:
+       - port: 8080
+         protocol: TCP
+
+extraVolumes:
+  - name: nginx-conf
+    emptyDir: {}
+
+extraVolumeMounts:
+  - name: nginx-conf
+    mountPath: /etc/nginx/conf.d
+
+livenessProbe:
+  enabled: true
+
+readinessProbe:
+  enabled: true
+
+serviceAccount:
+  create: false
+  name: ""
+
+ingress:
+  enabled: true
+  hostname: {{ .Values.global.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}
+  extraTls: {{ .Values.tls.chat | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/hsts: "true"
+    nginx.ingress.kubernetes.io/hsts-max-age: "63072000"
+    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+    nginx.ingress.kubernetes.io/hsts-preload: "true"
+
+config:
+  homeserver:
+    domain: {{ .Values.global.domain | default "example.com" }}
+    base_url: {{ .Values.global.hostname.synapse | default "matrix-chat" }}.{{ .Values.global.domain | default "example.com" }}
+    server_name: {{ .Values.global.hostname.synapse | default "matrix-chat" }}
+  name: {{ .Values.global.hostname.element | default "chat-chat" }}
+  brand: {{ .Values.global.hostname.synapse | default "matrix-chat" }}
+  integrations_ui_url: ""
+  integrations_rest_url: ""
+  integrations_widgets_urls: []
+  bug_report_endpoint_url: ""
+  default_country_code: "NL"
+  showLabsSettings: false
+  features: {}
+  default_federate: true
+  roomDirectory:
+    servers:
+      - {{ .Values.global.hostname.synapse | default "matrix-chat" }}.{{ .Values.global.domain | default "example.com" }}
+      - matrix.org
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

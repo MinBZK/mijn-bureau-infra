@@ -1,0 +1,130 @@
+global:
+  domain: "icbr.prd1.gn2.quattro.rijksapps.nl"
+  matrixDomain: ""
+  containerRegistry: "rcr.rijksapps.nl/dockerhub-icbr"
+  hostname:
+    keycloak: "id-chat"
+    element: "chat-chat"
+    synapse: "matrix-chat"
+    grist: "grist-chat"
+
+application:
+  grist:
+    enabled: false
+    namespace: "icbr-poc-chat" #"icbr-poc-grist"
+    defaultLocale: ""
+    orgInPath: true
+    singleOrg: ""
+  ai:
+    enabled: false
+    namespace: "icbr-poc-chat" #"icbr-poc-ai-endpoint"
+  chat:
+    enabled: true
+    namespace: "icbr-poc-chat"
+  keycloak:
+    enabled: true
+    namespace: "icbr-poc-chat" #"icbr-poc-id-endpoint"
+
+authentication:
+  oidc:
+    issuer: "https://id-chat.icbr.prd1.gn2.quattro.rijksapps.nl/realms/mijnbureau"
+    authorization_endpoint: "https://id-chat.icbr.prd1.gn2.quattro.rijksapps.nl/realms/mijnbureau/protocol/openid-connect/auth"
+    token_endpoint: "https://id-chat.icbr.prd1.gn2.quattro.rijksapps.nl/realms/mijnbureau/protocol/openid-connect/token"
+    introspection_endpoint: "https://id-chat.icbr.prd1.gn2.quattro.rijksapps.nl/realms/mijnbureau/protocol/openid-connect/token/introspect"
+    userinfo_endpoint: "https://id-chat.icbr.prd1.gn2.quattro.rijksapps.nl/realms/mijnbureau/protocol/openid-connect/userinfo"
+    end_session_endpoint: "https://id-chat.icbr.prd1.gn2.quattro.rijksapps.nl/realms/mijnbureau/protocol/openid-connect/logout"
+    jwks_uri: "https://id-chat.icbr.prd1.gn2.quattro.rijksapps.nl/realms/mijnbureau/protocol/openid-connect/certs"
+
+autoscaling:
+  horizontal:
+    keycloak:
+      enabled: false
+
+cluster:
+  networking:
+    domain: "prd1.gn2.quattro.rijksapps.nl"
+
+container:
+  default:
+    registry: "rcr.rijksapps.nl/dockerhub-icbr"
+    imagePullSecret: "dockerhub-icbr-robot-pull-secret"
+  ollama:
+    registry: "rcr.rijksapps.nl/dockerhub-icbr"
+    imagePullSecret: "dockerhub-icbr-robot-pull-secret"
+  keycloak:
+    registry: "rcr.rijksapps.nl/dockerhub-icbr"
+    imagePullSecret: "dockerhub-icbr-robot-pull-secret"
+  keycloak_cli:
+    registry: "rcr.rijksapps.nl/dockerhub-icbr"
+    imagePullSecret: "dockerhub-icbr-robot-pull-secret"
+  grist:
+    registry: "rcr.rijksapps.nl/dockerhub-icbr"
+    imagePullSecret: "dockerhub-icbr-robot-pull-secret"
+  minio:
+    registry: "rcr.rijksapps.nl/dockerhub-icbr"
+    imagePullSecret: "dockerhub-icbr-robot-pull-secret"
+  postgres:
+    registry: "rcr.rijksapps.nl/dockerhub-icbr"
+    imagePullSecret: "dockerhub-icbr-robot-pull-secret"
+  redis:
+    registry: "rcr.rijksapps.nl/dockerhub-icbr"
+    imagePullSecret: "dockerhub-icbr-robot-pull-secret"
+  synapse:
+    registry: "rcr.rijksapps.nl/dockerhub-icbr"
+    imagePullSecret: "dockerhub-icbr-robot-pull-secret"
+
+objectstore:
+  grist:
+    bucket: "grist-docs"
+    username: "admin"
+    endpoint: "grist-minio"
+    port: 9000
+    useSSL: false
+
+pvc:
+  default:
+    storageClass: ocs-storagecluster-ceph-rbd
+    size: "1Gi"
+    accessModes:
+      - ReadWriteOnce
+  grist:
+    postgresql:
+      size: "2Gi"
+    redis:
+      size: "1Gi"
+    minio:
+      size: "2Gi"
+  keycloak:
+    keycloak:
+      storageClass: ocs-storagecluster-cephfs
+      size: "2Gi"
+      accessModes:
+        - ReadWriteMany
+    postgresql:
+      size: "2Gi"
+    redis:
+      size: "1Gi"
+  synapse:
+    synapse:
+      size: "2Gi"
+    postgresql:
+      size: "2Gi"
+    redis:
+      size: "1Gi"
+
+tls:
+  keycloak:
+    - {}
+  grist:
+    - {}
+  synapse:
+    - {}
+  chat:
+    - {}
+
+{{/*user:*/}}
+{{/*  - username: "ericwout"*/}}
+{{/*    firstname: "Eric Wout"*/}}
+{{/*    lastname: "van der Steen"*/}}
+{{/*    email: "ericwout.steen@rijksoverheid.nl"*/}}
+{{/*    password: "Dock-Scoring-Unified-Baffle-Delicacy-Pretense1"*/}}
