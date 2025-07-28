@@ -53,18 +53,22 @@ master:
       {{- if .Values.cache.synapse }}
       - ports:
           - port: {{ .Values.cache.synapse.port }}
+        {{- if .Values.cache.synapse.isInternal }}
         to:
           - podSelector:
               matchLabels:
                 app.kubernetes.io/instance: chat-redis
+        {{- end }}
       {{- end }}
       {{- if eq .Values.database.synapse.type "psycopg2" }}
       - ports:
           - port: {{ .Values.database.synapse.port }}
+        {{- if .Values.database.synapse.isInternal }}
         to:
           - podSelector:
               matchLabels:
                 app.kubernetes.io/instance: chat-postgresql
+        {{- end }}
       {{- end }}
 
 # TODO replication is not functional

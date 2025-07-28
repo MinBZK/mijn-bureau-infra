@@ -48,31 +48,37 @@ networkPolicy:
   extraEgress:
     # Openid connect connectivity
     # PostgreSQL connectivity
-    - to:
+    - ports:
+      - port: 5432
+        protocol: TCP
+      {{- if .Values.database.grist.isInternal }}
+      to:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: postgresql
               app.kubernetes.io/component: primary
-      ports:
-        - port: 5432
-          protocol: TCP
+      {{- end }}
     # Redis connectivity
-    - to:
+    - ports:
+        - port: 6379
+          protocol: TCP
+      {{- if .Values.cache.grist.isInternal }}
+      to:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: redis
               app.kubernetes.io/component: master
-      ports:
-        - port: 6379
-          protocol: TCP
+      {{- end }}
     # MinIO connectivity
-    - to:
+    - ports:
+        - port: 9000
+          protocol: TCP
+      {{- if .Values.objectstore.grist.isInternal }}
+      to:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: minio
-      ports:
-        - port: 9000
-          protocol: TCP
+      {{- end }}
 
 
 podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}

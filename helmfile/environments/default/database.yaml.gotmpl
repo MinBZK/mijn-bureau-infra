@@ -5,6 +5,7 @@ database:
     name: grist
     user: grist
     port: 5432
+    isInternal: true
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "grist" "database" | sha1sum | quote}}
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "grist" "database_admin" | sha1sum | quote}}
 
@@ -21,6 +22,7 @@ database:
     name: synapse
     host: chat-postgresql
     port: 5432
+    isInternal: true
     user: synapse
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "synapse" "database" | sha1sum | quote}}
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "synapse" "database_admin" | sha1sum | quote}}
