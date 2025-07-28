@@ -152,6 +152,10 @@ spec:
               subPath: tmp-dir
             - name: element-web-data
               mountPath: /persist
+            - name: config
+              mountPath: /app/config.json
+              subPath: config.json
+              readOnly: true
           {{- if .Values.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
@@ -161,6 +165,9 @@ spec:
       volumes:
         - name: empty-dir
           emptyDir: {}
+        - name: config
+          configMap:
+            name: {{ include "element-web.fullname" . }}-config
         - name: element-web-data
         {{- if .Values.persistence.enabled }}
           persistentVolumeClaim:

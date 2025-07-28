@@ -78,7 +78,7 @@ diagnosticMode:
 ## @param image.registry [default: REGISTRY_NAME] element-web image registry
 ## @param image.repository [default: REPOSITORY_NAME/element-web] element-web image repository
 ## @skip image.tag image tag (immutable tags are recommended)
-## @param image.digest image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
+
 ## @param image.pullPolicy image pull policy
 ## @param image.pullSecrets image pull secrets
 ## @param image.debug Enable image debug mode
@@ -111,97 +111,12 @@ orgInPath: true
 ## @param singleOrg Set to an org "domain" to pin client to that org
 singleOrg: ""
 
-## @param sandboxFlavor Can be gvisor, pynbox, unsandboxed, docker, or macSandboxExec. If set, forces element-web to use the specified kind of sandbox.
-sandboxFlavor: ""
+
 
 ## @param allowAutomaticVersionChecking Whether element-web is allowed to automatically check if a newer element-web version is available. Defaults to "true" on the default element-web and element-web-ee Docker images. Defaults false in element-web-oss and everywhere else.
 allowAutomaticVersionChecking: false
 
-## Redis
-## @param externalRedis.host Redis hostname
-## @param externalRedis.port Redis port
-## @param externalRedis.password Redis password
-externalRedis:
-  host: ""
-  port: ""
-  password: ""
 
-## Minio
-## @param externalMinio.endpoint MinIO endpoint
-## @param externalMinio.port MinIO port
-## @param externalMinio.accessKey MinIO access key (username)
-## @param externalMinio.secretKey MinIO password
-## @param externalMinio.bucket MinIO bucket name
-## @param externalMinio.useSSL If set to 1 will use SSL.
-externalMinio:
-  endpoint: ""
-  port: ""
-  accessKey: ""
-  secretKey: ""
-  bucket: ""
-  useSSL: 0
-
-## Database
-## @param externalDatabase.type Set to 'sqlite' or 'postgres'
-## @param externalDatabase.username Username to connect as
-## @param externalDatabase.password Password to use
-## @param externalDatabase.host Host for db
-## @param externalDatabase.port Port number for db if not the default for that db type
-## @param externalDatabase.database Database filename for sqlite or database name for other db types
-## @param externalDatabase.logging Set to 'true' to see all sql queries
-externalDatabase:
-  type: ""
-  username: ""
-  password: ""
-  host: ""
-  port: ""
-  database: ""
-  logging: false
-
-## OpenIDConnect configuration
-## @param auth.enabled If set to true enable OIDC
-## @param auth.oidcIdpIssuer OIDC Identity Provider issuer URL
-## @param auth.oidcIdpClientId OIDC client ID
-## @param auth.oidcIdpClientSecret OIDC client secret
-## @param auth.oidcIdpScopes OIDC scopes to request
-## @param auth.oidcSpHost OIDC service provider host
-## @param auth.oidcIdpEndSessionEndpoint OIDC end session endpoint
-## @param auth.oidcIdpSkipEndSessionEndpoint Skip OIDC end session endpoint
-## @param auth.oidcSpProfileNameAttr OIDC profile name attribute
-## @param auth.oidcSpProfileEmailAttr OIDC profile email attribute
-## @param auth.oidcIdpEnabledProtections OIDC enabled protections
-## @param auth.oidcIdpACRValues OIDC ACR values
-## @param auth.oidcIdpExtraClientMetadata OIDC extra client metadata
-## @param auth.oidcSpIgnoreEmailVerified Ignore email verified flag
-## ref: https://support.getelement-web.com/install/oidc/
-auth:
-  enabled: false
-  oidcIdpIssuer: ""
-  oidcIdpClientId: ""
-  oidcIdpClientSecret: ""
-  oidcIdpScopes: ""
-  oidcSpHost: ""
-  oidcIdpEndSessionEndpoint: ""
-  oidcIdpSkipEndSessionEndpoint: ""
-  oidcSpProfileNameAttr: ""
-  oidcSpProfileEmailAttr: ""
-  oidcIdpEnabledProtections: ""
-  oidcIdpACRValues: ""
-  oidcIdpExtraClientMetadata: ""
-  oidcSpIgnoreEmailVerified: ""
-
-## AI LLM endpoint configuration
-## @param ai.enabled If set to true enable AI capabilities
-## @param ai.endpoint A chat-completion style endpoint to call. Not needed if OpenAI is being used
-## @param ai.apiKey An API key to pass when making requests to an external AI conversational endpoint
-## @param ai.model If set, this string is passed along in calls to the AI conversational endpoint
-## @param ai.longerContextModel If set, requests that fail because of a context length limitation will be retried with this model set
-ai:
-  enabled: false
-  endpoint: ""
-  apiKey: ""
-  model: ""
-  longerContextModel: ""
 
 ## @param replicaCount Number of element-web replicas to deploy
 ##
@@ -427,17 +342,7 @@ extraVolumes: []
 ## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for the element-web containers
 ##
 extraVolumeMounts: []
-## @param sidecars Add additional sidecar containers to the element-web pods
-## e.g:
-## sidecars:
-##   - name: your-image-name
-##     image: your-image
-##     imagePullPolicy: Always
-##     ports:
-##       - name: portname
-##         containerPort: 1234
-##
-sidecars: []
+
 ## @param initContainers Add additional init containers to the element-web pods
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
 ## e.g:
@@ -825,20 +730,50 @@ metrics:
     ##
     selector: {}
 
+## @section Element Web Config
+
 config:
+  ## @extra config.homeserver Configuration for the Matrix homeserver.
   homeserver:
+    ## @param config.homeserver.base_url The base URL of the Matrix homeserver.
     base_url: 'https://example.com'
+    ##
+    ## @param config.homeserver.server_name The server name of the Matrix homeserver.
     server_name: 'example.com'
+    ##
+  ## @param config.name Name of the Element Web deployment.
   name: "chat"
+  ##
+  ## @param config.brand Brand label displayed in the Element Web UI.
   brand: "Element Web Custom"
+  ##
+  ## @param config.integrations_ui_url Optional: URL for integrations UI.
   integrations_ui_url: ""
+  ##
+  ## @param config.integrations_rest_url Optional: URL for integrations REST API.
   integrations_rest_url: ""
+  ##
+  ## @param config.integrations_widgets_urls Optional: List of widget URLs for integrations.
   integrations_widgets_urls: []
+  ##
+  ## @param config.bug_report_endpoint_url Optional: Endpoint URL to report bugs.
   bug_report_endpoint_url: ""
+  ##
+  ## @param config.default_country_code Default country code for phone number fields.
   default_country_code: "NL"
+  ##
+  ## @param config.showLabsSettings Enable experimental labs features.
   showLabsSettings: false
+  ##
+  ## @param config.features Custom feature flags for Element Web.
   features: {}
+  ##
+  ## @param config.default_federate Enable federated rooms by default.
   default_federate: true
+  ##
+  ## @extra config.roomDirectory Configuration for the room directory.
   roomDirectory:
+    ## @param config.roomDirectory.servers List of servers to use for the room directory.
     servers:
       - matrix.org
+      
