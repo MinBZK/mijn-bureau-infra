@@ -111,9 +111,9 @@ synapse:
       port: {{ .Values.database.synapse.port }}
       {{- end }}
   # Allows registration of standard or admin accounts by anyone who has the shared secret, even if enable_registration is not set.
-  registrationSharedSecret: {{ .Values.secret.synapse.registrationSharedSecret | quote }}
+  registrationSharedSecret: {{ .Values.application.chat.synapse.registrationSharedSecret | quote }}
   # A secret which is used to calculate HMACs for form values, to stop falsification of values. Must be specified for the User Consent forms to work.
-  formSecret: {{ .Values.secret.synapse.formSecret | quote }}
+  formSecret: {{ .Values.application.chat.synapse.formSecret | quote }}
   # Disable the warning that is emitted when the trusted_key_servers include "matrix.org".
   suppressKeyServerWarning: true
   # Redis configuration
