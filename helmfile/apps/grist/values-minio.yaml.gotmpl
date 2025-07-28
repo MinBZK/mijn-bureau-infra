@@ -59,7 +59,7 @@ kubeVersion: ""
 apiVersions: []
 ## @param clusterDomain Default Kubernetes cluster domain
 ##
-clusterDomain: cluster.local
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
 ## @param extraDeploy Array of extra objects to deploy with the release
 ##
 extraDeploy: []
