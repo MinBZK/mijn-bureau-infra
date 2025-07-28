@@ -518,7 +518,7 @@ master:
     storageClass: {{ coalesce .Values.pvc.synapse.redis.storageClass .Values.pvc.default.storageClass | quote }}
     ## @param master.persistence.accessModes Persistent Volume access modes
     ##
-    accessModes: {{ coalesce .Values.pvc.synapse.redis.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
+    accessModes: {{ coalesce .Values.pvc.synapse.redis.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
     ## @param master.persistence.size Persistent Volume size
     ##
     size: {{ coalesce .Values.pvc.synapse.redis.size .Values.pvc.default.size "1Gi" }}
@@ -986,7 +986,7 @@ replica:
     storageClass: {{ coalesce .Values.pvc.synapse.redis.storageClass .Values.pvc.default.storageClass | quote }}
     ## @param replica.persistence.accessModes Persistent Volume access modes
     ##
-    accessModes: {{ coalesce .Values.pvc.synapse.redis.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
+    accessModes: {{ coalesce .Values.pvc.synapse.redis.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
     ## @param replica.persistence.size Persistent Volume size
     ##
     size: {{ coalesce .Values.pvc.synapse.redis.size .Values.pvc.default.size "1Gi" }}

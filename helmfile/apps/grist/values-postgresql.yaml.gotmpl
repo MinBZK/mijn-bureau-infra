@@ -802,7 +802,7 @@ primary:
     storageClass:  {{ coalesce .Values.pvc.grist.postgresql.storageClass .Values.pvc.default.storageClass | quote }}
     ## @param primary.persistence.accessModes PVC Access Mode for PostgreSQL volume
     ##
-    accessModes: {{ coalesce .Values.pvc.grist.postgresql.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
+    accessModes: {{ coalesce .Values.pvc.grist.postgresql.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
     ## @param primary.persistence.size PVC Storage Request for PostgreSQL volume
     ##
     size: {{ coalesce .Values.pvc.grist.postgresql.size .Values.pvc.default.size "8Gi" }}

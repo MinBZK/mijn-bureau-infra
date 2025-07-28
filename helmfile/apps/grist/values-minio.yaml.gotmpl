@@ -817,7 +817,7 @@ persistence:
   mountPath: /bitnami/minio/data
   ## @param persistence.accessModes PVC Access Modes for MinIO&reg; data volume
   ##
-  accessModes: {{ coalesce .Values.pvc.grist.minio.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
+  accessModes: {{ coalesce .Values.pvc.grist.minio.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
   ## @param persistence.size PVC Storage Request for MinIO&reg; data volume
   ##
   size: {{ coalesce .Values.pvc.grist.minio.size .Values.pvc.default.size "8Gi" }}
