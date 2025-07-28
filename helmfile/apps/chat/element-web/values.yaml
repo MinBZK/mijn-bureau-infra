@@ -24,4 +24,4 @@ affinity: {}
 config:
   homeserverUrl: "https://matrix.example.com"
   serverName: "example.com"
-  brand: "My Custom Element"
+  brand: "Element Custom"

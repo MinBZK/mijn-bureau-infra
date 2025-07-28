@@ -41,7 +41,7 @@ releases:
     values:
       - "element-web/values.yaml"
       - "values-element-web.yaml.gotmpl"
-      - {{ toYaml .Values | nindent 6 }}
+    installed: {{ eq .Environment.Name "demo" | toYaml }}
 
   - name: "synapse"
     chart: "synapse/charts/synapse"
