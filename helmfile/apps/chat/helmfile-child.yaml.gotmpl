@@ -17,11 +17,11 @@ repositories:
     password: {{ .Values.chart.redis.password | quote }}
 
 releases:
-  {{/* - name: "chat-postgresql"
-    chart: "bitnami-postgres/{{ .Values.charts.postgresql.name }}"
-    version: "{{ .Values.charts.postgresql.version }}"
-    namespace: {{ .Values.applications.chat.namespace | quote }}
-    installed: {{ and (eq .Environment.Name "demo") .Values.applications.chat.enabled }}
+  - name: chat-postgresql
+    chart: "bitnami-postgres/{{ .Values.chart.postgresql.name }}"
+    version: {{ .Values.chart.postgresql.version | quote }}
+    namespace: {{ .Values.application.chat.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.chat.enabled) | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
 
@@ -33,7 +33,7 @@ releases:
     values:
       - "values-redis.yaml.gotmpl"
     installed: {{ eq .Environment.Name "demo" | toYaml }}
-    namespace: {{ .Values.applications.chat.namespace | quote }} */}}
+    namespace: {{ .Values.applications.chat.namespace | quote }}
 
   - name: "element-web"
     chart: "element-web/charts/element-web"
@@ -45,8 +45,8 @@ releases:
     values:
       - "values-element-web.yaml.gotmpl"
 
-  {{/* - name: synapse
-    chart: synapse/charts/synapse
+  - name: synapse
+    chart: charts/synapse
     condition: application.chat.enabled
     dependencies:
     - chart: "oci://{{ (coalesce .Values.chart.bitnamicommon.registry .Values.chart.default.registry ) }}/{{ .Values.chart.bitnamicommon.repository }}/{{ .Values.chart.bitnamicommon.name }}"
@@ -58,4 +58,4 @@ releases:
       - {{ .Values.application.chat.namespace }}/chat-redis
     {{- end }}
     values:
-      - "values-synapse.yaml.gotmpl" */}}
+      - "values-synapse.yaml.gotmpl"

@@ -32,8 +32,8 @@ master:
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.synapse.master | toYaml | nindent 4 }}
-  hpa: {{ .Values.autoscaling.horizontal.synapse.master | toYaml | nindent 6 }}
-  vpa: {{ .Values.autoscaling.vertical.synapse.master | toYaml | nindent 6 }}
+  autoscaling:
+    vpa: {{ .Values.autoscaling.vertical.synapse.master | toYaml | nindent 6 }}
   startupProbe:
     enabled: true
     initialDelaySeconds: 15
@@ -53,18 +53,22 @@ master:
       {{- if .Values.cache.synapse }}
       - ports:
           - port: {{ .Values.cache.synapse.port }}
+        {{- if .Values.cache.synapse.isInternal }}
         to:
           - podSelector:
               matchLabels:
                 app.kubernetes.io/instance: chat-redis
+        {{- end }}
       {{- end }}
       {{- if eq .Values.database.synapse.type "psycopg2" }}
       - ports:
           - port: {{ .Values.database.synapse.port }}
+        {{- if .Values.database.synapse.isInternal }}
         to:
           - podSelector:
               matchLabels:
                 app.kubernetes.io/instance: chat-postgresql
+        {{- end }}
       {{- end }}
 
 # TODO replication is not functional
