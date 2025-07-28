@@ -1,0 +1,21 @@
+# Copyright Broadcom, Inc. All Rights Reserved.
+# Modified from the Bitnami Charts Template https://github.com/bitnami/charts/tree/main/template
+# SPDX-License-Identifier: EUPL-1.2
+
+annotations:
+  category: ProductivityTools
+  licenses: EUPL-1.2
+apiVersion: v2
+appVersion: 30.0.7
+description: "Nextcloud is a file sharing server that puts the control and security of your own data back into your hands."
+keywords:
+  - nextcloud
+  - files
+  - file sharing
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: nextcloud
+sources:
+  - https://github.com/nextcloud
+version: 0.1.0

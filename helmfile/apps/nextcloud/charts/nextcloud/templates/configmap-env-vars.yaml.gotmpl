@@ -1,0 +1,59 @@
+{{- /*
+Copyright Broadcom, Inc. All Rights Reserved.
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-env-vars" (include "common.names.fullname" .) }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: nextcloud
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  {{- if .Values.trustedDomains }}
+  NEXTCLOUD_TRUSTED_DOMAINS: {{ join " " .Values.trustedDomains | quote }}
+  {{- end }}
+  {{- if ne (int .Values.update) 0 }}
+  NEXTCLOUD_UPDATE: {{ .Values.update | quote }}
+  {{- end }}
+  {{/*
+  Mail configuration
+  */}}
+  {{- if .Values.mail.enabled }}
+  MAIL_FROM_ADDRESS: {{ .Values.mail.fromAddress | quote }}
+  MAIL_DOMAIN: {{ .Values.mail.domain | quote }}
+  SMTP_HOST: {{ .Values.mail.smtp.host | quote }}
+  SMTP_PORT: {{ .Values.mail.smtp.port | quote }}
+  SMTP_SECURE: {{ .Values.mail.smtp.protocol | quote }}
+  SMTP_AUTHTYPE: {{ .Values.mail.smtp.auth | quote }}
+  {{- end }}
+  {{/*
+  Redis configuration
+  */}}
+  REDIS_HOST: {{ .Values.externalRedis.host | quote}}
+  REDIS_HOST_PORT: {{ .Values.externalRedis.port | quote}}
+  {{/*
+  MinIO configuration
+  */}}
+  OBJECTSTORE_S3_HOST: {{ .Values.externalMinio.endpoint | quote }}
+  OBJECTSTORE_S3_PORT: {{ .Values.externalMinio.port | quote }}
+  OBJECTSTORE_S3_BUCKET: {{ .Values.externalMinio.bucket | quote }}
+  OBJECTSTORE_S3_SSL: {{ .Values.externalMinio.useSSL | quote }}
+  OBJECTSTORE_S3_LEGACYAUTH: {{ .Values.externalMinio.legacyAuth | quote }}
+  OBJECTSTORE_S3_AUTOCREATE: {{ .Values.externalMinio.autocreate | quote }}
+  OBJECTSTORE_S3_SSE_C_KEY: {{ .Values.externalMinio.sseKey | quote }}
+  {{/*
+  Database configuration
+  */}}
+  {{- if eq .Values.externalDatabase.type "mysql" }}
+  MYSQL_HOST: {{ .Values.externalDatabase.host | quote }}
+  MYSQL_DATABASE: {{ .Values.externalDatabase.host | quote }}
+  {{- end }}
+  {{- if eq .Values.externalDatabase.type "postgres" }}
+  POSTGRES_HOST: {{ .Values.externalDatabase.host | quote }}
+  POSTGRES_DATABASE: {{ .Values.externalDatabase.host | quote }}
+  {{- end }}

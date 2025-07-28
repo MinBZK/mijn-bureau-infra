@@ -26,3 +26,5 @@ yarn-error.log*
 .venv/
 
 debug.log
+
+helmfile/environments/demo/mijnbureau.yaml.gotmpl
