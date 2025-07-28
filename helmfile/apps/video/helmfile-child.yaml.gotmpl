@@ -1,0 +1,10 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: livekit-server
+    chart: charts/livekit-server
+    condition: application.video.enabled
+    namespace: {{ .Values.application.video.namespace }}
+    values:
+      - "values.yaml.gotmpl"
