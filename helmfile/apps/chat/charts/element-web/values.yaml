@@ -111,12 +111,8 @@ orgInPath: true
 ## @param singleOrg Set to an org "domain" to pin client to that org
 singleOrg: ""
 
-
-
 ## @param allowAutomaticVersionChecking Whether element-web is allowed to automatically check if a newer element-web version is available. Defaults to "true" on the default element-web and element-web-ee Docker images. Defaults false in element-web-oss and everywhere else.
 allowAutomaticVersionChecking: false
-
-
 
 ## @param replicaCount Number of element-web replicas to deploy
 ##
@@ -736,13 +732,13 @@ config:
   ## @extra config.homeserver Configuration for the Matrix homeserver.
   homeserver:
     ## @param config.homeserver.domain The global domain name of the Matrix homeserver.
-    domain: 'example.com'
+    domain: "example.com"
     ##
     ## @param config.homeserver.base_url The base URL of the Matrix homeserver.
-    base_url: 'https://example.com'
+    base_url: "https://example.com"
     ##
     ## @param config.homeserver.server_name The server name of the Matrix homeserver.
-    server_name: 'matrix.example.com'
+    server_name: "matrix.example.com"
     ##
 
   ## @param config.name Name of the Element Web deployment.

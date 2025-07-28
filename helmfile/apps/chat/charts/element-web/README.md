@@ -43,7 +43,6 @@ The command deploys element-web on the Kubernetes cluster in the default configu
 
 It is strongly recommended to use immutable tags in a production environment. This ensures your deployment does not change automatically if the same tag is updated with a different image.
 
-
 ### Ingress
 
 This chart provides support for Ingress resources. If you have an ingress controller installed on your cluster, such as [nginx-ingress-controller](https://github.com/bitnami/charts/tree/main/bitnami/nginx-ingress-controller) or [contour](https://github.com/bitnami/charts/tree/main/bitnami/contour) you can utilize the ingress controller to serve your application.To enable Ingress integration, set `ingress.enabled` to `true`.
@@ -99,7 +98,6 @@ elementWeb:
 
 Alternatively, you can use a ConfigMap or a Secret with the environment variables. To do so, use the `extraEnvVarsCM` or the `extraEnvVarsSecret` values.
 
-
 ### Pod affinity
 
 This chart allows you to set your custom affinity using the `affinity` parameter. Find more information about Pod affinity in the [kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity).
@@ -131,7 +129,6 @@ To back up and restore Helm chart deployments on Kubernetes, you need to back up
 ## Persistence
 
 The Element-Web image stores the Grist data and configurations at the `/persist` path of the container. Persistent Volume Claims are used to keep the data across deployments.
-
 
 ## Parameters
 
