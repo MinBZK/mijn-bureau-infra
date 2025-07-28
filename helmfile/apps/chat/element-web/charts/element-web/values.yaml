@@ -735,12 +735,16 @@ metrics:
 config:
   ## @extra config.homeserver Configuration for the Matrix homeserver.
   homeserver:
+    ## @param config.homeserver.domain The global domain name of the Matrix homeserver.
+    domain: 'example.com'
+    ##
     ## @param config.homeserver.base_url The base URL of the Matrix homeserver.
     base_url: 'https://example.com'
     ##
     ## @param config.homeserver.server_name The server name of the Matrix homeserver.
-    server_name: 'example.com'
+    server_name: 'matrix.example.com'
     ##
+
   ## @param config.name Name of the Element Web deployment.
   name: "chat"
   ##
@@ -776,4 +780,3 @@ config:
     ## @param config.roomDirectory.servers List of servers to use for the room directory.
     servers:
       - matrix.org
-      

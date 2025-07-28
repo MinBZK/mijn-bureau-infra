@@ -54,8 +54,15 @@ container:
   redis:
     registry: "registry-1.docker.io"
     repository: "bitnami/redis"
-    tag: "8.0.3-debian-12-r1"
-    imagePullSecret: ~
+    tag: "8.0.3-debian-12-r1@sha256:189aae381e7f2de2fbf90847cc753f7f75077cd119e1af688a0c9e0e86ffd096"
+    imagePullSecrets: ~
+
+  elementweb:
+    registry: "registry-1.docker.io"
+    repository: "vectorim/element-web"
+    # TODO tag should be changed
+    tag: "latest"
+    imagePullSecrets: ~
 
   synapse:
     registry: "registry-1.docker.io"

@@ -1,13 +1,12 @@
-global:
-  imageRegistry: {{(coalesce .Values.global.containerRegistry .Values.containers.elementweb.registry) | quote }}
-
-  imagePullSecrets: {{ .Values.global.imagePullSecrets | toYaml | nindent 4 }}
-
 image:
-  registry: {{ coalesce .Values.global.containerRegistry .Values.containers.elementweb.registry | quote }}
-  repository: {{ .Values.containers.elementweb.repository | quote }}
-  tag: {{ .Values.containers.elementweb.tag | quote }}
-  pullPolicy: IfNotPresent
+  registry: {{ coalesce .Values.container.elementweb.registry .Values.container.default.registry | quote }}
+  repository: {{ .Values.container.elementweb.repository }}
+  # This sets the pull policy for images.
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: {{ .Values.container.elementweb.tag }}
+  pullSecrets:
+    - {{ coalesce .Values.container.elementweb.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 8 }}
 
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 
@@ -62,10 +61,11 @@ ingress:
 
 config:
   homeserver:
-    base_url: {{ .Values.global.matrixDomain | default "example.com" }}
-    server_name: {{ .Values.global.domain | default "example.com" }}
-  name: {{ .Values.global.hostname.element | default "element-web" }}
-  brand: {{ .Values.global.domain | default "example.com" }}
+    domain: {{ .Values.global.domain | default "example.com" }}
+    base_url: {{ .Values.global.hostname.synapse | default "matrix-chat" }}.{{ .Values.global.domain | default "example.com" }}
+    server_name: {{ .Values.global.hostname.synapse | default "matrix-chat" }}
+  name: {{ .Values.global.hostname.element | default "chat-chat" }}
+  brand: {{ .Values.global.hostname.synapse | default "matrix-chat" }}
   integrations_ui_url: ""
   integrations_rest_url: ""
   integrations_widgets_urls: []
@@ -76,7 +76,7 @@ config:
   default_federate: true
   roomDirectory:
     servers:
-      - {{ .Values.global.hostname.element | default "element-web" }}.{{ .Values.global.domain | default "example.com" }}
+      - {{ .Values.global.hostname.synapse | default "matrix-chat" }}.{{ .Values.global.domain | default "example.com" }}
       - matrix.org
 
 nodeSelector: {}

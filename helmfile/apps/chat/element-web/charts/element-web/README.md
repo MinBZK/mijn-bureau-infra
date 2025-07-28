@@ -330,20 +330,21 @@ The Element-Web image stores the Grist data and configurations at the `/persist`
 
 ### Element Web Config
 
-| Name                               | Description                                     | Value                 |
-| ---------------------------------- | ----------------------------------------------- | --------------------- |
-| `config.homeserver`                | Configuration for the Matrix homeserver.        |                       |
-| `config.homeserver.base_url`       | The base URL of the Matrix homeserver.          | `https://example.com` |
-| `config.homeserver.server_name`    | The server name of the Matrix homeserver.       | `example.com`         |
-| `config.name`                      | Name of the Element Web deployment.             | `chat`                |
-| `config.brand`                     | Brand label displayed in the Element Web UI.    | `Element Web Custom`  |
-| `config.integrations_ui_url`       | Optional: URL for integrations UI.              | `""`                  |
-| `config.integrations_rest_url`     | Optional: URL for integrations REST API.        | `""`                  |
-| `config.integrations_widgets_urls` | Optional: List of widget URLs for integrations. | `[]`                  |
-| `config.bug_report_endpoint_url`   | Optional: Endpoint URL to report bugs.          | `""`                  |
-| `config.default_country_code`      | Default country code for phone number fields.   | `NL`                  |
-| `config.showLabsSettings`          | Enable experimental labs features.              | `false`               |
-| `config.features`                  | Custom feature flags for Element Web.           | `{}`                  |
-| `config.default_federate`          | Enable federated rooms by default.              | `true`                |
-| `config.roomDirectory`             | Configuration for the room directory.           |                       |
-| `config.roomDirectory.servers`     | List of servers to use for the room directory.  | `["matrix.org"]`      |
+| Name                               | Description                                      | Value                 |
+| ---------------------------------- | ------------------------------------------------ | --------------------- |
+| `config.homeserver`                | Configuration for the Matrix homeserver.         |                       |
+| `config.homeserver.domain`         | The global domain name of the Matrix homeserver. | `example.com`         |
+| `config.homeserver.base_url`       | The base URL of the Matrix homeserver.           | `https://example.com` |
+| `config.homeserver.server_name`    | The server name of the Matrix homeserver.        | `matrix.example.com`  |
+| `config.name`                      | Name of the Element Web deployment.              | `chat`                |
+| `config.brand`                     | Brand label displayed in the Element Web UI.     | `Element Web Custom`  |
+| `config.integrations_ui_url`       | Optional: URL for integrations UI.               | `""`                  |
+| `config.integrations_rest_url`     | Optional: URL for integrations REST API.         | `""`                  |
+| `config.integrations_widgets_urls` | Optional: List of widget URLs for integrations.  | `[]`                  |
+| `config.bug_report_endpoint_url`   | Optional: Endpoint URL to report bugs.           | `""`                  |
+| `config.default_country_code`      | Default country code for phone number fields.    | `NL`                  |
+| `config.showLabsSettings`          | Enable experimental labs features.               | `false`               |
+| `config.features`                  | Custom feature flags for Element Web.            | `{}`                  |
+| `config.default_federate`          | Enable federated rooms by default.               | `true`                |
+| `config.roomDirectory`             | Configuration for the room directory.            |                       |
+| `config.roomDirectory.servers`     | List of servers to use for the room directory.   | `["matrix.org"]`      |
