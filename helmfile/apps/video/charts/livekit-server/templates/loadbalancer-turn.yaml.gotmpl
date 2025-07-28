@@ -1,0 +1,38 @@
+{{- if and (and .Values.livekit.turn.enabled .Values.livekit.turn.tls_port) .Values.turnLoadbalancer.enable }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "livekit-server.fullname" . }}-turn-loadbalancer
+  labels:
+    {{- include "livekit-server.labels" . | nindent 4 }}
+  {{- with .Values.livekit.turn.loadBalancerAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: LoadBalancer
+  ports:
+    {{- range $port := .Values.turn_udp_port_range }}
+    - name: port-{{  $port }}
+      port: {{  $port  }}
+      nodePort: {{  $port  }}
+      targetPort: port-{{  $port }}
+      protocol: UDP
+    {{- end }}
+    {{- if .Values.livekit.turn.udp_port }}
+    - port: {{ .Values.livekit.turn.udp_port }}
+      targetPort: turn-udp
+      protocol: UDP
+      nodePort: {{ .Values.livekit.turn.udp_port }}
+      name: turn-udp
+    {{- end }}
+    # {{- if .Values.livekit.turn.tls_port }}
+    # - port: {{ .Values.livekit.turn.tls_port }}
+    #   targetPort: turn-tls
+    #   protocol: TCP
+    #   nodePort: {{ .Values.livekit.turn.tls_port }}
+    #   name: turn-tls
+    #   {{- end }}
+  selector:
+    {{- include "livekit-server.selectorLabels" . | nindent 4 }}
+{{- end }}

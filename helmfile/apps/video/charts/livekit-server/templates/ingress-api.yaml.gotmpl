@@ -1,0 +1,32 @@
+{{- $fullName := include "livekit-server.fullname" . -}}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "livekit-server.labels" . | nindent 4 }}
+  annotations:
+  # custom annotations
+  {{- with .Values.loadBalancer.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- if semverCompare ">=1.19-0" .Capabilities.KubeVersion.GitVersion }}
+apiVersion: networking.k8s.io/v1
+{{- else }}
+apiVersion: extensions/v1beta1
+{{- end }}
+spec:
+  rules:
+  - host: {{ .Values.hostname | quote }}
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: {{ $fullName }}
+            port:
+              number: 80
+{{- with .Values.loadBalancer }}
+  tls:
+   - {}
+{{- end }}
