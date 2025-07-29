@@ -8,8 +8,8 @@
   $clientHostName is the host the client is running on
 */ -}}
 {{- $serverName := .Values.global.matrixDomain | default (printf "%s.%s" .Values.global.hostname.synapse .Values.global.domain) -}}
-{{- $hostName := printf "%s.%s" .Values.global.hostname.chat .Values.global.domain -}}
-{{- $clientHostName := printf "%s.%s" .Values.global.hostname.chat .Values.global.domain -}}
+{{- $hostName := printf "%s.%s" .Values.global.hostname.element .Values.global.domain -}}
+{{- $clientHostName := printf "%s.%s" .Values.global.hostname.element .Values.global.domain -}}
 
 clusterDomain: {{ .Values.cluster.networking.domain }}
 
@@ -31,7 +31,7 @@ defaultLocale: {{ .Values.global.defaultLocale | default "NL" }}
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 
 # CPU and memory requests and limits for the container
-resources: {{ .Values.resource.element | toYaml | nindent 4 }}
+resources: {{ .Values.resource.element | toYaml | nindent 2 }}
 
 # Security context settings applied at the pod level, such as user/group ID, filesystem permissions
 podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
@@ -86,7 +86,7 @@ serviceAccount:
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   enabled: true
-  hostname: {{ .Values.global.hostname.chat | default "chat" }}.{{ .Values.global.domain | default "example.com" }}
+  hostname: {{ .Values.global.hostname.element | default "chat" }}.{{ .Values.global.domain | default "example.com" }}
   extraTls: {{ .Values.tls.chat | toYaml | nindent 4 }}
   ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
 
@@ -96,7 +96,7 @@ config:
     domain: {{ .Values.global.domain | default "example.com" }}
     base_url: {{ .Values.global.hostname.synapse | default "matrix-chat" }}.{{ .Values.global.domain | default "example.com" }}
     server_name: {{ .Values.global.hostname.synapse | default "matrix-chat" }}
-  name: {{ .Values.global.hostname.chat | default "chat-chat" }}
+  name: {{ .Values.global.hostname.element | default "chat-chat" }}
   brand: {{ .Values.global.hostname.synapse | default "matrix-chat" }}
   integrations_ui_url: ""
   integrations_rest_url: ""
