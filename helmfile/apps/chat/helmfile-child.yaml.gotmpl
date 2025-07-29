@@ -33,6 +33,16 @@ releases:
     values:
       - "values-redis.yaml.gotmpl"
 
+  - name: "element-web"
+    chart: "charts/element-web"
+    condition: application.chat.enabled
+    namespace: {{ .Values.application.chat.namespace | quote }}
+    dependencies:
+    - chart: "oci://{{ (coalesce .Values.chart.bitnamicommon.registry .Values.chart.default.registry ) }}/{{ .Values.chart.bitnamicommon.repository }}/{{ .Values.chart.bitnamicommon.name }}"
+      version: 2.31.3
+    values:
+      - "values-element-web.yaml.gotmpl"
+
   - name: synapse
     chart: charts/synapse
     condition: application.chat.enabled

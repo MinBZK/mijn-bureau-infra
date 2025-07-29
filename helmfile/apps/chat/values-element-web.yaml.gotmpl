@@ -1,0 +1,137 @@
+# Default values for matrix-chat element-web.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+{{- /*
+  $serverName is the name of the server in the Matrix Chat ecosystem
+  $hostName is the hostname the server is available at
+  $clientHostName is the host the client is running on
+*/ -}}
+{{- $serverName := .Values.global.matrixDomain | default (printf "%s.%s" .Values.global.hostname.synapse .Values.global.domain) -}}
+{{- $hostName := printf "%s.%s" .Values.global.hostname.element .Values.global.domain -}}
+{{- $clientHostName := printf "%s.%s" .Values.global.hostname.element .Values.global.domain -}}
+
+clusterDomain: {{ .Values.cluster.networking.domain }}
+
+  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  registry: {{ coalesce .Values.container.elementweb.registry .Values.container.default.registry | quote }}
+  repository: {{ .Values.container.elementweb.repository }}
+  # This sets the pull policy for images.
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: {{ .Values.container.elementweb.tag }}
+  pullSecrets:
+    - {{ coalesce .Values.container.elementweb.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 8 }}
+
+# Default locale setting for the application, used for country codes or language preferences
+defaultLocale: {{ .Values.global.defaultLocale | default "NL" }}
+
+# Predefined resource configuration level like 'micro', 'small', etc.
+resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+
+# CPU and memory requests and limits for the container
+resources: {{ .Values.resource.element | toYaml | nindent 2 }}
+
+# Security context settings applied at the pod level, such as user/group ID, filesystem permissions
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
+
+# Security context settings specific to the container, like privilege dropping, readOnlyRootFilesystem, etc.
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
+
+# Number of desired pod replicas if HPA (autoscaling) is not enabled
+replicaCount: 1
+
+# Horizontal Pod Autoscaler configuration, such as min/max replicas and target CPU/memory
+autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.element | toYaml | nindent 6 }}
+
+networkPolicy:
+  enabled: true
+  # Restrict external access - only allow specific ingress sources
+  allowExternal: false
+  # Restrict external egress - only allow specific destinations
+  allowExternalEgress: false
+
+  extraIngress:
+   # Allow traffic from ingress controller namespace
+   - ports:
+       - port: 8080
+         protocol: TCP
+
+# extraVolumes Additional volumes to be mounted into the pod
+extraVolumes:
+  - name: nginx-conf
+    emptyDir: {}
+
+# extraVolumeMounts Mount paths for the extra volumes defined above
+extraVolumeMounts:
+  - name: nginx-conf
+    mountPath: /etc/nginx/conf.d
+
+# livenessProbe.enabled Enable Kubernetes liveness probe
+livenessProbe:
+  enabled: true
+
+# readinessProbe.enabled Enable Kubernetes readiness probe
+readinessProbe:
+  enabled: true
+
+serviceAccount:
+  # Specifies whether a ServiceAccount should be created
+  create: false
+  # Name of the existing ServiceAccount to use (if any)
+  name: ""
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  hostname: {{ .Values.global.hostname.element | default "chat" }}.{{ .Values.global.domain | default "example.com" }}
+  extraTls: {{ .Values.tls.chat | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
+
+# Application Configuration, more information can be found here :https://web-docs.element.dev/Element%20Web/config.html
+config:
+  homeserver:
+    domain: {{ .Values.global.domain | default "example.com" }}
+    base_url: {{ .Values.global.hostname.synapse | default "matrix-chat" }}.{{ .Values.global.domain | default "example.com" }}
+    server_name: {{ .Values.global.hostname.synapse | default "matrix-chat" }}
+  name: {{ .Values.global.hostname.element | default "chat-chat" }}
+  brand: {{ .Values.global.hostname.synapse | default "matrix-chat" }}
+  integrations_ui_url: ""
+  integrations_rest_url: ""
+  integrations_widgets_urls: []
+  bug_report_endpoint_url: ""
+  default_country_code: {{ .Values.global.defaultLocale | default "NL" }}
+  show_labs_settings: false
+  features:
+    feature_pinning: true
+    feature_custom_themes: true
+    feature_element_call_video_rooms: true
+    feature_group_calls: true
+    feature_html_topic: true
+    feature_ask_to_join: true
+  default_federate: true
+  room_directory:
+    servers:
+      - {{ .Values.global.hostname.synapse | default "matrix-chat" }}.{{ .Values.global.domain | default "example.com" }}
+  setting_defaults:
+    breadcrumbs: true
+  default_theme: "light"
+  disable_guests: true
+  force_verification: false
+  sso_redirect_options:
+    immediate: true
+  disable_custom_urls: true
+  disable_3pid_login: true
+  default_widget_container_height: 280
+  map_style_url: ""
+
+# labels for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity rules for pod assignment
+affinity: {}
