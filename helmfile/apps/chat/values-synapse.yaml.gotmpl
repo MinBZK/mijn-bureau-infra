@@ -9,7 +9,7 @@
 */ -}}
 {{- $serverName := .Values.global.matrixDomain | default (printf "%s.%s" .Values.global.hostname.synapse .Values.global.domain) -}}
 {{- $hostName := printf "%s.%s" .Values.global.hostname.synapse .Values.global.domain -}}
-{{- $clientHostName := printf "%s.%s" .Values.global.hostname.element .Values.global.domain -}}
+{{- $clientHostName := printf "%s.%s" .Values.global.hostname.chat .Values.global.domain -}}
 
 # Architecture can be monolith for a single node, or replication when using additional worker nodes for scaling.
 # See https://element-hq.github.io/synapse/latest/workers.html

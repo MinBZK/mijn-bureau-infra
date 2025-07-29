@@ -105,12 +105,6 @@ image:
 ## @param defaultLocale Locale to use as fallback when element-web cannot honour the browser locale
 defaultLocale: ""
 
-## @param orgInPath If true, encode org in path rather than domain
-orgInPath: true
-
-## @param singleOrg Set to an org "domain" to pin client to that org
-singleOrg: ""
-
 ## @param allowAutomaticVersionChecking Whether element-web is allowed to automatically check if a newer element-web version is available. Defaults to "true" on the default element-web and element-web-ee Docker images. Defaults false in element-web-oss and everywhere else.
 allowAutomaticVersionChecking: false
 
@@ -600,55 +594,6 @@ ingress:
   ##             name: http
   ##
   extraRules: []
-
-## @section Persistence Parameters
-##
-
-## Enable persistence using Persistent Volume Claims
-## ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
-##
-persistence:
-  ## @param persistence.enabled Enable persistence using Persistent Volume Claims
-  ##
-  enabled: false
-  ## @param persistence.mountPath Path to mount the volume at.
-  ##
-  mountPath: /persist
-  ## @param persistence.subPath The subdirectory of the volume to mount to, useful in dev environments and one PV for multiple services
-  ##
-  subPath: ""
-  ## @param persistence.storageClass Storage class of backing PVC
-  ## If defined, storageClassName: <storageClass>
-  ## If set to "-", storageClassName: "", which disables dynamic provisioning
-  ## If undefined (the default) or set to null, no storageClassName spec is
-  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-  ##   GKE, AWS & OpenStack)
-  ##
-  storageClass: ""
-  ## @param persistence.annotations Persistent Volume Claim annotations
-  ##
-  annotations: {}
-  ## @param persistence.accessModes Persistent Volume Access Modes
-  ##
-  accessModes:
-    - ReadWriteOnce
-  ## @param persistence.size Size of data volume
-  ##
-  size: 8Gi
-  ## @param persistence.dataSource Custom PVC data source
-  ##
-  dataSource: {}
-  ## @param persistence.existingClaim The name of an existing PVC to use for persistence
-  ##
-  existingClaim: ""
-  ## @param persistence.selector Selector to match an existing Persistent Volume for WordPress data PVC
-  ## If set, the PVC can't have a PV dynamically provisioned for it
-  ## E.g.
-  ## selector:
-  ##   matchLabels:
-  ##     app: my-app
-  ##
-  selector: {}
 
 ## @section Other Parameters
 ##

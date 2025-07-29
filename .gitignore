@@ -26,3 +26,6 @@ yarn-error.log*
 .venv/
 
 debug.log
+
+# Demo.yaml
+/helmfile/environments/demo/demo.yaml.gotmpl
