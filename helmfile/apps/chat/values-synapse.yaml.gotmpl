@@ -28,7 +28,7 @@ master:
     # Overrides the image tag whose default is the chart appVersion.
     tag: {{ .Values.container.synapse.tag }}
     pullSecrets:
-     - {{ coalesce .Values.container.synapse.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 8 }}
+     - {{ coalesce .Values.container.synapse.imagePullSecret .Values.container.default.imagePullSecret | quote }}
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.synapse.master | toYaml | nindent 4 }}
@@ -41,15 +41,18 @@ master:
     size: {{ coalesce .Values.pvc.synapse.synapse.size .Values.pvc.default.size "8Gi" }}
     storageClass: {{ coalesce .Values.pvc.synapse.synapse.storageClass .Values.pvc.default.storageClass | quote }}
   networkPolicy:
+    allowExternalEgress: {{ .Values.application.chat.synapse.allowExternalEgress | default false }}
     extraIngress:
       # Allow traffic from ingress controller namespace
       - ports:
           - port: 8448
             protocol: TCP
+    {{- if not .Values.application.chat.synapse.allowExternalEgress }}
     extraEgress:
       # Allow https egress for keycloak connection
       - ports:
           - port: 443
+          - port: 80
       {{- if .Values.cache.synapse }}
       - ports:
           - port: {{ .Values.cache.synapse.port }}
@@ -70,6 +73,7 @@ master:
                 app.kubernetes.io/instance: chat-postgresql
         {{- end }}
       {{- end }}
+    {{- end }}
 
 # TODO replication is not functional
 worker:
@@ -179,6 +183,7 @@ synapse:
     - idp_id: mijnbureau
       idp_name: "MijnBureau authenticatie"
       discover: false
+      skip_verification: {{ .Values.authentication.client.synapse.skip_verification | default false }}
       issuer: {{ .Values.authentication.oidc.issuer | quote }}
       client_id: {{ .Values.authentication.client.synapse.client_id | quote }}
       client_secret: {{ .Values.authentication.client.synapse.client_secret | quote }}
@@ -190,9 +195,9 @@ synapse:
       jwks_uri: {{ .Values.authentication.oidc.jwks_uri | quote }}
       user_mapping_provider:
         config:
-          localpart_template: {{`'{{ (user.given_name ~ user.family_name) | replace('' '', '''') }}'`}}
-          display_name_template: {{`'{{ user.name }}'`}}
-          email_template: {{`'{{ user.email }}'`}}
+          localpart_template: {{`'{{ user.`}}{{ index .Values.authentication.oidc.claims.username }}{{` | replace('' '', '''') }}'`}}
+          display_name_template: {{`'{{ user.`}}{{ .Values.authentication.oidc.claims.display_name }}{{` }}'`}}
+          email_template: {{`'{{ user.`}}{{ .Values.authentication.oidc.claims.email }}{{` }}'`}}
   # Disable password configuration, we only allow OIDC
   passwordConfig:
     enabled: false
