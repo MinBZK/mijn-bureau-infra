@@ -85,7 +85,10 @@ auth:
   username: {{ .Values.application.nextcloud.adminUser | quote }}
   password: {{ .Values.application.nextcloud.adminPassword | quote }}
 
-host: {{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}:8080
+host: {{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}
+
+trustedDomains:
+  - {{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}
 
 externalRedis:
   host: {{ .Values.cache.nextcloud.host | quote }}
@@ -117,5 +120,8 @@ phpConfigs:
     extension=pdo_pgsql
     extension=pdo_mysql
     extension=redis
+    extension=apcu
+    apc.enabled=1
+    apc.enable_cli=1
 
 extraConfigs: {}

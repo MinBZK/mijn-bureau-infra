@@ -51,9 +51,9 @@ data:
   */}}
   {{- if eq .Values.externalDatabase.type "mysql" }}
   MYSQL_HOST: {{ .Values.externalDatabase.host | quote }}
-  MYSQL_DATABASE: {{ .Values.externalDatabase.host | quote }}
+  MYSQL_DATABASE: {{ .Values.externalDatabase.database | quote }}
   {{- end }}
-  {{- if eq .Values.externalDatabase.type "postgres" }}
+  {{- if eq .Values.externalDatabase.type "postgresql" }}
   POSTGRES_HOST: {{ .Values.externalDatabase.host | quote }}
-  POSTGRES_DATABASE: {{ .Values.externalDatabase.host | quote }}
+  POSTGRES_DB: {{ .Values.externalDatabase.database | quote }}
   {{- end }}

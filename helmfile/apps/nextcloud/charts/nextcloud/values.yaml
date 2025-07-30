@@ -85,7 +85,7 @@ diagnosticMode:
 image:
   registry: registry-1.docker.io
   repository: library/nextcloud
-  tag: "31.0.7-apache"
+  tag: "30.0.7-apache"
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -209,7 +209,7 @@ externalMinio:
   existingSecretPasswordKey: ""
 
 ## External Database configuration
-## @param externalDatabase.type Set to 'mysql' or 'postgres'
+## @param externalDatabase.type Set to 'mysql' or 'postgresql'
 ## @param externalDatabase.username Username to connect as
 ## @param externalDatabase.password Password to use
 ## @param externalDatabase.host Host for db
@@ -231,31 +231,32 @@ externalDatabase:
   existingSecretPasswordKey: ""
 
 ## Built-in Feature Configurations
-## These settings enable common Nextcloud features and optimizations
-## @param builtinConfigs.protectConfigDir Protect configuration directory from web access (security)
-## @param builtinConfigs.autoSetup Enable automatic database configuration during installation
-## @param builtinConfigs.appDirectories Configure standard app installation directories
-## @param builtinConfigs.disableWebUpdater Disable web-based updater (recommended for Helm deployments)
-## @param builtinConfigs.prettyUrls Enable clean URL rewriting for better user experience
-## @param builtinConfigs.reverseProxy Configure headers for reverse proxy and load balancer support
-## @param builtinConfigs.localCache Enable APCu local memory cache for improved performance
-## @param builtinConfigs.redis Enable Redis distributed cache for multi-instance deployments
-## @param builtinConfigs.s3Storage Configure S3-compatible object storage as primary file backend
-## @param builtinConfigs.swiftStorage Configure OpenStack Swift object storage as primary file backend
-## @param builtinConfigs.email Enable SMTP email configuration for notifications and sharing
+## These settings enable common Nextcloud features and optimizations by generating configuration files
+## Keys are the actual config filenames that will be mounted in /var/www/html/config/
+## @param builtinConfigs.".htaccess" Protect configuration directory from web access (security)
+## @param builtinConfigs."autoconfig.php" Enable automatic database configuration during installation
+## @param builtinConfigs."apps.config.php" Configure standard app installation directories
+## @param builtinConfigs."upgrade-disable-web.config.php" Disable web-based updater (recommended for Helm deployments)
+## @param builtinConfigs."apache-pretty-urls.config.php" Enable clean URL rewriting for better user experience
+## @param builtinConfigs."reverse-proxy.config.php" Configure headers for reverse proxy and load balancer support
+## @param builtinConfigs."apcu.config.php" Enable APCu local memory cache for improved performance
+## @param builtinConfigs."redis.config.php" Enable Redis distributed cache for multi-instance deployments
+## @param builtinConfigs."s3.config.php" Configure S3-compatible object storage as primary file backend
+## @param builtinConfigs."swift.config.php" Configure OpenStack Swift object storage as primary file backend
+## @param builtinConfigs."smtp.config.php" Enable SMTP email configuration for notifications and sharing
 ##
 builtinConfigs:
-  protectConfigDir: true
-  autoSetup: true
-  appDirectories: true
-  disableWebUpdater: true
-  prettyUrls: true
-  reverseProxy: true
-  localCache: true
-  redis: true
-  s3Storage: true
-  swiftStorage: false
-  email: true
+  ".htaccess": true
+  "autoconfig.php": true
+  "apps.config.php": true
+  "upgrade-disable-web.config.php": true
+  "apache-pretty-urls.config.php": true
+  "reverse-proxy.config.php": true
+  "apcu.config.php": true
+  "redis.config.php": true
+  "s3.config.php": true
+  "swift.config.php": false
+  "smtp.config.php": true
 
 ## Custom Configuration Files
 ## ref:  https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/config_sample_php_parameters.html#multiple-config-php-file

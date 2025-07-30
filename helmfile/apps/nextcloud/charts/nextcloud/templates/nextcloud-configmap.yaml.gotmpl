@@ -20,47 +20,47 @@ data:
     {{- $content | nindent 4 }}
   {{- end }}
   {{- with .Values.builtinConfigs }}
-  {{- if .protectConfigDir }}
+  {{- if index . ".htaccess" }}
   .htaccess: |-
     {{- include "nextcloud.htaccess-config" $ | nindent 4 }}
   {{- end }}
-  {{- if .prettyUrls }}
+  {{- if index . "apache-pretty-urls.config.php" }}
   apache-pretty-urls.config.php: |-
     {{- include "nextcloud.apache-pretty-urls-config" $ | nindent 4 }}
   {{- end }}
-  {{- if .localCache }}
+  {{- if index . "apcu.config.php" }}
   apcu.config.php: |-
     {{- include "nextcloud.apcu-config" $ | nindent 4 }}
   {{- end }}
-  {{- if .appDirectories }}
+  {{- if index . "apps.config.php" }}
   apps.config.php: |-
     {{- include "nextcloud.apps-config" $ | nindent 4 }}
   {{- end }}
-  {{- if .autoSetup }}
+  {{- if index . "autoconfig.php" }}
   autoconfig.php: |-
     {{- include "nextcloud.autoconfig" $ | nindent 4 }}
   {{- end }}
-  {{- if .redis }}
+  {{- if index . "redis.config.php" }}
   redis.config.php: |-
     {{- include "nextcloud.redis-config" $ | nindent 4 }}
   {{- end }}
-  {{- if .reverseProxy }}
+  {{- if index . "reverse-proxy.config.php" }}
   reverse-proxy.config.php: |-
     {{- include "nextcloud.reverse-proxy-config" $ | nindent 4 }}
   {{- end }}
-  {{- if .s3Storage }}
+  {{- if index . "s3.config.php" }}
   s3.config.php: |-
     {{- include "nextcloud.s3-config" $ | nindent 4 }}
   {{- end }}
-  {{- if .swiftStorage }}
+  {{- if index . "swift.config.php" }}
   swift.config.php: |-
     {{- include "nextcloud.swift-config" $ | nindent 4 }}
   {{- end }}
-  {{- if .email }}
+  {{- if index . "smtp.config.php" }}
   smtp.config.php: |-
     {{- include "nextcloud.smtp-config" $ | nindent 4 }}
   {{- end }}
-  {{- if .disableWebUpdater }}
+  {{- if index . "upgrade-disable-web.config.php" }}
   upgrade-disable-web.config.php: |-
     {{- include "nextcloud.upgrade-disable-web-config" $ | nindent 4 }}
   {{- end }}

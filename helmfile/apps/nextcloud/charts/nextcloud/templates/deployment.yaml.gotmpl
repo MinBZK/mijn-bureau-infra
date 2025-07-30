@@ -153,7 +153,7 @@ spec:
                   name: {{ include "nextcloud.database.secretName" . }}
                   key: {{ include "nextcloud.database.secretPasswordKey" . }}
             {{- end }}
-            {{- if eq .Values.externalDatabase.type "postgres" }}
+            {{- if eq .Values.externalDatabase.type "postgresql" }}
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
