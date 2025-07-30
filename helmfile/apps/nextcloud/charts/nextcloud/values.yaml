@@ -85,7 +85,7 @@ diagnosticMode:
 image:
   registry: registry-1.docker.io
   repository: library/nextcloud
-  tag: "30.0.7-apache"
+  tag: "31.0.7-apache"
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
