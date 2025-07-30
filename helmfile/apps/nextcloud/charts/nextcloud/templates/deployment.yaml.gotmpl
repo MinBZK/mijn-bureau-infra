@@ -63,7 +63,7 @@ spec:
       topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.topologySpreadConstraints "context" .) | nindent 8 }}
       {{- end }}
       {{- if .Values.podSecurityContext.enabled }}
-      securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) | nindent 8 }}
       {{- end }}
       {{- if .Values.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
@@ -232,6 +232,12 @@ spec:
             - name: empty-dir
               mountPath: /tmp
               subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /usr/local/etc/php/conf.d
+              subPath: php-conf-d
+            - name: empty-dir
+              mountPath: /var/run/apache2
+              subPath: apache-run
             - name: nextcloud-data
               mountPath: /var/www/
               subPath: {{ ternary "root" (printf "%s/root" .Values.persistence.subPath) (empty .Values.persistence.subPath) }}
@@ -245,7 +251,7 @@ spec:
               mountPath: /var/www/html/custom_apps
               subPath: {{ ternary "custom_apps" (printf "%s/custom_apps" .Values.persistence.subPath) (empty .Values.persistence.subPath) }}
             - name: nextcloud-data
-              mountPath: /var/www/html/tmp
+              mountPath: /var/www/tmp
               subPath: {{ ternary "tmp" (printf "%s/tmp" .Values.persistence.subPath) (empty .Values.persistence.subPath) }}
             - name: nextcloud-data
               mountPath: /var/www/html/themes
@@ -262,6 +268,12 @@ spec:
               mountPath: {{ (printf "/usr/local/etc/php/conf.d/%s" $key | quote) }}
               subPath: {{ $key }}
             {{- end }}
+            - name: nextcloud-apache-config
+              mountPath: /etc/apache2/ports.conf
+              subPath: ports.conf
+            - name: nextcloud-apache-config
+              mountPath: /etc/apache2/sites-available/000-default.conf
+              subPath: 000-default.conf
           {{- if .Values.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
@@ -284,6 +296,9 @@ spec:
         - name: nextcloud-php-config
           configMap:
             name: {{ printf "%s-php-config" (include "common.names.fullname" .)  }}
+        - name: nextcloud-apache-config
+          configMap:
+            name: {{ printf "%s-apache-config" (include "common.names.fullname" .)  }}
         {{- if .Values.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
         {{- end }}

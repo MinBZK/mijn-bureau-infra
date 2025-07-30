@@ -84,7 +84,7 @@ diagnosticMode:
 ##
 image:
   registry: registry-1.docker.io
-  repository: nextcloud
+  repository: library/nextcloud
   tag: "31.0.7-apache"
   digest: ""
   ## Specify a imagePullPolicy
@@ -104,7 +104,7 @@ image:
 ## ref: https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/config_sample_php_parameters.html
 ##
 ## @param host Nextcloud host to create application URLs. This is added to `trusted_domains` at install only
-host: nextcloud.kube.home
+host: ""
 
 ## Nextcloud authentication parameters
 auth:
@@ -275,7 +275,7 @@ replicaCount: 1
 ## @param containerPorts.http Nextcloud HTTP container port
 ##
 containerPorts:
-  http: 80
+  http: 8080
 ## @param extraContainerPorts Optionally specify extra list of additional ports for Nextcloud containers
 ## e.g:
 ## extraContainerPorts:
@@ -481,12 +481,7 @@ updateStrategy:
   ## ONLY FOR STATEFULSETS:
   ## Can be set to RollingUpdate or OnDelete
   ##
-  type: RollingUpdate
-## ONLY FOR STATEFULSETS:
-## @param podManagementPolicy Pod management policy for Nextcloud statefulset
-## Ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
-##
-podManagementPolicy: OrderedReady
+  type: Recreate
 ## @param priorityClassName Nextcloud pods' priorityClassName
 ##
 priorityClassName: ""

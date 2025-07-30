@@ -135,7 +135,7 @@ Return the Redis secret name
 {{- if .Values.externalRedis.existingSecret }}
     {{- printf "%s" .Values.externalRedis.existingSecret -}}
 {{- else -}}
-    {{- printf "%s-redis" (include "common.names.fullname" .) -}}
+    {{- printf "%s-externalredis" (include "common.names.fullname" .) -}}
 {{- end -}}
 {{- end -}}
 
@@ -157,7 +157,7 @@ Return the MinIO secret name
 {{- if .Values.externalMinio.existingSecret }}
     {{- printf "%s" .Values.externalMinio.existingSecret -}}
 {{- else -}}
-    {{- printf "%s-minio" (include "common.names.fullname" .) -}}
+    {{- printf "%s-externalminio" (include "common.names.fullname" .) -}}
 {{- end -}}
 {{- end -}}
 
@@ -190,7 +190,7 @@ Return the database secret name
 {{- if .Values.externalDatabase.existingSecret }}
     {{- printf "%s" .Values.externalDatabase.existingSecret -}}
 {{- else -}}
-    {{- printf "%s-database" (include "common.names.fullname" .) -}}
+    {{- printf "%s-externaldatabase" (include "common.names.fullname" .) -}}
 {{- end -}}
 {{- end -}}
 

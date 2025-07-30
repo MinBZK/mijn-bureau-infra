@@ -29,13 +29,13 @@ networkPolicy:
   # Restrict external access - only allow specific ingress sources
   allowExternal: false
   # Restrict external egress - only allow specific destinations
-  allowExternalEgress: true
+  allowExternalEgress: false
 
 
   extraIngress:
    # Allow traffic from ingress controller namespace
    - ports:
-       - port: 8484
+       - port: 8080
          protocol: TCP
 
   # Specific egress rules for required services only
@@ -80,3 +80,42 @@ podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | ni
 containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
 
 metrics: {{ .Values.monitoring.prometheus | toYaml | nindent 2 }}
+
+auth:
+  username: {{ .Values.application.nextcloud.adminUser | quote }}
+  password: {{ .Values.application.nextcloud.adminPassword | quote }}
+
+host: {{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}:8080
+
+externalRedis:
+  host: {{ .Values.cache.nextcloud.host | quote }}
+  port: {{ .Values.cache.nextcloud.port | quote }}
+  password: {{ .Values.cache.nextcloud.password | quote }}
+
+externalMinio:
+  endpoint: {{ .Values.objectstore.nextcloud.endpoint | quote }}
+  port: {{ .Values.objectstore.nextcloud.port | quote }}
+  username: {{ .Values.objectstore.nextcloud.username | quote }}
+  password: {{ .Values.objectstore.nextcloud.rootPassword | quote }}
+  bucket: {{ .Values.objectstore.nextcloud.bucket | quote }}
+  useSSL: {{ .Values.objectstore.nextcloud.useSSL | quote }}
+
+externalDatabase:
+  database: {{ .Values.database.nextcloud.name | quote }}
+  username: {{ .Values.database.nextcloud.user | quote }}
+  host: {{ .Values.database.nextcloud.host | quote }}
+  password: {{ .Values.database.nextcloud.password | quote }}
+  port: {{ .Values.database.nextcloud.port | quote }}
+  type: {{ .Values.database.nextcloud.type | quote }}
+
+extraEnvVars: []
+
+phpConfigs:
+  nextcloud-php-modules.ini: |
+    extension=gd
+    extension=zip
+    extension=pdo_pgsql
+    extension=pdo_mysql
+    extension=redis
+
+extraConfigs: {}

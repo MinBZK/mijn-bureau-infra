@@ -27,4 +27,6 @@ application:
 
   nextcloud:
     enabled: true
+    adminUser: admin
+    adminPassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "nextcloud" "adminPassword" | sha1sum | quote }}
     namespace: ~
