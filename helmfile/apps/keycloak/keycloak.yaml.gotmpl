@@ -143,7 +143,7 @@ image:
   ##   - myRegistryKeySecretName
   ##
   pullSecrets:
-    - {{ coalesce .Values.container.keycloak.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 6 }}
+    - {{ coalesce .Values.container.keycloak.imagePullSecret .Values.container.default.imagePullSecret | quote }}
   ## Set to true if you would like to see extra information on logs
   ##
   debug: false
@@ -1189,7 +1189,7 @@ keycloakConfigCli:
     ##   - myRegistryKeySecretName
     ##
     pullSecrets:
-      - {{ coalesce .Values.container.keycloak_cli.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 8 }}
+      - {{ coalesce .Values.container.keycloak_cli.imagePullSecret .Values.container.default.imagePullSecret | quote }}
 
   ## @param keycloakConfigCli.annotations [object] Annotations for keycloak-config-cli job
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
