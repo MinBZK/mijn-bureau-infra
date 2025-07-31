@@ -13,22 +13,23 @@
 
 # Architecture can be monolith for a single node, or replication when using additional worker nodes for scaling.
 # See https://element-hq.github.io/synapse/latest/workers.html
-architecture: monolith
+architecture: replication
 
 commonLabels:
   app.kubernetes.io/part-of: synapse
 
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  registry: {{ coalesce .Values.container.synapse.registry .Values.container.default.registry | quote }}
+  repository: {{ .Values.container.synapse.repository }}
+  # This sets the pull policy for images.
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: {{ .Values.container.synapse.tag }}
+  pullSecrets:
+    - {{ coalesce .Values.container.synapse.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 8 }}
+
 master:
-  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
-  image:
-    registry: {{ coalesce .Values.container.synapse.registry .Values.container.default.registry | quote }}
-    repository: {{ .Values.container.synapse.repository }}
-    # This sets the pull policy for images.
-    pullPolicy: Always
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: {{ .Values.container.synapse.tag }}
-    pullSecrets:
-     - {{ coalesce .Values.container.synapse.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 8 }}
   # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.synapse.master | toYaml | nindent 4 }}
@@ -71,8 +72,11 @@ master:
         {{- end }}
       {{- end }}
 
-# TODO replication is not functional
 worker:
+  generic_worker:
+    enabled: true
+  media_repository:
+    enabled: true
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:

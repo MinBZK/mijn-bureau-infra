@@ -44,11 +44,7 @@ data:
       level: {{ .Values.synapse.logging.logLevel | default "INFO" }}
       handlers: [console]
   homeserver.yaml: |
-    # NOTE:
-    # Secrets are stored in separate configs to better fit K8s concepts
-
     ## Server ##
-
     server_name: {{ .Values.synapse.serverName | quote }}
     public_baseurl: {{ printf "https://%s" .Values.ingress.hostname | quote }}
     pid_file: /homeserver.pid
@@ -59,11 +55,19 @@ data:
     report_stats_endpoint: {{ .Values.synapse.reportStats.endpoint | quote }}
 
     {{- if eq .Values.architecture "replication" }}
-    # TODO replication still needs to be worked out. The values are not right.
     instance_map:
       main:
-        host: {{ include "synapse.replicationName" . | quote }}
-        port: {{ .Values.service.replication.port }}
+        host: {{ include "synapse.replication.fullname" . | quote }}
+        port: {{ .Values.master.service.ports.replication }}
+        {{- $default := .Values.worker.default }}
+        {{- range $worker, $config := .Values.workers }}
+        {{- if and $config.enabled $config.name $config.listeners (has "replication" $config.listeners) }}
+        {{- $name := $worker | replace "_" "-" }}
+      {{ $config.name | quote }}:
+        host: {{ include "synapse.worker.fullname" (dict "global" $ "worker" $name) | quote }}
+        port: {{ .Values.master.service.ports.replication }}
+      {{- end }}
+    {{- end }}
     {{- end }}
 
     listeners:
@@ -93,8 +97,8 @@ data:
 
     ## Files ##
 
-    media_store_path: "/synapse/data/media_store"
-    uploads_path: "/synapse/data/uploads"
+    media_store_path: "{{ .Values.persistence.mountPath }}/media"
+    uploads_path: "{{ .Values.persistence.mountPath }}/uploads"
     {{- if .Values.synapse.recaptcha.enabled }}
 
     ## Captcha ##
