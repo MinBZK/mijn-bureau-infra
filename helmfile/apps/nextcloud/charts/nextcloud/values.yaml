@@ -230,34 +230,6 @@ externalDatabase:
   existingSecretUsernameKey: ""
   existingSecretPasswordKey: ""
 
-## Built-in Feature Configurations
-## These settings enable common Nextcloud features and optimizations by generating configuration files
-## Keys are the actual config filenames that will be mounted in /var/www/html/config/
-## @param builtinConfigs.".htaccess" Protect configuration directory from web access (security)
-## @param builtinConfigs."autoconfig.php" Enable automatic database configuration during installation
-## @param builtinConfigs."apps.config.php" Configure standard app installation directories
-## @param builtinConfigs."upgrade-disable-web.config.php" Disable web-based updater (recommended for Helm deployments)
-## @param builtinConfigs."apache-pretty-urls.config.php" Enable clean URL rewriting for better user experience
-## @param builtinConfigs."reverse-proxy.config.php" Configure headers for reverse proxy and load balancer support
-## @param builtinConfigs."apcu.config.php" Enable APCu local memory cache for improved performance
-## @param builtinConfigs."redis.config.php" Enable Redis distributed cache for multi-instance deployments
-## @param builtinConfigs."s3.config.php" Configure S3-compatible object storage as primary file backend
-## @param builtinConfigs."swift.config.php" Configure OpenStack Swift object storage as primary file backend
-## @param builtinConfigs."smtp.config.php" Enable SMTP email configuration for notifications and sharing
-##
-builtinConfigs:
-  ".htaccess": true
-  "autoconfig.php": true
-  "apps.config.php": true
-  "upgrade-disable-web.config.php": true
-  "apache-pretty-urls.config.php": true
-  "reverse-proxy.config.php": true
-  "apcu.config.php": true
-  "redis.config.php": true
-  "s3.config.php": true
-  "swift.config.php": false
-  "smtp.config.php": true
-
 ## Custom Configuration Files
 ## ref:  https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/config_sample_php_parameters.html#multiple-config-php-file
 ## @param extraConfigs Custom config files as key-value pairs (filename: content)
@@ -294,7 +266,7 @@ extraContainerPorts: []
 ## @param livenessProbe.successThreshold Success threshold for livenessProbe
 ##
 livenessProbe:
-  enabled: true
+  enabled: false
   initialDelaySeconds: 10
   periodSeconds: 10
   timeoutSeconds: 5
@@ -308,7 +280,7 @@ livenessProbe:
 ## @param readinessProbe.successThreshold Success threshold for readinessProbe
 ##
 readinessProbe:
-  enabled: true
+  enabled: false
   initialDelaySeconds: 10
   periodSeconds: 10
   timeoutSeconds: 5
