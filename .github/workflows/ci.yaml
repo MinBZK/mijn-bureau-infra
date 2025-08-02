@@ -32,6 +32,36 @@ jobs:
       - name: Lint commit messages added to main
         run: gitlint --commits origin/${{ github.event.pull_request.base.ref }}..HEAD
 
+  lint-helmfile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install helm
+        run: |
+          wget -O - https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Install helmfile
+        run: |
+          cd /tmp/
+          wget https://github.com/helmfile/helmfile/releases/download/v1.1.2/helmfile_1.1.2_linux_amd64.tar.gz
+          tar -xzf helmfile_1.1.2_linux_amd64.tar.gz
+          sudo mv helmfile /usr/local/bin/helmfile
+
+      - name: Initilize helmfile dependecies
+        run: |
+          helmfile init --force
+
+      - name: Lint helmfile
+        run: |
+          helmfile -e production lint
+          helmfile -e demo lint
+          helmfile lint
+        env:
+          MIJNBUREAU_MASTER_PASSWORD: ${{ secrets.MIJNBUREAU_MASTER_PASSWORD || 'dependabot' }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY || 'dependabot'  }}
+
   render-helmfile:
     runs-on: ubuntu-latest
 
@@ -147,6 +177,7 @@ jobs:
         check-format-rules,
         render-helmfile,
         verify-policies,
+        lint-helmfile,
       ]
     if: ${{ always() && contains(needs.*.result, 'failure') }}
     steps:

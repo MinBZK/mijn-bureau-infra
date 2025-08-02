@@ -1,13 +1,13 @@
-import { themes as prismThemes } from 'prism-react-renderer';
-import type { Config } from '@docusaurus/types';
-import type * as Preset from '@docusaurus/preset-classic';
+import { themes as prismThemes } from "prism-react-renderer";
+import type { Config } from "@docusaurus/types";
+import type * as Preset from "@docusaurus/preset-classic";
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'Mijn Bureau',
-  tagline: 'Documentation',
-  favicon: 'img/favicon.ico',
+  title: "Mijn Bureau",
+  tagline: "Documentation",
+  favicon: "img/favicon.ico",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -15,57 +15,57 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://minbzk.github.io',
+  url: "https://minbzk.github.io",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/mijn-bureau-infra/',
+  baseUrl: "/mijn-bureau-infra/",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'MinBZK', // Usually your GitHub org/user name.
-  projectName: 'mijn-bureau-infra', // Usually your repo name.
+  organizationName: "MinBZK", // Usually your GitHub org/user name.
+  projectName: "mijn-bureau-infra", // Usually your repo name.
 
   trailingSlash: false,
 
-  onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenLinks: "throw",
+  onBrokenMarkdownLinks: "warn",
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: "en",
+    locales: ["en"],
   },
 
   presets: [
     [
-      'classic',
+      "classic",
       {
         docs: {
-          sidebarPath: './sidebars.ts',
+          sidebarPath: "./sidebars.ts",
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/MinBZK/mijn-bureau-infra/tree/main/docs/',
+            "https://github.com/MinBZK/mijn-bureau-infra/tree/main/docs/",
         },
         blog: {
           showReadingTime: true,
           feedOptions: {
-            type: ['rss', 'atom'],
+            type: ["rss", "atom"],
             xslt: true,
           },
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/MinBZK/mijn-bureau-infra/tree/main/docs/',
+            "https://github.com/MinBZK/mijn-bureau-infra/tree/main/docs/",
           // Useful options to enforce blogging best practices
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
+          onInlineTags: "warn",
+          onInlineAuthors: "warn",
+          onUntruncatedBlogPosts: "warn",
         },
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: "./src/css/custom.css",
         },
       } satisfies Preset.Options,
     ],
@@ -74,43 +74,45 @@ const config: Config = {
   themeConfig: {
     // Replace with your project's social card
     navbar: {
-      title: 'Mijn Bureau',
+      title: "Mijn Bureau",
       logo: {
-        alt: 'My Site Logo',
-        src: 'img/icon.svg',
+        alt: "My Site Logo",
+        src: "img/icon.svg",
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'documentationSidebar',
-          position: 'left',
-          label: 'Documentation',
+          type: "docSidebar",
+          sidebarId: "documentationSidebar",
+          position: "left",
+          label: "Documentation",
         },
         {
-          href: 'https://github.com/MinBZK/mijn-bureau-infra',
-          label: 'GitHub',
-          position: 'right',
+          href: "https://github.com/MinBZK/mijn-bureau-infra",
+          label: "GitHub",
+          position: "right",
         },
       ],
     },
     docs: {
-      versionPersistence: 'localStorage',
+      versionPersistence: "localStorage",
       sidebar: {
         hideable: true,
         autoCollapseCategories: true,
       },
     },
     footer: {
-      style: 'dark',
-      links: [{
-        title: 'Community',
-        items: [
-          {
-            label: 'Matrix',
-            href: 'https://matrix.to/#/#mijnbureau:matrix.org',
-          },
-        ],
-      }],
+      style: "dark",
+      links: [
+        {
+          title: "Community",
+          items: [
+            {
+              label: "Matrix",
+              href: "https://matrix.to/#/#mijnbureau:matrix.org",
+            },
+          ],
+        },
+      ],
       copyright: `Copyright © ${new Date().getFullYear()} The State of the Netherlands and all contributors. Built with Docusaurus.`,
     },
     prism: {

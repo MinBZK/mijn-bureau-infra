@@ -1,42 +1,42 @@
-import type { ReactNode } from 'react';
-import clsx from 'clsx';
-import Heading from '@theme/Heading';
-import styles from './styles.module.css';
+import type { ReactNode } from "react";
+import clsx from "clsx";
+import Heading from "@theme/Heading";
+import styles from "./styles.module.css";
 
 type FeatureItem = {
   title: string;
-  Svg: React.ComponentType<React.ComponentProps<'svg'>>;
+  Svg: React.ComponentType<React.ComponentProps<"svg">>;
   description: ReactNode;
 };
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Open Source',
-    Svg: require('@site/static/img/code-bracket-square.svg').default,
+    title: "Open Source",
+    Svg: require("@site/static/img/code-bracket-square.svg").default,
     description: (
       <>
-        MijnBureau is a fully open-source digital workplace suite built
-        for transparency and community collaboration.
+        MijnBureau is a fully open-source digital workplace suite built for
+        transparency and community collaboration.
       </>
     ),
   },
   {
-    title: 'Cloud Native',
-    Svg: require('@site/static/img/cloud.svg').default,
+    title: "Cloud Native",
+    Svg: require("@site/static/img/cloud.svg").default,
     description: (
       <>
-        Built for Kubernetes with modern cloud-native principles,
-        ensuring scalability and reliability.
+        Built for Kubernetes with modern cloud-native principles, ensuring
+        scalability and reliability.
       </>
     ),
   },
   {
-    title: 'Government Ready',
-    Svg: require('@site/static/img/shield-check.svg').default,
+    title: "Government Ready",
+    Svg: require("@site/static/img/shield-check.svg").default,
     description: (
       <>
-        Designed to meet government requirements with security,
-        compliance, and data sovereignty in mind.
+        Designed to meet government requirements with security, compliance, and
+        data sovereignty in mind.
       </>
     ),
   },
@@ -44,7 +44,7 @@ const FeatureList: FeatureItem[] = [
 
 function Feature({ title, Svg, description }: FeatureItem) {
   return (
-    <div className={clsx('col col--4')}>
+    <div className={clsx("col col--4")}>
       <div className="text--center">
         <Svg className={styles.featureSvg} role="img" />
       </div>

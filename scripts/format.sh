@@ -11,4 +11,4 @@ fi
 
 # Format the codebase using Prettier
 echo "Formatting codebase with Prettier..."
-prettier --write "**/*.{yml,yaml,md,json}" --ignore-path .gitignore
+prettier --write .
