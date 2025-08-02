@@ -19,7 +19,7 @@ spec:
   {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.master.podLabels .Values.commonLabels ) "context" . ) }}
   podSelector:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
-    app.kubernetes.io/component: master
+      app.kubernetes.io/component: master
   policyTypes:
     - Ingress
     - Egress
@@ -47,7 +47,9 @@ spec:
     {{- end }}
   ingress:
     - ports:
+        {{- if  .Values.master.containerPorts.http }}
         - port: {{ .Values.master.containerPorts.http }}
+        {{- end }}
         {{- if eq .Values.architecture "replication" }}
         - port: {{ .Values.master.containerPorts.replication }}
         {{- end }}
