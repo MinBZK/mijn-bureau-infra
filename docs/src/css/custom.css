@@ -6,39 +6,39 @@
 
 :root {
   /* RVO Design System Colors */
-  --rvo-color-hemelblauw: #007BC7;
-  --rvo-color-hemelblauw-150: #D9EBF7;
-  --rvo-color-hemelblauw-300: #B3D7EE;
-  --rvo-color-hemelblauw-450: #8CC4E6;
-  --rvo-color-hemelblauw-600: #66B0DD;
-  --rvo-color-hemelblauw-750: #409CD5;
+  --rvo-color-hemelblauw: #007bc7;
+  --rvo-color-hemelblauw-150: #d9ebf7;
+  --rvo-color-hemelblauw-300: #b3d7ee;
+  --rvo-color-hemelblauw-450: #8cc4e6;
+  --rvo-color-hemelblauw-600: #66b0dd;
+  --rvo-color-hemelblauw-750: #409cd5;
 
   --rvo-color-logoblauw: #154273;
-  --rvo-color-logoblauw-150: #DCE3EA;
-  --rvo-color-logoblauw-300: #B9C7D5;
-  --rvo-color-logoblauw-450: #95AAC0;
-  --rvo-color-logoblauw-600: #738EAB;
+  --rvo-color-logoblauw-150: #dce3ea;
+  --rvo-color-logoblauw-300: #b9c7d5;
+  --rvo-color-logoblauw-450: #95aac0;
+  --rvo-color-logoblauw-600: #738eab;
   --rvo-color-logoblauw-750: #507196;
 
   --rvo-color-donkerblauw: #01689b;
-  --rvo-color-donkerblauw-150: #D9E9F0;
-  --rvo-color-donkerblauw-300: #B3D2E1;
-  --rvo-color-donkerblauw-450: #8CBBD2;
-  --rvo-color-donkerblauw-600: #67A4C3;
-  --rvo-color-donkerblauw-750: #418EB4;
+  --rvo-color-donkerblauw-150: #d9e9f0;
+  --rvo-color-donkerblauw-300: #b3d2e1;
+  --rvo-color-donkerblauw-450: #8cbbd2;
+  --rvo-color-donkerblauw-600: #67a4c3;
+  --rvo-color-donkerblauw-750: #418eb4;
 
-  --rvo-color-grijs-050: #F8FAFC;
-  --rvo-color-grijs-100: #F1F5F9;
-  --rvo-color-grijs-200: #E2E8F0;
-  --rvo-color-grijs-300: #CBD5E1;
-  --rvo-color-grijs-400: #94A3B8;
-  --rvo-color-grijs-500: #64748B;
+  --rvo-color-grijs-050: #f8fafc;
+  --rvo-color-grijs-100: #f1f5f9;
+  --rvo-color-grijs-200: #e2e8f0;
+  --rvo-color-grijs-300: #cbd5e1;
+  --rvo-color-grijs-400: #94a3b8;
+  --rvo-color-grijs-500: #64748b;
   --rvo-color-grijs-600: #475569;
   --rvo-color-grijs-700: #334155;
-  --rvo-color-grijs-800: #1E293B;
-  --rvo-color-grijs-900: #0F172A;
+  --rvo-color-grijs-800: #1e293b;
+  --rvo-color-grijs-900: #0f172a;
 
-  --rvo-color-wit: #FFFFFF;
+  --rvo-color-wit: #ffffff;
   --rvo-color-zwart: #000000;
 }
 
@@ -62,7 +62,7 @@
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
+[data-theme="dark"] {
   --ifm-color-primary: var(--rvo-color-hemelblauw-450);
   --ifm-color-primary-dark: var(--rvo-color-hemelblauw-600);
   --ifm-color-primary-darker: var(--rvo-color-hemelblauw-750);

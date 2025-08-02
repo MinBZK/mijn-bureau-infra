@@ -10,3 +10,4 @@ if ! command -v gitlint &> /dev/null; then
 fi
 
 gitlint
+helmfile lint
