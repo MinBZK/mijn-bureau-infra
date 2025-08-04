@@ -20,10 +20,6 @@ cluster:
     gvisor:
       enabled: false
 
-  service:
-    # select the available implementation. this can be ClusterIP, NodePort, or LoadBalancer
-    type: LoadBalancer
-
   certificate:
     issuerRef:
       name: letsencrypt-prod
