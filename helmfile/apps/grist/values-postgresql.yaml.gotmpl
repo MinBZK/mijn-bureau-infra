@@ -136,7 +136,7 @@ image:
   ##   - myRegistryKeySecretName
   ##
   pullSecrets:
-    - {{ coalesce .Values.container.postgres.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 6 }}
+    - {{ coalesce .Values.container.postgres.imagePullSecret .Values.container.default.imagePullSecret | quote }}
   ## Set to true if you would like to see extra information on logs
   ##
   debug: false
