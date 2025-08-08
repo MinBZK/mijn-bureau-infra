@@ -96,10 +96,10 @@ auth:
   password: {{ .Values.application.nextcloud.adminPassword | quote }}
   oidc:
     enabled: false
-    clientId: {{ .Values.oidc.client.nextcloud.client_id | quote }}
-    clientSecret: {{ .Values.oidc.client.nextcloud.client_secret | quote }}
+    clientId: {{ .Values.authentication.oidc.client.nextcloud.client_id | quote }}
+    clientSecret: {{ .Values.authentication.oidc.client.nextcloud.client_secret | quote }}
     discoveryUri: "{{ .Values.authentication.oidc.issuer }}/.well-known/openid_configuration"
-    endSessionEndpointUri: {{ .Values.oidc.end_session_endpoint | quote }}
+    endSessionEndpointUri: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
 
 host: {{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}
 
