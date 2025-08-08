@@ -284,9 +284,37 @@ spec:
                 value: {{ $.Values.host | quote }}
           {{- end }}
           {{- end }}
-          {{- if .Values.lifecycleHooks }}
-          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.lifecycleHooks "context" $) | nindent 12 }}
-          {{- end }}
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -ec
+                  - |
+                    #!/bin/bash
+
+                    # Run in background so container doesn't hang during startup
+                    {
+                      echo "Waiting for NextCloud to be ready for user_oidc enablement..."
+                      counter=0
+                      while [ $counter -lt 60 ]; do
+                        if php /var/www/html/occ status 2>/dev/null | grep -q "installed: true"; then
+                          echo "NextCloud is ready, checking for user_oidc app..."
+                          if [ -d "/var/www/html/custom_apps/user_oidc" ]; then
+                            echo "Enabling user_oidc app..."
+                            php /var/www/html/occ app:enable user_oidc 2>/dev/null || true
+                            echo "user_oidc app enablement completed"
+                          fi
+                          break
+                        fi
+                        echo "Waiting for NextCloud... ($counter/60)"
+                        sleep 5
+                        counter=$((counter + 5))
+                      done
+                    }
+            {{- if .Values.lifecycleHooks }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.lifecycleHooks "context" $) | nindent 2 }}
+            {{- end }}
           volumeMounts:
             - name: empty-dir
               mountPath: /tmp
