@@ -1,0 +1,143 @@
+global:
+  security:
+    allowInsecureImages: true
+
+  imagePullSecrets:
+    - name: {{ (coalesce .Values.container.nextcloud.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+
+image:
+  registry: {{(coalesce .Values.container.nextcloud.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.nextcloud.repository | quote }}
+  tag: {{ .Values.container.nextcloud.tag | quote }}
+
+autoscaling:
+  hpa: {{ .Values.autoscaling.horizontal.nextcloud | toYaml | nindent 4 }}
+
+ingress:
+  enabled: true
+  hostname: {{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}
+  extraTls: {{ .Values.tls.nextcloud | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+
+resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+
+resources: {{ .Values.resource.nextcloud | toYaml | nindent 2 }}
+
+networkPolicy:
+  enabled: true
+  # Restrict external access - only allow specific ingress sources
+  allowExternal: false
+  # Restrict external egress - only allow specific destinations
+  allowExternalEgress: false
+
+
+  extraIngress:
+   # Allow traffic from ingress controller namespace
+   - ports:
+       - port: 8080
+         protocol: TCP
+
+  # Specific egress rules for required services only
+  extraEgress:
+    # Openid connect connectivity
+    # PostgreSQL connectivity
+    - ports:
+      - port: 5432
+        protocol: TCP
+      {{- if .Values.database.nextcloud.isInternal }}
+      to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+              app.kubernetes.io/component: primary
+      {{- end }}
+    # Redis connectivity
+    - ports:
+        - port: 6379
+          protocol: TCP
+      {{- if .Values.cache.nextcloud.isInternal }}
+      to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+              app.kubernetes.io/component: master
+      {{- end }}
+    # MinIO connectivity
+    - ports:
+        - port: 9000
+          protocol: TCP
+      {{- if .Values.objectstore.nextcloud.isInternal }}
+      to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: minio
+      {{- end }}
+    # Allow HTTPS for NextCloud app store access
+    - ports:
+      - port: 443
+        protocol: TCP
+      to: []
+    # Allow HTTP for potential redirects
+    - ports:
+      - port: 80
+        protocol: TCP
+      to: []
+
+
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
+
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
+
+metrics: {{ .Values.monitoring.prometheus | toYaml | nindent 2 }}
+
+auth:
+  username: {{ .Values.application.nextcloud.adminUser | quote }}
+  password: {{ .Values.application.nextcloud.adminPassword | quote }}
+  oidc:
+    enabled: false
+    clientId: {{ .Values.authentication.client.nextcloud.client_id | quote }}
+    clientSecret: {{ .Values.authentication.client.nextcloud.client_secret | quote }}
+    discoveryUri: "{{ .Values.authentication.oidc.issuer }}/.well-known/openid_configuration"
+    endSessionEndpointUri: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
+
+host: {{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}
+
+mail:
+  enabled: false
+  fromAddress: ""
+  domain: ""
+  smtp:
+    host: {{ .Values.smtp.host | quote }}
+    port: {{ .Values.smtp.port | quote }}
+    username: {{ .Values.smtp.username | quote }}
+    password: {{ .Values.smtp.password | quote }}
+    protocol: ""
+    auth: "LOGIN"
+    existingSecret: ""
+    existingSecretUsernameKey: ""
+    existingSecretPasswordKey: ""
+
+trustedDomains:
+  - {{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}
+
+externalRedis:
+  host: {{ .Values.cache.nextcloud.host | quote }}
+  port: {{ .Values.cache.nextcloud.port | quote }}
+  password: {{ .Values.cache.nextcloud.password | quote }}
+
+externalMinio:
+  endpoint: {{ .Values.objectstore.nextcloud.endpoint | quote }}
+  port: {{ .Values.objectstore.nextcloud.port | quote }}
+  username: {{ .Values.objectstore.nextcloud.username | quote }}
+  password: {{ .Values.objectstore.nextcloud.rootPassword | quote }}
+  bucket: {{ .Values.objectstore.nextcloud.bucket | quote }}
+  useSSL: {{ .Values.objectstore.nextcloud.useSSL | quote }}
+
+externalDatabase:
+  database: {{ .Values.database.nextcloud.name | quote }}
+  username: {{ .Values.database.nextcloud.user | quote }}
+  host: {{ .Values.database.nextcloud.host | quote }}
+  password: {{ .Values.database.nextcloud.password | quote }}
+  port: {{ .Values.database.nextcloud.port | quote }}
+  type: {{ .Values.database.nextcloud.type | quote }}

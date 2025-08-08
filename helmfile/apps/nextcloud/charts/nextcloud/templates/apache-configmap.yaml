@@ -1,0 +1,40 @@
+{{- /*
+Copyright Broadcom, Inc. All Rights Reserved.
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-apache-config" (include "common.names.fullname" .) }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: nextcloud
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  ports.conf: |
+    Listen 8080
+    
+    <IfModule ssl_module>
+    	Listen 443
+    </IfModule>
+    
+    <IfModule mod_gnutls.c>
+    	Listen 443
+    </IfModule>
+  
+  000-default.conf: |
+    <VirtualHost *:8080>
+    	ServerName {{ $.Values.host }}
+    	DocumentRoot /var/www/html
+    	
+    	<Directory /var/www/html>
+    		AllowOverride All
+    		Require all granted
+    	</Directory>
+    	
+    	ErrorLog ${APACHE_LOG_DIR}/error.log
+    	CustomLog ${APACHE_LOG_DIR}/access.log combined
+    </VirtualHost>

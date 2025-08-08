@@ -1,0 +1,945 @@
+# Copyright Broadcom, Inc. All Rights Reserved.
+# SPDX-License-Identifier: APACHE-2.0
+
+## @section Global parameters
+
+global:
+  ## Global Docker image parameters
+  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+  ## @param global.imageRegistry Global Docker Image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: ""
+  imagePullSecrets: []
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: ""
+  ## Security parameters
+  ## @param global.security.allowInsecureImages Allows skipping image verification
+  ##
+  security:
+    allowInsecureImages: false
+  ## Compatibility adaptations for Kubernetes platforms
+  ##
+  compatibility:
+    ## Compatibility adaptations for Openshift
+    ## @param global.compatibility.openshift.adaptSecurityContext Adapt the securityContext sections of the deployment to make them compatible with Openshift restricted-v2 SCC: remove runAsUser, runAsGroup and fsGroup and let the platform use their allowed default IDs. Possible values: auto (apply if the detected running cluster is Openshift), force (perform the adaptation always), disabled (do not perform adaptation)
+    ##
+    openshift:
+      adaptSecurityContext: auto
+    ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
+    ##
+    omitEmptySeLinuxOptions: false
+
+## @section Common parameters
+
+## @param kubeVersion Override Kubernetes version reported by .Capabilities
+##
+kubeVersion: ""
+## @param apiVersions Override Kubernetes API versions reported by .Capabilities
+##
+apiVersions: []
+## @param nameOverride String to partially override common.names.name
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: cluster.local
+## @param extraDeploy Array of extra objects to deploy with the release
+##
+extraDeploy: []
+## Diagnostic mode
+## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
+## @param diagnosticMode.command Command to override all containers in the chart release
+## @param diagnosticMode.args Args to override all containers in the chart release
+##
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## Nextcloud image
+## ref: https://hub.docker.com/_/nextcloud/tags
+## @param image.registry [default: registry-1.docker.io] Nextcloud image registry
+## @param image.repository [default: registry-1.docker.io/nextcloud] Nextcloud image repository
+## @skip image.tag Nextcloud image tag (immutable tags are recommended)
+## @param image.digest Nextcloud image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
+## @param image.pullPolicy Nextcloud image pull policy
+## @param image.pullSecrets Nextcloud image pull secrets
+## @param image.debug Enable Nextcloud image debug mode
+##
+image:
+  registry: registry-1.docker.io
+  repository: library/nextcloud
+  tag: "31.0.7-apache"
+  digest: ""
+  ## Specify a imagePullPolicy
+  ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
+  ##
+  pullPolicy: Always
+  ## Optionally specify an array of imagePullSecrets (secrets must be manually created in the namespace)
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ## e.g:
+  ## pullSecrets:
+  ##   - myRegistryKeySecretName
+  ##
+  pullSecrets: []
+  debug: false
+
+## Nextcloud setup
+## ref: https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/config_sample_php_parameters.html
+##
+## @param host Nextcloud host to create application URLs. This is added to `trusted_domains` at install only
+host: ""
+
+## Nextcloud authentication parameters
+auth:
+  ## @param auth.username Sets the admin username on installation.
+  ##
+  username: admin
+  ## @param auth.password Sets the admin password on installation. WARNING: Minimum length of 10 characters
+  ## Defaults to a random 10-character alphanumeric string if not set
+  ##
+  password: changeme
+  ## @param auth.token API Token of the application
+  ##
+  token: ""
+  ## @param auth.existingSecret The name of an existing secret with Nextcloud credentials
+  ## NOTE: When it's set, `auth.password` will be ignored and picked up from this secret
+  ##
+  existingSecret: ""
+  ## @param auth.existingSecretUsernameKey Username key to be retrieved from existing secret
+  ## NOTE: ignored unless `existingSecret` parameter is set
+  ##
+  existingSecretUsernameKey: ""
+  ## @param auth.existingSecretPasswordKey Password key to be retrieved from existing secret
+  ## NOTE: ignored unless `existingSecret` parameter is set
+  ##
+  existingSecretPasswordKey: ""
+  ## Nextcloud user_oidc parameters
+  ## @param auth.oidc.enabled Enable/disable OpenID Connect
+  ## @param auth.oidc.clientId OpenID client identifier
+  ## @param auth.oidc.clientSecret OpenID client secret
+  ## @param auth.oidc.discoveryUri OpenID discovery endpoint URI
+  ## @param auth.oidc.endSessionEndpointUri OpenID end session endpoint URI
+  oidc:
+    enabled: false
+    clientId: ""
+    clientSecret: ""
+    discoveryUri: ""
+    endSessionEndpointUri: ""
+
+## @param update Trigger update if custom command is used
+##
+update: 0
+## @param trustedDomains Space seperated list of trusted trusted_domains
+##
+trustedDomains: []
+## Nextcloud email parameters
+## ref: https://docs.nextcloud.com/server/stable/admin_manual/configuration_server/email_configuration.html
+## @param mail.enabled Enable/disable mail capabilities
+## @param mail.fromAddress Set the local-part for the 'from' field in the emails sent by Nextcloud
+## @param mail.domain Set a different domain for the emails than the domain where Nextcloud is installed
+## @param mail.smtp.host SMTP host name
+## @param mail.smtp.port SMTP host port
+## @param mail.smtp.username SMTP account user name
+## @param mail.smtp.password SMTP account password
+## @param mail.smtp.protocol SMTP protocol (allowed values: "", ssl)
+## @param mail.smtp.auth SMTP authenticiation method
+## @param mail.smtp.existingSecret Name of an existing Kubernetes secret.
+## @param mail.smtp.existingSecretUsernameKey Username key to be retrieved from existing secret. NOTE: ignored unless `mail.smtp.existingSecret` is set
+## @param mail.smtp.existingSecretPasswordKey Password key to be retrieved from existing secret. NOTE: ignored unless `mail.smtp.existingSecret` is set
+##
+mail:
+  enabled: false
+  fromAddress: ""
+  domain: ""
+  smtp:
+    host: ""
+    port: ""
+    username: ""
+    password: ""
+    protocol: ""
+    auth: "LOGIN"
+    existingSecret: ""
+    existingSecretUsernameKey: ""
+    existingSecretPasswordKey: ""
+
+## External Redis configuration
+## @param externalRedis.host Redis host
+## @param externalRedis.port Redis port number
+## @param externalRedis.password Redis password
+## @param externalRedis.existingSecret Name of an existing secret resource containing the Redis credentials
+## @param externalRedis.existingSecretPasswordKey Name of the password key in the existing secret
+##
+externalRedis:
+  host: ""
+  port: ""
+  password: ""
+  existingSecret: ""
+  existingSecretPasswordKey: "redis-password"
+
+## External MinIO configuration
+## @param externalMinio.endpoint MinIO endpoint
+## @param externalMinio.port MinIO port
+## @param externalMinio.username MinIO access key (username)
+## @param externalMinio.password MinIO secret key (password)
+## @param externalMinio.bucket MinIO bucket name
+## @param externalMinio.useSSL If set to `true` will use SSL.
+## @param externalMinio.legacyAuth If set to `true` will use legacy authentication.
+## @param externalMinio.autocreate If set to `true` will autocreate the bucket
+## @param externalMinio.sseKey Service Side Encryption key
+## @param externalMinio.existingSecret Name of an existing secret resource containing the Minio credentials
+## @param externalMinio.existingSecretUsernameKey Name of the username key in the existing secret
+## @param externalMinio.existingSecretPasswordKey Name of the password key in the existing secret
+##
+externalMinio:
+  endpoint: ""
+  port: ""
+  username: ""
+  password: ""
+  bucket: ""
+  useSSL: true
+  legacyAuth: false
+  autocreate: false
+  sseKey: ""
+  existingSecret: ""
+  existingSecretUsernameKey: ""
+  existingSecretPasswordKey: ""
+
+## External Database configuration
+## @param externalDatabase.type Set to 'mysql' or 'postgresql'
+## @param externalDatabase.username Username to connect as
+## @param externalDatabase.password Password to use
+## @param externalDatabase.host Host for db
+## @param externalDatabase.port Port number for db if not the default for that db type
+## @param externalDatabase.database Database filename for sqlite or database name for other db types
+## @param externalDatabase.existingSecret Name of an existing secret resource containing the Minio credentials
+## @param externalDatabase.existingSecretUsernameKey Name of the username key in the existing secret
+## @param externalDatabase.existingSecretPasswordKey Name of the password key in the existing secret
+##
+externalDatabase:
+  type: ""
+  username: ""
+  password: ""
+  host: ""
+  port: ""
+  database: ""
+  existingSecret: ""
+  existingSecretUsernameKey: ""
+  existingSecretPasswordKey: ""
+
+builtinConfigs:
+  # To protect /var/www/html/config
+  .htaccess: true
+  # Apache configuration for rewrite urls
+  apache-pretty-urls.config.php: true
+  # Define APCu as local cache
+  apcu.config.php: true
+  # Apps directory configs
+  apps.config.php: true
+  # Used for auto configure database
+  autoconfig.php: true
+  # Redis default configuration
+  redis.config.php: true
+  # Reverse proxy default configuration
+  reverse-proxy.config.php: true
+  # S3 Object Storage as primary storage
+  s3.config.php: true
+  # SMTP default configuration via environment variables
+  smtp.config.php: true
+  # Swift Object Storage as primary storage
+  swift.config.php: true
+  # disables the web based updater as the default nextcloud docker image does not support it
+  upgrade-disable-web.config.php: true
+  # -- imaginary support config
+  imaginary.config.php: false
+
+## Custom Configuration Files
+## ref:  https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/config_sample_php_parameters.html#multiple-config-php-file
+## @param extraConfigs Custom config files as key-value pairs (filename: content)
+##
+extraConfigs: {}
+
+## PHP Configuration files that will be created in /usr/local/etc/php/conf.d
+## @param phpConfigs PHP configuration files as key-value pairs (filename: content)
+##
+phpConfigs: {}
+
+## Nextcloud set-the-security-context-for-a-pod
+## @param replicaCount Number of Nextcloud replicas to deploy
+##
+replicaCount: 1
+## @param containerPorts.http Nextcloud HTTP container port
+##
+containerPorts:
+  http: 8080
+## @param extraContainerPorts Optionally specify extra list of additional ports for Nextcloud containers
+## e.g:
+## extraContainerPorts:
+##   - name: myservice
+##     containerPort: 9090
+##
+extraContainerPorts: []
+## Configure extra options for Nextcloud containers' liveness and readiness probes
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+## @param livenessProbe.enabled Enable livenessProbe on Nextcloud containers
+## @param livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+## @param livenessProbe.periodSeconds Period seconds for livenessProbe
+## @param livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+## @param livenessProbe.failureThreshold Failure threshold for livenessProbe
+## @param livenessProbe.successThreshold Success threshold for livenessProbe
+##
+livenessProbe:
+  enabled: false
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+## @param readinessProbe.enabled Enable readinessProbe on Nextcloud containers
+## @param readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+## @param readinessProbe.periodSeconds Period seconds for readinessProbe
+## @param readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+## @param readinessProbe.failureThreshold Failure threshold for readinessProbe
+## @param readinessProbe.successThreshold Success threshold for readinessProbe
+##
+readinessProbe:
+  enabled: false
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+## @param startupProbe.enabled Enable startupProbe on Nextcloud containers
+## @param startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+## @param startupProbe.periodSeconds Period seconds for startupProbe
+## @param startupProbe.timeoutSeconds Timeout seconds for startupProbe
+## @param startupProbe.failureThreshold Failure threshold for startupProbe
+## @param startupProbe.successThreshold Success threshold for startupProbe
+##
+startupProbe:
+  enabled: false
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+  successThreshold: 1
+## @param customLivenessProbe Custom livenessProbe that overrides the default one
+##
+customLivenessProbe: {}
+## @param customReadinessProbe Custom readinessProbe that overrides the default one
+##
+customReadinessProbe: {}
+## @param customStartupProbe Custom startupProbe that overrides the default one
+##
+customStartupProbe: {}
+## Nextcloud resource requests and limits
+## ref: http://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+## @param resourcesPreset Set Nextcloud container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set (resources is recommended for production).
+## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+##
+resourcesPreset: "nano"
+## @param resources Set Nextcloud container requests and limits for different resources like CPU or memory (essential for production workloads)
+## Example:
+## resources:
+##   requests:
+##     cpu: 2
+##     memory: 512Mi
+##   limits:
+##     cpu: 3
+##     memory: 1024Mi
+##
+resources: {}
+## Configure Pods Security Context
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+## @param podSecurityContext.enabled Enable Nextcloud pods' Security Context
+## @param podSecurityContext.fsGroupChangePolicy Set filesystem group change policy for Nextcloud pods
+## @param podSecurityContext.sysctls Set kernel settings using the sysctl interface for Nextcloud pods
+## @param podSecurityContext.supplementalGroups Set filesystem extra groups for Nextcloud pods
+## @param podSecurityContext.fsGroup Set fsGroup in Nextcloud pods' Security Context
+##
+podSecurityContext:
+  enabled: true
+  fsGroupChangePolicy: Always
+  sysctls: []
+  supplementalGroups: []
+  fsGroup: 1001
+## Configure Container Security Context
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+## @param containerSecurityContext.enabled Enabled Nextcloud container' Security Context
+## @param containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in Nextcloud container
+## @param containerSecurityContext.runAsUser Set runAsUser in Nextcloud container' Security Context
+## @param containerSecurityContext.runAsGroup Set runAsGroup in Nextcloud container' Security Context
+## @param containerSecurityContext.runAsNonRoot Set runAsNonRoot in Nextcloud container' Security Context
+## @param containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in Nextcloud container' Security Context
+## @param containerSecurityContext.privileged Set privileged in Nextcloud container' Security Context
+## @param containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in Nextcloud container' Security Context
+## @param containerSecurityContext.capabilities.drop List of capabilities to be dropped in Nextcloud container
+## @param containerSecurityContext.seccompProfile.type Set seccomp profile in Nextcloud container
+##
+containerSecurityContext:
+  enabled: true
+  seLinuxOptions: {}
+  runAsUser: 1001
+  runAsGroup: 1001
+  runAsNonRoot: true
+  readOnlyRootFilesystem: true
+  privileged: false
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  seccompProfile:
+    type: "RuntimeDefault"
+
+## @param existingConfigmap The name of an existing ConfigMap with your custom configuration for Nextcloud
+##
+existingConfigmap:
+## @param command Override default Nextcloud container command (useful when using custom images)
+##
+command: []
+## @param args Override default Nextcloud container args (useful when using custom images)
+##
+args: []
+## @param automountServiceAccountToken Mount Service Account token in Nextcloud pods
+##
+automountServiceAccountToken: false
+## @param hostAliases Nextcloud pods host aliases
+## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+##
+hostAliases: []
+## @param daemonsetAnnotations Annotations for Nextcloud daemonset
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+daemonsetAnnotations: {}
+## @param deploymentAnnotations Annotations for Nextcloud deployment
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+deploymentAnnotations: {}
+## @param statefulsetAnnotations Annotations for Nextcloud statefulset
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+statefulsetAnnotations: {}
+## @param podLabels Extra labels for Nextcloud pods
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+##
+podLabels: {}
+## @param podAnnotations Annotations for Nextcloud pods
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+podAnnotations: {}
+## @param podAffinityPreset Pod affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
+## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+##
+podAffinityPreset: ""
+## @param podAntiAffinityPreset Pod anti-affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
+## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+##
+podAntiAffinityPreset: soft
+## Node affinity preset
+## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+##
+nodeAffinityPreset:
+  ## @param nodeAffinityPreset.type Node affinity preset type. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
+  ##
+  type: ""
+  ## @param nodeAffinityPreset.key Node label key to match. Ignored if `affinity` is set
+  ##
+  key: ""
+  ## @param nodeAffinityPreset.values Node label values to match. Ignored if `affinity` is set
+  ## E.g.
+  ## values:
+  ##   - e2e-az1
+  ##   - e2e-az2
+  ##
+  values: []
+## @param affinity Affinity for Nextcloud pods assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+## NOTE: `podAffinityPreset`, `podAntiAffinityPreset`, and `nodeAffinityPreset` will be ignored when it's set
+##
+affinity: {}
+## @param nodeSelector Node labels for Nextcloud pods assignment
+## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+##
+nodeSelector: {}
+## @param tolerations Tolerations for Nextcloud pods assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+##
+tolerations: []
+## ONLY FOR DEPLOYMENTS:
+## @param updateStrategy.type Nextcloud deployment strategy type
+## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+## ONLY FOR STATEFULSETS:
+## @param updateStrategy.type Nextcloud statefulset strategy type
+## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+##
+updateStrategy:
+  ## ONLY FOR DEPLOYMENTS:
+  ## Can be set to RollingUpdate or Recreate
+  ## ONLY FOR STATEFULSETS:
+  ## Can be set to RollingUpdate or OnDelete
+  ##
+  type: Recreate
+## @param priorityClassName Nextcloud pods' priorityClassName
+##
+priorityClassName: ""
+## @param topologySpreadConstraints Topology Spread Constraints for Nextcloud pod assignment spread across your cluster among failure-domains
+## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
+##
+topologySpreadConstraints: []
+## @param schedulerName Name of the k8s scheduler (other than default) for Nextcloud pods
+## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+##
+schedulerName: ""
+## @param terminationGracePeriodSeconds Seconds Nextcloud pods need to terminate gracefully
+## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
+##
+terminationGracePeriodSeconds: ""
+## @param lifecycleHooks for Nextcloud containers to automate configuration before or after startup
+##
+lifecycleHooks: {}
+## @param extraEnvVars Array with extra environment variables to add to Nextcloud containers
+## e.g:
+## extraEnvVars:
+##   - name: FOO
+##     value: "bar"
+##
+extraEnvVars: []
+## @param extraEnvVarsCM Name of existing ConfigMap containing extra env vars for Nextcloud containers
+##
+extraEnvVarsCM: ""
+## @param extraEnvVarsSecret Name of existing Secret containing extra env vars for Nextcloud containers
+##
+extraEnvVarsSecret: ""
+## @param extraVolumes Optionally specify extra list of additional volumes for the Nextcloud pods
+##
+extraVolumes: []
+## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for the Nextcloud containers
+##
+extraVolumeMounts: []
+## @param sidecars Add additional sidecar containers to the Nextcloud pods
+## e.g:
+## sidecars:
+##   - name: your-image-name
+##     image: your-image
+##     imagePullPolicy: Always
+##     ports:
+##       - name: portname
+##         containerPort: 1234
+##
+sidecars: []
+## @param initContainers Add additional init containers to the Nextcloud pods
+## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+## e.g:
+## initContainers:
+##  - name: your-image-name
+##    image: your-image
+##    imagePullPolicy: Always
+##    command: ['sh', '-c', 'echo "hello world"']
+##
+initContainers: []
+## Pod Disruption Budget configuration
+## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb
+## @param pdb.create Enable/disable a Pod Disruption Budget creation
+## @param pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+## @param pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable. Defaults to `1` if both `pdb.minAvailable` and `pdb.maxUnavailable` are empty.
+##
+pdb:
+  create: true
+  minAvailable: ""
+  maxUnavailable: ""
+## Autoscaling configuration
+## ref: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+##
+autoscaling:
+  ## @param autoscaling.vpa.enabled Enable VPA for Nextcloud pods
+  ## @param autoscaling.vpa.annotations Annotations for VPA resource
+  ## @param autoscaling.vpa.controlledResources VPA List of resources that the vertical pod autoscaler can control. Defaults to cpu and memory
+  ## @param autoscaling.vpa.maxAllowed VPA Max allowed resources for the pod
+  ## @param autoscaling.vpa.minAllowed VPA Min allowed resources for the pod
+  ##
+  vpa:
+    enabled: false
+    annotations: {}
+    controlledResources: []
+    maxAllowed: {}
+    minAllowed: {}
+    ## @param autoscaling.vpa.updatePolicy.updateMode Autoscaling update policy
+    ## Specifies whether recommended updates are applied when a Pod is started and whether recommended updates are applied during the life of a Pod
+    ## Possible values are "Off", "Initial", "Recreate", and "Auto".
+    ##
+    updatePolicy:
+      updateMode: Auto
+  ## @param autoscaling.hpa.enabled Enable HPA for Nextcloud pods
+  ## @param autoscaling.hpa.minReplicas Minimum number of replicas
+  ## @param autoscaling.hpa.maxReplicas Maximum number of replicas
+  ## @param autoscaling.hpa.targetCPU Target CPU utilization percentage
+  ## @param autoscaling.hpa.targetMemory Target Memory utilization percentage
+  ##
+  hpa:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPU: 75
+    targetMemory: ""
+
+## @section Traffic Exposure Parameters
+##
+
+## Nextcloud service parameters
+##
+service:
+  ## @param service.type Nextcloud service type
+  ##
+  type: ClusterIP
+  ## @param service.ports.http Nextcloud service HTTP port
+  ##
+  ports:
+    http: 8080
+  ## Node ports to expose
+  ## @param service.nodePorts.http Node port for HTTP
+  ## NOTE: choose port between <30000-32767>
+  ##
+  nodePorts:
+    http: ""
+  ## @param service.clusterIP Nextcloud service Cluster IP
+  ## e.g.:
+  ## clusterIP: None
+  ##
+  clusterIP: ""
+  ## @param service.loadBalancerIP Nextcloud service Load Balancer IP
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
+  ##
+  loadBalancerIP: ""
+  ## @param service.loadBalancerSourceRanges Nextcloud service Load Balancer sources
+  ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+  ## e.g:
+  ## loadBalancerSourceRanges:
+  ##   - 10.10.10.0/24
+  ##
+  loadBalancerSourceRanges: []
+  ## @param service.externalTrafficPolicy Nextcloud service external traffic policy
+  ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+  ##
+  externalTrafficPolicy: Cluster
+  ## @param service.annotations Additional custom annotations for Nextcloud service
+  ##
+  annotations: {}
+  ## @param service.extraPorts Extra ports to expose in Nextcloud service (normally used with the `sidecars` value)
+  ##
+  extraPorts: []
+  ## @param service.sessionAffinity Control where client requests go, to the same pod or round-robin
+  ## Values: ClientIP or None
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/
+  ##
+  sessionAffinity: None
+  ## @param service.sessionAffinityConfig Additional settings for the sessionAffinity
+  ## sessionAffinityConfig:
+  ##   clientIP:
+  ##     timeoutSeconds: 300
+  ##
+  sessionAffinityConfig: {}
+## Network Policies
+## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
+##
+networkPolicy:
+  ## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+  ##
+  enabled: true
+  ## @param networkPolicy.allowExternal Don't require server label for connections
+  ## The Policy model to apply. When set to false, only pods with the correct
+  ## server label will have network access to the ports server is listening
+  ## on. When true, server will accept connections from any source
+  ## (with the correct destination port).
+  ##
+  allowExternal: true
+  ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+  ##
+  allowExternalEgress: true
+  ## @param networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+  ##
+  addExternalClientAccess: true
+  ## @param networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+  ## e.g:
+  ## extraIngress:
+  ##   - ports:
+  ##       - port: 1234
+  ##     from:
+  ##       - podSelector:
+  ##           - matchLabels:
+  ##               - role: frontend
+  ##       - podSelector:
+  ##           - matchExpressions:
+  ##               - key: role
+  ##                 operator: In
+  ##                 values:
+  ##                   - frontend
+  extraIngress: []
+  ## @param networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+  ## e.g:
+  ## extraEgress:
+  ##   - ports:
+  ##       - port: 1234
+  ##     to:
+  ##       - podSelector:
+  ##           - matchLabels:
+  ##               - role: frontend
+  ##       - podSelector:
+  ##           - matchExpressions:
+  ##               - key: role
+  ##                 operator: In
+  ##                 values:
+  ##                   - frontend
+  ##
+  extraEgress: []
+  ## @param networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+  ## e.g:
+  ## ingressPodMatchLabels:
+  ##   my-client: "true"
+  #
+  ingressPodMatchLabels: {}
+  ## @param networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+  ## @param networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+  ##
+  ingressNSMatchLabels: {}
+  ingressNSPodMatchLabels: {}
+## Nextcloud ingress parameters
+## ref: http://kubernetes.io/docs/concepts/services-networking/ingress/
+##
+ingress:
+  ## @param ingress.enabled Enable ingress record generation for Nextcloud
+  ##
+  enabled: false
+  ## @param ingress.pathType Ingress path type
+  ##
+  pathType: ImplementationSpecific
+  ## @param ingress.apiVersion Force Ingress API version (automatically detected if not set)
+  ##
+  apiVersion: ""
+  ## @param ingress.hostname Default host for the ingress record
+  ##
+  hostname: ""
+  ## @param ingress.ingressClassName IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)
+  ## This is supported in Kubernetes 1.18+ and required if you have more than one IngressClass marked as the default for your cluster .
+  ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
+  ##
+  ingressClassName: ""
+  ## @param ingress.path Default path for the ingress record
+  ## NOTE: You may need to set this to '/*' in order to use this with ALB ingress controllers
+  ##
+  path: /
+  ## @param ingress.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
+  ## Use this parameter to set the required annotations for cert-manager, see
+  ## ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
+  ## e.g:
+  ## annotations:
+  ##   kubernetes.io/ingress.class: nginx
+  ##   cert-manager.io/cluster-issuer: cluster-issuer-name
+  ##
+  annotations: {}
+  ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
+  ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`
+  ## You can:
+  ##   - Use the `ingress.secrets` parameter to create this TLS secret
+  ##   - Rely on cert-manager to create it by setting the corresponding annotations
+  ##   - Rely on Helm to create self-signed certificates by setting `ingress.selfSigned=true`
+  ##
+  tls: false
+  ## @param ingress.selfSigned Create a TLS secret for this ingress record using self-signed certificates generated by Helm
+  ##
+  selfSigned: false
+  ## @param ingress.extraHosts An array with additional hostname(s) to be covered with the ingress record
+  ## e.g:
+  ## extraHosts:
+  ##   - name: %%COMPONENT_NAME%%.local
+  ##     path: /
+  ##
+  extraHosts: []
+  ## @param ingress.extraPaths An array with additional arbitrary paths that may need to be added to the ingress under the main host
+  ## e.g:
+  ## extraPaths:
+  ## - path: /*
+  ##   backend:
+  ##     serviceName: ssl-redirect
+  ##     servicePort: use-annotation
+  ##
+  extraPaths: []
+  ## @param ingress.extraTls TLS configuration for additional hostname(s) to be covered with this ingress record
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+  ## e.g:
+  ## extraTls:
+  ## - hosts:
+  ##     - %%COMPONENT_NAME%%.local
+  ##   secretName: %%COMPONENT_NAME%%.local-tls
+  ##
+  extraTls: []
+  ## @param ingress.secrets Custom TLS certificates as secrets
+  ## NOTE: 'key' and 'certificate' are expected in PEM format
+  ## NOTE: 'name' should line up with a 'secretName' set further up
+  ## If it is not set and you're using cert-manager, this is unneeded, as it will create a secret for you with valid certificates
+  ## If it is not set and you're NOT using cert-manager either, self-signed certificates will be created valid for 365 days
+  ## It is also possible to create and manage the certificates outside of this helm chart
+  ## Please see README.md for more information
+  ## e.g:
+  ## secrets:
+  ##   - name: %%COMPONENT_NAME%%.local-tls
+  ##     key: |-
+  ##       -----BEGIN RSA PRIVATE KEY-----
+  ##       ...
+  ##       -----END RSA PRIVATE KEY-----
+  ##     certificate: |-
+  ##       -----BEGIN CERTIFICATE-----
+  ##       ...
+  ##       -----END CERTIFICATE-----
+  ##
+  secrets: []
+  ## @param ingress.extraRules Additional rules to be covered with this ingress record
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+  ## e.g:
+  ## extraRules:
+  ## - host: example.local
+  ##     http:
+  ##       path: /
+  ##       backend:
+  ##         service:
+  ##           name: example-svc
+  ##           port:
+  ##             name: http
+  ##
+  extraRules: []
+
+## @section Persistence Parameters
+##
+
+## Enable persistence using Persistent Volume Claims
+## ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+##
+persistence:
+  ## @param persistence.enabled Enable persistence using Persistent Volume Claims
+  ##
+  enabled: true
+  ## @param persistence.subPath The subdirectory of the volume to mount to, useful in dev environments and one PV for multiple services
+  ##
+  subPath: ""
+  ## @param persistence.storageClass Storage class of backing PVC
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  storageClass: ""
+  ## @param persistence.annotations Persistent Volume Claim annotations
+  ##
+  annotations: {}
+  ## @param persistence.accessModes Persistent Volume Access Modes
+  ##
+  accessModes:
+    - ReadWriteOnce
+  ## @param persistence.size Size of data volume
+  ##
+  size: 8Gi
+  ## @param persistence.dataSource Custom PVC data source
+  ##
+  dataSource: {}
+  ## @param persistence.existingClaim The name of an existing PVC to use for persistence
+  ##
+  existingClaim: ""
+  ## @param persistence.selector Selector to match an existing Persistent Volume for WordPress data PVC
+  ## If set, the PVC can't have a PV dynamically provisioned for it
+  ## E.g.
+  ## selector:
+  ##   matchLabels:
+  ##     app: my-app
+  ##
+  selector: {}
+
+## @section Other Parameters
+##
+
+## ServiceAccount configuration
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+##
+serviceAccount:
+  ## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+  ##
+  create: true
+  ## @param serviceAccount.name The name of the ServiceAccount to use.
+  ## If not set and create is true, a name is generated using the common.names.fullname template
+  ##
+  name: ""
+  ## @param serviceAccount.annotations Additional Service Account annotations (evaluated as a template)
+  ##
+  annotations: {}
+  ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
+  ##
+  automountServiceAccountToken: true
+
+## Prometheus metrics
+##
+metrics:
+  ## @param metrics.enabled Enable the export of Prometheus metrics
+  ##
+  enabled: false
+  ## Prometheus Operator ServiceMonitor configuration
+  ##
+  serviceMonitor:
+    ## @param metrics.serviceMonitor.enabled if `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.enabled` to be `true`)
+    ##
+    enabled: false
+    ## @param metrics.serviceMonitor.namespace Namespace in which Prometheus is running
+    ##
+    namespace: ""
+    ## @param metrics.serviceMonitor.annotations Additional custom annotations for the ServiceMonitor
+    ##
+    annotations: {}
+    ## @param metrics.serviceMonitor.labels Extra labels for the ServiceMonitor
+    ##
+    labels: {}
+    ## @param metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in Prometheus
+    ##
+    jobLabel: ""
+    ## @param metrics.serviceMonitor.honorLabels honorLabels chooses the metric's labels on collisions with target labels
+    ##
+    honorLabels: false
+    ## @param metrics.serviceMonitor.tlsConfig [object] TLS configuration used for scrape endpoints used by Prometheus
+    ##
+    tlsConfig: {}
+    ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped.
+    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+    ## e.g:
+    ## interval: 10s
+    ##
+    interval: ""
+    ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+    ## e.g:
+    ## scrapeTimeout: 10s
+    ##
+    scrapeTimeout: ""
+    ## @param metrics.serviceMonitor.metricRelabelings Specify additional relabeling of metrics
+    ##
+    metricRelabelings: []
+    ## @param metrics.serviceMonitor.relabelings Specify general relabeling
+    ##
+    relabelings: []
+    ## @param metrics.serviceMonitor.selector Prometheus instance selector labels
+    ## ref: https://github.com/bitnami/charts/tree/main/bitnami/prometheus-operator#prometheus-configuration
+    ## selector:
+    ##   prometheus: my-prometheus
+    ##
+    selector: {}

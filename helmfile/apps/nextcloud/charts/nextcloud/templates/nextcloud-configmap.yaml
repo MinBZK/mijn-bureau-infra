@@ -1,0 +1,68 @@
+{{- /*
+Copyright Broadcom, Inc. All Rights Reserved.
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if or .Values.configs .Values.builtinConfigs -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-config" (include "common.names.fullname" .)  }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: nextcloud
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  {{- range $filename, $content := .Values.extraConfigs }}
+  {{ $filename }}: |-
+    {{- $content | nindent 4 }}
+  {{- end }}
+  {{- with .Values.builtinConfigs }}
+  {{- if index . ".htaccess" }}
+  .htaccess: |-
+    {{- include "nextcloud.htaccess-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if index . "apache-pretty-urls.config.php" }}
+  apache-pretty-urls.config.php: |-
+    {{- include "nextcloud.apache-pretty-urls-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if index . "apcu.config.php" }}
+  apcu.config.php: |-
+    {{- include "nextcloud.apcu-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if index . "apps.config.php" }}
+  apps.config.php: |-
+    {{- include "nextcloud.apps-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if index . "autoconfig.php" }}
+  autoconfig.php: |-
+    {{- include "nextcloud.autoconfig" $ | nindent 4 }}
+  {{- end }}
+  {{- if index . "redis.config.php" }}
+  redis.config.php: |-
+    {{- include "nextcloud.redis-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if index . "reverse-proxy.config.php" }}
+  reverse-proxy.config.php: |-
+    {{- include "nextcloud.reverse-proxy-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if index . "s3.config.php" }}
+  s3.config.php: |-
+    {{- include "nextcloud.s3-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if index . "swift.config.php" }}
+  swift.config.php: |-
+    {{- include "nextcloud.swift-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if index . "smtp.config.php" }}
+  smtp.config.php: |-
+    {{- include "nextcloud.smtp-config" $ | nindent 4 }}
+  {{- end }}
+  {{- if index . "upgrade-disable-web.config.php" }}
+  upgrade-disable-web.config.php: |-
+    {{- include "nextcloud.upgrade-disable-web-config" $ | nindent 4 }}
+  {{- end }}
+  {{- end }}
+{{- end }}
