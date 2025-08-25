@@ -1,53 +1,89 @@
 #!/usr/bin/env bash
 
-# This script formats the codebase using Prettier.
-# Usage: ./scripts/test.sh -p <path>
+# This script tests the code using Conftest
+# Usage: ./scripts/test.sh [-p path] [-e environments] [-s secret]
 
 # Default values
-ENVIRONMENTS="default"
+ENVIRONMENT="demo"
+SECRET=""
 
 # Parse options
-while getopts "e:" opt; do
+while getopts "e:s:" opt; do
   case $opt in
     e)
-      ENVIRONMENTS="$OPTARG"
+      ENVIRONMENT="$OPTARG"
+      ;;
+    s)
+      SECRET="$OPTARG"
       ;;
     *)
-      echo "Usage: $0 [-p path] [-e environments]"
+      echo "Usage: $0 [-p path] [-e environments] [-s secret]"
       exit 1
       ;;
   esac
 done
 
-export MIJNBUREAU_MASTER_PASSWORD=$(cat /run/secrets/mijnbureau-master-password 2>/dev/null || echo "default_password")
-
-
-# Check if Prettier is installed
+# Check if Conftest is installed
 if ! command -v conftest &> /dev/null; then
   echo "conftest could not be found. Please install it. For more information visit https://www.conftest.dev/install/"
   exit 1
 fi
 
+# Check if Helmfile is installed
 if ! command -v helmfile &> /dev/null; then
   echo "helmfile could not be found. Please install it. For more information visit https://helmfile.readthedocs.io/en/latest/#installation"
   exit 1
 fi
 
-RANDOM_DIR=$(mktemp -d)
-echo "Created random folder: $RANDOM_DIR"
-helmfile -e $ENVIRONMENTS template --output-dir=$RANDOM_DIR
-if [ $? -ne 0 ]; then
-  echo "Failed to render Helmfile templates. Please check your Helmfile configuration."
-  exit 1
+export MIJNBUREAU_MASTER_PASSWORD=test
+export SOPS_AGE_KEY=$SECRET
+
+CONFTEST_OPTIONS=""
+if [ "$GITHUB_ACTIONS" = "true" ]; then
+  CONFTEST_OPTIONS="--output github"
 fi
 
-find $RANDOM_DIR -type f -name "*.yaml.gotmpl" | while read file; do
-  mv "$file" "${file%.gotmpl}"
+pids=()
+
+for env_file in tests/*.yaml; do
+  if [ -f "$env_file" ]; then
+    echo "Processing environment file: $env_file. this may take a while..."
+    (
+      TMPDIR=$(mktemp -d)
+      cp -r . ${TMPDIR}/mijnbureau
+      cd ${TMPDIR}/mijnbureau
+      rm helmfile/environments/${ENVIRONMENT}/*.yaml.gotmpl
+      cp -f "$env_file" helmfile/environments/${ENVIRONMENT}/mijnbureau.yaml.gotmpl
+      echo  "Processing environment ${ENVIRONMENT} in ${TMPDIR}/output"
+      helmfile -e ${ENVIRONMENT} template --output-dir="${TMPDIR}/output" 2>/dev/null
+      if [ $? -ne 0 ]; then
+        echo "Error processing environment file: $env_file"
+        exit 1
+      else
+        echo "Successfully processed environment file: $env_file"
+        policy_folder="${env_file%.*}"
+        if [ -d "$policy_folder" ]; then
+          for policy_file in "$policy_folder"/*.rego; do
+            conftest test "${TMPDIR}/output" --policy "$policy_file" --parser yaml $CONFTEST_OPTIONS
+            if [ $? -ne 0 ]; then
+              echo "Policy test failed for file: $env_file"
+              echo "policy_file: $policy_file"
+              exit 1
+            fi
+          done
+          echo "Successfully processed policy for: $env_file"
+        fi
+      fi
+    ) &
+    pids+=($!)
+  fi
 done
 
-
-
-
-# Format the codebase using Prettier
-echo "testing codebase with conftest..."
-conftest test "$RANDOM_DIR"
+# Wait for all background processes to complete
+for pid in "${pids[@]}"; do
+  wait $pid
+  if [ $? -ne 0 ]; then
+    echo "One or more tests failed"
+    exit 1
+  fi
+done

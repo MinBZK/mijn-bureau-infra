@@ -26,6 +26,7 @@ It currently includes the following components:
 
 - A Kubernetes cluster (self-managed or cloud-hosted).
 - A domain name to expose the applications.
+- A supported ingress controller for kubernetes
 - (Optional) Production setups should use external datastores conforming to your organization's disaster recovery and security policies.
 
 ## Getting started

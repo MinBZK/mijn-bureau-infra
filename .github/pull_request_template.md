@@ -10,7 +10,7 @@ Resolves #
 
 Please check all the boxes that apply to this pull request using "x":
 
-- [] I have followed the project's style guidelines by running the relevent scripts/\* tools.
-- [] I have rebased my branch onto the latest commit of the main branch.
-- [] I have squashed or reorganized my commits into logical units.
-- [] I have updated documentation, like CHANGELOG.md, README.md and general documentation.
+- [ ] I have followed the project's style guidelines by running the relevent scripts/\* tools.
+- [ ] I have rebased my branch onto the latest commit of the main branch.
+- [ ] I have squashed or reorganized my commits into logical units.
+- [ ] I have updated documentation, like CHANGELOG.md, README.md and general documentation.

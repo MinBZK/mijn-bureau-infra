@@ -21,8 +21,27 @@
       }
     },
     {
+      "label": "policy",
+      "detail": "Policy tests on manifests",
+      "type": "shell",
+      "command": "./scripts/policy.sh",
+      "group": {
+        "kind": "test",
+        "isDefault": false
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": ["generate"]
+    },
+    {
       "label": "test",
-      "detail": "test manifests",
+      "detail": "Render and detailed policy tests on manifest",
       "type": "shell",
       "command": "./scripts/test.sh",
       "group": {
@@ -36,8 +55,25 @@
       "problemMatcher": [],
       "options": {
         "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "lint",
+      "detail": "Run helm lint",
+      "type": "shell",
+      "command": "./scripts/lint.sh",
+      "group": {
+        "kind": "test",
+        "isDefault": false
       },
-      "dependsOn": ["generate"]
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
     },
     {
       "label": "generate",

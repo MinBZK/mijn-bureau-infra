@@ -1,0 +1,237 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: synapse
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  log.yaml: |
+    version: 1
+    formatters:
+      {{- if .Values.synapse.logging.useStructuredLogging }}
+      structured:
+        class: synapse.logging.TerseJsonFormatter
+      {{- else }}
+      precise:
+        format: '%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(request)s- %(message)s'
+      {{- end }}
+    filters:
+      context:
+        (): synapse.util.logcontext.LoggingContextFilter
+        request: ""
+    handlers:
+      console:
+        class: logging.StreamHandler
+        formatter: {{ ternary "structured" "precise" .Values.synapse.logging.useStructuredLogging }}
+        filters: [context]
+        level: {{ .Values.synapse.logging.logLevel | default "INFO" }}
+    loggers:
+      synapse:
+        level: {{ .Values.synapse.logging.logLevel | default "INFO" }}
+        {{- with .Values.synapse.logging.extraLoggers -}}
+        {{ . | toYaml | nindent 8 }}
+        {{- end }}
+    root:
+      level: {{ .Values.synapse.logging.logLevel | default "INFO" }}
+      handlers: [console]
+  homeserver.yaml: |
+    ## Server ##
+    server_name: {{ .Values.synapse.serverName | quote }}
+    public_baseurl: {{ printf "https://%s" .Values.ingress.hostname | quote }}
+    pid_file: /homeserver.pid
+    web_client_location: {{ .Values.synapse.webClientLocation }}
+    soft_file_limit: 0
+    log_config: "/synapse/config/log.yaml"
+    report_stats: {{ required "You need to specify synapse.reportStats" .Values.synapse.reportStats.enabled }}
+    report_stats_endpoint: {{ .Values.synapse.reportStats.endpoint | quote }}
+
+    {{- if eq .Values.architecture "replication" }}
+    instance_map:
+      main:
+        host: {{ include "synapse.replication.fullname" . | quote }}
+        port: {{ .Values.master.service.ports.replication }}
+        {{- $default := .Values.worker.default }}
+        {{- range $worker, $config := .Values.workers }}
+        {{- if and $config.enabled $config.name $config.listeners (has "replication" $config.listeners) }}
+        {{- $name := $worker | replace "_" "-" }}
+      {{ $config.name | quote }}:
+        host: {{ include "synapse.worker.fullname" (dict "global" $ "worker" $name) | quote }}
+        port: {{ .Values.master.service.ports.replication }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+
+    listeners:
+      - port: {{ .Values.master.containerPorts.http }}
+        tls: false
+        type: http
+        x_forwarded: true
+        resources:
+          - names:
+              - client
+              - federation
+            compress: false
+      {{- if eq .Values.architecture "replication" }}
+      - port: {{ .Values.master.containerPorts.replication }}
+        tls: false
+        type: http
+        resources:
+          - names: [replication]
+            compress: false
+      {{- end }}
+      - port: {{ .Values.master.containerPorts.metrics }}
+        tls: false
+        type: http
+        resources:
+          - names: [metrics]
+            compress: false
+
+    ## Files ##
+
+    media_store_path: "{{ .Values.persistence.mountPath }}/media"
+    uploads_path: "{{ .Values.persistence.mountPath }}/uploads"
+    {{- if .Values.synapse.recaptcha.enabled }}
+
+    ## Captcha ##
+
+    enable_registration_captcha: true
+    recaptcha_public_key: {{ .Values.synapse.recaptcha.publicKey | quote }}
+    {{- end }}
+    {{- if .Values.synapse.turnUris }}
+
+    ## Turn ##
+
+    turn_uris: {{ toYaml .Values.synapse.turnUris | nindent 6 }}
+    {{- end }}
+
+    ## Registration ##
+
+    enable_registration: {{ .Values.synapse.enableRegistration | default false }}
+
+    ## Metrics ###
+
+    enable_metrics: true
+
+    ## Signing Keys ##
+
+    signing_key_path: "/synapse/keys/synapse_signing_key"
+
+    # The trusted servers to download signing keys from.
+    trusted_key_servers: {{- .Values.synapse.trustedKeyServers | toYaml | nindent 6 }}
+
+    database:
+      name: {{ .Values.synapse.database.name | quote }}
+      txn_limit: {{ .Values.synapse.database.txnLimit }}
+      args: {{- .Values.synapse.database.args | toYaml | nindent 8 }}
+
+    registration_shared_secret: {{ .Values.synapse.registrationSharedSecret | quote }}
+    form_secret: {{ .Values.synapse.formSecret | quote }}
+
+    suppress_key_server_warning: {{ .Values.synapse.suppressKeyServerWarning }}
+
+    redis:
+      enabled: {{ .Values.synapse.redis.enabled | quote }}
+      host: {{ .Values.synapse.redis.host | quote }}
+      port: {{ .Values.synapse.redis.port }}
+      password: {{ .Values.synapse.redis.password | quote }}
+      password_path: {{ .Values.synapse.redis.passwordPath | quote }}
+      dbid: {{ .Values.synapse.redis.dbid }}
+      use_tls: {{ .Values.synapse.redis.useTls }}
+      certificate_file: {{ .Values.synapse.redis.certificateFile | quote }}
+      private_key_file: {{ .Values.synapse.redis.privateKeyFile | quote }}
+      ca_file: {{ .Values.synapse.redis.caFile | quote }}
+      ca_path: {{ .Values.synapse.redis.caPath | quote }}
+
+    background_updates:
+      background_update_duration_ms: {{ .Values.synapse.backgroundUpdates.duration }}
+      sleep_enabled: {{ .Values.synapse.backgroundUpdates.sleepEnabled }}
+      sleep_duration_ms: {{ .Values.synapse.backgroundUpdates.sleepDuration }}
+      min_batch_size: {{ .Values.synapse.backgroundUpdates.minBatchSize }}
+      default_batch_size: {{ .Values.synapse.backgroundUpdates.defaultBatchSize }}
+
+    email:
+      smtp_host: {{ .Values.synapse.email.smtp.host | quote }}
+      smtp_port: {{ .Values.synapse.email.smtp.port }}
+      smtp_user: {{ .Values.synapse.email.smtp.user | quote }}
+      smtp_pass: {{ .Values.synapse.email.smtp.pass | quote }}
+      enable_tls: {{ .Values.synapse.email.smtp.tls.enabled }}
+      tlsname: {{ .Values.synapse.email.smtp.tls.name | quote }}
+      force_tls: {{ .Values.synapse.email.smtp.tls.force }}
+      require_transport_security: {{ .Values.synapse.email.smtp.tls.requireTransportSecurity }}
+      enable_notifs: {{ .Values.synapse.email.notifs.enabled }}
+      notif_from: {{ .Values.synapse.email.notifs.from | quote }}
+      app_name: {{ .Values.synapse.email.notifs.appName | quote }}
+      notif_for_new_users: {{ .Values.synapse.email.notifs.forNewUsers }}
+      delay_before_maik: {{ .Values.synapse.email.notifs.delayBeforeMail | quote }}
+      client_base_url: {{ .Values.synapse.email.clientBaseUrl | quote }}
+      validation_token_lifetime: {{ .Values.synapse.email.validationTokenLifetime | quote }}
+      invite_client_location: {{ .Values.synapse.email.inviteClientLocation | quote }}
+      subjects: {{- .Values.synapse.email.subjects | toYaml | nindent 8 }}
+
+    # temporarily boost rate-limits to avoid breaking WIP MatrixRTC signalling
+    rc_message:
+      per_second: {{ .Values.synapse.rateLimiting.messaging.perSecond }}
+      burst_count: {{ .Values.synapse.rateLimiting.messaging.burstCount }}
+
+    # The maximum allowed duration by which sent events can be delayed, as
+    # per MSC4140. Must be a positive value if set.  Defaults to no
+    # duration (null), which disallows sending delayed events.
+    # Needed for MatrixRTC to avoid stuck calls
+    max_event_delay_duration: {{ .Values.synapse.maxEventDelayDuration | quote }}
+
+    serve_server_wellknown: {{ .Values.synapse.serveServerWellknown }}
+    max_avatar_size: {{ .Values.synapse.avatar.maxSize | quote }}
+    allowed_avatar_mimetypes: {{- .Values.synapse.avatar.allowedMimeTypes | toYaml | nindent 6 }}
+    forgotten_room_retention_period: {{ .Values.synapse.forgottenRoomRetentionPeriod | quote }}
+
+    retention:
+      enabled: {{ .Values.synapse.retention.enabled }}
+      default_policy:
+        min_lifetime: {{ .Values.synapse.retention.defaultPolicy.lifetime.min }}
+        max_lifetime: {{ .Values.synapse.retention.defaultPolicy.lifetime.max }}
+      allowed_lifetime_min: {{ .Values.synapse.retention.allowedLifetime.min }}
+      allowed_lifetime_max: {{ .Values.synapse.retention.allowedLifetime.max }}
+      purge_jobs: {{- .Values.synapse.retention.purgeJobs | toYaml | nindent 8 }}
+
+    auto_join_rooms: {{- .Values.synapse.autoJoinRooms | toYaml | nindent 6 }}
+
+    oidc_providers: {{- .Values.synapse.oidcProviders | toYaml | nindent 6 }}
+
+    password_config:
+      enabled: {{ .Values.synapse.passwordConfig.enabled }}
+      localdb_enabled: {{ .Values.synapse.passwordConfig.localdbEnabled }}
+      pepper: {{ .Values.synapse.passwordConfig.pepper | quote }}
+      policy:
+        enabled: {{ .Values.synapse.passwordConfig.policy.enabled }}
+        minimum_length: {{ .Values.synapse.passwordConfig.policy.minimumLength }}
+        require_digit: {{ .Values.synapse.passwordConfig.policy.requireDigit }}
+        require_symbol: {{ .Values.synapse.passwordConfig.policy.requireSymbol }}
+        require_lowercase: {{ .Values.synapse.passwordConfig.policy.requireLowercase }}
+        require_uppercase: {{ .Values.synapse.passwordConfig.policy.requireUppercase }}
+
+    encryption_enabled_by_default_for_room_type: {{ .Values.synapse.encryptionEnabledByDefaultForRoomType | quote }}
+
+    user_directory:
+      enabled: {{ .Values.synapse.userDirectory.enabled }}
+      search_all_users: {{ .Values.synapse.userDirectory.searchAllUsers }}
+      prefer_local_users:  {{ .Values.synapse.userDirectory.preferLocalUsers }}
+      exclude_remote_users:  {{ .Values.synapse.userDirectory.excludeRemoteUsers }}
+      show_locked_users:  {{ .Values.synapse.userDirectory.showLockedUsers }}
+
+    # TODO: user_consent
+
+    auto_accept_invites:
+      enabled: {{ .Values.synapse.autoAcceptInvites.enabled }}
+      only_for_direct_messages: {{ .Values.synapse.autoAcceptInvites.onlyForDirectMessages }}
+      only_from_local_users: {{ .Values.synapse.autoAcceptInvites.onlyFromLocalUsers }}
+
+    experimental_features: {{- .Values.synapse.experimentalFeatures | toYaml | nindent 6 }}

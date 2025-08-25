@@ -1,7 +1,4 @@
-Copyright &copy; 2025 Broadcom. The term "Broadcom" refers to Broadcom Inc. and/or its subsidiaries.
-SPDX-License-Identifier: APACHE-2.0
-
----
+## SPDX-License-Identifier: APACHE-2.0
 
                                  Apache License
                            Version 2.0, January 2004

@@ -23,8 +23,19 @@ ingress:
   enabled: true
   hostname: {{ .Values.global.hostname.grist }}.{{ .Values.global.domain }}
   extraTls: {{ .Values.tls.grist | toYaml | nindent 4 }}
-  ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
-  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
 
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 

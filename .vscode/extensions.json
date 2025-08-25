@@ -5,6 +5,7 @@
     "mhutchie.git-graph",
     "seatonjiang.gitmoji-vscode",
     "tsandall.opa",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "redhat.vscode-yaml"
   ]
 }
