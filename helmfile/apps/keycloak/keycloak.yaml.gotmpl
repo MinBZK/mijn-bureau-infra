@@ -1,4 +1,4 @@
-# Copyright Broadcom, Inc. All Rights Reserved.
+#
 # SPDX-License-Identifier: APACHE-2.0
 
 ## @section Global parameters
@@ -627,7 +627,7 @@ ingress:
   ## This is supported in Kubernetes 1.18+ and required if you have more than one IngressClass marked as the default for your cluster .
   ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
   ##
-  ingressClassName: {{.Values.cluster.ingress.ingressClassName | quote }}
+  ingressClassName: {{.Values.cluster.ingress.className | quote }}
   ## @param ingress.pathType Ingress path type
   ##
   pathType: ImplementationSpecific
@@ -662,7 +662,19 @@ ingress:
   ##   kubernetes.io/ingress.class: nginx
   ##   cert-manager.io/cluster-issuer: cluster-issuer-name
   ##
-  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+
   ## @param ingress.labels Additional labels for the Ingress resource.
   ## e.g:
   ## labels:
@@ -744,7 +756,7 @@ adminIngress:
   ## This is supported in Kubernetes 1.18+ and required if you have more than one IngressClass marked as the default for your cluster .
   ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
   ##
-  ingressClassName: {{.Values.cluster.ingress.ingressClassName | quote }}
+  ingressClassName: {{.Values.cluster.ingress.className | quote }}
   ## @param adminIngress.pathType Ingress path type
   ##
   pathType: ImplementationSpecific
@@ -774,7 +786,18 @@ adminIngress:
   ##   kubernetes.io/ingress.class: nginx
   ##   cert-manager.io/cluster-issuer: cluster-issuer-name
   ##
-  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
   ## @param adminIngress.labels Additional labels for the Ingress resource.
   ## e.g:
   ## labels:

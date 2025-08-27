@@ -1,0 +1,7 @@
+application:
+  ai:
+    enabled: false
+
+global:
+  domain: "test-global-domain.example"
+  resourcesPreset: "xlarge"

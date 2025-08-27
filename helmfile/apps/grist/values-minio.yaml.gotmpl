@@ -1,4 +1,4 @@
-# Copyright Broadcom, Inc. All Rights Reserved.
+#
 # SPDX-License-Identifier: APACHE-2.0
 
 ## @section Global parameters
@@ -18,7 +18,7 @@ global:
   ##
   imagePullSecrets:
     - {{ (coalesce .Values.container.minio.imagePullSecret .Values.container.default.imagePullSecret)  | quote }}
-  defaultStorageClass: ""
+  defaultStorageClass: {{ (coalesce .Values.pvc.grist.minio.storageClass .Values.pvc.default.storageClass) | quote }}
   ## Security parameters
   ##
   security:
@@ -258,12 +258,7 @@ containerPorts:
 ## @param podSecurityContext.supplementalGroups Set filesystem extra groups
 ## @param podSecurityContext.fsGroupChangePolicy When K8s should preform chown on attached volumes
 ##
-podSecurityContext:
-  enabled: true
-  sysctls: []
-  supplementalGroups: []
-  fsGroup: 1001
-  fsGroupChangePolicy: "OnRootMismatch"
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
 ## MinIO&reg; container Security Context
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
 ## @param containerSecurityContext.enabled Enabled containers' Security Context
@@ -277,19 +272,7 @@ podSecurityContext:
 ## @param containerSecurityContext.capabilities.drop List of capabilities to be dropped
 ## @param containerSecurityContext.seccompProfile.type Set container's Security Context seccomp profile
 ##
-containerSecurityContext:
-  enabled: true
-  seLinuxOptions: {}
-  runAsUser: 1001
-  runAsGroup: 1001
-  runAsNonRoot: true
-  privileged: false
-  readOnlyRootFilesystem: true
-  allowPrivilegeEscalation: false
-  capabilities:
-    drop: ["ALL"]
-  seccompProfile:
-    type: "RuntimeDefault"
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
 ## @param podLabels Extra labels for MinIO&reg; pods
 ## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
@@ -651,7 +634,18 @@ ingress:
   ##   kubernetes.io/ingress.class: nginx
   ##   cert-manager.io/cluster-issuer: cluster-issuer-name
   ##
-  annotations: {}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
   ## @param ingress.tls Enable TLS configuration for the hostname defined at `ingress.hostname` parameter
   ## TLS certificates will be retrieved from a TLS secret with name:
   ## You can:
@@ -1044,7 +1038,7 @@ console:
   ## @param console.resourcesPreset Set MinIO&reg; Console container resources according to one common preset (allowed values: none, nano, small, medium, large, xlarge, 2xlarge). This is ignored if console.resources is set (console.resources is recommended for production).
   ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
   ##
-  resourcesPreset: "nano"
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   ## @param console.resources Set MinIO&reg; Console container requests and limits for different resources like CPU or memory (essential for production workloads)
   ## Example:
   ## resources:

@@ -1,0 +1,11 @@
+application:
+  ai:
+    enabled: false
+
+pvc:
+  default:
+    storageClass: "test-propagation-storage"
+    size: "42Gi"
+    accessModes:
+      - ReadWriteOnce
+      - ReadOnlyMany

@@ -1,4 +1,4 @@
-# Copyright Broadcom, Inc. All Rights Reserved.
+#
 # SPDX-License-Identifier: APACHE-2.0
 
 ## @param architecture Architecture to apply to Synapse. Can either be "monolith" or "replication". TODO: "replication" is not supported yet.

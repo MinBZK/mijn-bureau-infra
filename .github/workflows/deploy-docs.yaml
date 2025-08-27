@@ -1,6 +1,15 @@
-name: Deploy documentation to GitHub Pages
+name: deploy-docs
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "docs/**"
   push:
     branches:
       - main
@@ -36,6 +45,7 @@ jobs:
           path: docs/build
 
   deploy:
+    if: github.event_name != 'pull_request'
     name: Deploy docs to GitHub Pages
     needs: build
 

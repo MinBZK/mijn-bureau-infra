@@ -25,8 +25,19 @@ ingress:
   enabled: true
   hostname: {{ .Values.global.hostname.grist }}.{{ .Values.global.domain }}
   extraTls: {{ .Values.tls.grist | toYaml | nindent 4 }}
-  ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
-  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
 
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 
@@ -120,3 +131,9 @@ externalDatabase:
   port: {{ .Values.database.grist.port | quote }}
   type: {{ if eq .Values.database.grist.type "postgresql" }}"postgres"{{ else }}{{ .Values.database.grist.type | quote }}{{ end }}
   logging: true
+
+persistence:
+  enabled: true
+  storageClass: {{ coalesce .Values.pvc.grist.grist.storageClass .Values.pvc.default.storageClass | quote }}
+  accessModes: {{ coalesce .Values.pvc.grist.grist.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+  size: {{ coalesce .Values.pvc.grist.grist.size .Values.pvc.default.size "8Gi" }}

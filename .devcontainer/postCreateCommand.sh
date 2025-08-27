@@ -43,6 +43,7 @@ helm plugin install https://github.com/jkroepke/helm-secrets
 helm plugin install https://github.com/databus23/helm-diff
 helm plugin install https://github.com/aslafy-z/helm-git
 helm plugin install https://github.com/hypnoglow/helm-s3
+helm plugin install https://github.com/losisin/helm-values-schema-json.git
 
 # install conftest
 LATEST_VERSION=$(wget -O - "https://api.github.com/repos/open-policy-agent/conftest/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | cut -c 2-)
@@ -60,10 +61,16 @@ wget -O regal https://github.com/StyraInc/regal/releases/latest/download/regal_$
 sudo mv regal /usr/local/bin
 sudo chmod +x /usr/local/bin/regal
 
-# # install age
+# install age
 sudo apt install age
 
-# # install sops
+# install sops
 curl -LO https://github.com/getsops/sops/releases/download/v3.10.2/sops-v3.10.2.${SYSTEM}.${ARCH}
 sudo mv sops-v3.10.2.${SYSTEM}.${ARCH} /usr/local/bin/sops
 sudo chmod +x /usr/local/bin/sops
+
+# kubeconform
+wget -O kubeconform.tar.gz https://github.com/yannh/kubeconform/releases/download/v0.7.0/kubeconform-${SYSTEM}-${ARCH}.tar.gz
+tar -xzf kubeconform.tar.gz
+sudo mv kubeconform /usr/local/bin/kubeconform
+sudo chmod +x /usr/local/bin/kubeconform

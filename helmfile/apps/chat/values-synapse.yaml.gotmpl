@@ -40,6 +40,7 @@ master:
   persistence:
     size: {{ coalesce .Values.pvc.synapse.synapse.size .Values.pvc.default.size "8Gi" }}
     storageClass: {{ coalesce .Values.pvc.synapse.synapse.storageClass .Values.pvc.default.storageClass | quote }}
+    accessModes: {{ coalesce .Values.pvc.synapse.synapse.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
   networkPolicy:
     allowExternalEgress: {{ .Values.application.chat.synapse.allowExternalEgress | default false }}
     extraIngress:
@@ -75,6 +76,10 @@ master:
       {{- end }}
     {{- end }}
 
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+
 # TODO replication is not functional
 worker:
 
@@ -83,8 +88,19 @@ ingress:
   enabled: true
   hostname: {{ $hostName }}
   extraTls: {{ .Values.tls.synapse | toYaml | nindent 4 }}
-  ingressClassName: {{ .Values.cluster.ingress.ingressClassName | quote }}
-  annotations: {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:

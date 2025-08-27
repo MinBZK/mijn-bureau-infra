@@ -1,0 +1,59 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "element-web.fullname" . }}-config
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: synapse
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  config.json: |
+    {
+      "default_server_config": {
+        "m.homeserver": {
+          "base_url": "https://{{ .Values.config.homeserver.base_url }}",
+          "server_name": "{{ .Values.config.homeserver.server_name }}"
+        }
+      },
+      "features": {
+        "feature_pinning": {{ .Values.config.features.feature_pinning }},
+        "feature_custom_themes": {{ .Values.config.features.feature_custom_themes }},
+        "feature_element_call_video_rooms": {{ .Values.config.features.feature_element_call_video_rooms }},
+        "feature_group_calls": {{ .Values.config.features.feature_group_calls }},
+        "feature_html_topic": {{ .Values.config.features.feature_html_topic }},
+        "feature_ask_to_join": {{ .Values.config.features.feature_ask_to_join }}
+      },
+      "default_federate": {{ .Values.config.default_federate }},
+      "default_country_code": "{{ .Values.config.default_country_code }}",
+      "room_directory": {
+        "servers": [
+          {{- range $index, $server := .Values.config.room_directory.servers }}
+            {{- if $index }}, {{ end }}"{{ $server }}"
+          {{- end }}
+        ]
+      },
+      "setting_defaults": {
+        "breadcrumbs": {{ .Values.config.setting_defaults.breadcrumbs }}
+      },
+      "default_theme": "{{ .Values.config.default_theme }}",
+      "brand": "{{ .Values.config.brand }} chat",
+      "permalink_prefix": "https://{{ .Values.config.name }}.{{ .Values.config.homeserver.domain }}",
+      "disable_guests": {{ .Values.config.disable_guests }},
+      "force_verification": {{ .Values.config.force_verification }},
+      "logout_redirect_url": "https://{{ .Values.config.name }}.{{ .Values.config.homeserver.domain }}",
+      "sso_redirect_options": {
+        "immediate": {{ .Values.config.sso_redirect_options.immediate }}
+      },
+      "disable_custom_urls": {{ .Values.config.disable_custom_urls }},
+      "disable_3pid_login": {{ .Values.config.disable_3pid_login }},
+      "default_widget_container_height": {{ .Values.config.default_widget_container_height }},
+      "show_labs_settings": {{ .Values.config.show_labs_settings }},
+      "map_style_url": "{{ .Values.config.map_style_url }}"
+    }
