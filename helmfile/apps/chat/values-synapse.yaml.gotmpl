@@ -13,6 +13,7 @@
 
 # Architecture can be monolith for a single node, or replication when using additional worker nodes for scaling.
 # See https://element-hq.github.io/synapse/latest/workers.html
+# TODO replication is not functional, see https://github.com/MinBZK/mijn-bureau-infra/issues/8
 architecture: {{ .Values.application.synapse.architecture | default monolith }}
 
 commonLabels:
@@ -41,11 +42,12 @@ master:
   persistence:
     size: {{ coalesce .Values.pvc.synapse.synapse.size .Values.pvc.default.size "8Gi" }}
     storageClass: {{ coalesce .Values.pvc.synapse.synapse.storageClass .Values.pvc.default.storageClass | quote }}
+    accessModes: {{ coalesce .Values.pvc.synapse.synapse.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
   networkPolicy:
     extraIngress:
       # Allow traffic from ingress controller namespace
       - ports:
-          - port: 8083
+          - port: 8448
             protocol: TCP
     extraEgress:
       # Allow https egress for keycloak connection
@@ -71,14 +73,17 @@ master:
                 app.kubernetes.io/instance: chat-postgresql
         {{- end }}
       {{- end }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
 
+# TODO replication is not functional, see https://github.com/MinBZK/mijn-bureau-infra/issues/8
 worker:
   default:
     networkPolicy:
       extraIngress:
         # Allow traffic from ingress controller namespace
         - ports:
-            - port: 8448
+            - port: 8083
               protocol: TCP
       extraEgress:
         # Allow https egress for keycloak connection

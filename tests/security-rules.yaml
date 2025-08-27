@@ -1,0 +1,25 @@
+application:
+  ai:
+    enabled: false
+
+security:
+  default:
+    containerSecurityContext:
+      enabled: true
+      seLinuxOptions: {}
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - "ALL"
+      privileged: false
+      runAsUser: 9999
+      runAsGroup: 8888
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+
+    podSecurityContext:
+      enabled: true
+      fsGroupChangePolicy: TestingPropagation
+      sysctls: []
+      supplementalGroups: []
+      fsGroup: 7777

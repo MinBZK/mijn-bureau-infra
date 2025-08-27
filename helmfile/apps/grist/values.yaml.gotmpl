@@ -129,3 +129,9 @@ externalDatabase:
   port: {{ .Values.database.grist.port | quote }}
   type: {{ if eq .Values.database.grist.type "postgresql" }}"postgres"{{ else }}{{ .Values.database.grist.type | quote }}{{ end }}
   logging: true
+
+persistence:
+  enabled: true
+  storageClass: {{ coalesce .Values.pvc.grist.grist.storageClass .Values.pvc.default.storageClass | quote }}
+  accessModes: {{ coalesce .Values.pvc.grist.grist.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+  size: {{ coalesce .Values.pvc.grist.grist.size .Values.pvc.default.size "8Gi" }}

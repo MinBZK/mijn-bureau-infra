@@ -1,0 +1,18 @@
+application:
+  ai:
+    enabled: false
+
+global:
+  domain: "mijnbureau.nl"
+
+cluster:
+  ingress:
+    type: nginx
+    className: "test-ingress-class"
+    annotations:
+      custom.annotation/test: "test-value"
+      custom.annotation/environment: "testing"
+  certificate:
+    issuerRef:
+      name: "test-cert-issuer"
+      kind: "ClusterIssuer"

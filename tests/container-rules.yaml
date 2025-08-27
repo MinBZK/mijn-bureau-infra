@@ -1,0 +1,23 @@
+application:
+  ai:
+    enabled: false
+
+container:
+  default:
+    registry: "test-registry.example.com"
+    imagePullSecret: test-pull-secret
+  grist:
+    registry: ""
+    imagePullSecret: ""
+  minio:
+    registry: ""
+    imagePullSecret: ""
+  elementweb:
+    registry: ""
+    imagePullSecret: ""
+  synapse:
+    registry: ""
+    imagePullSecret: ""
+  minio_console:
+    registry: ""
+    imagePullSecret: ""
