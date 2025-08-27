@@ -2,15 +2,15 @@
 {{- $default := .Values.worker.default }}
 {{- range $worker, $config := .Values.worker }}
 {{- if $config.enabled }}
-{{- $name := $worker | replace "_" "-" }}
+{{- $fullname := include "synapse.worker.fullname" (dict "global" $ "worker" $worker) }}
 {{- $app := $config.app | default $worker }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "synapse.worker.fullname" (dict "global" $ "worker" $name) }}
+  name: {{ $fullname }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
-    app.kubernetes.io/component: {{ $name }}
+    app.kubernetes.io/component: {{ $fullname }}
   {{- if or ($config.annotations | default $default.annotations) $.Values.commonAnnotations }}
   {{- $annotations := include "common.tplvalues.merge" (dict "values" (list ($config.annotations | default $default.annotations) $.Values.commonAnnotations) "context" $) }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
@@ -23,14 +23,14 @@ spec:
   {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list ($config.podLabels | default $default.podLabels) $.Values.commonLabels) "context" .) }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
-      app.kubernetes.io/component: {{ $name }}
+      app.kubernetes.io/component: {{ $fullname }}
   template:
     metadata:
       {{- if ($config.podAnnotations | default $default.podAnnotations) }}
       annotations: {{- include "common.tplvalues.render" (dict "value" ($config.podAnnotations | default $default.podAnnotations) "context" $) | nindent 8 }}
       {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
-        app.kubernetes.io/component: {{ $name }}
+        app.kubernetes.io/component: {{ $fullname }}
     spec:
       {{- include "synapse.imagePullSecrets" $ | nindent 6 }}
       serviceAccountName: {{ template "synapse.serviceAccountName" $ }}
@@ -70,6 +70,13 @@ spec:
       {{- if ($config.terminationGracePeriodSeconds | default $default.terminationGracePeriodSeconds) }}
       terminationGracePeriodSeconds: {{ $config.terminationGracePeriodSeconds | default $default.terminationGracePeriodSeconds }}
       {{- end }}
+      initContainers:
+        {{- if and $.Values.defaultInitContainers.volumePermissions.enabled $.Values.persistence.enabled }}
+        {{- include "synapse.defaultInitContainers.volumePermissions" (dict "context" $ "component" "worker.default") | nindent 8 }}
+        {{- end }}
+        {{- if $config.initContainers }}
+        {{- include "common.tplvalues.render" (dict "value" $config.initContainers "context" $config) | nindent 8 }}
+        {{- end }}
       containers:
         - name: synapse
           image: {{ template "synapse.image" $ }}
@@ -82,6 +89,15 @@ spec:
           command: {{- include "common.tplvalues.render" (dict "value" $.Values.diagnosticMode.command "context" $) | nindent 12 }}
           {{- else if ($config.command | default $default.command) }}
           command: {{- include "common.tplvalues.render" (dict "value" ($config.command | default $default.command) "context" $) | nindent 12 }}
+          {{- else }}
+          command:
+            - sh
+            - -c
+            - |
+              exec python -B -m synapse.app.{{ (not (not $config.generic)) | ternary "generic_worker" $app }} \
+                          -c {{ $.Values.synapse.config.homeServerConfigFile }} \
+                          -c {{ $.Values.synapse.config.directory }} \
+                          -c {{ $.Values.synapse.config.directory }}/{{ $worker }}.worker
           {{- end }}
           {{- if $.Values.diagnosticMode.enabled }}
           args: {{- include "common.tplvalues.render" (dict "value" $.Values.diagnosticMode.args "context" $) | nindent 12 }}
@@ -89,12 +105,6 @@ spec:
           args: {{- include "common.tplvalues.render" (dict "value" ($config.args | default $default.args) "context" $) | nindent 12 }}
           {{- end }}
           env:
-            - name: SYNAPSE_CONFIG_DIR
-              value: {{ $.Values.synapse.config.directory }}
-            - name: SYNAPSE_CONFIG_PATH
-              value: {{ $.Values.synapse.config.homeServerConfigFile }}
-            - name: SYNAPSE_WORKER
-              value: synapse.app.{{ (not (not $config.generic)) | ternary "generic_worker" $app }}
             {{- if ($config.extraEnvVars | default $default.extraEnvVars) }}
             {{- include "common.tplvalues.render" (dict "value" ($config.extraEnvVars | default $default.extraEnvVars) "context" $) | nindent 12 }}
             {{- end }}
@@ -166,15 +176,13 @@ spec:
               mountPath: /synapse/keys
               readOnly: true
             - name: synapse-config
-              mountPath: {{ $.Values.synapse.config.homeServerConfigFile }}
+              mountPath: /synapse/config
               readOnly: true
             - name: synapse-config-worker
               mountPath: {{ $.Values.synapse.config.directory }}
               readOnly: true
-            {{- if eq $name "media-repository" }}
-            - name: media
+            - name: data
               mountPath: {{ $.Values.persistence.mountPath }}
-            {{- end }}
           {{- if ($config.extraVolumeMounts | default $default.extraVolumeMounts) }}
           {{- include "common.tplvalues.render" (dict "value" ($config.extraVolumeMounts | default $default.extraVolumeMounts) "context" $) | nindent 12 }}
           {{- end }}
@@ -182,14 +190,12 @@ spec:
         {{- include "common.tplvalues.render" ( dict "value" ($config.sidecars | default $default.sidecars) "context" $) | nindent 8 }}
         {{- end }}
       volumes:
-        {{- if eq $name "media-repository" }}
-        - name: media
-        {{- if $.Values.persistence.enabled }}
+        - name: data
+        {{- if and (eq $worker "media_repository") $.Values.persistence.enabled }}
           persistentVolumeClaim:
             claimName: {{ default (include "common.names.fullname" $) $.Values.persistence.existingClaim }}
         {{- else }}
           emptyDir: {}
-        {{- end }}
         {{- end }}
         - name: empty-dir
           emptyDir: {}
@@ -202,28 +208,9 @@ spec:
         - name: synapse-config-worker
           configMap:
             name: {{ include "synapse.worker.fullname" (dict "global" $ "worker" "workers") }}
-        {{- if eq $name "media-repository" }}
-        - name: media
-        {{- if $.Values.persistence.enabled }}
-          persistentVolumeClaim:
-            claimName: {{ (include "common.names.fullname" $) | default $.Values.persistence.existingClaim }}
-        {{- else }}
-          emptyDir: {}
-        {{- end }}
-        {{- end }}
         {{- if ($config.extraVolumes | default $default.extraVolumes) }}
         {{- include "common.tplvalues.render" (dict "value" ($config.extraVolumes | default $default.extraVolumes) "context" $) | nindent 8 }}
         {{- end }}
-{{/*          volumeMounts:*/}}
-{{/*            - name: worker-config*/}}
-{{/*              mountPath: /synapse/config/{{ $name }}.worker*/}}
-{{/*              subPath: {{ $name }}.worker*/}}
-{{/*            - name: tmpconf*/}}
-{{/*              mountPath: /synapse/config/conf.d*/}}
-{{/*            - name: signingkey*/}}
-{{/*              mountPath: /synapse/keys*/}}
-{{/*---*/}}
-{{/*{{ template "matrix-synapse.podDisruptionBudget" (dict "settings" ($config.podDisruptionBudget | default $default.podDisruptionBudget) "name" $name "root" $) }}*/}}
 {{- end }}
 {{- end }}
 {{- end }}

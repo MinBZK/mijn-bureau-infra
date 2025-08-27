@@ -1079,6 +1079,70 @@ worker:
       ##     timeoutSeconds: 300
       ##
       sessionAffinityConfig: {}
+    ## Network Policies
+    ## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
+    ##
+    networkPolicy:
+      ## @param master.networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+      ##
+      enabled: true
+      ## @param master.networkPolicy.allowExternal Don't require server label for connections
+      ## The Policy model to apply. When set to false, only pods with the correct
+      ## server label will have network access to the ports server is listening
+      ## on. When true, server will accept connections from any source
+      ## (with the correct destination port).
+      ##
+      allowExternal: false
+      ## @param master.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+      ##
+      allowExternalEgress: false
+      ## @param master.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+      ##
+      addExternalClientAccess: true
+      ## @param master.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+      ## e.g:
+      ## extraIngress:
+      ##   - ports:
+      ##       - port: 1234
+      ##     from:
+      ##       - podSelector:
+      ##           - matchLabels:
+      ##               - role: frontend
+      ##       - podSelector:
+      ##           - matchExpressions:
+      ##               - key: role
+      ##                 operator: In
+      ##                 values:
+      ##                   - frontend
+      extraIngress: []
+      ## @param master.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+      ## e.g:
+      ## extraEgress:
+      ##   - ports:
+      ##       - port: 1234
+      ##     to:
+      ##       - podSelector:
+      ##           - matchLabels:
+      ##               - role: frontend
+      ##       - podSelector:
+      ##           - matchExpressions:
+      ##               - key: role
+      ##                 operator: In
+      ##                 values:
+      ##                   - frontend
+      ##
+      extraEgress: []
+      ## @param master.networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+      ## e.g:
+      ## ingressPodMatchLabels:
+      ##   my-client: "true"
+      #
+      ingressPodMatchLabels: {}
+      ## @param master.networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+      ## @param master.networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+      ##
+      ingressNSMatchLabels: {}
+      ingressNSPodMatchLabels: {}
     ## Prometheus metrics
     ##
     metrics:
@@ -1558,7 +1622,7 @@ synapse:
   ## @param synapse.config.directory The folder in which configuration is read and placed
   ## @param synapse.config.homeServerConfigFile The location of the home server configuration file
   config:
-    directory: "/synapse/data/config/conf.d"
+    directory: "/synapse/config/conf.d"
     homeServerConfigFile: "/synapse/config/homeserver.yaml"
   ## @param synapse.serverName This sets the public-facing domain of the server.
   # The `server_name` name will appear at the end of usernames and room addresses created on your server. For example

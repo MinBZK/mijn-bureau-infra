@@ -18,7 +18,7 @@ metadata:
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" . ) | nindent 4 }}
     # FIXME compare component use with ananace
-    app.kubernetes.io/component: synapse
+    app.kubernetes.io/component: synapse-worker
   {{- if .Values.commonAnnotations }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" . ) | nindent 4 }}
   {{- end }}
@@ -28,7 +28,7 @@ data:
   {{- if $config.enabled }}
   {{- $name := include "synapse.worker.fullname" (dict "global" $ "worker" $worker) }}
   {{- $app := $config.app | default $worker }}
-  {{ $name }}.worker: |
+  {{ $worker }}.worker: |
     worker_app: "synapse.app.{{ (not (not $config.generic)) | ternary "generic_worker" $app }}"
     {{- if $config.name }}
     {{- if (gt ($config.replicaCount | default $default.replicaCount | int) 1) }}
@@ -73,7 +73,7 @@ data:
               {{- toYaml (without $config.listeners "replication") | nindent 14 }}
             compress: false
       {{- end }}
-    worker_log_config: {{ $.Values.synapse.config.directory }}/log.yaml
+    worker_log_config: /synapse/config/log.yaml
     {{- if $config.extraConfig }}
 
     # Extra config

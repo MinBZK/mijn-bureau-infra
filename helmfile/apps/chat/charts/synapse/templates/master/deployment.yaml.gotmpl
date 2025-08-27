@@ -67,6 +67,13 @@ spec:
       {{- if .Values.master.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.master.terminationGracePeriodSeconds }}
       {{- end }}
+      initContainers:
+        {{- if and .Values.defaultInitContainers.volumePermissions.enabled .Values.persistence.enabled }}
+        {{- include "synapse.defaultInitContainers.volumePermissions" (dict "context" . "component" "master") | nindent 8 }}
+        {{- end }}
+        {{- if .Values.master.initContainers }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.master.initContainers "context" "master") | nindent 8 }}
+        {{- end }}
       containers:
         - name: synapse
           image: {{ template "synapse.image" . }}
