@@ -8,7 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0), 
 
 - Added Ollama v0.7.0
 - Added Grist v1.6.1
-- Added Synapse v1.33.0
+- Added Synapse v1.33.0 (only monolith mode)
+- Added Element Web v1.11.106
 - Added CHANGELOG.md check to CI
 - Added Helm values schema generation script
 - Added Kubernetes conformance cheker
