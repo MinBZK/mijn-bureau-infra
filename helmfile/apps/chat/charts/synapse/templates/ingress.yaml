@@ -1,6 +1,9 @@
 {{- /*
 
 SPDX-License-Identifier: APACHE-2.0
+
+FIXME not all ingresses process regular expressions (OpenShift routes for intstance). Current setup does not work.
+FIXME only csPaths are handled below, path property must also be processed.
 */}}
 
 {{- if .Values.ingress.enabled }}
@@ -28,6 +31,7 @@ spec:
           {{- if .Values.ingress.extraPaths }}
           {{- toYaml .Values.ingress.extraPaths | nindent 10 }}
           {{- end }}
+          {{- if eq .Values.architecture "replication" }}
           {{- $default := $.Values.worker.default }}
           {{- range $worker, $config := $.Values.worker }}
           {{- if and $config.enabled $config.listeners (or $config.paths $config.csPaths) }}
@@ -37,6 +41,7 @@ spec:
           - path: {{ . | quote }}
             pathType: {{ $.Values.ingress.pathType }}
             backend: {{- include "common.ingress.backend" (dict "serviceName" $service "servicePort" "listener" "context" $)  | nindent 14 }}
+          {{- end }}
           {{- end }}
           {{- end }}
           {{- end }}
