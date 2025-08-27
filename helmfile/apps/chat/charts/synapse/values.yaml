@@ -75,8 +75,8 @@ diagnosticMode:
 ## @section Synapse image parameters
 ##
 ## ref: https://hub.docker.com/r/matrixdotorg/synapse/
-## @param image.registry [default: docker.io] Synapse master image registry
-## @param image.repository [default: matrixdotorg/synapse] Synapse master image repository
+## @param image.registry Synapse master image registry
+## @param image.repository Synapse master image repository
 ## @param image.tag Synapse master image tag (immutable tags are recommended)
 ## @param image.digest Synapse master image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
 ## @param image.pullPolicy Synapse master image pull policy
@@ -152,7 +152,7 @@ persistence:
   ##
   selector: {}
 
-## @section Synapse master Image parameters
+## @section Synapse master parameters
 ##
 master:
   ## @param master.name Synapse master name, used as postfix for kubernetes naming
@@ -710,11 +710,11 @@ worker:
   ## overriden on each worker type.
   ##
   default:
-    ## The number of worker replicas, note that some workers require special
+    ## @param worker.default.replicaCount The number of worker replicas, note that some workers require special
     ## handling. Refer to the information URL above.
     ##
     replicaCount: 1
-    ## @param worker.default.containerPorts.http Synapse worker listener container port
+    ## @param worker.default.containerPorts.listener Synapse worker listener container port
     ## @param worker.default.containerPorts.replication Synapse worker replication container port
     ## @param worker.default.containerPorts.metrics Synapse worker metrics container port
     ##
@@ -848,10 +848,10 @@ worker:
     ## @param worker.default.args Override default Synapse worker container args (useful when using custom images)
     ##
     args: []
-    ## @param workers.default.automountServiceAccountToken Mount Service Account token in Synapse worker pods
+    ## @param worker.default.automountServiceAccountToken Mount Service Account token in Synapse worker pods
     ##
     automountServiceAccountToken: false
-    ## @param workers.default.hostAliases Synapse worker pods host aliases
+    ## @param worker.default.hostAliases Synapse worker pods host aliases
     ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
     ##
     hostAliases: []
@@ -1030,13 +1030,15 @@ worker:
       ## @param worker.default.service.type Synapse worker service type
       ##
       type: ClusterIP
-      ## @param worker.default.service.ports.worker Synapse worker service worker port
+      ## @param worker.default.service.ports.listener Synapse worker listener port
+      ## @param worker.default.service.ports.replication Synapse worker replication port
       ##
       ports:
         listener: 8083
         replication: 9083
       ## Node ports to expose
-      ## @param worker.default.service.nodePorts.worker Node port for worker
+      ## @param worker.default.service.nodePorts.listener Node port for worker listener
+      ## @param worker.default.service.nodePorts.replication Node port for worker replication
       ## NOTE: choose port between <30000-32767>
       ##
       nodePorts:
@@ -1083,23 +1085,23 @@ worker:
     ## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
     ##
     networkPolicy:
-      ## @param master.networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+      ## @param worker.default.networkPolicy.enabled Specifies whether a NetworkPolicy should be created
       ##
       enabled: true
-      ## @param master.networkPolicy.allowExternal Don't require server label for connections
+      ## @param worker.default.networkPolicy.allowExternal Don't require server label for connections
       ## The Policy model to apply. When set to false, only pods with the correct
       ## server label will have network access to the ports server is listening
       ## on. When true, server will accept connections from any source
       ## (with the correct destination port).
       ##
       allowExternal: false
-      ## @param master.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+      ## @param worker.default.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
       ##
       allowExternalEgress: false
-      ## @param master.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+      ## @param worker.default.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
       ##
       addExternalClientAccess: true
-      ## @param master.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+      ## @param worker.default.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
       ## e.g:
       ## extraIngress:
       ##   - ports:
@@ -1115,7 +1117,7 @@ worker:
       ##                 values:
       ##                   - frontend
       extraIngress: []
-      ## @param master.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+      ## @param worker.default.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
       ## e.g:
       ## extraEgress:
       ##   - ports:
@@ -1132,14 +1134,14 @@ worker:
       ##                   - frontend
       ##
       extraEgress: []
-      ## @param master.networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+      ## @param worker.default.networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
       ## e.g:
       ## ingressPodMatchLabels:
       ##   my-client: "true"
       #
       ingressPodMatchLabels: {}
-      ## @param master.networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
-      ## @param master.networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+      ## @param worker.default.networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+      ## @param worker.default.networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
       ##
       ingressNSMatchLabels: {}
       ingressNSPodMatchLabels: {}
@@ -1201,11 +1203,18 @@ worker:
     ##
     annotations: {}
 
+  ## @section Generic worker section, all configuration is an override on the default worker configuration.
+  ##
   ## The generic worker can be used to handle most endpoints.
   ## Be careful when enabling the sync endpoints as they can eat large amounts of
   ## resources. Refer to the information URL above for more info.
   ## Proper load balancing with the K8s Ingress resource may not be possible.
   ##
+  ## @param worker.generic_worker.enabled Enable the generic_worker
+  ## @param worker.generic_worker.generic Mark the worker as being generic
+  ## @param worker.generic_worker.listeners The listeners configured for this worker
+  ## @param worker.generic_worker.csPaths The client-server paths to route to this worker.
+  ## @param worker.generic_worker.paths The general paths to route to this worker.
   generic_worker:
     enabled: false
     generic: true
@@ -1327,28 +1336,28 @@ worker:
   #     - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
   #     - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
 
-  ## Specialized - non-generic workers below;
+  ## @section Specialized - non-generic workers below; configuration also overrides the default worker configuration
 
   ## This worker deals with pushing notifications.
   ## NB; Only one instance of this worker can be run at a time, refer to the
   ## information URL above.
   ##
-  pusher:
-    enabled: false
+  #pusher:
+  #  enabled: false
 
   ## This worker handles sending data to registered appservices.
   ## NB; Only one instance of this worker can be run at at time, refer to the
   ## information URL above.
   ##
-  appservice:
-    enabled: false
-    generic: true
-    name: appservices
+  #appservice:
+  #  enabled: false
+  #  generic: true
+  #  name: appservices
 
   ## This worker handles sending federation traffic to other Synapse servers.
   ##
-  federation_sender:
-    enabled: false
+  #federation_sender:
+  #  enabled: false
 
   ## Specialized workers can also be run as multiple separate instances,
   ## make sure to read the relevant documentation.
@@ -1357,7 +1366,10 @@ worker:
   #   app: federation_sender
   #   enabled: false
 
-  ## This worker deals with serving and storing media.
+  ## @param worker.media_repository.enabled Enable worker that deals with serving and storing media.
+  ## @param worker.media_repository.listeners The listeners configured for this worker
+  ## @param worker.media_repository.csPaths The client-server paths to route to this worker.
+  ## @param worker.media_repository.paths The general paths to route to this worker.
   ## NB; Running multiple instances will conflict with background jobs.
   ##
   media_repository:
@@ -1380,23 +1392,23 @@ worker:
 
   ## This worker deals with user directory searches.
   ##
-  user_dir:
-    enabled: false
-    name: userdir
-    listeners: [client]
-    csPaths:
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/user_directory/search$"
+  #user_dir:
+  #  enabled: false
+  #  name: userdir
+  #  listeners: [client]
+  #  csPaths:
+  #    - "/_matrix/client/(api/v1|r0|v3|unstable)/user_directory/search$"
 
   ## This worker handles key uploads, and may also stub out presence if that is
   ## disabled. If you set extraConfig.use_presence=false then you may want to
   ## uncomment the second path.
   ##
-  frontend_proxy:
-    enabled: false
-    listeners: [client]
-    csPaths:
-      - "/_matrix/client/(api/v1|r0|v3|unstable)/keys/upload"
-    # - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/[^/]+/status"
+  #frontend_proxy:
+  #  enabled: false
+  #  listeners: [client]
+  #  csPaths:
+  #    - "/_matrix/client/(api/v1|r0|v3|unstable)/keys/upload"
+  #  # - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/[^/]+/status"
 
 ## @section Traffic Exposure Parameters
 ##
@@ -1524,7 +1536,7 @@ defaultInitContainers:
     ## ref: https://hub.docker.com/r/bitnami/os-shell
     ## @param defaultInitContainers.volumePermissions.image.registry [default: REGISTRY_NAME] "volume-permissions" init-containers' image registry
     ## @param defaultInitContainers.volumePermissions.image.repository [default: REPOSITORY_NAME/os-shell] "volume-permissions" init-containers' image repository
-    ## @skip defaultInitContainers.volumePermissions.image.tag "volume-permissions" init-containers' image tag (immutable tags are recommended)
+    ## @param defaultInitContainers.volumePermissions.image.tag "volume-permissions" init-containers' image tag (immutable tags are recommended)
     ## @param defaultInitContainers.volumePermissions.image.digest "volume-permissions" init-containers' image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag
     ## @param defaultInitContainers.volumePermissions.image.pullPolicy "volume-permissions" init-containers' image pull policy
     ## @param defaultInitContainers.volumePermissions.image.pullSecrets "volume-permissions" init-containers' image pull secrets
