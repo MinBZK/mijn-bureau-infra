@@ -14,7 +14,7 @@
 # Architecture can be monolith for a single node, or replication when using additional worker nodes for scaling.
 # See https://element-hq.github.io/synapse/latest/workers.html
 # TODO replication is not functional, see https://github.com/MinBZK/mijn-bureau-infra/issues/8
-architecture: {{ .Values.application.synapse.architecture | default monolith }}
+architecture: {{ .Values.application.chat.synapse.architecture | default "monolith" }}
 
 commonLabels:
   app.kubernetes.io/part-of: synapse
@@ -30,8 +30,12 @@ image:
   pullSecrets:
     - {{ coalesce .Values.container.synapse.imagePullSecret .Values.container.default.imagePullSecret | toYaml }}
 
+persistence:
+  size: {{ coalesce .Values.pvc.synapse.synapse.size .Values.pvc.default.size "8Gi" }}
+  storageClass: {{ coalesce .Values.pvc.synapse.synapse.storageClass .Values.pvc.default.storageClass | quote }}
+  accessModes: {{ coalesce .Values.pvc.synapse.synapse.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+
 master:
-  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.synapse.master | toYaml | nindent 4 }}
   autoscaling:
@@ -39,10 +43,6 @@ master:
   startupProbe:
     enabled: true
     initialDelaySeconds: 15
-  persistence:
-    size: {{ coalesce .Values.pvc.synapse.synapse.size .Values.pvc.default.size "8Gi" }}
-    storageClass: {{ coalesce .Values.pvc.synapse.synapse.storageClass .Values.pvc.default.storageClass | quote }}
-    accessModes: {{ coalesce .Values.pvc.synapse.synapse.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
   networkPolicy:
     extraIngress:
       # Allow traffic from ingress controller namespace
@@ -79,6 +79,13 @@ master:
 # TODO replication is not functional, see https://github.com/MinBZK/mijn-bureau-infra/issues/8
 worker:
   default:
+    resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+    resources: {{ .Values.resource.synapse.worker.default | toYaml | nindent 6 }}
+    autoscaling:
+      vpa: {{ .Values.autoscaling.vertical.synapse.worker.default | toYaml | nindent 8 }}
+    startupProbe:
+      enabled: true
+      initialDelaySeconds: 15
     networkPolicy:
       extraIngress:
         # Allow traffic from ingress controller namespace
@@ -109,6 +116,8 @@ worker:
                   app.kubernetes.io/instance: chat-postgresql
           {{- end }}
         {{- end }}
+    podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+    containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   generic_worker:
     enabled: true
   media_repository:

@@ -8,7 +8,8 @@ SPDX-License-Identifier: APACHE-2.0
 {{- range $worker, $config := .Values.worker }}
 {{- if $config.enabled }}
 {{- $fullname := include "synapse.worker.fullname" (dict "global" $ "worker" $worker) }}
-{{- if $config.pdb.create | $default.pdb.create }}
+{{- $pdb := $config.pdb | default $default.pdb }}
+{{- if or $pdb.create $default.pdb.create }}
 ---
 apiVersion: {{ include "common.capabilities.policy.apiVersion" . }}
 kind: PodDisruptionBudget
@@ -22,8 +23,8 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  {{- $minAvailable := $config.pdb.minAvailable | default $default.pdb.minAvailable }}
-  {{- $maxUnavailable := $config.pdb.maxUnavailable | default $default.pdb.maxUnavailable }}
+  {{- $minAvailable := $pdb.minAvailable | default $default.pdb.minAvailable }}
+  {{- $maxUnavailable := $pdb.maxUnavailable | default $default.pdb.maxUnavailable }}
   {{- if $minAvailable }}
   minAvailable: {{ $minAvailable }}
   {{- end  }}
