@@ -13,25 +13,27 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- end -}}
 
 {{/*
+Create a default fully qualified app name for replication objects
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+*/}}
+{{- define "synapse.replication.fullname" -}}
+  {{- $fullname := include "common.names.fullname" . -}}
+  {{- printf "%s-%s" $fullname "replication" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
 Create a default fully qualified app name for Synapse worker objects
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
 {{- define "synapse.worker.fullname" -}}
-  {{- printf "%s-%s" (include "common.names.fullname" .) .Values.worker.name | trunc 63 | trimSuffix "-" -}}
+  {{- printf "%s-%s" (include "common.names.fullname" .global) (.worker | replace "_" "-") | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
-Return the proper synapse master image name
+Return the proper synapse image name
 */}}
-{{- define "synapse.master.image" -}}
-  {{ include "common.images.image" (dict "imageRoot" .Values.master.image "global" .Values.global) }}
-{{- end -}}
-
-{{/*
-Return the proper synapse worker image name
-*/}}
-{{- define "synapse.worker.image" -}}
-  {{ include "common.images.image" (dict "imageRoot" .Values.worker.image "global" .Values.global) }}
+{{- define "synapse.image" -}}
+  {{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
@@ -45,7 +47,7 @@ Return the proper image name (for the init container volume-permissions image)
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "synapse.imagePullSecrets" -}}
-  {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.master.image .Values.defaultInitContainers.volumePermissions.image) "context" $) -}}
+  {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image .Values.defaultInitContainers.volumePermissions.image) "context" $) -}}
 {{- end -}}
 
 {{/*

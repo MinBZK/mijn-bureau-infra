@@ -3,7 +3,6 @@
 SPDX-License-Identifier: APACHE-2.0
 */}}
 
-{{- if gt (int64 .Values.master.replicaCount) 0 -}}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
@@ -16,9 +15,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  {{- if not .Values.master.autoscaling.hpa.enabled }}
-  replicas: {{ .Values.master.replicaCount }}
-  {{- end }}
+  replicas: 1
   {{- if .Values.master.updateStrategy }}
   strategy: {{- toYaml .Values.master.updateStrategy | nindent 4 }}
   {{- end }}
@@ -69,10 +66,17 @@ spec:
       {{- if .Values.master.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.master.terminationGracePeriodSeconds }}
       {{- end }}
+      initContainers:
+        {{- if and .Values.defaultInitContainers.volumePermissions.enabled .Values.persistence.enabled }}
+        {{- include "synapse.defaultInitContainers.volumePermissions" (dict "context" . "component" "master") | nindent 8 }}
+        {{- end }}
+        {{- if .Values.master.initContainers }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.master.initContainers "context" "master") | nindent 8 }}
+        {{- end }}
       containers:
         - name: synapse
-          image: {{ template "synapse.master.image" . }}
-          imagePullPolicy: {{ .Values.master.image.pullPolicy }}
+          image: {{ template "synapse.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.master.containerSecurityContext.enabled }}
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.master.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
@@ -148,11 +152,11 @@ spec:
           {{- end }}
           volumeMounts:
             - name: data
-              mountPath: {{ .Values.master.persistence.mountPath }}
-              {{- if .Values.master.persistence.subPath }}
-              subPath: {{ .Values.master.persistence.subPath }}
-              {{- else if .Values.master.persistence.subPathExpr }}
-              subPathExpr: {{ .Values.master.persistence.subPathExpr }}
+              mountPath: {{ .Values.persistence.mountPath }}
+              {{- if .Values.persistence.subPath }}
+              subPath: {{ .Values.persistence.subPath }}
+              {{- else if .Values.persistence.subPathExpr }}
+              subPathExpr: {{ .Values.persistence.subPathExpr }}
               {{- end }}
             - name: empty-dir
               mountPath: /tmp
@@ -173,9 +177,15 @@ spec:
         - name: empty-dir
           emptyDir: {}
         - name: data
-        {{- if .Values.master.persistence.enabled }}
+        {{- $mediaworker := false }}
+        {{- range $worker, $config := .Values.worker }}
+          {{- if eq $worker "media_repository" }}
+            {{- $mediaworker = ($config.enabled | default false) }}
+          {{- end }}
+        {{- end }}
+        {{- if and .Values.persistence.enabled (not $mediaworker) }}
           persistentVolumeClaim:
-            claimName: {{ default (include "common.names.fullname" .) .Values.master.persistence.existingClaim }}
+            claimName: {{ default (include "common.names.fullname" .) .Values.persistence.existingClaim }}
         {{- else }}
           emptyDir: {}
         {{- end }}
@@ -184,8 +194,7 @@ spec:
             secretName: synapse-signing-key
         - name: synapse-config
           configMap:
-            name: {{ include "synapse.master.fullname" . }}
+            name: {{ include "common.names.fullname" . }}
         {{- if .Values.master.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.master.extraVolumes "context" $) | nindent 8 }}
         {{- end }}
-{{- end }}

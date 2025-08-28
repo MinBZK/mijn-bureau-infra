@@ -1,0 +1,92 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if eq .Values.architecture "replication" }}
+{{- $default := .Values.worker.default }}
+{{- range $worker, $config := .Values.worker }}
+{{- if $config.enabled }}
+{{- $fullname := include "synapse.worker.fullname" (dict "global" $ "worker" $worker) }}
+{{- $networkPolicy := $config.networkPolicy | default $default.networkPolicy }}
+{{- $containerPorts := $config.containerPorts | default $default.containerPorts }}
+{{- if $networkPolicy.enabled }}
+---
+apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" . }}
+kind: NetworkPolicy
+metadata:
+  name: {{ $fullname }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ $fullname }}
+  {{- if or $config.annotations $default.annotations $.Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" ( dict "values" (list $config.annotations $default.annotations $.Values.commonAnnotations) "context" $ ) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list $config.podLabels $default.podLabels $.Values.commonLabels ) "context" $ ) }}
+  podSelector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: {{ $fullname }}
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    {{- if $networkPolicy.allowExternalEgress }}
+    - {}
+    {{- else }}
+    - ports:
+        # Allow dns resolution
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - ports:
+        - port: {{ $containerPorts.replication | default $default.containerPorts.replication }}
+      to:
+        - podSelector:
+            matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 14 }}
+              app.kubernetes.io/component: {{ $fullname }}
+    {{- if or $networkPolicy.extraEgress $default.networkPolicy.extraEgress }}
+    {{- include "common.tplvalues.render" ( dict "value" ($networkPolicy.extraEgress | default $default.networkPolicy.extraEgress) "context" $ ) | nindent 4 }}
+    {{- end }}
+    {{- end }}
+  ingress:
+    - ports:
+        {{- if or $containerPorts.listener $default.containerPorts.listener }}
+        - port: {{ $containerPorts.listener | default $default.containerPorts.listener }}
+        {{- end }}
+        - port: {{ $containerPorts.replication | default $default.containerPorts.replication }}
+        {{- range ( $config.extraContainerPorts | default $default.extraContainerPorts ) }}
+        - port: {{ .containerPort }}
+        {{- end }}
+      {{- if not $networkPolicy.allowExternal }}
+      from:
+        - podSelector:
+            matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 14 }}
+        {{- if $networkPolicy.addExternalClientAccess }}
+        - podSelector:
+            matchLabels:
+              {{ $fullname }}-client: "true"
+        {{- end }}
+        {{- if or $networkPolicy.ingressPodMatchLabels $default.networkPolicy.ingressPodMatchLabels }}
+        - podSelector:
+            matchLabels: {{- include "common.tplvalues.render" (dict "value" ($networkPolicy.ingressPodMatchLabels | default $default.networkPolicy.ingressPodMatchLabels) "context" $ ) | nindent 14 }}
+        {{- end }}
+        {{- if or $networkPolicy.ingressNSMatchLabels $default.networkPolicy.ingressNSMatchLabels }}
+        - namespaceSelector:
+            matchLabels: {{- include "common.tplvalues.render" (dict "value" ($networkPolicy.ingressNSMatchLabels | default $default.networkPolicy.ingressNSMatchLabels) "context" $ ) | nindent 14 }}
+          {{- if or $networkPolicy.ingressNSPodMatchLabels $default.networkPolicy.ingressPodMatchLabels }}
+          podSelector:
+            matchLabels:
+              matchLabels: {{- include "common.tplvalues.render" (dict "value" ($networkPolicy.ingressNSPodMatchLabels | default $default.networkPolicy.ingressPodMatchLabels) "context" $ ) | nindent 14 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- if or $networkPolicy.extraIngress $default.networkPolicy.extraIngress }}
+    {{- include "common.tplvalues.render" ( dict "value" ($networkPolicy.extraIngress | default $default.networkPolicy.extraIngress) "context" $ ) | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,87 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if eq .Values.architecture "replication" }}
+{{- $default := .Values.worker.default }}
+{{- range $worker, $config := .Values.worker }}
+{{- if and $config.enabled $config.listeners }}
+{{- $name := include "synapse.worker.fullname" (dict "global" $ "worker" $worker) }}
+{{- $service := $config.service | default $default.service}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+  {{- if or ($service.annotations | default $default.annotations) $.Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list ($service.annotations | default $default.annotations) $.Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $type := $service.type | default $default.service.type }}
+  type: {{ $type }}
+  {{- if and ($service.clusterIP | default $default.service.clusterIP) (eq $type "ClusterIP") }}
+  clusterIP: {{ $service.clusterIP | default $default.service.clusterIP }}
+  {{- end }}
+  {{- if ($service.sessionAffinity | default $default.service.sessionAffinity) }}
+  sessionAffinity: {{ $service.sessionAffinity | default $default.service.sessionAffinity }}
+  {{- end }}
+  {{- if ($service.sessionAffinityConfig | default $default.service.sessionAffinityConfig) }}
+  sessionAffinityConfig: {{- include "common.tplvalues.render" (dict "value" ($service.sessionAffinityConfig | default $default.service.sessionAffinityConfig) "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if or (eq $type "LoadBalancer") (eq $type "NodePort") }}
+  externalTrafficPolicy: {{ $service.externalTrafficPolicy | default $default.service.externalTrafficPolicy | quote }}
+  {{- end }}
+  {{- if and (eq $type "LoadBalancer") (not (empty ($service.loadBalancerSourceRanges | default $default.service.loadBalancerSourceRanges))) }}
+  loadBalancerSourceRanges: {{ $service.loadBalancerSourceRanges | default $default.service.loadBalancerSourceRanges }}
+  {{- end }}
+  {{- if and (eq $type "LoadBalancer") (not (empty ($service.loadBalancerIP | default $default.service.loadBalancerIP))) }}
+  loadBalancerIP: {{ $service.loadBalancerIP | default $default.service.loadBalancerIP }}
+  {{- end }}
+  ports:
+    {{- $servicePorts := $service.ports | default $default.service.ports }}
+    {{- $containerPorts := $config.containerPorts | default $default.containerPorts }}
+    {{- $nodePorts := $service.nodePorts | default $default.service.nodePorts }}
+    - name: listener
+      {{- $port := $servicePorts.listener | default $default.service.ports.listener }}
+      {{- $containerPort := $containerPorts.listener | default $containerPorts.listener }}
+      port: {{ $port }}
+      {{- if not (eq $port $containerPort) }}
+      targetPort: {{ $containerPort }}
+      {{- end }}
+      protocol: TCP
+      {{- $nodePort := $nodePorts.listener | default $default.service.nodePorts.listener }}
+      {{- if and (or (eq $type "NodePort") (eq $type "LoadBalancer")) (not (empty $nodePort)) }}
+      nodePort: {{ $nodePort }}
+      {{- else if eq $type "ClusterIP" }}
+      nodePort: null
+      {{- end }}
+    {{- if has "replication" $config.listeners }}
+    - name: replication
+      {{- $port := $servicePorts.replication | default $default.service.ports.replication }}
+      {{- $containerPort := $containerPorts.replication | default $default.containerPorts.replication }}
+      port: {{ $port }}
+      {{- if not (eq $port $containerPort) }}
+      targetPort: {{ $containerPort }}
+      {{- end }}
+      protocol: TCP
+      {{- $nodePort := $nodePorts.replication | default $default.service.nodePorts.replication }}
+      {{- if and (or (eq $type "NodePort") (eq $type "LoadBalancer")) (not (empty $nodePort)) }}
+      nodePort: {{ $nodePort }}
+      {{- else if eq $type "ClusterIP" }}
+      nodePort: null
+      {{- end }}
+    {{- end }}
+    {{- if ($service.extraPorts | default $default.service.extraPorts) }}
+    {{- include "common.tplvalues.render" (dict "value" ($service.extraPorts | default $default.service.extraPorts) "context" $) | nindent 4 }}
+    {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list ($config.podLabels | default $default.podLabels) $.Values.commonLabels) "context" $) | fromYaml }}
+  selector: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+{{- end }}
+{{- end }}
+{{- end }}

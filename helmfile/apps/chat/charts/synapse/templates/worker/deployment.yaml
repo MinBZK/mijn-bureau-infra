@@ -1,0 +1,216 @@
+{{- if eq .Values.architecture "replication" }}
+{{- $default := .Values.worker.default }}
+{{- range $worker, $config := .Values.worker }}
+{{- if $config.enabled }}
+{{- $fullname := include "synapse.worker.fullname" (dict "global" $ "worker" $worker) }}
+{{- $app := $config.app | default $worker }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullname }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ $fullname }}
+  {{- if or ($config.annotations | default $default.annotations) $.Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list ($config.annotations | default $default.annotations) $.Values.commonAnnotations) "context" $) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ $config.replicaCount | default $default.replicaCount }}
+  {{- with ($config.updateStrategy | default $default.updateStrategy) }}
+  strategy: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list ($config.podLabels | default $default.podLabels) $.Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: {{ $fullname }}
+  template:
+    metadata:
+      {{- if ($config.podAnnotations | default $default.podAnnotations) }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" ($config.podAnnotations | default $default.podAnnotations) "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: {{ $fullname }}
+    spec:
+      {{- include "synapse.imagePullSecrets" $ | nindent 6 }}
+      serviceAccountName: {{ template "synapse.serviceAccountName" $ }}
+      automountServiceAccountToken: {{ $config.automountServiceAccountToken | default $default.automountServiceAccountToken }}
+      {{- $hostAliases := $config.hostAliases | default $default.hostAliases }}
+      {{- if $hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" $hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if ($config.affinity | default $default.affinity) }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" ($config.affinity | default $default.affinity) "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" ($config.podAffinityPreset | default $default.podAffinityPreset) "component" "synapse" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" ($config.podAntiAffinityPreset | default $default.podAntiAffinityPreset) "component" "synapse" "customLabels" $podLabels "context" $) | nindent 10 }}
+        {{ $nodeAffinityPreset := $config.nodeAffinityPreset | default $default.nodeAffinityPreset }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" $nodeAffinityPreset.type "key" $nodeAffinityPreset.key "values" $nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if ($config.nodeSelector | default $default.nodeSelector) }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" ($config.nodeSelector | default $default.nodeSelector) "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if ($config.tolerations | default $default.tolerations) }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" ($config.tolerations | default $default.tolerations) "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if ($config.priorityClassName | default $default.priorityClassName) }}
+      priorityClassName: {{ $config.priorityClassName | default $default.priorityClassName | quote }}
+      {{- end }}
+      {{- if ($config.schedulerName | default $default.schedulerName) }}
+      schedulerName: {{ $config.schedulerName | default $default.schedulerName | quote }}
+      {{- end }}
+      {{- if ($config.topologySpreadConstraints | default $default.topologySpreadConstraints) }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" ($config.topologySpreadConstraints | default $default.topologySpreadConstraints) "context" $) | nindent 8 }}
+      {{- end }}
+      {{- $podSecurityContext := $config.podSecurityContext | default $default.podSecurityContext }}
+      {{- if $podSecurityContext.enabled }}
+      securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" $podSecurityContext "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if ($config.terminationGracePeriodSeconds | default $default.terminationGracePeriodSeconds) }}
+      terminationGracePeriodSeconds: {{ $config.terminationGracePeriodSeconds | default $default.terminationGracePeriodSeconds }}
+      {{- end }}
+      initContainers:
+        {{- if and $.Values.defaultInitContainers.volumePermissions.enabled $.Values.persistence.enabled }}
+        {{- include "synapse.defaultInitContainers.volumePermissions" (dict "context" $ "component" "worker.default") | nindent 8 }}
+        {{- end }}
+        {{- if $config.initContainers }}
+        {{- include "common.tplvalues.render" (dict "value" $config.initContainers "context" $config) | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: synapse
+          image: {{ template "synapse.image" $ }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          {{- $containerSecurityContext := $config.containerSecurityContext | default $default.containerSecurityContext }}
+          {{- if $containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" $containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if $.Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" $.Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if ($config.command | default $default.command) }}
+          command: {{- include "common.tplvalues.render" (dict "value" ($config.command | default $default.command) "context" $) | nindent 12 }}
+          {{- else }}
+          command:
+            - sh
+            - -c
+            - |
+              exec python -B -m synapse.app.{{ (not (not $config.generic)) | ternary "generic_worker" $app }} \
+                          -c {{ $.Values.synapse.config.homeServerConfigFile }} \
+                          -c {{ $.Values.synapse.config.directory }} \
+                          -c {{ $.Values.synapse.config.directory }}/{{ $worker }}.worker
+          {{- end }}
+          {{- if $.Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" $.Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if ($config.args | default $default.args) }}
+          args: {{- include "common.tplvalues.render" (dict "value" ($config.args | default $default.args) "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            {{- if ($config.extraEnvVars | default $default.extraEnvVars) }}
+            {{- include "common.tplvalues.render" (dict "value" ($config.extraEnvVars | default $default.extraEnvVars) "context" $) | nindent 12 }}
+            {{- end }}
+          envFrom:
+            {{- if ($config.extraEnvVarsCM | default $default.extraEnvVarsCM) }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" ($config.extraEnvVarsCM | default $default.extraEnvVarsCM) "context" $) }}
+            {{- end }}
+            {{- if ($config.extraEnvVarsSecret | default $default.extraEnvVarsSecret) }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" ($config.extraEnvVarsSecret | default $default.extraEnvVarsSecret) "context" $) }}
+            {{- end }}
+          {{- if ($config.resources | default $default.resources) }}
+          resources: {{- toYaml ($config.resources | default $default.resources) | nindent 12 }}
+          {{- else if ne ($config.resourcesPreset | default $default.resourcesPreset) "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" ($config.resourcesPreset | default $default.resourcesPreset)) | nindent 12 }}
+          {{- end }}
+          {{ $containerPorts := $config.containerPorts | default $default.containerPorts }}
+          ports:
+            - name: tcp-metrics
+              containerPort: {{ $containerPorts.metrics }}
+            {{- if $config.listeners }}
+            - name: listener
+              containerPort: {{ $containerPorts.listener }}
+              protocol: TCP
+            {{- if has "replication" $config.listeners }}
+            - name: replication
+              containerPort: {{ $containerPorts.replication }}
+              protocol: TCP
+            {{- end }}
+            {{- end }}
+          {{- if not $.Values.diagnosticMode.enabled }}
+          {{- $livenessProbe := $config.livenessProbe | default $default.livenessProbe }}
+          {{- $readinessProbe := $config.readinessProbe | default $default.readinessProbe }}
+          {{- $startupProbe := $config.startupProbe | default $default.startupProbe }}
+          {{- if ($config.customLivenessProbe | default $default.customLivenessProbe) }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" ($config.customLivenessProbe | default $default.customLivenessProbe) "context" $) | nindent 12 }}
+          {{- else if $livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit $livenessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /health
+              port: {{ $containerPorts.metrics }}
+          {{- end }}
+          {{- if ($config.customLivenessProbe | default $default.customLivenessProbe) }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" ($config.customLivenessProbe | default $default.customLivenessProbe) "context" $) | nindent 12 }}
+          {{- else if $readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit $readinessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /health
+              port: {{ $containerPorts.metrics }}
+          {{- end }}
+          {{- if ($config.customStartupProbe | default $default.customStartupProbe) }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" ($config.customStartupProbe | default $default.customStartupProbe) "context" $) | nindent 12 }}
+          {{- else if $startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit $startupProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /health
+              port: {{ $containerPorts.metrics }}
+          {{- end }}
+          {{- end }}
+          {{- if ($config.lifecycleHooks | default $default.lifecycleHooks) }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" ($config.lifecycleHooks | default $default.lifecycleHooks) "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: synapse-signing-key
+              mountPath: /synapse/keys
+              readOnly: true
+            - name: synapse-config
+              mountPath: /synapse/config
+              readOnly: true
+            - name: synapse-config-worker
+              mountPath: {{ $.Values.synapse.config.directory }}
+              readOnly: true
+            - name: data
+              mountPath: {{ $.Values.persistence.mountPath }}
+          {{- if ($config.extraVolumeMounts | default $default.extraVolumeMounts) }}
+          {{- include "common.tplvalues.render" (dict "value" ($config.extraVolumeMounts | default $default.extraVolumeMounts) "context" $) | nindent 12 }}
+          {{- end }}
+        {{- if ($config.sidecars | default $default.sidecars) }}
+        {{- include "common.tplvalues.render" ( dict "value" ($config.sidecars | default $default.sidecars) "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: data
+        {{- if and (eq $worker "media_repository") $.Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ default (include "common.names.fullname" $) $.Values.persistence.existingClaim }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        - name: empty-dir
+          emptyDir: {}
+        - name: synapse-signing-key
+          secret:
+            secretName: synapse-signing-key
+        - name: synapse-config
+          configMap:
+            name: {{ include "common.names.fullname" $ }}
+        - name: synapse-config-worker
+          configMap:
+            name: {{ include "synapse.worker.fullname" (dict "global" $ "worker" "workers") }}
+        {{- if ($config.extraVolumes | default $default.extraVolumes) }}
+        {{- include "common.tplvalues.render" (dict "value" ($config.extraVolumes | default $default.extraVolumes) "context" $) | nindent 8 }}
+        {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -49,7 +49,7 @@ In order to replicate the container startup scripts execute this command:
 {{- end }}
 {{- end }}
 
-{{- include "common.warnings.rollingTag" .Values.master.image }}
+{{- include "common.warnings.rollingTag" .Values.image }}
 {{/*{{- include "common.warnings.rollingTag" .Values.worker.image }}*/}}
 {{- include "common.warnings.rollingTag" .Values.defaultInitContainers.volumePermissions.image }}
 {{/*{{- include "common.warnings.resources" (dict "sections" (list "master" "worker" "defaultInitContainers.volumePermissions") "context" .) }}*/}}

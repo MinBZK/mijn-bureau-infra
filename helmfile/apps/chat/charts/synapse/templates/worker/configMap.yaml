@@ -1,0 +1,85 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+{{- if eq .Values.architecture "replication" }}
+{{- $workersConfigured := false }}
+{{- range $worker, $config := .Values.worker }}
+  {{- if $config.enabled }}
+    {{- $workersConfigured = true }}
+  {{- end }}
+{{- end }}
+
+{{- if $workersConfigured }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "synapse.worker.fullname" (dict "global" . "worker" "workers") }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" . ) | nindent 4 }}
+    # FIXME compare component use with ananace
+    app.kubernetes.io/component: synapse-worker
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" . ) | nindent 4 }}
+  {{- end }}
+data:
+  {{- $default := .Values.worker.default }}
+  {{- range $worker, $config := .Values.worker }}
+  {{- if $config.enabled }}
+  {{- $name := include "synapse.worker.fullname" (dict "global" $ "worker" $worker) }}
+  {{- $app := $config.app | default $worker }}
+  {{ $worker }}.worker: |
+    worker_app: "synapse.app.{{ (not (not $config.generic)) | ternary "generic_worker" $app }}"
+    {{- if $config.name }}
+    {{- if (gt ($config.replicaCount | default $default.replicaCount | int) 1) }}
+    {{- fail "Replica count must be 1 if a worker has a unique name." -}}
+    {{- end }}
+    worker_name: {{ $config.name }}
+    {{- end }}
+
+    {{- $containerPorts := $config.containerPorts | default $default.containerPorts }}
+    worker_listeners:
+      {{- $metricsPort := $containerPorts.metrics | default $default.containerPorts.metrics }}
+      - port: {{ $metricsPort }}
+        tls: false
+        type: http
+        resources:
+          - names:
+            - metrics
+            compress: false
+      {{- if $config.listeners }}
+      {{- if has "replication" $config.listeners }}
+      {{- if not $config.name }}
+      {{- fail "Workers with replication listeners must have unique names." }}
+      {{- end }}
+
+      {{- $replicationPort := $containerPorts.replication | default $default.containerPorts.replication }}
+      - port: {{ $replicationPort }}
+        tls: false
+        type: http
+        x_forwarded: true
+        resources:
+          - names: [replication]
+            compress: false
+      {{- end }}
+
+      {{- $listenerPort := $containerPorts.listener | default $default.containerPorts.listener }}
+      - port: {{ $listenerPort }}
+        tls: false
+        type: http
+        x_forwarded: true
+        resources:
+          - names:
+              {{- toYaml (without $config.listeners "replication") | nindent 14 }}
+            compress: false
+      {{- end }}
+    worker_log_config: /synapse/config/log.yaml
+    {{- if $config.extraConfig }}
+
+    # Extra config
+    {{ toYaml $config.extraConfig | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

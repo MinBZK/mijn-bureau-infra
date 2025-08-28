@@ -3,7 +3,8 @@
 SPDX-License-Identifier: APACHE-2.0
 */}}
 
-{{- if and (eq .Values.architecture "replication") .Values.worker.autoscaling.hpa.enabled  }}
+# FIXME autoscaling is not possible for all worker types (if any).
+{{- if and (eq .Values.architecture "replication") .Values.worker.default.autoscaling.hpa.enabled  }}
 apiVersion: {{ include "common.capabilities.hpa.apiVersion" ( dict "context" $ ) }}
 kind: HorizontalPodAutoscaler
 metadata:

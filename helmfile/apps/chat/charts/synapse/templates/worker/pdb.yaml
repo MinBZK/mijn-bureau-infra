@@ -1,0 +1,41 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if eq .Values.architecture "replication" }}
+{{- $default := .Values.worker.default }}
+{{- range $worker, $config := .Values.worker }}
+{{- if $config.enabled }}
+{{- $fullname := include "synapse.worker.fullname" (dict "global" $ "worker" $worker) }}
+{{- $pdb := $config.pdb | default $default.pdb }}
+{{- if or $pdb.create $default.pdb.create }}
+---
+apiVersion: {{ include "common.capabilities.policy.apiVersion" . }}
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $fullname }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ $fullname }}
+  {{- if or $config.annotations $default.annotations $.Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" ( dict "values" (list $config.annotations $default.annotations $.Values.commonAnnotations) "context" $ ) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $minAvailable := $pdb.minAvailable | default $default.pdb.minAvailable }}
+  {{- $maxUnavailable := $pdb.maxUnavailable | default $default.pdb.maxUnavailable }}
+  {{- if $minAvailable }}
+  minAvailable: {{ $minAvailable }}
+  {{- end  }}
+  {{- if or $maxUnavailable ( not $minAvailable ) }}
+  maxUnavailable: {{ $maxUnavailable | default 1 }}
+  {{- end  }}
+  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list $config.podLabels $default.podLabels $.Values.commonLabels ) "context" $ ) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: {{ $fullname }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

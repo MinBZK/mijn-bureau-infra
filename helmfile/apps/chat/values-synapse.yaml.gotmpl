@@ -13,23 +13,29 @@
 
 # Architecture can be monolith for a single node, or replication when using additional worker nodes for scaling.
 # See https://element-hq.github.io/synapse/latest/workers.html
-architecture: monolith
+# TODO replication is not functional, see https://github.com/MinBZK/mijn-bureau-infra/issues/8
+architecture: {{ .Values.application.chat.synapse.architecture | default "monolith" }}
 
 commonLabels:
   app.kubernetes.io/part-of: synapse
 
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  registry: {{ coalesce .Values.container.synapse.registry .Values.container.default.registry | quote }}
+  repository: {{ .Values.container.synapse.repository }}
+  # This sets the pull policy for images.
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: {{ .Values.container.synapse.tag }}
+  pullSecrets:
+    - {{ coalesce .Values.container.synapse.imagePullSecret .Values.container.default.imagePullSecret | quote }}
+
+persistence:
+  size: {{ coalesce .Values.pvc.synapse.synapse.size .Values.pvc.default.size "8Gi" }}
+  storageClass: {{ coalesce .Values.pvc.synapse.synapse.storageClass .Values.pvc.default.storageClass | quote }}
+  accessModes: {{ coalesce .Values.pvc.synapse.synapse.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+
 master:
-  # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
-  image:
-    registry: {{ coalesce .Values.container.synapse.registry .Values.container.default.registry | quote }}
-    repository: {{ .Values.container.synapse.repository }}
-    # This sets the pull policy for images.
-    pullPolicy: Always
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: {{ .Values.container.synapse.tag }}
-    pullSecrets:
-     - {{ coalesce .Values.container.synapse.imagePullSecret .Values.container.default.imagePullSecret | quote }}
-  # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.synapse.master | toYaml | nindent 4 }}
   autoscaling:
@@ -37,10 +43,6 @@ master:
   startupProbe:
     enabled: true
     initialDelaySeconds: 15
-  persistence:
-    size: {{ coalesce .Values.pvc.synapse.synapse.size .Values.pvc.default.size "8Gi" }}
-    storageClass: {{ coalesce .Values.pvc.synapse.synapse.storageClass .Values.pvc.default.storageClass | quote }}
-    accessModes: {{ coalesce .Values.pvc.synapse.synapse.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
   networkPolicy:
     extraIngress:
       # Allow traffic from ingress controller namespace
@@ -71,13 +73,55 @@ master:
                 app.kubernetes.io/instance: chat-postgresql
         {{- end }}
       {{- end }}
-
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
-
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
 
-# TODO replication is not functional
+# TODO replication is not functional, see https://github.com/MinBZK/mijn-bureau-infra/issues/8
 worker:
+  default:
+    resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+    resources: {{ .Values.resource.synapse.worker.default | toYaml | nindent 6 }}
+    autoscaling:
+      vpa: {{ .Values.autoscaling.vertical.synapse.worker.default | toYaml | nindent 8 }}
+    startupProbe:
+      enabled: true
+      initialDelaySeconds: 15
+    networkPolicy:
+      extraIngress:
+        # Allow traffic from ingress controller namespace
+        - ports:
+            - port: 8083
+              protocol: TCP
+      extraEgress:
+        # Allow https egress for keycloak connection
+        - ports:
+            - port: 443
+        {{- if .Values.cache.synapse }}
+        - ports:
+            - port: {{ .Values.cache.synapse.port }}
+          {{- if .Values.cache.synapse.isInternal }}
+          to:
+            - podSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: chat-redis
+          {{- end }}
+        {{- end }}
+        {{- if eq .Values.database.synapse.type "psycopg2" }}
+        - ports:
+            - port: {{ .Values.database.synapse.port }}
+          {{- if .Values.database.synapse.isInternal }}
+          to:
+            - podSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: chat-postgresql
+          {{- end }}
+        {{- end }}
+    podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+    containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  generic_worker:
+    enabled: true
+  media_repository:
+    enabled: true
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
@@ -97,6 +141,18 @@ ingress:
     {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
+
+# This section is for setting volume permissions on PVC's.
+defaultInitContainers:
+  volumePermissions:
+    enabled: true
+    image:
+      registry: {{ coalesce .Values.container.osShell.registry .Values.container.default.registry | quote }}
+      repository: {{ .Values.container.osShell.repository }}
+      pullPolicy: Always
+      tag: {{ .Values.container.osShell.tag }}
+      pullSecrets:
+        - {{ coalesce .Values.container.osShell.imagePullSecret .Values.container.default.imagePullSecret | toYaml }}
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:

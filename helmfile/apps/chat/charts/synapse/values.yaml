@@ -1,7 +1,7 @@
 #
 # SPDX-License-Identifier: APACHE-2.0
 
-## @param architecture Architecture to apply to Synapse. Can either be "monolith" or "replication". TODO: "replication" is not supported yet.
+## @param architecture Architecture to apply to Synapse. Can either be "monolith" or "replication".
 architecture: "monolith"
 
 ## @section Global parameters
@@ -72,59 +72,109 @@ diagnosticMode:
   args:
     - infinity
 
-## @section Synapse Master Image parameters
+## @section Synapse image parameters
+##
+## ref: https://hub.docker.com/r/matrixdotorg/synapse/
+## @param image.registry Synapse master image registry
+## @param image.repository Synapse master image repository
+## @param image.tag Synapse master image tag (immutable tags are recommended)
+## @param image.digest Synapse master image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
+## @param image.pullPolicy Synapse master image pull policy
+## @param image.pullSecrets Synapse master image pull secrets
+## @param image.debug Enable Synapse master image debug mode
+##
+image:
+  registry: docker.io
+  repository: matrixdotorg/synapse
+  tag: "v1.133.0"
+  digest: ""
+  ## Specify a imagePullPolicy
+  ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
+  ##
+  pullPolicy: IfNotPresent
+  ## Optionally specify an array of imagePullSecrets (secrets must be manually created in the namespace)
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ## e.g:
+  ## pullSecrets:
+  ##   - myRegistryKeySecretName
+  ##
+  pullSecrets: []
+  debug: false
+
+## @section Synapse persistence parameters
+##
+persistence:
+  ## @param persistence.enabled Enable persistence using Persistent Volume Claims
+  ##
+  enabled: true
+  ## @param persistence.mountPath Path to mount the volume at.
+  ##
+  mountPath: /synapse/data
+  ## @param persistence.subPath The subdirectory of the volume to mount to, useful in dev environments and one PV for multiple services
+  ##
+  subPath: ""
+  ## @param persistence.subPathExpr Used to construct the subPath subdirectory of the volume to mount on Synapse master containers
+  ##
+  subPathExpr: ""
+  ## @param persistence.storageClass Storage class of backing PVC
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  storageClass: ""
+  ## @param persistence.annotations Persistent Volume Claim annotations
+  ##
+  annotations: {}
+  ## @param persistence.labels Persistent Volume Claim labels
+  ##
+  labels: {}
+  ## @param persistence.accessModes Persistent Volume Access Modes
+  ##
+  accessModes:
+    - ReadWriteOnce
+  ## @param persistence.size Size of data volume
+  ##
+  size: 8Gi
+  ## @param persistence.dataSource Custom PVC data source
+  ##
+  dataSource: {}
+  ## @param persistence.existingClaim The name of an existing PVC to use for persistence
+  ##
+  existingClaim: ""
+  ## @param persistence.selector Selector to match an existing Persistent Volume for WordPress data PVC
+  ## If set, the PVC can't have a PV dynamically provisioned for it
+  ## E.g.
+  ## selector:
+  ##   matchLabels:
+  ##     app: my-app
+  ##
+  selector: {}
+
+## @section Synapse master parameters
 ##
 master:
-  ## @param master.name Synapse Master name, used as postfix for kubernetes naming
+  ## @param master.name Synapse master name, used as postfix for kubernetes naming
   name: "master"
-  ## Synapse Master image
-  ## ref: https://hub.docker.com/r/matrixdotorg/synapse/
-  ## @param master.image.registry [default: docker.io] Synapse Master image registry
-  ## @param master.image.repository [default: matrixdotorg/synapse] Synapse Master image repository
-  ## @param master.image.tag Synapse Master image tag (immutable tags are recommended)
-  ## @param master.image.digest Synapse Master image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
-  ## @param master.image.pullPolicy Synapse Master image pull policy
-  ## @param master.image.pullSecrets Synapse Master image pull secrets
-  ## @param master.image.debug Enable Synapse Master image debug mode
-  ##
-  image:
-    registry: docker.io
-    repository: matrixdotorg/synapse
-    tag: "v1.133.0"
-    digest: ""
-    ## Specify a imagePullPolicy
-    ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
-    ##
-    pullPolicy: IfNotPresent
-    ## Optionally specify an array of imagePullSecrets (secrets must be manually created in the namespace)
-    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-    ## e.g:
-    ## pullSecrets:
-    ##   - myRegistryKeySecretName
-    ##
-    pullSecrets: []
-    debug: false
-  ## @param master.replicaCount Number of Synapse Master replicas to deploy
-  ##
-  replicaCount: 1
-  ## @param master.containerPorts.http Synapse Master synapse container port
-  ## @param master.containerPorts.replication Synapse Master replication container port
-  ## @param master.containerPorts.metrics Synapse Master metrics container port
+  ## @param master.containerPorts.http Synapse master synapse container port
+  ## @param master.containerPorts.replication Synapse master replication container port
+  ## @param master.containerPorts.metrics Synapse master metrics container port
   ##
   containerPorts:
     http: 8448
-    metrics: 9090
     replication: 9093
-  ## @param master.extraContainerPorts Optionally specify extra list of additional ports for Synapse Master containers
+    metrics: 9090
+  ## @param master.extraContainerPorts Optionally specify extra list of additional ports for Synapse master containers
   ## e.g:
   ## extraContainerPorts:
   ##   - name: myservice
   ##     containerPort: 9090
   ##
   extraContainerPorts: []
-  ## Configure extra options for Synapse Master containers' liveness and readiness probes
+  ## Configure extra options for Synapse master containers' liveness and readiness probes
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
-  ## @param master.livenessProbe.enabled Enable livenessProbe on Synapse Master containers
+  ## @param master.livenessProbe.enabled Enable livenessProbe on Synapse master containers
   ## @param master.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
   ## @param master.livenessProbe.periodSeconds Period seconds for livenessProbe
   ## @param master.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
@@ -138,7 +188,7 @@ master:
     timeoutSeconds: 2
     failureThreshold: 3
     successThreshold: 1
-  ## @param master.readinessProbe.enabled Enable readinessProbe on Synapse Master containers
+  ## @param master.readinessProbe.enabled Enable readinessProbe on Synapse master containers
   ## @param master.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
   ## @param master.readinessProbe.periodSeconds Period seconds for readinessProbe
   ## @param master.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
@@ -152,7 +202,7 @@ master:
     timeoutSeconds: 2
     failureThreshold: 3
     successThreshold: 1
-  ## @param master.startupProbe.enabled Enable startupProbe on Synapse Master containers
+  ## @param master.startupProbe.enabled Enable startupProbe on Synapse master containers
   ## @param master.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
   ## @param master.startupProbe.periodSeconds Period seconds for startupProbe
   ## @param master.startupProbe.timeoutSeconds Timeout seconds for startupProbe
@@ -175,13 +225,13 @@ master:
   ## @param master.customStartupProbe Custom startupProbe that overrides the default one
   ##
   customStartupProbe: {}
-  ## Synapse Master resource requests and limits
+  ## Synapse master resource requests and limits
   ## ref: http://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
-  ## @param master.resourcesPreset Set Synapse Master container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if synapse.resources is set (synapse.resources is recommended for production).
+  ## @param master.resourcesPreset Set Synapse master container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if synapse.resources is set (synapse.resources is recommended for production).
   ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
   ##
   resourcesPreset: "nano"
-  ## @param master.resources Set Synapse Master container requests and limits for different resources like CPU or memory (essential for production workloads)
+  ## @param master.resources Set Synapse master container requests and limits for different resources like CPU or memory (essential for production workloads)
   ## Example:
   ## resources:
   ##   requests:
@@ -194,11 +244,11 @@ master:
   resources: {}
   ## Configure Pods Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
-  ## @param master.podSecurityContext.enabled Enable Synapse Master pods' Security Context
-  ## @param master.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy for Synapse Master pods
-  ## @param master.podSecurityContext.sysctls Set kernel settings using the sysctl interface for Synapse Master pods
-  ## @param master.podSecurityContext.supplementalGroups Set filesystem extra groups for Synapse Master pods
-  ## @param master.podSecurityContext.fsGroup Set fsGroup in Synapse Master pods' Security Context
+  ## @param master.podSecurityContext.enabled Enable Synapse master pods' Security Context
+  ## @param master.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy for Synapse master pods
+  ## @param master.podSecurityContext.sysctls Set kernel settings using the sysctl interface for Synapse master pods
+  ## @param master.podSecurityContext.supplementalGroups Set filesystem extra groups for Synapse master pods
+  ## @param master.podSecurityContext.fsGroup Set fsGroup in Synapse master pods' Security Context
   ##
   podSecurityContext:
     enabled: true
@@ -208,16 +258,16 @@ master:
     fsGroup: 1001
   ## Configure Container Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
-  ## @param master.containerSecurityContext.enabled Enabled Synapse Master container' Security Context
-  ## @param master.containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in Synapse Master container
-  ## @param master.containerSecurityContext.runAsUser Set runAsUser in Synapse Master container' Security Context
-  ## @param master.containerSecurityContext.runAsGroup Set runAsGroup in Synapse Master container' Security Context
-  ## @param master.containerSecurityContext.runAsNonRoot Set runAsNonRoot in Synapse Master container' Security Context
-  ## @param master.containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in Synapse Master container' Security Context
-  ## @param master.containerSecurityContext.privileged Set privileged in Synapse Master container' Security Context
-  ## @param master.containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in Synapse Master container' Security Context
-  ## @param master.containerSecurityContext.capabilities.drop List of capabilities to be dropped in Synapse Master container
-  ## @param master.containerSecurityContext.seccompProfile.type Set seccomp profile in Synapse Master container
+  ## @param master.containerSecurityContext.enabled Enabled Synapse master container' Security Context
+  ## @param master.containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in Synapse master container
+  ## @param master.containerSecurityContext.runAsUser Set runAsUser in Synapse master container' Security Context
+  ## @param master.containerSecurityContext.runAsGroup Set runAsGroup in Synapse master container' Security Context
+  ## @param master.containerSecurityContext.runAsNonRoot Set runAsNonRoot in Synapse master container' Security Context
+  ## @param master.containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in Synapse master container' Security Context
+  ## @param master.containerSecurityContext.privileged Set privileged in Synapse master container' Security Context
+  ## @param master.containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in Synapse master container' Security Context
+  ## @param master.containerSecurityContext.capabilities.drop List of capabilities to be dropped in Synapse master container
+  ## @param master.containerSecurityContext.seccompProfile.type Set seccomp profile in Synapse master container
   ##
   containerSecurityContext:
     enabled: true
@@ -232,39 +282,39 @@ master:
       drop: ["ALL"]
     seccompProfile:
       type: "RuntimeDefault"
-  ## @param master.existingConfigmap The name of an existing ConfigMap with your custom configuration for Synapse Master
+  ## @param master.existingConfigmap The name of an existing ConfigMap with your custom configuration for Synapse master
   ##
   existingConfigmap:
-  ## @param master.command Override default Synapse Master container command (useful when using custom images)
+  ## @param master.command Override default Synapse master container command (useful when using custom images)
   ##
   command: []
-  ## @param master.args Override default Synapse Master container args (useful when using custom images)
+  ## @param master.args Override default Synapse master container args (useful when using custom images)
   ##
   args: []
-  ## @param master.automountServiceAccountToken Mount Service Account token in Synapse Master pods
+  ## @param master.automountServiceAccountToken Mount Service Account token in Synapse master pods
   ##
   automountServiceAccountToken: false
-  ## @param master.hostAliases Synapse Master pods host aliases
+  ## @param master.hostAliases Synapse master pods host aliases
   ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
   ##
   hostAliases: []
-  ## @param master.daemonsetAnnotations Annotations for Synapse Master daemonset
+  ## @param master.daemonsetAnnotations Annotations for Synapse master daemonset
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
   daemonsetAnnotations: {}
-  ## @param master.deploymentAnnotations Annotations for Synapse Master deployment
+  ## @param master.deploymentAnnotations Annotations for Synapse master deployment
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
   deploymentAnnotations: {}
-  ## @param master.statefulsetAnnotations Annotations for Synapse Master statefulset
+  ## @param master.statefulsetAnnotations Annotations for Synapse master statefulset
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
   statefulsetAnnotations: {}
-  ## @param master.podLabels Extra labels for Synapse Master pods
+  ## @param master.podLabels Extra labels for Synapse master pods
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
   ##
   podLabels: {}
-  ## @param master.podAnnotations Annotations for Synapse Master pods
+  ## @param master.podAnnotations Annotations for Synapse master pods
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
   podAnnotations: {}
@@ -293,24 +343,24 @@ master:
     ##   - e2e-az2
     ##
     values: []
-  ## @param master.affinity Affinity for Synapse Master pods assignment
+  ## @param master.affinity Affinity for Synapse master pods assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
   ## NOTE: `synapse.podAffinityPreset`, `synapse.podAntiAffinityPreset`, and `synapse.nodeAffinityPreset` will be ignored when it's set
   ##
   affinity: {}
-  ## @param master.nodeSelector Node labels for Synapse Master pods assignment
+  ## @param master.nodeSelector Node labels for Synapse master pods assignment
   ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
   ##
   nodeSelector: {}
-  ## @param master.tolerations Tolerations for Synapse Master pods assignment
+  ## @param master.tolerations Tolerations for Synapse master pods assignment
   ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   ##
   tolerations: []
   ## ONLY FOR DEPLOYMENTS:
-  ## @param master.updateStrategy.type Synapse Master deployment strategy type
+  ## @param master.updateStrategy.type Synapse master deployment strategy type
   ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
   ## ONLY FOR STATEFULSETS:
-  ## @param master.updateStrategy.type Synapse Master statefulset strategy type
+  ## @param master.updateStrategy.type Synapse master statefulset strategy type
   ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
   ##
   updateStrategy:
@@ -321,48 +371,48 @@ master:
     ##
     type: Recreate
   ## ONLY FOR STATEFULSETS:
-  ## @param master.podManagementPolicy Pod management policy for Synapse Master statefulset
+  ## @param master.podManagementPolicy Pod management policy for Synapse master statefulset
   ## Ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
   ##
   podManagementPolicy: OrderedReady
-  ## @param master.priorityClassName Synapse Master pods' priorityClassName
+  ## @param master.priorityClassName Synapse master pods' priorityClassName
   ##
   priorityClassName: ""
-  ## @param master.topologySpreadConstraints Topology Spread Constraints for Synapse Master pod assignment spread across your cluster among failure-domains
+  ## @param master.topologySpreadConstraints Topology Spread Constraints for Synapse master pod assignment spread across your cluster among failure-domains
   ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
   ##
   topologySpreadConstraints: []
-  ## @param master.schedulerName Name of the k8s scheduler (other than default) for Synapse Master pods
+  ## @param master.schedulerName Name of the k8s scheduler (other than default) for Synapse master pods
   ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
   ##
   schedulerName: ""
-  ## @param master.terminationGracePeriodSeconds Seconds Synapse Master pods need to terminate gracefully
+  ## @param master.terminationGracePeriodSeconds Seconds Synapse master pods need to terminate gracefully
   ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
   ##
   terminationGracePeriodSeconds: ""
-  ## @param master.lifecycleHooks for Synapse Master containers to automate configuration before or after startup
+  ## @param master.lifecycleHooks for Synapse master containers to automate configuration before or after startup
   ##
   lifecycleHooks: {}
-  ## @param master.extraEnvVars Array with extra environment variables to add to Synapse Master containers
+  ## @param master.extraEnvVars Array with extra environment variables to add to Synapse master containers
   ## e.g:
   ## extraEnvVars:
   ##   - name: FOO
   ##     value: "bar"
   ##
   extraEnvVars: []
-  ## @param master.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for Synapse Master containers
+  ## @param master.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for Synapse master containers
   ##
   extraEnvVarsCM: ""
-  ## @param master.extraEnvVarsSecret Name of existing Secret containing extra env vars for Synapse Master containers
+  ## @param master.extraEnvVarsSecret Name of existing Secret containing extra env vars for Synapse master containers
   ##
   extraEnvVarsSecret: ""
-  ## @param master.extraVolumes Optionally specify extra list of additional volumes for the Synapse Master pods
+  ## @param master.extraVolumes Optionally specify extra list of additional volumes for the Synapse master pods
   ##
   extraVolumes: []
-  ## @param master.extraVolumeMounts Optionally specify extra list of additional volumeMounts for the Synapse Master containers
+  ## @param master.extraVolumeMounts Optionally specify extra list of additional volumeMounts for the Synapse master containers
   ##
   extraVolumeMounts: []
-  ## @param master.sidecars Add additional sidecar containers to the Synapse Master pods
+  ## @param master.sidecars Add additional sidecar containers to the Synapse master pods
   ## e.g:
   ## sidecars:
   ##   - name: your-image-name
@@ -387,7 +437,7 @@ master:
   ## ref: https://kubernetes.io/docs/concepts/workloads/autoscaling/
   ##
   autoscaling:
-    ## @param master.autoscaling.vpa.enabled Enable VPA for Synapse Master pods
+    ## @param master.autoscaling.vpa.enabled Enable VPA for Synapse master pods
     ## @param master.autoscaling.vpa.annotations Annotations for VPA resource
     ## @param master.autoscaling.vpa.controlledResources VPA List of resources that the vertical pod autoscaler can control. Defaults to cpu and memory
     ## @param master.autoscaling.vpa.maxAllowed VPA Max allowed resources for the pod
@@ -405,28 +455,15 @@ master:
       ##
       updatePolicy:
         updateMode: Auto
-    ## @param master.autoscaling.hpa.enabled Enable HPA for Synapse Master pods
-    ## @param master.autoscaling.hpa.minReplicas Minimum number of replicas
-    ## @param master.autoscaling.hpa.maxReplicas Maximum number of replicas
-    ## @param master.autoscaling.hpa.targetCPU Target CPU utilization percentage
-    ## @param master.autoscaling.hpa.targetMemory Target Memory utilization percentage
-    ##
-    # TODO Check whether this is usable with Synapse replication workers.
-    hpa:
-      enabled: false
-      minReplicas: 1
-      maxReplicas: 3
-      targetCPU: 75
-      targetMemory: ""
-  ## Synapse Master service parameters
+  ## Synapse master service parameters
   ##
   service:
-    ## @param master.service.type Synapse Master service type
+    ## @param master.service.type Synapse master service type
     ##
     type: ClusterIP
-    ## @param master.service.ports.http Synapse Master service HTTP port
-    ## @param master.service.ports.replication Synapse Master service replication port
-    ## @param master.service.ports.metrics Synapse Master metrics replication port
+    ## @param master.service.ports.http Synapse master service HTTP port
+    ## @param master.service.ports.replication Synapse master service replication port
+    ## @param master.service.ports.metrics Synapse master metrics replication port
     ##
     ports:
       http: 8448
@@ -442,30 +479,30 @@ master:
       http: ""
       replication: ""
       metrics: ""
-    ## @param master.service.clusterIP Synapse Master service Cluster IP
+    ## @param master.service.clusterIP Synapse master service Cluster IP
     ## e.g.:
     ## clusterIP: None
     ##
     clusterIP: ""
-    ## @param master.service.loadBalancerIP Synapse Master service Load Balancer IP
+    ## @param master.service.loadBalancerIP Synapse master service Load Balancer IP
     ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
     ##
     loadBalancerIP: ""
-    ## @param master.service.loadBalancerSourceRanges Synapse Master service Load Balancer sources
+    ## @param master.service.loadBalancerSourceRanges Synapse master service Load Balancer sources
     ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
     ## e.g:
     ## loadBalancerSourceRanges:
     ##   - 10.10.10.0/24
     ##
     loadBalancerSourceRanges: []
-    ## @param master.service.externalTrafficPolicy Synapse Master service external traffic policy
+    ## @param master.service.externalTrafficPolicy Synapse master service external traffic policy
     ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
     ##
     externalTrafficPolicy: Cluster
-    ## @param master.service.annotations Additional custom annotations for Synapse Master service
+    ## @param master.service.annotations Additional custom annotations for Synapse master service
     ##
     annotations: {}
-    ## @param master.service.extraPorts Extra ports to expose in Synapse Master service (normally used with the `sidecars` value)
+    ## @param master.service.extraPorts Extra ports to expose in Synapse master service (normally used with the `sidecars` value)
     ##
     extraPorts: []
     ## @param master.service.sessionAffinity Control where client requests go, to the same pod or round-robin
@@ -546,54 +583,6 @@ master:
   ## Enable persistence using Persistent Volume Claims
   ## ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
   ##
-  persistence:
-    ## @param master.persistence.enabled Enable persistence using Persistent Volume Claims
-    ##
-    enabled: true
-    ## @param master.persistence.mountPath Path to mount the volume at.
-    ##
-    mountPath: /synapse/data
-    ## @param master.persistence.subPath The subdirectory of the volume to mount to, useful in dev environments and one PV for multiple services
-    ##
-    subPath: ""
-    ## @param master.persistence.subPathExpr Used to construct the subPath subdirectory of the volume to mount on Synapse Master containers
-    ##
-    subPathExpr: ""
-    ## @param master.persistence.storageClass Storage class of backing PVC
-    ## If defined, storageClassName: <storageClass>
-    ## If set to "-", storageClassName: "", which disables dynamic provisioning
-    ## If undefined (the default) or set to null, no storageClassName spec is
-    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-    ##   GKE, AWS & OpenStack)
-    ##
-    storageClass: ""
-    ## @param master.persistence.annotations Persistent Volume Claim annotations
-    ##
-    annotations: {}
-    ## @param master.persistence.labels Persistent Volume Claim labels
-    ##
-    labels: {}
-    ## @param master.persistence.accessModes Persistent Volume Access Modes
-    ##
-    accessModes:
-      - ReadWriteOnce
-    ## @param master.persistence.size Size of data volume
-    ##
-    size: 8Gi
-    ## @param master.persistence.dataSource Custom PVC data source
-    ##
-    dataSource: {}
-    ## @param master.persistence.existingClaim The name of an existing PVC to use for persistence
-    ##
-    existingClaim: ""
-    ## @param master.persistence.selector Selector to match an existing Persistent Volume for WordPress data PVC
-    ## If set, the PVC can't have a PV dynamically provisioned for it
-    ## E.g.
-    ## selector:
-    ##   matchLabels:
-    ##     app: my-app
-    ##
-    selector: {}
   ## Prometheus metrics
   ##
   metrics:
@@ -648,16 +637,775 @@ master:
       ##   prometheus: my-prometheus
       ##
       selector: {}
-  ## @param master.annotations Additional custom annotations for Synapse Master resource
+  ## @param master.annotations Additional custom annotations for Synapse master resource
   ##
   annotations: {}
 
-## @section Synapse Worker Image parameters
-###
+## @section Synapse replication parameters
+##
+replication:
+  ## Synapse replication service parameters
+  ##
+  service:
+    ## @param replication.service.type Synapse replication service type
+    ##
+    type: ClusterIP
+    ## @param replication.service.ports.replication Synapse replication service replication port
+    ##
+    ports:
+      replication: 9093
+    ## Node ports to expose
+    ## @param replication.service.nodePorts.replication Node port for replication
+    ## NOTE: choose port between <30000-32767>
+    ##
+    nodePorts:
+      replication: ""
+    ## @param replication.service.clusterIP Synapse replication service Cluster IP
+    ## e.g.:
+    ## clusterIP: None
+    ##
+    clusterIP: ""
+    ## @param replication.service.loadBalancerIP Synapse replication service Load Balancer IP
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
+    ##
+    loadBalancerIP: ""
+    ## @param replication.service.loadBalancerSourceRanges Synapse replication service Load Balancer sources
+    ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+    ## e.g:
+    ## loadBalancerSourceRanges:
+    ##   - 10.10.10.0/24
+    ##
+    loadBalancerSourceRanges: []
+    ## @param replication.service.externalTrafficPolicy Synapse replication service external traffic policy
+    ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+    ##
+    externalTrafficPolicy: Cluster
+    ## @param replication.service.annotations Additional custom annotations for Synapse replication service
+    ##
+    annotations: {}
+    ## @param replication.service.extraPorts Extra ports to expose in Synapse replication service (normally used with the `sidecars` value)
+    ##
+    extraPorts: []
+    ## @param replication.service.sessionAffinity Control where client requests go, to the same pod or round-robin
+    ## Values: ClientIP or None
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/
+    ##
+    sessionAffinity: None
+    ## @param replication.service.sessionAffinityConfig Additional settings for the sessionAffinity
+    ## sessionAffinityConfig:
+    ##   clientIP:
+    ##     timeoutSeconds: 300
+    ##
+    sessionAffinityConfig: {}
+
+
+## @section Synapse worker parameters
+## ref: https://github.com/matrix-org/synapse/blob/master/docs/workers.md
 ##
 worker:
-  ## @param worker.name Synapse Worker name, used as postfix for kubernetes naming
-  name: "worker"
+  ## Default configuration, this is inherited into all workers, and can also be
+  ## overriden on each worker type.
+  ##
+  default:
+    ## @param worker.default.replicaCount The number of worker replicas, note that some workers require special
+    ## handling. Refer to the information URL above.
+    ##
+    replicaCount: 1
+    ## @param worker.default.containerPorts.listener Synapse worker listener container port
+    ## @param worker.default.containerPorts.replication Synapse worker replication container port
+    ## @param worker.default.containerPorts.metrics Synapse worker metrics container port
+    ##
+    containerPorts:
+      listener: 8083
+      replication: 9093
+      metrics: 9090
+    ## @param worker.default.extraContainerPorts Optionally specify extra list of additional ports for Synapse worker containers
+    ## e.g:
+    ## extraContainerPorts:
+    ##   - name: myservice
+    ##     containerPort: 9090
+    ##
+    extraContainerPorts: []
+    ## Configure extra options for Synapse worker containers' liveness and readiness probes
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+    ## @param worker.default.livenessProbe.enabled Enable livenessProbe on Synapse worker containers
+    ## @param worker.default.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+    ## @param worker.default.livenessProbe.periodSeconds Period seconds for livenessProbe
+    ## @param worker.default.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+    ## @param worker.default.livenessProbe.failureThreshold Failure threshold for livenessProbe
+    ## @param worker.default.livenessProbe.successThreshold Success threshold for livenessProbe
+    ##
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 2
+      failureThreshold: 3
+      successThreshold: 1
+    ## @param worker.default.readinessProbe.enabled Enable readinessProbe on Synapse worker containers
+    ## @param worker.default.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+    ## @param worker.default.readinessProbe.periodSeconds Period seconds for readinessProbe
+    ## @param worker.default.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+    ## @param worker.default.readinessProbe.failureThreshold Failure threshold for readinessProbe
+    ## @param worker.default.readinessProbe.successThreshold Success threshold for readinessProbe
+    ##
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 2
+      failureThreshold: 3
+      successThreshold: 1
+    ## @param worker.default.startupProbe.enabled Enable startupProbe on Synapse worker containers
+    ## @param worker.default.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+    ## @param worker.default.startupProbe.periodSeconds Period seconds for startupProbe
+    ## @param worker.default.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+    ## @param worker.default.startupProbe.failureThreshold Failure threshold for startupProbe
+    ## @param worker.default.startupProbe.successThreshold Success threshold for startupProbe
+    ##
+    startupProbe:
+      enabled: false
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 2
+      failureThreshold: 5
+      successThreshold: 1
+    ## @param worker.default.customLivenessProbe Custom livenessProbe that overrides the default one
+    ##
+    customLivenessProbe: {}
+    ## @param worker.default.customReadinessProbe Custom readinessProbe that overrides the default one
+    ##
+    customReadinessProbe: {}
+    ## @param worker.default.customStartupProbe Custom startupProbe that overrides the default one
+    ##
+    customStartupProbe: {}
+    ## Synapse worker resource requests and limits
+    ## ref: http://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+    ## @param worker.default.resourcesPreset Set Synapse worker container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if synapse.resources is set (synapse.resources is recommended for production).
+    ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+    ##
+    resourcesPreset: "nano"
+    ## @param worker.default.resources Set Synapse worker container requests and limits for different resources like CPU or memory (essential for production workloads)
+    ## Example:
+    ## resources:
+    ##   requests:
+    ##     cpu: 2
+    ##     memory: 512Mi
+    ##   limits:
+    ##     cpu: 3
+    ##     memory: 1024Mi
+    ##
+    resources: {}
+    ## Configure Pods Security Context
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+    ## @param worker.default.podSecurityContext.enabled Enable Synapse worker pods' Security Context
+    ## @param worker.default.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy for Synapse worker pods
+    ## @param worker.default.podSecurityContext.sysctls Set kernel settings using the sysctl interface for Synapse worker pods
+    ## @param worker.default.podSecurityContext.supplementalGroups Set filesystem extra groups for Synapse worker pods
+    ## @param worker.default.podSecurityContext.fsGroup Set fsGroup in Synapse worker pods' Security Context
+    ##
+    podSecurityContext:
+      enabled: true
+      fsGroupChangePolicy: Always
+      sysctls: []
+      supplementalGroups: []
+      fsGroup: 1001
+    ## Configure Container Security Context
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+    ## @param worker.default.containerSecurityContext.enabled Enabled Synapse worker.default container' Security Context
+    ## @param worker.default.containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in Synapse worker.default container
+    ## @param worker.default.containerSecurityContext.runAsUser Set runAsUser in Synapse worker.default container' Security Context
+    ## @param worker.default.containerSecurityContext.runAsGroup Set runAsGroup in Synapse worker.default container' Security Context
+    ## @param worker.default.containerSecurityContext.runAsNonRoot Set runAsNonRoot in Synapse worker.default container' Security Context
+    ## @param worker.default.containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in Synapse worker.default container' Security Context
+    ## @param worker.default.containerSecurityContext.privileged Set privileged in Synapse worker.default container' Security Context
+    ## @param worker.default.containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in Synapse worker.default container' Security Context
+    ## @param worker.default.containerSecurityContext.capabilities.drop List of capabilities to be dropped in Synapse worker.default container
+    ## @param worker.default.containerSecurityContext.seccompProfile.type Set seccomp profile in Synapse worker.default container
+    ##
+    containerSecurityContext:
+      enabled: true
+      seLinuxOptions: {}
+      runAsUser: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      readOnlyRootFilesystem: true
+      privileged: false
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: "RuntimeDefault"
+    ## @param worker.default.existingConfigmap The name of an existing ConfigMap with your custom configuration for Synapse worker
+    ##
+    existingConfigmap:
+    ## @param worker.default.command Override default Synapse worker container command (useful when using custom images)
+    ##
+    command: []
+    ## @param worker.default.args Override default Synapse worker container args (useful when using custom images)
+    ##
+    args: []
+    ## @param worker.default.automountServiceAccountToken Mount Service Account token in Synapse worker pods
+    ##
+    automountServiceAccountToken: false
+    ## @param worker.default.hostAliases Synapse worker pods host aliases
+    ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+    ##
+    hostAliases: []
+    ## @param worker.default.daemonsetAnnotations Annotations for Synapse worker daemonset
+    ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+    ##
+    daemonsetAnnotations: {}
+    ## @param worker.default.deploymentAnnotations Annotations for Synapse worker deployment
+    ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+    ##
+    deploymentAnnotations: {}
+    ## @param worker.default.statefulsetAnnotations Annotations for Synapse worker statefulset
+    ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+    ##
+    statefulsetAnnotations: {}
+    ## @param worker.default.podLabels Extra labels for Synapse worker pods
+    ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+    ##
+    podLabels: {}
+    ## @param worker.default.podAnnotations Annotations for Synapse worker pods
+    ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+    ##
+    podAnnotations: {}
+    ## @param worker.default.podAffinityPreset Pod affinity preset. Ignored if `synapse.affinity` is set. Allowed values: `soft` or `hard`
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+    ##
+    podAffinityPreset: ""
+    ## @param worker.default.podAntiAffinityPreset Pod anti-affinity preset. Ignored if `synapse.affinity` is set. Allowed values: `soft` or `hard`
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+    ##
+    podAntiAffinityPreset: soft
+    ## Node synapse.affinity preset
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+    ##
+    nodeAffinityPreset:
+      ## @param worker.default.nodeAffinityPreset.type Node affinity preset type. Ignored if `synapse.affinity` is set. Allowed values: `soft` or `hard`
+      ##
+      type: ""
+      ## @param worker.default.nodeAffinityPreset.key Node label key to match. Ignored if `synapse.affinity` is set
+      ##
+      key: ""
+      ## @param worker.default.nodeAffinityPreset.values Node label values to match. Ignored if `synapse.affinity` is set
+      ## E.g.
+      ## values:
+      ##   - e2e-az1
+      ##   - e2e-az2
+      ##
+      values: []
+    ## @param worker.default.affinity Affinity for Synapse worker pods assignment
+    ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+    ## NOTE: `synapse.podAffinityPreset`, `synapse.podAntiAffinityPreset`, and `synapse.nodeAffinityPreset` will be ignored when it's set
+    ##
+    affinity: {}
+    ## @param worker.default.nodeSelector Node labels for Synapse worker pods assignment
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+    ##
+    nodeSelector: {}
+    ## @param worker.default.tolerations Tolerations for Synapse worker pods assignment
+    ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+    ##
+    tolerations: []
+    ## ONLY FOR DEPLOYMENTS:
+    ## @param worker.default.updateStrategy.type Synapse worker deployment strategy type
+    ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+    ## ONLY FOR STATEFULSETS:
+    ## @param worker.default.updateStrategy.type Synapse worker statefulset strategy type
+    ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+    ##
+    updateStrategy:
+      ## ONLY FOR DEPLOYMENTS:
+      ## Can be set to RollingUpdate or Recreate
+      ## ONLY FOR STATEFULSETS:
+      ## Can be set to RollingUpdate or OnDelete
+      ##
+      type: Recreate
+    ## ONLY FOR STATEFULSETS:
+    ## @param worker.default.podManagementPolicy Pod management policy for Synapse worker statefulset
+    ## Ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
+    ##
+    podManagementPolicy: OrderedReady
+    ## @param worker.default.priorityClassName Synapse worker pods' priorityClassName
+    ##
+    priorityClassName: ""
+    ## @param worker.default.topologySpreadConstraints Topology Spread Constraints for Synapse worker pod assignment spread across your cluster among failure-domains
+    ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
+    ##
+    topologySpreadConstraints: []
+    ## @param worker.default.schedulerName Name of the k8s scheduler (other than default) for Synapse worker pods
+    ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+    ##
+    schedulerName: ""
+    ## @param worker.default.terminationGracePeriodSeconds Seconds Synapse worker pods need to terminate gracefully
+    ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
+    ##
+    terminationGracePeriodSeconds: ""
+    ## @param worker.default.lifecycleHooks for Synapse worker containers to automate configuration before or after startup
+    ##
+    lifecycleHooks: {}
+    ## @param worker.default.extraEnvVars Array with extra environment variables to add to Synapse worker containers
+    ## e.g:
+    ## extraEnvVars:
+    ##   - name: FOO
+    ##     value: "bar"
+    ##
+    extraEnvVars: []
+    ## @param worker.default.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for Synapse worker containers
+    ##
+    extraEnvVarsCM: ""
+    ## @param worker.default.extraEnvVarsSecret Name of existing Secret containing extra env vars for Synapse worker containers
+    ##
+    extraEnvVarsSecret: ""
+    ## @param worker.default.extraVolumes Optionally specify extra list of additional volumes for the Synapse worker pods
+    ##
+    extraVolumes: []
+    ## @param worker.default.extraVolumeMounts Optionally specify extra list of additional volumeMounts for the Synapse worker containers
+    ##
+    extraVolumeMounts: []
+    ## @param worker.default.sidecars Add additional sidecar containers to the Synapse worker pods
+    ## e.g:
+    ## sidecars:
+    ##   - name: your-image-name
+    ##     image: your-image
+    ##     imagePullPolicy: Always
+    ##     ports:
+    ##       - name: portname
+    ##         containerPort: 1234
+    ##
+    sidecars: []
+    ## Pod Disruption Budget configuration
+    ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb
+    ## @param worker.default.pdb.create Enable/disable a Pod Disruption Budget creation
+    ## @param worker.default.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+    ## @param worker.default.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable. Defaults to `1` if both `synapse.pdb.minAvailable` and `synapse.pdb.maxUnavailable` are empty.
+    ##
+    pdb:
+      create: false
+      minAvailable: ""
+      maxUnavailable: ""
+    ## Autoscaling configuration
+    ## ref: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+    ##
+    autoscaling:
+      ## @param worker.default.autoscaling.hpa.enabled Enable HPA for Synapse worker pods
+      ## @param worker.default.autoscaling.hpa.minReplicas Minimum number of replicas
+      ## @param worker.default.autoscaling.hpa.maxReplicas Maximum number of replicas
+      ## @param worker.default.autoscaling.hpa.targetCPU Target CPU utilization percentage
+      ## @param worker.default.autoscaling.hpa.targetMemory Target Memory utilization percentage
+      ##
+      hpa:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 75
+        targetMemory: ""
+      ## @param worker.default.autoscaling.vpa.enabled Enable VPA for Synapse worker pods
+      ## @param worker.default.autoscaling.vpa.annotations Annotations for VPA resource
+      ## @param worker.default.autoscaling.vpa.controlledResources VPA List of resources that the vertical pod autoscaler can control. Defaults to cpu and memory
+      ## @param worker.default.autoscaling.vpa.maxAllowed VPA Max allowed resources for the pod
+      ## @param worker.default.autoscaling.vpa.minAllowed VPA Min allowed resources for the pod
+      ##
+      vpa:
+        enabled: false
+        annotations: {}
+        controlledResources: []
+        maxAllowed: {}
+        minAllowed: {}
+        ## @param worker.default.autoscaling.vpa.updatePolicy.updateMode Autoscaling update policy
+        ## Specifies whether recommended updates are applied when a Pod is started and whether recommended updates are applied during the life of a Pod
+        ## Possible values are "Off", "Initial", "Recreate", and "Auto".
+        ##
+        updatePolicy:
+          updateMode: Auto
+    ## Synapse worker service parameters
+    ##
+    service:
+      ## @param worker.default.service.type Synapse worker service type
+      ##
+      type: ClusterIP
+      ## @param worker.default.service.ports.listener Synapse worker listener port
+      ## @param worker.default.service.ports.replication Synapse worker replication port
+      ##
+      ports:
+        listener: 8083
+        replication: 9083
+      ## Node ports to expose
+      ## @param worker.default.service.nodePorts.listener Node port for worker listener
+      ## @param worker.default.service.nodePorts.replication Node port for worker replication
+      ## NOTE: choose port between <30000-32767>
+      ##
+      nodePorts:
+        listener: ""
+        replication: ""
+      ## @param worker.default.service.clusterIP Synapse worker service Cluster IP
+      ## e.g.:
+      ## clusterIP: None
+      ##
+      clusterIP: ""
+      ## @param worker.default.service.loadBalancerIP Synapse worker service Load Balancer IP
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
+      ##
+      loadBalancerIP: ""
+      ## @param worker.default.service.loadBalancerSourceRanges Synapse worker service Load Balancer sources
+      ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+      ## e.g:
+      ## loadBalancerSourceRanges:
+      ##   - 10.10.10.0/24
+      ##
+      loadBalancerSourceRanges: []
+      ## @param worker.default.service.externalTrafficPolicy Synapse worker service external traffic policy
+      ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+      ##
+      externalTrafficPolicy: Cluster
+      ## @param worker.default.service.annotations Additional custom annotations for Synapse worker service
+      ##
+      annotations: {}
+      ## @param worker.default.service.extraPorts Extra ports to expose in Synapse worker service (normally used with the `sidecars` value)
+      ##
+      extraPorts: []
+      ## @param worker.default.service.sessionAffinity Control where client requests go, to the same pod or round-robin
+      ## Values: ClientIP or None
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/
+      ##
+      sessionAffinity: None
+      ## @param worker.default.service.sessionAffinityConfig Additional settings for the sessionAffinity
+      ## sessionAffinityConfig:
+      ##   clientIP:
+      ##     timeoutSeconds: 300
+      ##
+      sessionAffinityConfig: {}
+    ## Network Policies
+    ## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
+    ##
+    networkPolicy:
+      ## @param worker.default.networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+      ##
+      enabled: true
+      ## @param worker.default.networkPolicy.allowExternal Don't require server label for connections
+      ## The Policy model to apply. When set to false, only pods with the correct
+      ## server label will have network access to the ports server is listening
+      ## on. When true, server will accept connections from any source
+      ## (with the correct destination port).
+      ##
+      allowExternal: false
+      ## @param worker.default.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+      ##
+      allowExternalEgress: false
+      ## @param worker.default.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+      ##
+      addExternalClientAccess: true
+      ## @param worker.default.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+      ## e.g:
+      ## extraIngress:
+      ##   - ports:
+      ##       - port: 1234
+      ##     from:
+      ##       - podSelector:
+      ##           - matchLabels:
+      ##               - role: frontend
+      ##       - podSelector:
+      ##           - matchExpressions:
+      ##               - key: role
+      ##                 operator: In
+      ##                 values:
+      ##                   - frontend
+      extraIngress: []
+      ## @param worker.default.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+      ## e.g:
+      ## extraEgress:
+      ##   - ports:
+      ##       - port: 1234
+      ##     to:
+      ##       - podSelector:
+      ##           - matchLabels:
+      ##               - role: frontend
+      ##       - podSelector:
+      ##           - matchExpressions:
+      ##               - key: role
+      ##                 operator: In
+      ##                 values:
+      ##                   - frontend
+      ##
+      extraEgress: []
+      ## @param worker.default.networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+      ## e.g:
+      ## ingressPodMatchLabels:
+      ##   my-client: "true"
+      #
+      ingressPodMatchLabels: {}
+      ## @param worker.default.networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+      ## @param worker.default.networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+      ##
+      ingressNSMatchLabels: {}
+      ingressNSPodMatchLabels: {}
+    ## Prometheus metrics
+    ##
+    metrics:
+      ## @param worker.default.metrics.enabled Enable the export of Prometheus metrics
+      ##
+      enabled: false
+      ## Prometheus Operator ServiceMonitor configuration
+      ##
+      serviceMonitor:
+        ## @param worker.default.metrics.serviceMonitor.enabled if `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.enabled` to be `true`)
+        ##
+        enabled: false
+        ## @param worker.default.metrics.serviceMonitor.namespace Namespace in which Prometheus is running
+        ##
+        namespace: ""
+        ## @param worker.default.metrics.serviceMonitor.annotations Additional custom annotations for the ServiceMonitor
+        ##
+        annotations: {}
+        ## @param worker.default.metrics.serviceMonitor.labels Extra labels for the ServiceMonitor
+        ##
+        labels: {}
+        ## @param worker.default.metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in Prometheus
+        ##
+        jobLabel: ""
+        ## @param worker.default.metrics.serviceMonitor.honorLabels honorLabels chooses the metric's labels on collisions with target labels
+        ##
+        honorLabels: false
+        ## @param worker.default.metrics.serviceMonitor.tlsConfig [object] TLS configuration used for scrape endpoints used by Prometheus
+        ##
+        tlsConfig: {}
+        ## @param worker.default.metrics.serviceMonitor.interval Interval at which metrics should be scraped.
+        ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+        ## e.g:
+        ## interval: 10s
+        ##
+        interval: ""
+        ## @param worker.default.metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+        ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+        ## e.g:
+        ## scrapeTimeout: 10s
+        ##
+        scrapeTimeout: ""
+        ## @param worker.default.metrics.serviceMonitor.metricRelabelings Specify additional relabeling of metrics
+        ##
+        metricRelabelings: []
+        ## @param worker.default.metrics.serviceMonitor.relabelings Specify general relabeling
+        ##
+        relabelings: []
+        ## @param worker.default.metrics.serviceMonitor.selector Prometheus instance selector labels
+        ## ref: https://github.com/bitnami/charts/tree/main/bitnami/prometheus-operator#prometheus-configuration
+        ## selector:
+        ##   prometheus: my-prometheus
+        ##
+        selector: {}
+    ## @param worker.default.annotations Additional custom annotations for Synapse master resource
+    ##
+    annotations: {}
+
+  ## @section Generic worker section, all configuration is an override on the default worker configuration.
+  ##
+  ## The generic worker can be used to handle most endpoints.
+  ## Be careful when enabling the sync endpoints as they can eat large amounts of
+  ## resources. Refer to the information URL above for more info.
+  ## Proper load balancing with the K8s Ingress resource may not be possible.
+  ##
+  ## @param worker.generic_worker.enabled Enable the generic_worker
+  ## @param worker.generic_worker.generic Mark the worker as being generic
+  ## @param worker.generic_worker.listeners The listeners configured for this worker
+  ## @param worker.generic_worker.csPaths The client-server paths to route to this worker.
+  ## @param worker.generic_worker.paths The general paths to route to this worker.
+  generic_worker:
+    enabled: false
+    generic: true
+    listeners: [client, federation]
+    csPaths:
+      ## Sync requests
+      # - "/_matrix/client/(r0|v3)/sync$"
+      - "/_matrix/client/(api/v1|r0|v3)/events$"
+      # - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
+      # - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
+
+      ## Client API requests
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/createRoom$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/publicRooms$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/joined_members$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/context/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/members$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state$"
+      - "/_matrix/client/v1/rooms/.*/hierarchy$"
+      - "/_matrix/client/unstable/org.matrix.msc2716/rooms/.*/batch_send$"
+      - "/_matrix/client/unstable/im.nheko.summary/rooms/.*/summary$"
+      - "/_matrix/client/(r0|v3|unstable)/account/3pid$"
+      - "/_matrix/client/(r0|v3|unstable)/account/whoami$"
+      - "/_matrix/client/(r0|v3|unstable)/devices$"
+      - "/_matrix/client/versions$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/voip/turnServer$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/event/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/joined_rooms$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/search$"
+
+      ## Encryption requests
+      - "/_matrix/client/(r0|v3|unstable)/keys/query$"
+      - "/_matrix/client/(r0|v3|unstable)/keys/changes$"
+      - "/_matrix/client/(r0|v3|unstable)/keys/claim$"
+      - "/_matrix/client/(r0|v3|unstable)/room_keys/"
+
+      ## Registration/login requests
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/login$"
+      - "/_matrix/client/(r0|v3|unstable)/register$"
+      - "/_matrix/client/v1/register/m.login.registration_token/validity$"
+
+      ## Event sending requests
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/redact"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/send"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/state/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/(join|invite|leave|ban|unban|kick)$"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/join/"
+      - "/_matrix/client/(api/v1|r0|v3|unstable)/profile/"
+
+      ## User directory search requests
+      - "/_matrix/client/(r0|v3|unstable)/user_directory/search"
+
+      ## Worker event streams
+      ## See https://matrix-org.github.io/synapse/latest/workers.html#stream-writers
+      ##
+
+      ## The typing event stream
+      # - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
+
+      ## The to_device event stream
+      # - "/_matrix/client/(r0|v3|unstable)/sendToDevice/"
+
+      ## The account_data event stream
+      # - "/_matrix/client/(r0|v3|unstable)/.*/tags"
+      # - "/_matrix/client/(r0|v3|unstable)/.*/account_data"
+
+      ## The receipts event stream
+      # - "/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt"
+      # - "/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers"
+
+      ## The presence event stream
+      # - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
+
+    paths:
+      ## Federation requests
+      - "/_matrix/federation/v1/event/"
+      - "/_matrix/federation/v1/state/"
+      - "/_matrix/federation/v1/state_ids/"
+      - "/_matrix/federation/v1/backfill/"
+      - "/_matrix/federation/v1/get_missing_events/"
+      - "/_matrix/federation/v1/publicRooms"
+      - "/_matrix/federation/v1/query/"
+      - "/_matrix/federation/v1/make_join/"
+      - "/_matrix/federation/v1/make_leave/"
+      - "/_matrix/federation/(v1|v2)/send_join/"
+      - "/_matrix/federation/(v1|v2)/send_leave/"
+      - "/_matrix/federation/(v1|v2)/invite/"
+      - "/_matrix/federation/v1/event_auth/"
+      - "/_matrix/federation/v1/exchange_third_party_invite/"
+      - "/_matrix/federation/v1/user/devices/"
+      - "/_matrix/key/v2/query"
+      - "/_matrix/federation/v1/hierarchy/"
+
+      ## Inbound federation transaction request
+      - "/_matrix/federation/v1/send/"
+
+  ## To separate the generic worker into specific concerns - for example federation transaction receiving;
+  ## NB; This worker should have incoming traffic routed based on source IP, which is
+  ##     left as an exercise to the reader.
+  ## https://github.com/matrix-org/synapse/blob/develop/docs/workers.md#load-balancing
+  # federation_reader:
+  #   enabled: true
+  #   generic: true
+  #   listeners: [federation]
+  #   paths:
+  #     - "/_matrix/federation/v1/send/"
+
+  ## Or /sync handling.
+  ## NB; Care should be taken to route users to the same instance when scaling this worker,
+  ##     this is left as an exercise to the reader.
+  ## https://github.com/matrix-org/synapse/blob/develop/docs/workers.md#load-balancing
+  # synchrotron:
+  #   enabled: true
+  #   generic: true
+  #   listeners: [client]
+  #   csPaths:
+  #     - "/_matrix/client/(v2_alpha|r0|v3)/sync$"
+  #     - "/_matrix/client/(api/v1|v2_alpha|r0|v3)/events$"
+  #     - "/_matrix/client/(api/v1|r0|v3)/initialSync$"
+  #     - "/_matrix/client/(api/v1|r0|v3)/rooms/[^/]+/initialSync$"
+
+  ## @section Specialized - non-generic workers below; configuration also overrides the default worker configuration
+
+  ## This worker deals with pushing notifications.
+  ## NB; Only one instance of this worker can be run at a time, refer to the
+  ## information URL above.
+  ##
+  #pusher:
+  #  enabled: false
+
+  ## This worker handles sending data to registered appservices.
+  ## NB; Only one instance of this worker can be run at at time, refer to the
+  ## information URL above.
+  ##
+  #appservice:
+  #  enabled: false
+  #  generic: true
+  #  name: appservices
+
+  ## This worker handles sending federation traffic to other Synapse servers.
+  ##
+  #federation_sender:
+  #  enabled: false
+
+  ## Specialized workers can also be run as multiple separate instances,
+  ## make sure to read the relevant documentation.
+  ##
+  # federation_sender_other:
+  #   app: federation_sender
+  #   enabled: false
+
+  ## @param worker.media_repository.enabled Enable worker that deals with serving and storing media.
+  ## @param worker.media_repository.listeners The listeners configured for this worker
+  ## @param worker.media_repository.csPaths The client-server paths to route to this worker.
+  ## @param worker.media_repository.paths The general paths to route to this worker.
+  ## NB; Running multiple instances will conflict with background jobs.
+  ##
+  media_repository:
+    enabled: false
+    listeners: [media]
+    csPaths:
+      - "/_matrix/media/.*"
+      - "/_matrix/client/v1/media/.*"
+      - "/_matrix/federation/v1/media/.*"
+      - "/_synapse/admin/v1/purge_media_cache$"
+      - "/_synapse/admin/v1/room/.*/media"
+      - "/_synapse/admin/v1/user/.*/media"
+      - "/_synapse/admin/v1/media/"
+      - "/_synapse/admin/v1/quarantine_media/"
+      - "/_synapse/admin/v1/users/.*/media$"
+    paths:
+      - "/_matrix/media/.*"
+      - "/_matrix/client/v1/media/.*"
+      - "/_matrix/federation/v1/media/.*"
+
+  ## This worker deals with user directory searches.
+  ##
+  #user_dir:
+  #  enabled: false
+  #  name: userdir
+  #  listeners: [client]
+  #  csPaths:
+  #    - "/_matrix/client/(api/v1|r0|v3|unstable)/user_directory/search$"
+
+  ## This worker handles key uploads, and may also stub out presence if that is
+  ## disabled. If you set extraConfig.use_presence=false then you may want to
+  ## uncomment the second path.
+  ##
+  #frontend_proxy:
+  #  enabled: false
+  #  listeners: [client]
+  #  csPaths:
+  #    - "/_matrix/client/(api/v1|r0|v3|unstable)/keys/upload"
+  #  # - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/[^/]+/status"
 
 ## @section Traffic Exposure Parameters
 ##
@@ -686,6 +1434,7 @@ ingress:
   ## @param ingress.path Default path for the ingress record
   ## NOTE: You may need to set this to '/*' in order to use this with ALB ingress controllers
   ##
+  # FIXME this is not used anymore
   path: /
   ## @param ingress.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
   ## Use this parameter to set the required annotations for cert-manager, see
@@ -766,6 +1515,8 @@ ingress:
   ##             name: http
   ##
   extraRules: []
+  ## @param ingress.includeSynapseAdminApis Allow access to synapse admin apis under /_synapse
+  includeSynapseAdminApis: true
 
 ## @section Default init containers Parameters
 
@@ -782,7 +1533,7 @@ defaultInitContainers:
     ## ref: https://hub.docker.com/r/bitnami/os-shell
     ## @param defaultInitContainers.volumePermissions.image.registry [default: REGISTRY_NAME] "volume-permissions" init-containers' image registry
     ## @param defaultInitContainers.volumePermissions.image.repository [default: REPOSITORY_NAME/os-shell] "volume-permissions" init-containers' image repository
-    ## @skip defaultInitContainers.volumePermissions.image.tag "volume-permissions" init-containers' image tag (immutable tags are recommended)
+    ## @param defaultInitContainers.volumePermissions.image.tag "volume-permissions" init-containers' image tag (immutable tags are recommended)
     ## @param defaultInitContainers.volumePermissions.image.digest "volume-permissions" init-containers' image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag
     ## @param defaultInitContainers.volumePermissions.image.pullPolicy "volume-permissions" init-containers' image pull policy
     ## @param defaultInitContainers.volumePermissions.image.pullSecrets "volume-permissions" init-containers' image pull secrets
@@ -880,7 +1631,7 @@ synapse:
   ## @param synapse.config.directory The folder in which configuration is read and placed
   ## @param synapse.config.homeServerConfigFile The location of the home server configuration file
   config:
-    directory: "/synapse/data"
+    directory: "/synapse/config/conf.d"
     homeServerConfigFile: "/synapse/config/homeserver.yaml"
   ## @param synapse.serverName This sets the public-facing domain of the server.
   # The `server_name` name will appear at the end of usernames and room addresses created on your server. For example

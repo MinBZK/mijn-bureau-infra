@@ -1,0 +1,54 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "synapse.replication.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: synapse
+  {{- if or .Values.replication.service.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.replication.service.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.replication.service.type }}
+  {{- if and .Values.replication.service.clusterIP (eq .Values.replication.service.type "ClusterIP") }}
+  clusterIP: {{ .Values.replication.service.clusterIP }}
+  {{- end }}
+  {{- if .Values.replication.service.sessionAffinity }}
+  sessionAffinity: {{ .Values.replication.service.sessionAffinity }}
+  {{- end }}
+  {{- if .Values.replication.service.sessionAffinityConfig }}
+  sessionAffinityConfig: {{- include "common.tplvalues.render" (dict "value" .Values.replication.service.sessionAffinityConfig "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if or (eq .Values.replication.service.type "LoadBalancer") (eq .Values.replication.service.type "NodePort") }}
+  externalTrafficPolicy: {{ .Values.replication.service.externalTrafficPolicy | quote }}
+  {{- end }}
+  {{- if and (eq .Values.replication.service.type "LoadBalancer") (not (empty .Values.replication.service.loadBalancerSourceRanges)) }}
+  loadBalancerSourceRanges: {{ .Values.replication.service.loadBalancerSourceRanges }}
+  {{- end }}
+  {{- if and (eq .Values.replication.service.type "LoadBalancer") (not (empty .Values.replication.service.loadBalancerIP)) }}
+  loadBalancerIP: {{ .Values.replication.service.loadBalancerIP }}
+  {{- end }}
+  ports:
+    - name: replication
+      port: {{ .Values.replication.service.ports.replication }}
+      {{- if not (eq .Values.replication.service.ports.replication .Values.master.containerPorts.replication) }}
+      targetPort: {{ .Values.master.containerPorts.replication }}
+      {{- end }}
+      protocol: TCP
+      {{- if and (or (eq .Values.replication.service.type "NodePort") (eq .Values.replication.service.type "LoadBalancer")) (not (empty .Values.replication.service.nodePorts.replication)) }}
+      nodePort: {{ .Values.replication.service.nodePorts.replication }}
+      {{- else if eq .Values.replication.service.type "ClusterIP" }}
+      nodePort: null
+      {{- end }}
+    {{- if .Values.replication.service.extraPorts }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.replication.service.extraPorts "context" $) | nindent 4 }}
+    {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.replication.podLabels .Values.commonLabels) "context" .) | fromYaml }}
+  selector: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: synapse
