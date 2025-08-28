@@ -11,8 +11,11 @@ authentication:
     jwks_uri: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/certs"
     claims:
       username: preferred_username
-      display_name: preferred_username
+      display_name: name
+      given_name: given_name
+      family_name: family_name
       email: email
+      email_verified: email_verified
 
   client:
     grist:
