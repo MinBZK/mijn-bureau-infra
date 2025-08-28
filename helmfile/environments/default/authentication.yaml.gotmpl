@@ -9,11 +9,13 @@ authentication:
     userinfo_endpoint: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/userinfo"
     end_session_endpoint: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/logout"
     jwks_uri: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/certs"
+    # Leave empty if the claim is not supplied.
     claims:
       username: preferred_username
       display_name: name
       given_name: given_name
       family_name: family_name
+      # email field is required
       email: email
       email_verified: email_verified
 
