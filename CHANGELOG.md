@@ -19,7 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0), 
 - Changed docs deployment
 - Added test system
 - Added diff comments to CI
-- fixed CODEOWNERS file
-- fized .vscode setup
-- fixed PR template
+- Fixed CODEOWNERS file
+- Fixed .vscode setup
+- Fixed PR template
 - Added tests
+- Added configuration of OIDC claim names
