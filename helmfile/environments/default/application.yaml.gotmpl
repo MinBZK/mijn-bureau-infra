@@ -24,4 +24,3 @@ application:
     synapse:
       registrationSharedSecret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "synapse" "registrationSharedSecret" | sha1sum | quote }}
       formSecret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "synapse" "formSecret" | sha1sum | quote }}
-      allowExternalEgress: false

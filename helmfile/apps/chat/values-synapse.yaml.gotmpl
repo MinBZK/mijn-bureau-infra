@@ -42,18 +42,15 @@ master:
     storageClass: {{ coalesce .Values.pvc.synapse.synapse.storageClass .Values.pvc.default.storageClass | quote }}
     accessModes: {{ coalesce .Values.pvc.synapse.synapse.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
   networkPolicy:
-    allowExternalEgress: {{ .Values.application.chat.synapse.allowExternalEgress | default false }}
     extraIngress:
       # Allow traffic from ingress controller namespace
       - ports:
           - port: 8448
             protocol: TCP
-    {{- if not .Values.application.chat.synapse.allowExternalEgress }}
     extraEgress:
       # Allow https egress for keycloak connection
       - ports:
           - port: 443
-          - port: 80
       {{- if .Values.cache.synapse }}
       - ports:
           - port: {{ .Values.cache.synapse.port }}
@@ -74,7 +71,6 @@ master:
                 app.kubernetes.io/instance: chat-postgresql
         {{- end }}
       {{- end }}
-    {{- end }}
 
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
 
@@ -199,7 +195,6 @@ synapse:
     - idp_id: mijnbureau
       idp_name: "MijnBureau authenticatie"
       discover: false
-      skip_verification: {{ .Values.authentication.client.synapse.skip_verification | default false }}
       issuer: {{ .Values.authentication.oidc.issuer | quote }}
       client_id: {{ .Values.authentication.client.synapse.client_id | quote }}
       client_secret: {{ .Values.authentication.client.synapse.client_secret | quote }}

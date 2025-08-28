@@ -9,7 +9,6 @@ authentication:
     userinfo_endpoint: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/userinfo"
     end_session_endpoint: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/logout"
     jwks_uri: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/certs"
-
     claims:
       username: preferred_username
       display_name: preferred_username
@@ -22,5 +21,3 @@ authentication:
     synapse:
       client_id: "synapse"
       client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "synapse_client_secret" | sha1sum | quote}}
-      # Skips OIDC verification of settings. Needed to allow HTTP-protocol for `jwks_uri` for instance. Not recommended for production environments.
-      skip_verification: false
