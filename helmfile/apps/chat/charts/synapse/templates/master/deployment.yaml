@@ -3,7 +3,6 @@
 SPDX-License-Identifier: APACHE-2.0
 */}}
 
-{{- if gt (int64 .Values.master.replicaCount) 0 -}}
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
@@ -16,7 +15,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  replicas: {{ .Values.master.replicaCount }}
+  replicas: 1
   {{- if .Values.master.updateStrategy }}
   strategy: {{- toYaml .Values.master.updateStrategy | nindent 4 }}
   {{- end }}
@@ -199,4 +198,3 @@ spec:
         {{- if .Values.master.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.master.extraVolumes "context" $) | nindent 8 }}
         {{- end }}
-{{- end }}

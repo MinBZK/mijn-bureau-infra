@@ -157,9 +157,6 @@ persistence:
 master:
   ## @param master.name Synapse master name, used as postfix for kubernetes naming
   name: "master"
-  ## @param master.replicaCount Number of Synapse master replicas to deploy
-  ##
-  replicaCount: 1
   ## @param master.containerPorts.http Synapse master synapse container port
   ## @param master.containerPorts.replication Synapse master replication container port
   ## @param master.containerPorts.metrics Synapse master metrics container port
