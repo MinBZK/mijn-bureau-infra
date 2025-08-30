@@ -3,7 +3,7 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/minbzk/mijn-bureau-infra/ci.yaml)
 ![GitHub License](https://img.shields.io/github/license/minbzk/mijn-bureau-infra)
 
-`MijnBureau` is a collaboration suite build for civil servants. It provides a flexible and secure digital workplace with a strong focus on autonomy. The tool includes features such as collaborative document editing, file sharing, chat, video conferencing, and many more tools to support effective teamwork.
+`MijnBureau` is a collaboration suite built for civil servants. It provides a flexible and secure digital workplace with a strong focus on autonomy. The tool includes features such as collaborative document editing, file sharing, chat, video conferencing, and many other tools to support effective teamwork.
 
 ## Overview
 
