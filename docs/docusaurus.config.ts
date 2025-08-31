@@ -38,6 +38,22 @@ const config: Config = {
     locales: ["en"],
   },
 
+  plugins: [
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      {
+        // Options for the search plugin
+        hashed: true, // Recommended for production to avoid caching issues
+        indexDocs: true, // Index documentation pages
+        indexBlog: true, // Index blog pages
+        indexPages: true, // Index static pages
+        language: ["en"], // Language(s) for the search index
+        highlightSearchTermsOnTargetPage: true, // Highlight search terms on the target page
+        explicitSearchResultPath: true, // Show search results on a dedicated page
+      },
+    ],
+  ],
+
   presets: [
     [
       "classic",

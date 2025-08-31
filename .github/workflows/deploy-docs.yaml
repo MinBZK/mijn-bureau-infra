@@ -31,13 +31,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: "docs/.nvmrc"
-          cache: npm
-          cache-dependency-path: docs/package-lock.json
+          cache: yarn
+          cache-dependency-path: docs/yarn.lock
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
       - name: Build website
-        run: npm run build
+        run: yarn build
 
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
