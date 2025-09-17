@@ -33,7 +33,6 @@ debug.log
 
 CLAUDE.md
 
-# Kind certificates
-kubernetes.local.crt
-kubernetes.local.der
-kubernetes.local.key
+# ignore certificates
+127.0.0.1.sslip.io+1-key.pem
+127.0.0.1.sslip.io+1.pem
