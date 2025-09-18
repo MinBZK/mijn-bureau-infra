@@ -1894,8 +1894,7 @@ yProvider:
     ## @param yProvider.service.ports.https Impress y-provider service HTTPS port
     ##
     ports:
-      # FIXME this is 443, but in the dev-configuration http is used?
-      https: 443
+      http: 443
     ## Node ports to expose
     ## @param yProvider.service.nodePorts.http Node port for HTTP
     ## @param yProvider.service.nodePorts.https Node port for HTTPS

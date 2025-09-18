@@ -307,7 +307,6 @@ yProvider:
               matchLabels:
                 app.kubernetes.io/name: minio
         {{- end }}
-      # FIXME could this be changed to internal traffic?
       # Allow https egress for backend connection
       - ports:
           - port: 443
