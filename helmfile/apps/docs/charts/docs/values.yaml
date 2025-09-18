@@ -550,59 +550,59 @@ backend:
   jobs:
     ttlSecondsAfterFinished: 30
     backoffLimit: 2
-  ## @param backend.migrate.annotations Annotations for the migrate job
-  ## @param backend.migrate.command Backend migrate command
-  ## @param backend.migrate.restartPolicy Backend migrate job restart policy
-  migrate:
-    annotations:
-      argocd.argoproj.io/sync-options: Replace=true,Force=true
-    command:
-      - /bin/sh
-      - "-c"
-      - |
-        while ! python manage.py check --database default > /dev/null 2>&1
-        do
-          echo "Database not ready"
-          sleep 2
-        done
+    jobs:
+      ## @param backend.migrate.annotations Annotations for the migrate job
+      ## @param backend.migrate.command Backend migrate command
+      ## @param backend.migrate.restartPolicy Backend migrate job restart policy
+      - name: migrate
+        annotations:
+          argocd.argoproj.io/sync-options: Replace=true,Force=true
+        command:
+          - /bin/sh
+          - "-c"
+          - |
+            while ! python manage.py check --database default > /dev/null 2>&1
+            do
+              echo "Database not ready"
+              sleep 2
+            done
 
-        echo "Database is ready"
+            echo "Database is ready"
 
-        python manage.py migrate --no-input
-    restartPolicy: Never
-  ## @param backend.createSuperUser.annotations Annotations for the create super user job
-  ## @param backend.createSuperUser.command Backend create superuser command
-  ## @param backend.createSuperUser.restartPolicy Backend create superuser job restart policy
-  createSuperUser:
-    annotations:
-      argocd.argoproj.io/sync-options: Replace=true,Force=true
-    command:
-      - "/bin/sh"
-      - "-c"
-      - |
-        while ! python manage.py check --database default > /dev/null 2>&1
-        do
-          echo "Database not ready"
-          sleep 2
-        done
+            python manage.py migrate --no-input
+        restartPolicy: Never
+      ## @param backend.createSuperUser.annotations Annotations for the create super user job
+      ## @param backend.createSuperUser.command Backend create superuser command
+      ## @param backend.createSuperUser.restartPolicy Backend create superuser job restart policy
+      - name: createSuperUser
+        annotations:
+          argocd.argoproj.io/sync-options: Replace=true,Force=true
+        command:
+          - "/bin/sh"
+          - "-c"
+          - |
+            while ! python manage.py check --database default > /dev/null 2>&1
+            do
+              echo "Database not ready"
+              sleep 2
+            done
 
-        echo "Database is ready"
+            echo "Database is ready"
 
-        python manage.py createsuperuser --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
-    restartPolicy: Never
-  ## @extra backend.job job dedicated to run a specific management command, for example after a deployment
-  ## @param backend.job.name The name to use to describe this job
-  ## @param backend.job.command The management command to execute
-  ## @param backend.job.restartPolicy The restart policy for the job.
-  ## @extra backend.job.annotations Annotations to add to the job [default: argocd.argoproj.io/hook: PostSync]
-  ## @skip backend.job.annotations.argocd.argoproj.io/hook
-  job:
-    name: ""
-    command: []
-    restartPolicy: Never
-    annotations:
-      argocd.argoproj.io/hook: PostSync
-      argocd.argoproj.io/sync-options: Replace=true,Force=true
+            python manage.py createsuperuser --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
+        restartPolicy: Never
+      ## @extra backend.job job dedicated to run a specific management command, for example after a deployment
+      ## @extra backend.job.annotations Annotations to add to the job [default: argocd.argoproj.io/hook: PostSync]
+      ## @param backend.job.name The name to use to describe this job
+      ## @param backend.job.command The management command to execute
+      ## @param backend.job.restartPolicy The restart policy for the job.
+      ## @skip backend.job.annotations.argocd.argoproj.io/hook
+      - name: ""
+        annotations:
+          argocd.argoproj.io/hook: PostSync
+          argocd.argoproj.io/sync-options: Replace=true,Force=true
+        command: []
+        restartPolicy: Never
   # List of cronjob to add
   # cronJobs:
   #   - name: reset-database
@@ -2790,9 +2790,8 @@ collaboration:
 
 django:
   configuration: Feature
-  # FIXME what is this for? In documentation it's an array? In example it's a string.
   serverToServerApiTokens: secret-api-key
-  secretKey: djangoSecretKey # FIXME was a reference with *?
+  secretKey: djangoSecretKey
   settingsModule: impress.settings
   superUser:
     email: you@example.com
