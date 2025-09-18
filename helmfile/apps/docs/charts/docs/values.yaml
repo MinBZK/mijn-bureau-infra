@@ -625,6 +625,8 @@ backend:
   celery:
     ## Celery worker image
     ## @param backend.celery.replicaCount Number of Celery worker replicas to deploy
+    # NOTE: Each worker must have its own name. This is not worked out, so more than one is not possible currently.
+    # ref: https://docs.celeryq.dev/en/stable/userguide/workers.html
     ##
     replicaCount: 1
     ## Configure extra options for Celery worker containers' liveness and readiness probes

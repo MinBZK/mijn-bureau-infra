@@ -454,8 +454,8 @@ django:
   email:
     brandName: "Mijn Bureau"
     host: {{ .Values.smtp.host }}
-    # FIXME Do we have Mijn Bureau branding?
-    logoImg: ""
+    # FIXME Apply Mijn Bureau branding
+    logoImg: {{ printf "https://%s/assets/logo-suite-numerique.png" $hostname }}
     port: {{ .Values.smtp.port }}
     useSsl: {{ .Values.smtp.tls.enabled }}
 

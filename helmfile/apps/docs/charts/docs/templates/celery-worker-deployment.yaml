@@ -15,7 +15,6 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  # FIXME Each worker must have it's own name. This is not worked out, so more than one is not possible currently: https://docs.celeryq.dev/en/stable/userguide/workers.html
   replicas: {{ .Values.backend.celery.replicaCount }}
   {{- if .Values.backend.celery.updateStrategy }}
   strategy: {{- toYaml .Values.backend.celery.updateStrategy | nindent 4 }}
