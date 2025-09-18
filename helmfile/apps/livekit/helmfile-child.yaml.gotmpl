@@ -1,0 +1,10 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: livekit-server
+    chart: charts/livekit-server
+    condition: application.livekit.enabled
+    namespace: {{ .Values.application.livekit.namespace }}
+    values:
+      - "values.yaml.gotmpl"

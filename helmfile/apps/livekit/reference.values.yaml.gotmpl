@@ -1,0 +1,62 @@
+
+replicaCount: {{ .Values.autoscaling.horizontal.livekit.minReplicas | default 1 }}
+
+hostname: {{ .Values.global.hostname.livekit }}.{{ .Values.global.domain }}
+
+image:
+  registry: {{(coalesce .Values.container.livekit_server.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.livekit_server.repository | quote }}
+  tag: {{ .Values.container.livekit_server.tag | quote }}
+
+imagePullSecrets:
+  - name: {{ (coalesce .Values.container.livekit_server.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+
+livekit:
+  port: 7880
+
+  log_level: debug
+  logging:
+    level: debug
+    pion_level: debug
+  rtc:
+    tcp_port: 32669 # this port *cannot* be behind load balancer or TLS (WebRTC ICE)
+    # udp_port: 32670
+    port_range_start: 30001 # this UDP port range should be open for inbound traffic
+    port_range_end: 30009
+    use_external_ip: false # attempts to discover the host's public IP via STUN if true
+  turn:
+    enabled: false
+    domain: turn-{{ .Values.global.hostname.livekit }}.{{ .Values.global.domain }}
+    external_tls: true
+    tls_port: 32222 # should this be 443 ? lets hack it later to 443
+    # relay_range_start: 30010
+    # relay_range_end: 30019
+    # udp_port: 32223
+  redis:
+    {}
+    # supports sentinels and cluster, see above
+    # address:
+    # db: 0
+    # username:
+    # password:
+
+  keys:
+    api_key: $P2%2aLaKlWyFxEnOQNTtDwFMdzE11NL
+
+  room:
+    empty_timeout: 120
+    departure_timeout: 20
+    max_participants: 100
+
+  ingress:
+    rtmp_base_url: "rtmp://{{ .Values.global.hostname.livekit }}.{{ .Values.global.domain }}/live"
+    whip_base_url: "http://{{ .Values.global.hostname.livekit }}.{{ .Values.global.domain }}/whip"
+
+autoscaling:
+  enabled: true
+
+podHostNetwork: false
+
+ingress:
+  annotations:
+    haproxy.router.openshift.io/ip_whitelist: 0.0.0.0

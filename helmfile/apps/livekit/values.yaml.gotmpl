@@ -1,0 +1,49 @@
+global:
+  ## Global Docker image parameters
+  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+  ## @param global.imageRegistry Global Docker Image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: {{(coalesce .Values.container.livekit_server.registry .Values.container.default.registry) | quote }}
+  imagePullSecrets:
+    - name: {{ (coalesce .Values.container.livekit_server.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: ""
+
+
+clusterDomain: cluster.local
+
+livekit:
+
+  image:
+    registry: {{(coalesce .Values.container.livekit_server.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.livekit_server.repository | quote }}
+    tag: {{ .Values.container.livekit_server.tag | quote }}
+
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.grist | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.livekit | toYaml | nindent 6 }}
+
+ingress:
+  ## @param ingress.enabled Enable ingress record generation for livekit_server
+  ##
+  enabled: true
+  hostname: {{ .Values.global.hostname.livekit }}.{{ .Values.global.domain }}
+  extraTls: {{ .Values.tls.grist | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}

@@ -1,0 +1,155 @@
+# Default values for livekit-server.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  registry: docker.io
+  repository: livekit/livekit-server
+  pullPolicy: always
+
+imagePullSecrets: []
+
+terminationGracePeriodSeconds: 18000
+
+# configuration for livekit
+# you may specify any config settings that are valid in livekit-server's
+# config.yaml: https://github.com/livekit/livekit/blob/master/config-sample.yaml
+livekit:
+  port: 7880
+  log_level: info
+  rtc:
+    tcp_port: 7881
+    # udp_port: 7882-7892
+    # port_range_start: 7882
+    # port_range_end: 7892
+    use_external_ip: false
+  redis: {}
+    # supports sentinels and cluster, see above
+    # address:
+    # db: 0
+    # username:
+    # password:
+  # key value pairs (<api_key>: >api_secret>)
+  keys: {}
+  # Api keys can be loaded from a file
+  # https://github.com/livekit/livekit/blob/6eaa300949cdfe8fbf6e2ded926c9f8c1a01bc61/pkg/config/config.go#L61
+  # In order to set the api keys when using the key_file parameter configure the storeKeysInSecret block below
+  # key_file: keys.yaml
+  turn:
+    enabled: false
+    # Must match domain of your tls cert
+    # domain: turn.myhost.com
+    # secretName: <tlssecret>
+    loadBalancerAnnotations: {}
+  # webhook: <webhook configuration>
+  # room: <default settings for new rooms>
+  # region: <set for multi-region deploys>
+
+# Set this option to true if you want to store your API keys in a secret instead of the config file
+storeKeysInSecret:
+  enabled: false
+  # Use a pre existing secret, useful to combine with external secret managers
+  # as GCP External Secrets or Hashicorp Vault
+  existingSecret: ""
+  # Define your API keys and secrets as key-value pairs here. These will be stored in the secret.
+  # Example: keys:
+  #           my_api_key: my_api_secret
+  keys: {}
+    # key value pairs (<api_key>: >api_secret>)
+
+nameOverride: ""
+fullnameOverride: ""
+
+loadBalancer:
+  type: disable
+  servicePort: 80
+  annotations: {}
+
+turnLoadbalancer:
+  enable: true
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 60
+  # targetMemoryUtilizationPercentage: 80
+
+# if LiveKit should run only on specific nodes
+# this can be used to isolate designated nodes
+nodeSelector: {}
+  # node.kubernetes.io/instance-type: c5.2xlarge
+
+resources:
+  limits:
+    cpu: 750m
+    ephemeral-storage: 2Gi
+    memory: 768Mi
+  requests:
+    cpu: 500m
+    ephemeral-storage: 50Mi
+    memory: 512Mi
+  # Due to port restrictions, you can run only one instance of LiveKit per physical
+  # node. Because of that, we recommend giving it plenty of resources to work with
+  # limits:
+  #   cpu: 6000m
+  #   memory: 2048Mi
+  # requests:
+  #   cpu: 4000m
+  #   memory: 1024Mi
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "deployment-updater"
+
+podHostNetwork: true
+
+podAnnotations:
+  sidecar.istio.io/inject: "false"
+  linkerd.io/inject: disabled
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+tolerations: []
+
+affinity: {}
+
+# https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#deploymentstrategy-v1-apps
+deploymentStrategy: {}
+
+deploymentAnnotations: {}
+
+# Specifies configuration gke backendconfig
+gcp:
+  backendConfig:
+    # 10h timeout for websocket
+    timeoutSec: 36000
+    connectionDraining:
+      drainingTimeoutSec: 60
+
+serviceMonitor:
+  # Specifies whether a service monitor should be created
+  create: false
+  # Annotations to add to the service monitor
+  annotations: {}
+  # The name of the service monitor to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+  # The scrape interval
+  interval: 30s
