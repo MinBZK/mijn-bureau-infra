@@ -2783,7 +2783,6 @@ metrics:
 ##
 collaboration:
   api:
-    url: https://impress.127.0.0.1.nip.io/collaboration/api/
     secret: my-secret
   loggingEnabled: true
   webSockets:
@@ -2791,10 +2790,7 @@ collaboration:
     notConnectedReadOnly: false
 
 django:
-  # FIXME all url-configuration is calculable
-  csrfTrustedOrigin: https://impress.127.0.0.1.nip.io
   configuration: Feature
-  allowedHosts: impress.127.0.0.1.nip.io
   # FIXME what is this for? In documentation it's an array? In example it's a string.
   serverToServerApiTokens: secret-api-key
   secretKey: djangoSecretKey # FIXME was a reference with *?
@@ -2808,7 +2804,6 @@ django:
     logoImg: https://impress.127.0.0.1.nip.io/assets/logo-suite-numerique.png
     port: 1025
     useSsl: false
-  celeryBrokerUrl: redis://default:pass@redis-master:6379/1
   storagesStaticFilesBackend: django.contrib.staticfiles.storage.StaticFilesStorage
 
 logging:

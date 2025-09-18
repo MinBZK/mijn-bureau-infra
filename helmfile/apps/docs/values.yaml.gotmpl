@@ -1,6 +1,4 @@
 {{ $hostname := printf "%s.%s" .Values.global.hostname.docs .Values.global.domain }}
-{{ $baseUrl := printf "https://%s" $hostname }}
-{{ $redisUrl := printf "redis://default:%s@%s:%d/1" .Values.cache.docs.password .Values.cache.docs.host .Values.cache.docs.port }}
 
 global:
   security:
@@ -440,15 +438,11 @@ sandboxFlavor: "gvisor"
 
 collaboration:
   api:
-    url: {{ printf "%s%s" $baseUrl "/collaboration/api/" }}
     secret: {{ .Values.application.docs.collaboration.secret }}
   webSockets:
-    url: {{ printf "wss://%s%s" $hostname "/collaboration/ws/" }}
     notConnectedReadOnly: true
 
 django:
-  csrfTrustedOrigin: {{ $baseUrl }}
-  allowedHosts: {{ $hostname }}
   secretKey: {{ .Values.application.docs.django.secretKey }}
   superUser:
     email: {{ .Values.secret.docs.superUser.email }}
@@ -460,7 +454,6 @@ django:
     logoImg: ""
     port: {{ .Values.smtp.port }}
     useSsl: {{ .Values.smtp.tls.enabled }}
-  celeryBrokerUrl: {{ $redisUrl }}
 
 auth:
   oidc:
@@ -478,11 +471,6 @@ auth:
       clientSecret: {{ .Values.authentication.client.docs.client_secret }}
       signAlgo: {{ .Values.authentication.client.docs.sign_algorithm }}
       scopes: {{ .Values.authentication.client.docs.scopes }}
-  login:
-    redirectUrl: {{ $baseUrl }}
-    redirectUrlFailure: {{ $baseUrl }}
-  logout:
-    redirectUrl: {{ $baseUrl }}
 
 database:
   host: {{ .Values.database.docs.host }}
@@ -492,7 +480,7 @@ database:
   password: {{ .Values.database.docs.password }}
 
 redis:
-  url: {{ $redisUrl }}
+  url: {{ printf "redis://default:%s@%s:%d/1" .Values.cache.docs.password .Values.cache.docs.host .Values.cache.docs.port }}
 
 awsS3:
   endpointUrl: {{ printf "http%s://%s:%d" ( ternary "s" "" .Values.objectstore.docs.useSSL ) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port }}

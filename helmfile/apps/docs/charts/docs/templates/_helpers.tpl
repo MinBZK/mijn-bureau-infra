@@ -114,3 +114,10 @@ Compile all warnings into a single message.
 {{-   printf "\nVALUES VALIDATION:\n%s" $message -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Base URL for the deployment
+*/}}
+{{- define "docs.baseUrl" -}}
+{{- printf "http%s://%s" ( ternary "s" "" .Values.ingress.tls ) .Values.ingress.hostname -}}
+{{- end -}}

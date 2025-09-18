@@ -94,13 +94,11 @@ spec:
             - name: BITNAMI_DEBUG
               value: {{ ternary "true" "false" (or .Values.yProvider.image.debug .Values.diagnosticMode.enabled) | quote }}
             - name: COLLABORATION_BACKEND_BASE_URL
-              # FIXME should be more common or calculated here
-              value: {{ .Values.django.csrfTrustedOrigin | quote }}
+              value: {{ include "docs.baseUrl" . | quote }}
             - name: COLLABORATION_LOGGING
               value: {{ .Values.collaboration.loggingEnabled | quote }}
             - name: COLLABORATION_SERVER_ORIGIN
-              # FIXME should be more common or calculated here
-              value: {{ .Values.django.csrfTrustedOrigin | quote }}
+              value: {{ include "docs.baseUrl" . | quote }}
             - name: COLLABORATION_SERVER_SECRET
               value: {{ .Values.collaboration.api.secret | quote }}
             - name: Y_PROVIDER_API_KEY

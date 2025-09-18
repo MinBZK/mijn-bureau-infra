@@ -15,15 +15,15 @@ metadata:
   {{- end }}
 data:
   PYTHONPATH: "/app"
-  COLLABORATION_API_URL: {{ .Values.collaboration.api.url | quote }}
+  COLLABORATION_API_URL: {{ printf "http%s://%s%s" ( ternary "s" "" .Values.ingressCollaborationApi.tls ) .Values.ingressCollaborationApi.hostname .Values.ingressCollaborationApi.path | quote }}
   COLLABORATION_SERVER_SECRET: {{ .Values.collaboration.api.secret | quote }}
-  COLLABORATION_WS_URL: {{ .Values.collaboration.webSockets.url | quote }}
+  COLLABORATION_WS_URL: {{ printf "ws%s://%s%s" ( ternary "s" "" .Values.ingressCollaborationWS.tls ) .Values.ingressCollaborationWS.hostname .Values.ingressCollaborationWS.path | quote }}
   COLLABORATION_WS_NOT_CONNECTED_READY_ONLY: {{ .Values.collaboration.webSockets.notConnectedReadOnly | quote }}
   Y_PROVIDER_API_BASE_URL: {{ printf "http://%s:443/api/" ( include "docs.yProvider.fullname" . ) }}
   Y_PROVIDER_API_KEY: {{ .Values.yProvider.api.key | quote }}
-  DJANGO_CSRF_TRUSTED_ORIGINS: {{ .Values.django.csrfTrustedOrigin | quote }}
+  DJANGO_CSRF_TRUSTED_ORIGINS: {{ include "docs.baseUrl" . | quote }}
   DJANGO_CONFIGURATION: {{ .Values.django.configuration | quote }}
-  DJANGO_ALLOWED_HOSTS: {{ .Values.django.allowedHosts | quote }}
+  DJANGO_ALLOWED_HOSTS: {{ .Values.ingress.hostname | quote }}
   DJANGO_SERVER_TO_SERVER_API_TOKENS: {{ .Values.django.serverToServerApiTokens | quote }}
   DJANGO_SECRET_KEY: {{ .Values.django.secretKey | quote }}
   DJANGO_SETTINGS_MODULE: {{ .Values.django.settingsModule | quote }}
@@ -34,7 +34,7 @@ data:
   DJANGO_EMAIL_LOGO_IMG: {{ .Values.django.email.logoImg | quote }}
   DJANGO_EMAIL_PORT: {{ .Values.django.email.port | quote }}
   DJANGO_EMAIL_USE_SSL: {{ .Values.django.email.useSsl | quote }}
-  DJANGO_CELERY_BROKER_URL: {{ .Values.django.celeryBrokerUrl }}
+  DJANGO_CELERY_BROKER_URL: {{ .Values.redis.url }}
   STORAGES_STATICFILES_BACKEND: {{ .Values.django.storagesStaticFilesBackend | quote }}
   LOGGING_LEVEL_HANDLERS_CONSOLE: {{ .Values.logging.level.loggers.root | quote }}
   LOGGING_LEVEL_HANDLERS_APP: {{ .Values.logging.level.loggers.app | quote }}
@@ -49,9 +49,9 @@ data:
   OIDC_RP_CLIENT_SECRET: {{ .Values.auth.oidc.relyingParty.clientSecret | quote }}
   OIDC_RP_SIGN_ALGO: {{ .Values.auth.oidc.relyingParty.signAlgo | quote }}
   OIDC_RP_SCOPES: {{ .Values.auth.oidc.relyingParty.scopes | quote }}
-  LOGIN_REDIRECT_URL: {{ .Values.auth.login.redirectUrl | quote }}
-  LOGIN_REDIRECT_URL_FAILURE: {{ .Values.auth.login.redirectUrlFailure | quote }}
-  LOGOUT_REDIRECT_URL: {{ .Values.auth.logout.redirectUrl | quote }}
+  LOGIN_REDIRECT_URL: {{ include "docs.baseUrl" . | quote }}
+  LOGIN_REDIRECT_URL_FAILURE: {{ include "docs.baseUrl" . | quote }}
+  LOGOUT_REDIRECT_URL: {{ include "docs.baseUrl" . | quote }}
   DB_HOST: {{ .Values.database.host | quote }}
   DB_PORT: {{ .Values.database.port | quote }}
   DB_NAME: {{ .Values.database.name | quote }}
