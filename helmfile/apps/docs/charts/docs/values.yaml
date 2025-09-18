@@ -2314,7 +2314,6 @@ ingressCollaborationApi:
   ##   cert-manager.io/cluster-issuer: cluster-issuer-name
   ##
   annotations:
-    # FIXME not all ingresses are nginx and should these be set here, or in hemlfile values?
     nginx.ingress.kubernetes.io/upstream-hash-by: $arg_room
   ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
   ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`

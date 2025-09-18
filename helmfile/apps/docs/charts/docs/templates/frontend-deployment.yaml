@@ -96,7 +96,6 @@ spec:
             - name: PORT
               value: {{ .Values.frontend.containerPorts.http | quote }}
             - name: NEXT_PUBLIC_API_ORIGIN
-              # FIXME this should be changed to a more common variable like baseUrl or calculated here.
               value: {{ include "docs.baseUrl" . | quote }}
             {{- if .Values.frontend.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.frontend.extraEnvVars "context" $) | nindent 12 }}
