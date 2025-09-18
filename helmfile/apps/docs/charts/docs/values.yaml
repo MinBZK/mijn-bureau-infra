@@ -91,7 +91,7 @@ backend:
   image:
     registry: docker.io
     repository: lasuite/impress-backend
-    tag: "v3.5.0"
+    tag: "v3.7.0"
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1018,7 +1018,7 @@ frontend:
   image:
     registry: docker.io
     repository: lasuite/impress-frontend
-    tag: v3.5.0
+    tag: v3.7.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1489,7 +1489,7 @@ yProvider:
   image:
     registry: docker.io
     repository: lasuite/impress-y-provider
-    tag: v3.5.0
+    tag: v3.7.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -2395,7 +2395,7 @@ ingressMedia:
   enabled: false
   ## @param ingress.pathType Ingress path type
   ##
-  pathType: Prefix
+  pathType: ImplementationSpecific
   ## @param ingress.apiVersion Force Ingress API version (automatically detected if not set)
   ##
   apiVersion: ""
@@ -2410,8 +2410,7 @@ ingressMedia:
   ## @param ingress.path Default path for the ingress record
   ## NOTE: You may need to set this to '/*' in order to use this with ALB ingress controllers
   ##
-  # FIXME is the regex needed? /media/(.*)
-  path: /media/
+  path: /media/(.*)
   ## @param ingress.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
   ## Use this parameter to set the required annotations for cert-manager, see
   ## ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
@@ -2422,9 +2421,10 @@ ingressMedia:
   ##
   annotations:
     # FIXME not all ingresses are nginx and should these be set here, or in hemlfile values?
-    nginx.ingress.kubernetes.io/auth-url: https://impress.example.com/api/v1.0/documents/media-auth/
+    nginx.ingress.kubernetes.io/auth-url: https://docs.127.0.0.1.nip.io/api/v1.0/documents/media-auth/
     nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
-    nginx.ingress.kubernetes.io/upstream-vhost: minio.impress.svc.cluster.local:9000
+    nginx.ingress.kubernetes.io/upstream-vhost: dev-backend-minio.impress.svc.cluster.local:9000
+    nginx.ingress.kubernetes.io/rewrite-target: /docs-media-storage/$1
     nginx.ingress.kubernetes.io/configuration-snippet: |
       add_header Content-Security-Policy "default-src 'none'" always;
   ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
@@ -2786,7 +2786,7 @@ collaboration:
     secret: my-secret
   loggingEnabled: true
   webSockets:
-    url: wss://impress.127.0.0.1.nip.io/collaboration/ws/
+    url: wss://docs.127.0.0.1.nip.io/collaboration/ws/
     notConnectedReadOnly: false
 
 django:
@@ -2800,7 +2800,7 @@ django:
   email:
     brandName: "La Suite Numérique"
     host: "mailcatcher"
-    logoImg: https://impress.127.0.0.1.nip.io/assets/logo-suite-numerique.png
+    logoImg: https://docs.127.0.0.1.nip.io/assets/logo-suite-numerique.png
     port: 1025
     useSsl: false
   storagesStaticFilesBackend: django.contrib.staticfiles.storage.StaticFilesStorage
@@ -2819,34 +2819,34 @@ auth:
       shortNameField: "given_name"
       fullNameField: "given_name,usual_name"
     openIdProvider:
-      jwksEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/impress/protocol/openid-connect/certs
-      authorizationEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/impress/protocol/openid-connect/auth
-      tokenEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/impress/protocol/openid-connect/token
-      userEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/impress/protocol/openid-connect/userinfo
-      logoutEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/impress/protocol/openid-connect/logout
+      jwksEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/certs
+      authorizationEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/auth
+      tokenEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/token
+      userEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/userinfo
+      logoutEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/logout
     relyingParty:
-      clientId: impress
+      clientId: docs
       clientSecret: ThisIsAnExampleKeyForDevPurposeOnly
       signAlgo: RS256
       scopes: "openid email"
   login:
-    redirectUrl: https://impress.127.0.0.1.nip.io
-    redirectUrlFailure: https://impress.127.0.0.1.nip.io
+    redirectUrl: https://docs.127.0.0.1.nip.io
+    redirectUrlFailure: https://docs.127.0.0.1.nip.io
   logout:
-    redirectUrl: https://impress.127.0.0.1.nip.io
+    redirectUrl: https://docs.127.0.0.1.nip.io
 
 database:
-  host: postgres-postgresql
+  host: dev-backend-postgres
   port: 5432
-  name: impress
+  name: dev-backend-docs
   user: dinum
   password: pass
 
 redis:
-  url: redis://default:pass@redis-master:6379/1
+  url: redis://user:pass@redis-master:6379/1
 
 awsS3:
-  endpointUrl: http://minio.impress.svc.cluster.local:9000
-  accessKeyId: root
+  endpointUrl: http://dev-backend-minio.docs.svc.cluster.local:9000
+  accessKeyId: dinum
   secretAccessKey: password
-  storageBucketName: impress-media-storage
+  storageBucketName: docs-media-storage
