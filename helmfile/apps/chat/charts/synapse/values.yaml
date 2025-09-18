@@ -386,6 +386,10 @@ master:
   ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
   ##
   schedulerName: ""
+  ## @param runtimeClassName Name of the runtime class name for Synapse master pods
+  ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+  ##
+  runtimeClassName: ""
   ## @param master.terminationGracePeriodSeconds Seconds Synapse master pods need to terminate gracefully
   ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
   ##
@@ -940,6 +944,10 @@ worker:
     ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
     ##
     schedulerName: ""
+    ## @param runtimeClassName Name of the runtime class name for Synapse worker pods
+    ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+    ##
+    runtimeClassName: ""
     ## @param worker.default.terminationGracePeriodSeconds Seconds Synapse worker pods need to terminate gracefully
     ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
     ##

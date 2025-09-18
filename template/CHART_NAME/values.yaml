@@ -1,4 +1,4 @@
-#
+runtimeClassName
 # SPDX-License-Identifier: APACHE-2.0
 
 ## @section Global parameters
@@ -338,6 +338,10 @@ diagnosticMode:
   ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
   ##
   schedulerName: ""
+  ## @param %%MAIN_OBJECT_BLOCK%%.runtimeClassName Name of the runtime class name for %%MAIN_CONTAINER_NAME%% pods
+  ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+  ##
+  runtimeClassName: ""
   ## @param %%MAIN_OBJECT_BLOCK%%.terminationGracePeriodSeconds Seconds %%MAIN_CONTAINER_NAME%% pods need to terminate gracefully
   ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
   ##

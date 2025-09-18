@@ -37,6 +37,10 @@ ingress:
 
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 
+{{- if .Values.cluster.runtimeClassName }}
+runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+{{- end }}
+
 resources: {{ .Values.resource.nextcloud | toYaml | nindent 2 }}
 
 networkPolicy:

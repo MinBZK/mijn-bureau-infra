@@ -16,3 +16,4 @@ cluster:
     issuerRef:
       name: "test-cert-issuer"
       kind: "ClusterIssuer"
+  runtimeClassName: "test-runtime-class"

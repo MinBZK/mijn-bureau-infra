@@ -335,7 +335,9 @@ priorityClassName: ""
 ## @param runtimeClassName Name of the runtime class to be used by MinIO&reg; pods'
 ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/
 ##
-runtimeClassName: ""
+{{- if .Values.cluster.runtimeClassName }}
+runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+{{- end }}
 ## MinIO&reg; containers' resource requests and limits
 ## ref: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
 ## We usually recommend not to specify default resources and to leave this as a conscious

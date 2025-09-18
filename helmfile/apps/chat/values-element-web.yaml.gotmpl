@@ -30,6 +30,10 @@ defaultLocale: {{ .Values.global.defaultLocale | default "NL" }}
 # Predefined resource configuration level like 'micro', 'small', etc.
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 
+{{- if .Values.cluster.runtimeClassName }}
+runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+{{- end }}
+
 # CPU and memory requests and limits for the container
 resources: {{ .Values.resource.element | toYaml | nindent 2 }}
 

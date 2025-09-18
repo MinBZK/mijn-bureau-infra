@@ -38,6 +38,9 @@ persistence:
 master:
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.synapse.master | toYaml | nindent 4 }}
+{{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+{{- end }}
   autoscaling:
     vpa: {{ .Values.autoscaling.vertical.synapse.master | toYaml | nindent 6 }}
   startupProbe:
@@ -116,8 +119,8 @@ worker:
                   app.kubernetes.io/instance: chat-postgresql
           {{- end }}
         {{- end }}
-    podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
-    containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+    podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 6 }}
+    containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 6 }}
   generic_worker:
     enabled: true
   media_repository:

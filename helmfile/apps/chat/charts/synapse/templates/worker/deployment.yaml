@@ -60,6 +60,9 @@ spec:
       {{- if ($config.schedulerName | default $default.schedulerName) }}
       schedulerName: {{ $config.schedulerName | default $default.schedulerName | quote }}
       {{- end }}
+      {{- if ($config.runtimeClassName | default $default.runtimeClassName) }}
+      runtimeClassName: {{ $config.runtimeClassName | default $default.runtimeClassName | quote }}
+      {{- end }}
       {{- if ($config.topologySpreadConstraints | default $default.topologySpreadConstraints) }}
       topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" ($config.topologySpreadConstraints | default $default.topologySpreadConstraints) "context" $) | nindent 8 }}
       {{- end }}

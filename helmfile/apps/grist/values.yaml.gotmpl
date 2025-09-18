@@ -104,9 +104,11 @@ metrics: {{ .Values.monitoring.prometheus | toYaml | nindent 2 }}
 
 defaultLocale: {{ .Values.global.defaultLocale | quote }}
 
-{{- if .Values.cluster.sandbox.gvisor.enabled }}
-sandboxFlavor: "gvisor"
+{{- if .Values.cluster.runtimeClassName }}
+runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 {{- end }}
+
+sandboxFlavor: {{ .Values.application.grist.sandboxFlavor | default "gvisor" | quote }}
 
 adminEmail: {{ .Values.secret.grist.adminEmail | quote }}
 

@@ -59,6 +59,9 @@ spec:
       {{- if .Values.%%MAIN_OBJECT_BLOCK%%.schedulerName }}
       schedulerName: {{ .Values.%%MAIN_OBJECT_BLOCK%%.schedulerName | quote }}
       {{- end }}
+      {{- if .Values.%%MAIN_OBJECT_BLOCK%%.runtimeClassName }}
+      runtimeClassName: {{ .Values.%%MAIN_OBJECT_BLOCK%%.runtimeClassName | quote }}
+      {{- end }}
       {{- if .Values.%%MAIN_OBJECT_BLOCK%%.topologySpreadConstraints }}
       topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.%%MAIN_OBJECT_BLOCK%%.topologySpreadConstraints "context" .) | nindent 8 }}
       {{- end }}

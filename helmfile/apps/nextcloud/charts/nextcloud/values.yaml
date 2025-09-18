@@ -514,6 +514,10 @@ topologySpreadConstraints: []
 ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
 ##
 schedulerName: ""
+## @param runtimeClassName Name of the runtime class name for Nextcloud pods
+## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+##
+runtimeClassName: ""
 ## @param terminationGracePeriodSeconds Seconds Nextcloud pods need to terminate gracefully
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
 ##

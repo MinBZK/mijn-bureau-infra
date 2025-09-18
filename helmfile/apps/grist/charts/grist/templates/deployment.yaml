@@ -59,6 +59,9 @@ spec:
       {{- if .Values.schedulerName }}
       schedulerName: {{ .Values.schedulerName | quote }}
       {{- end }}
+      {{- if .Values.runtimeClassName }}
+      runtimeClassName: {{ .Values.runtimeClassName | quote }}
+      {{- end }}
       {{- if .Values.topologySpreadConstraints }}
       topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.topologySpreadConstraints "context" .) | nindent 8 }}
       {{- end }}

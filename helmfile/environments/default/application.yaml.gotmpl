@@ -3,8 +3,9 @@ application:
   grist:
     enabled: true
     namespace: ~
-    defaultLocale: ""
+    defaultLocale: ~
     sessionSecret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "grist" "sessionSecret" | sha1sum | quote }}
+    sandboxFlavor: ~
 
   # this creates a self hosted AI LLM system using Ollama. It can handle small loads.
   ollama:

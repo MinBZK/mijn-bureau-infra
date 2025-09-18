@@ -109,10 +109,6 @@ defaultLocale: ""
 ## @param orgInPath If true, encode org in path rather than domain
 orgInPath: true
 
-
-## @param sandboxFlavor Can be gvisor, pynbox, unsandboxed, docker, or macSandboxExec. If set, forces Grist to use the specified kind of sandbox.
-sandboxFlavor: ""
-
 licensekey: ""
 
 sessionSecret: "please-change-me"
@@ -406,6 +402,14 @@ topologySpreadConstraints: []
 ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
 ##
 schedulerName: ""
+## @param runtimeClassName Name of the runtime class name for Grist pods
+## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+##
+runtimeClassName: ""
+## @param sandboxFlavor Grist sandbox flavor for Python execution (gvisor, pynbox, unsandboxed, docker, macSandboxExec)
+## ref: https://github.com/gristlabs/grist-core
+##
+sandboxFlavor: "gvisor"
 ## @param terminationGracePeriodSeconds Seconds Grist pods need to terminate gracefully
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
 ##

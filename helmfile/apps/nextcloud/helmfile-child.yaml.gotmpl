@@ -1,48 +1,26 @@
 bases:
   - "../../bases/default.yaml.gotmpl"
 
-repositories:
-  - name: bitnami-postgres
-    oci: {{ .Values.chart.postgresql.oci }}
-    url: "{{ .Values.chart.postgresql.registry | default .Values.chart.default.registry }}/{{ .Values.chart.postgresql.repository }}"
-    verify: {{ .Values.chart.postgresql.verify }}
-    username: {{ .Values.chart.postgresql.username | quote }}
-    password: {{ .Values.chart.postgresql.password | quote }}
-
-  - name: bitnami-redis
-    oci: {{ .Values.chart.redis.oci }}
-    url: "{{ .Values.chart.redis.registry  | default .Values.chart.default.registry  }}/{{ .Values.chart.redis.repository }}"
-    verify: {{ .Values.chart.redis.verify }}
-    username: {{ .Values.chart.redis.username | quote }}
-    password: {{ .Values.chart.redis.password | quote }}
-
-  - name: bitnami-minio
-    oci: {{ .Values.chart.minio.oci }}
-    url: "{{ .Values.chart.minio.registry  | default .Values.chart.default.registry  }}/{{ .Values.chart.minio.repository }}"
-    verify: {{ .Values.chart.minio.verify }}
-    username: {{ .Values.chart.minio.username | quote }}
-    password: {{ .Values.chart.minio.password | quote }}
-
 releases:
   - name: nextcloud-postgresql
-    chart: "bitnami-postgres/{{ .Values.chart.postgresql.name }}"
-    version: {{ .Values.chart.postgresql.version | quote }}
+    chart: ../common/charts/postgresql
+    version: "16.7.18"
     namespace: {{ .Values.application.nextcloud.namespace }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
 
   - name: nextcloud-redis
-    chart: "bitnami-redis/{{ .Values.chart.redis.name }}"
-    version: {{ .Values.chart.redis.version | quote }}
+    chart: ../common/charts/redis
+    version: "21.2.6"
     namespace: {{ .Values.application.nextcloud.namespace }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) | toYaml }}
     values:
       - "values-redis.yaml.gotmpl"
 
   - name: nextcloud-minio
-    chart: "bitnami-minio/{{ .Values.chart.minio.name }}"
-    version: {{ .Values.chart.minio.version | quote }}
+    chart: ../common/charts/minio
+    version: "17.0.11"
     namespace: {{ .Values.application.nextcloud.namespace }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) | toYaml }}
     values:
