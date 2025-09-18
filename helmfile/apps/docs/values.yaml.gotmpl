@@ -441,10 +441,6 @@ ingressMedia:
 
 metrics: {{ .Values.monitoring.prometheus | toYaml | nindent 2 }}
 
-{{- if .Values.cluster.sandbox.gvisor.enabled }}
-sandboxFlavor: "gvisor"
-{{- end }}
-
 collaboration:
   api:
     secret: {{ .Values.application.docs.collaboration.secret }}
