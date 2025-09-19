@@ -1747,7 +1747,7 @@ tls:
 metrics:
   ## @param metrics.enabled Start a sidecar prometheus exporter to expose Redis(R) metrics
   ##
-  enabled: false
+  enabled: {{ .Values.metric.enabled | default false  }}
   ## Bitnami Redis(R) Exporter image
   ## ref: https://hub.docker.com/r/bitnami/redis-exporter/tags/
   ## @param metrics.image.registry [default: REGISTRY_NAME] Redis(R) Exporter image registry
@@ -1758,11 +1758,11 @@ metrics:
   ## @param metrics.image.pullSecrets Redis(R) Exporter image pull secrets
   ##
   image:
-    registry: docker.io
-    repository: bitnami/redis-exporter
-    tag: 1.74.0-debian-12-r2
+    registry: {{ coalesce .Values.container.redis_exporter.registry .Values.container.default.registry | default "docker.io" | quote }}
+    repository: {{ .Values.container.redis_exporter.repository | default "bitnami/redis-exporter" | quote }}
+    tag: {{ .Values.container.redis_exporter.tag | default "1.74.0-debian-12-r2" | quote }}
     digest: ""
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.
     ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -1770,7 +1770,8 @@ metrics:
     ## pullSecrets:
     ##   - myRegistryKeySecretName
     ##
-    pullSecrets: []
+    pullSecrets:
+     - {{ coalesce .Values.container.redis_exporter.imagePullSecret .Values.container.default.imagePullSecret | quote }}
   ## @param metrics.containerPorts.http Metrics HTTP container port
   ##
   containerPorts:
@@ -1860,18 +1861,8 @@ metrics:
   ## @param metrics.containerSecurityContext.seccompProfile.type Set Redis(R) exporter containers' Security Context seccompProfile
   ## @param metrics.containerSecurityContext.capabilities.drop Set Redis(R) exporter containers' Security Context capabilities to drop
   ##
-  containerSecurityContext:
-    enabled: true
-    seLinuxOptions: {}
-    runAsUser: 1001
-    runAsGroup: 1001
-    runAsNonRoot: true
-    allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
-    seccompProfile:
-      type: RuntimeDefault
-    capabilities:
-      drop: ["ALL"]
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+
   ## @param metrics.extraVolumes Optionally specify extra list of additional volumes for the Redis(R) metrics sidecar
   ##
   extraVolumes: []
@@ -1956,7 +1947,7 @@ metrics:
     port: http-metrics
     ## @param metrics.serviceMonitor.enabled Create ServiceMonitor resource(s) for scraping metrics using PrometheusOperator
     ##
-    enabled: false
+    enabled: {{ .Values.metric.serviceMonitor.enabled | default false  }}
     ## @param metrics.serviceMonitor.namespace The namespace in which the ServiceMonitor will be created
     ##
     namespace: ""
@@ -2016,7 +2007,7 @@ metrics:
     port: metrics
     ## @param metrics.podMonitor.enabled Create PodMonitor resource(s) for scraping metrics using PrometheusOperator
     ##
-    enabled: false
+    enabled: {{ .Values.metric.podMonitor.enabled | default false  }}
     ## @param metrics.podMonitor.namespace The namespace in which the PodMonitor will be created
     ##
     namespace: ""
@@ -2072,7 +2063,7 @@ metrics:
   prometheusRule:
     ## @param metrics.prometheusRule.enabled Create a custom prometheusRule Resource for scraping metrics using PrometheusOperator
     ##
-    enabled: false
+    enabled: {{ .Values.metric.podMonitor.enabled | default false  }}
     ## @param metrics.prometheusRule.namespace The namespace in which the prometheusRule will be created
     ##
     namespace: ""

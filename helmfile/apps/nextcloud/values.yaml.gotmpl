@@ -115,8 +115,6 @@ podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | ni
 
 containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
 
-metrics: {{ .Values.monitoring.prometheus | toYaml | nindent 2 }}
-
 auth:
   username: {{ .Values.secret.nextcloud.adminUser | quote }}
   password: {{ .Values.secret.nextcloud.adminPassword | quote }}

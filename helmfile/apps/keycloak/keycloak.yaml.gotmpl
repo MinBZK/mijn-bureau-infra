@@ -1051,7 +1051,7 @@ metrics:
   ## @param metrics.enabled Enable exposing Keycloak statistics
   ## ref: https://github.com/bitnami/containers/tree/main/bitnami/keycloak#enabling-statistics
   ##
-  enabled: false
+  enabled: {{ .Values.metric.enabled | default false  }}
   ## Keycloak metrics service parameters
   ##
   service:
@@ -1078,7 +1078,7 @@ metrics:
   serviceMonitor:
     ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using PrometheusOperator
     ##
-    enabled: false
+    enabled:  {{ .Values.metric.serviceMonitor.enabled | default false  }}
     ## @param metrics.serviceMonitor.port Metrics service HTTP port
     ##
     port: metrics
@@ -1092,7 +1092,7 @@ metrics:
     ##
     endpoints:
       - path: 'metrics'
-      - path: 'realms/master/metrics'
+      - path: 'realms/mijnbureau/metrics'
         port: http
     ## @param metrics.serviceMonitor.path Metrics service HTTP path. Deprecated: Use @param metrics.serviceMonitor.endpoints instead
     ##
@@ -1132,7 +1132,7 @@ metrics:
   prometheusRule:
     ## @param metrics.prometheusRule.enabled Create PrometheusRule Resource for scraping metrics using PrometheusOperator
     ##
-    enabled: false
+    enabled: {{ .Values.metric.prometheusRule.enabled | default false  }}
     ## @param metrics.prometheusRule.namespace Namespace which Prometheus is running in
     ##
     namespace: ""
