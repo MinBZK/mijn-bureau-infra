@@ -100,8 +100,6 @@ podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | ni
 
 containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
 
-metrics: {{ .Values.monitoring.prometheus | toYaml | nindent 2 }}
-
 defaultLocale: {{ .Values.global.defaultLocale | quote }}
 
 {{- if .Values.cluster.runtimeClassName }}

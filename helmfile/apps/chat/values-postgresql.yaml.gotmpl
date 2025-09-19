@@ -1686,7 +1686,7 @@ psp:
 metrics:
   ## @param metrics.enabled Start a prometheus exporter
   ##
-  enabled: false
+  enabled: {{ .Values.metric.enabled | default false  }}
   ## @param metrics.image.registry [default: REGISTRY_NAME] PostgreSQL Prometheus Exporter image registry
   ## @param metrics.image.repository [default: REPOSITORY_NAME/postgres-exporter] PostgreSQL Prometheus Exporter image repository
   ## @skip metrics.image.tag PostgreSQL Prometheus Exporter image tag (immutable tags are recommended)
@@ -1695,11 +1695,11 @@ metrics:
   ## @param metrics.image.pullSecrets Specify image pull secrets
   ##
   image:
-    registry: docker.io
-    repository: bitnami/postgres-exporter
-    tag: 0.17.1-debian-12-r13
+    registry: {{ coalesce .Values.container.postgres_exporter.registry .Values.container.default.registry | default "docker.io" | quote }}
+    repository: {{ .Values.container.postgres_exporter.repository | default "bitnamilegacy/postgres-exporter" | quote }}
+    tag: {{ .Values.container.postgres_exporter.tag | default "0.17.1-debian-12-r12" | quote }}
     digest: ""
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.
     ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -1707,7 +1707,8 @@ metrics:
     ## pullSecrets:
     ##   - myRegistryKeySecretName
     ##
-    pullSecrets: []
+    pullSecrets:
+     - {{ coalesce .Values.container.postgres_exporter.imagePullSecret .Values.container.default.imagePullSecret | quote }}
   ## @param metrics.collectors Control enabled collectors
   ## ref: https://github.com/prometheus-community/postgres_exporter#flags
   ## Example:
@@ -1749,19 +1750,8 @@ metrics:
   ## @param metrics.containerSecurityContext.capabilities.drop List of capabilities to be dropped
   ## @param metrics.containerSecurityContext.seccompProfile.type Set container's Security Context seccomp profile
   ##
-  containerSecurityContext:
-    enabled: true
-    seLinuxOptions: {}
-    runAsUser: 1001
-    runAsGroup: 1001
-    runAsNonRoot: true
-    privileged: false
-    readOnlyRootFilesystem: true
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop: ["ALL"]
-    seccompProfile:
-      type: "RuntimeDefault"
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+
   ## Configure extra options for PostgreSQL Prometheus exporter containers' liveness, readiness and startup probes
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes
   ## @param metrics.livenessProbe.enabled Enable livenessProbe on PostgreSQL Prometheus exporter containers
@@ -1862,7 +1852,7 @@ metrics:
   serviceMonitor:
     ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using Prometheus Operator
     ##
-    enabled: false
+    enabled:  {{ .Values.metric.serviceMonitor.enabled | default false  }}
     ## @param metrics.serviceMonitor.namespace Namespace for the ServiceMonitor Resource (defaults to the Release Namespace)
     ##
     namespace: ""
@@ -1900,7 +1890,7 @@ metrics:
   prometheusRule:
     ## @param metrics.prometheusRule.enabled Create a PrometheusRule for Prometheus Operator
     ##
-    enabled: false
+    enabled: {{ .Values.metric.prometheusRule.enabled | default false  }}
     ## @param metrics.prometheusRule.namespace Namespace for the PrometheusRule Resource (defaults to the Release Namespace)
     ##
     namespace: ""
