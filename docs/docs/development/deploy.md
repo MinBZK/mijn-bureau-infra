@@ -29,7 +29,7 @@ To create a local Kubernetes cluster using KIND, run:
 sudo cloud-provider-kind
 ```
 
-This will create a kind cluster named mijnbureau and sets up an Nginx ingress and Gateway API. The scripts also helps setting up certificates for tls.
+This will create a kind cluster named mijnbureau and sets up an Nginx ingress and Gateway API.
 
 Once kind is running we can yet use it. We need to route all traffic to a loadbalancer.
 
