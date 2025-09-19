@@ -82,6 +82,7 @@ extraDeploy:
   - apiVersion: networking.k8s.io/v1
     kind: NetworkPolicy
     metadata:
+      namespace: {{ .Release.Namespace }}
       labels:
         app.kubernetes.io/component: {{ .Release.Name }}-cli
         app.kubernetes.io/name: {{ .Release.Name }}-cli
