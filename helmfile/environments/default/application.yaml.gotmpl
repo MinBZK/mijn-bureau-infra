@@ -34,6 +34,14 @@ application:
       registrationSharedSecret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "synapse" "registrationSharedSecret" | sha1sum | quote }}
       formSecret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "synapse" "formSecret" | sha1sum | quote }}
 
+  # Collabora Online is a standalone real-time collaborative document server  that runs in a browser, and integrates with file storage platforms Nextcloud via WOPI or WebSocket APIs.
+  collabora:
+    enabled: true
+    namespace: ~
+    # This copies default config and disables capabilities in `/tmp/cool/coolwsd.xml`.
+    # Only required when running on OpenShift clusters, not needed in normal Kubernetes.
+    enableInsecureCollWSD: true
+
   nextcloud:
     enabled: true
     namespace: ~

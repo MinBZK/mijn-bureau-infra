@@ -1,0 +1,10 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: "collabora-online"
+    chart: "charts/collabora"
+    condition: application.collabora.enabled
+    namespace: {{ .Values.application.collabora.namespace | quote }}
+    values:
+      - "values-collabora.yaml.gotmpl"

@@ -19,3 +19,17 @@ security:
       sysctls: []
       supplementalGroups: []
       fsGroup: 7777
+
+  collabora:
+    containerSecurityContext:
+      enabled: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 9999
+      runAsGroup: 8888
+
+    podSecurityContext:
+      enabled: true
+      fsGroup: 7777
+      fsGroupChangePolicy: "TestingPropagation"

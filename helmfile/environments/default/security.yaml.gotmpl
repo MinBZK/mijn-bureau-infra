@@ -19,3 +19,16 @@ security:
       fsGroupChangePolicy: Always
       sysctls: []
       supplementalGroups: []
+
+  collabora:
+    containerSecurityContext:
+      enabled: true
+      # allowPrivilegeEscalation: false
+      # readOnlyRootFilesystem: true
+      # runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 1001
+
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1001

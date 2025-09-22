@@ -30,6 +30,13 @@ autoscaling:
       maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
+    collabora:
+    # it is disabled. Because after scaling it breaks the collaborative editing and copy/paste.
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: ""
   vertical:
     synapse:
         master:

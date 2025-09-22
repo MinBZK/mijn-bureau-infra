@@ -1,0 +1,34 @@
+---
+  ## @param collabora.enableInsecureCollWSD
+  ## When true, enables OpenShift-specific initContainer workaround for COOLWSD.
+  ## Disables OpenShift role.yaml since it's not needed in this mode.
+{{- if .Values.collabora.enableInsecureCollWSD }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+rules:
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - nonroot-v2
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ template "common.names.fullname" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ include "collabora.serviceAccountName" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+{{- end }}

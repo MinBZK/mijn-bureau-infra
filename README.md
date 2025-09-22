@@ -83,14 +83,15 @@ MijnBureau is built on top of some impressive open-source tools.
 
 It currently includes the following open-source components
 
-| Feature           | Functional Component | Component Version                                                     | Upstream Documentation                                        | LICENSE    |
-| ----------------- | -------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------- | ---------- |
-| Identity Provider | Keycloak             | [26.2.4](https://github.com/keycloak/keycloak/releases/tag/26.2.4)    | [documentation](https://www.keycloak.org/documentation)       | Apache-2.0 |
-| Chat              | Element Synapse      | [v1.129](https://github.com/element-hq/synapse/tree/v1.129.0)         | [documentation](https://element-hq.github.io/synapse/latest/) | AGPL-3.0   |
-| Chat UI           | Element Web          | [V1.11.106](https://github.com/element-hq/element-web/tree/v1.11.106) | [documentation](https://element.io/)                          | AGPL-3.0   |
-| AI LLM            | Ollama               | [v0.7.0](https://github.com/ollama/ollama/tree/v0.7.0)                | [documentation](https://ollama.com/)                          | MIT        |
-| Spreadsheet       | Grist                | [v1.6.1](https://github.com/gristlabs/grist-core/tree/v1.6.1)         | [documentation](https://support.getgrist.com/self-managed/)   | Apache-2.0 |
-| File sharing      | Nextcloud            | [v30.0.7](https://github.com/nextcloud/server/tree/v30.0.7)           | [documentation](https://nextcloud.com/)                       | AGPL-3.0   |
+| Feature           | Functional Component | Component Version                                                                 | Upstream Documentation                                                        | LICENSE    |
+| ----------------- | -------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------- |
+| Identity Provider | Keycloak             | [26.2.4](https://github.com/keycloak/keycloak/releases/tag/26.2.4)                | [documentation](https://www.keycloak.org/documentation)                       | Apache-2.0 |
+| Chat              | Element Synapse      | [v1.129](https://github.com/element-hq/synapse/tree/v1.129.0)                     | [documentation](https://element-hq.github.io/synapse/latest/)                 | AGPL-3.0   |
+| Chat UI           | Element Web          | [V1.11.106](https://github.com/element-hq/element-web/tree/v1.11.106)             | [documentation](https://element.io/)                                          | AGPL-3.0   |
+| AI LLM            | Ollama               | [v0.7.0](https://github.com/ollama/ollama/tree/v0.7.0)                            | [documentation](https://ollama.com/)                                          | MIT        |
+| Spreadsheet       | Grist                | [v1.6.1](https://github.com/gristlabs/grist-core/tree/v1.6.1)                     | [documentation](https://support.getgrist.com/self-managed/)                   | Apache-2.0 |
+| File sharing      | Nextcloud            | [v30.0.7](https://github.com/nextcloud/server/tree/v30.0.7)                       | [documentation](https://nextcloud.com/)                                       | AGPL-3.0   |
+| Office            | Collabora            | [v25.04.5.1](https://github.com/CollaboraOnline/online/releases/tag/cp-25.04.5-1) | [documentation](https://sdk.collaboraonline.com/docs/installation/index.html) | MPL-2.0    |
 
 ---
 
