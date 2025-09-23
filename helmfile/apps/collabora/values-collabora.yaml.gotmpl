@@ -179,6 +179,10 @@ affinity: {}
 diagnosticMode:
   enabled: false
 
+extraEnvVars:
+  - name: WOPI_HOST
+    value: "https://{{ .Values.global.hostname.nextcloud | default "nextcloud" }}.{{ .Values.global.domain | default "example.com"  }}"
+
 # OpenShift-specific workaround:
 {{- if .Values.application.collabora.enableInsecureCollWSD }}
 # Adds an initContainer that copies default `coolwsd.xml` and disables capabilities.
