@@ -64,146 +64,40 @@ backend:
       # Allow http egress for yProvider connection
       - ports:
           - port: 4444
-  themeCustomization:
-    enabled: true
-    fileContent: |
-      {
-        "translations": {
-            "en": {
-              "translation": {
-                "Docs": "Mijn Bureau Docs",
-                "New doc": "+"
-              }
-            }
-          },
-        "footer": {
-          "default": {
-            "logo": {
-              "src": "/assets/icon-docs.svg",
-              "width": "54px",
-              "alt": "Docs Logo",
-              "withTitle": true
-            },
-            "externalLinks": [
-              {
-                "label": "GitHub",
-                "href": "https://github.com/suitenumerique/docs/"
-              },
-              {
-                "label": "DINUM",
-                "href": "https://www.numerique.gouv.fr/dinum/"
-              },
-              {
-                "label": "ZenDiS",
-                "href": "https://zendis.de/"
-              },
-              {
-                "label": "BlockNote.js",
-                "href": "https://www.blocknotejs.org/"
-              }
-            ],
-            "bottomInformation": {
-              "label": "Unless otherwise stated, all content on this site is under",
-              "link": {
-                "label": "licence etalab-2.0",
-                "href": "https://github.com/etalab/licence-ouverte/blob/master/LO.md"
-              }
-            }
-          },
-          "en": {
-            "legalLinks": [
-              {
-                "label": "Legal Notice",
-                "href": "#"
-              },
-              {
-                "label": "Personal data and cookies",
-                "href": "#"
-              },
-              {
-                "label": "Accessibility",
-                "href": "#"
-              }
-            ],
-            "bottomInformation": {
-              "label": "Unless otherwise stated, all content on this site is under",
-              "link": {
-                "label": "licence MIT",
-                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
-              }
-            }
-          },
-          "fr": {
-            "legalLinks": [
-              {
-                "label": "Mentions légales",
-                "href": "#"
-              },
-              {
-                "label": "Données personnelles et cookies",
-                "href": "#"
-              },
-              {
-                "label": "Accessibilité",
-                "href": "#"
-              }
-            ],
-            "bottomInformation": {
-              "label": "Sauf mention contraire, tout le contenu de ce site est sous",
-              "link": {
-                "label": "licence MIT",
-                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
-              }
-            }
-          },
-          "de": {
-            "legalLinks": [
-              {
-                "label": "Impressum",
-                "href": "#"
-              },
-              {
-                "label": "Personenbezogene Daten und Cookies",
-                "href": "#"
-              },
-              {
-                "label": "Barrierefreiheit",
-                "href": "#"
-              }
-            ],
-            "bottomInformation": {
-              "label": "Sofern nicht anders angegeben, steht der gesamte Inhalt dieser Website unter",
-              "link": {
-                "label": "licence MIT",
-                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
-              }
-            }
-          },
-          "nl": {
-            "legalLinks": [
-              {
-                "label": "Wettelijke bepalingen",
-                "href": "#"
-              },
-              {
-                "label": "Persoonlijke gegevens en cookies",
-                "href": "#"
-              },
-              {
-                "label": "Toegankelijkheid",
-                "href": "#"
-              }
-            ],
-            "bottomInformation": {
-              "label": "Tenzij anders vermeld, is alle inhoud van deze site ondergebracht onder",
-              "link": {
-                "label": "licence MIT",
-                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
-              }
-            }
-          }
-        }
-      }"
+  configuration:
+    ai:
+      enabled: {{ not ( empty .Values.ai.llm.model ) }}
+      allowReachFrom: "authenticated"
+      apiKey: {{ .Values.ai.llm.apiKey }}
+      baseUrl: {{ .Values.ai.llm.endpoint }}
+      model: {{ .Values.ai.llm.model }}
+    django:
+      email:
+        brandName: {{ .Values.smtp.from.name }}
+        from: {{ .Values.smtp.from.email }}
+        host:
+          name: {{ .Values.smtp.host }}
+          username: {{ .Values.smtp.username }}
+          password: {{ .Values.smtp.password }}
+        logoImg: {{ .Values.smtp.from.logoImage }}
+        port: {{ .Values.smtp.port }}
+        useTls: {{ .Values.smtp.tls.enabled }}
+      secretKey: {{ .Values.application.docs.backend.django.secretKey }}
+      superUser:
+        email: {{ .Values.secret.docs.superUser.email }}
+        password: {{ .Values.secret.docs.superUser.password }}
+      storagesStaticFilesBackend: django.contrib.staticfiles.storage.StaticFilesStorage
+    languageCode: {{ .Values.global.defaultLocale | default "nl" }}
+    frontend:
+      cssUrl: {{ .Values.application.docs.backend.frontend.cssUrl }}
+      homepageFeatureEnabled: {{ .Values.application.docs.backend.frontend.homepageFeatureEnabled }}
+      theme: {{ .Values.application.docs.backend.frontend.theme }}
+    malwareDetection:
+      backend: {{ .Values.application.docs.backend.malwareDetection.backend }}
+      parameters: {{ .Values.application.docs.backend.malwareDetection.parameters | toYaml | nindent 8 }}
+    themeCustomization:
+      enabled: true
+      fileContent: {{ .Values.application.docs.backend.themeCustomization.fileContent | toYaml | nindent 8 }}
   celery:
     livenessProbe:
       enabled: false
@@ -260,6 +154,8 @@ frontend:
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   pdb:
     maxUnavailable: 1
+  configuration:
+    publishAsMit: {{ .Values.application.docs.frontend.publishAsMit }}
 
 yProvider:
   image:
@@ -310,10 +206,11 @@ yProvider:
       # Allow https egress for backend connection
       - ports:
           - port: 443
-  api:
-    key: {{ .Values.application.docs.yProvider.key }}
-  caches:
-    keyPrefix: {{ now | unixEpoch | quote }}
+  configuration:
+    api:
+      key: {{ .Values.application.docs.yProvider.key }}
+    caches:
+      keyPrefix: {{ now | unixEpoch | quote }}
 
 ingress:
   enabled: true
@@ -371,6 +268,7 @@ ingressCollaborationApi:
   tls: {{ .Values.global.tls.enabled | default true }}
   selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
   extraTls: {{ .Values.tls.docs | toYaml | nindent 4 }}
+
 ingressCollaborationWS:
   enabled: true
   hostname: {{ $hostname }}
@@ -446,19 +344,6 @@ collaboration:
   webSockets:
     notConnectedReadOnly: true
 
-django:
-  secretKey: {{ .Values.application.docs.django.secretKey }}
-  superUser:
-    email: {{ .Values.secret.docs.superUser.email }}
-    password: {{ .Values.secret.docs.superUser.password }}
-  email:
-    brandName: "Mijn Bureau"
-    host: {{ .Values.smtp.host }}
-    # FIXME Apply Mijn Bureau branding
-    logoImg: {{ printf "https://%s/assets/logo-suite-numerique.png" $hostname }}
-    port: {{ .Values.smtp.port }}
-    useSsl: {{ .Values.smtp.tls.enabled }}
-
 auth:
   oidc:
     userInfo:
@@ -477,6 +362,7 @@ auth:
       scopes: {{ .Values.authentication.client.docs.scopes }}
 
 database:
+  engine: {{ .Values.database.docs.engine }}
   host: {{ .Values.database.docs.host }}
   port: {{ .Values.database.docs.port }}
   name: {{ .Values.database.docs.name }}

@@ -2,9 +2,8 @@
 
 SPDX-License-Identifier: APACHE-2.0
 */}}
-
 {{- range $job, $config := $.Values.backend.jobs.jobs }}
-{{- if $config.command -}}
+{{- if $config.command }}
 ---
 apiVersion: {{ include "common.capabilities.job.apiVersion" $ }}
 kind: Job
@@ -93,9 +92,9 @@ spec:
             - name: empty-dir
               mountPath: /tmp
               subPath: tmp-dir
-            {{- if $.Values.backend.themeCustomization.enabled }}
+            {{- if $.Values.backend.configuration.themeCustomization.enabled }}
             - name: theme-customization
-              mountPath: {{ $.Values.backend.themeCustomization.mountPath }}
+              mountPath: {{ $.Values.backend.configuration.themeCustomization.mountPath }}
               readOnly: true
             {{- end }}
             {{- if $.Values.backend.extraVolumeMounts }}
@@ -107,7 +106,7 @@ spec:
       volumes:
         - name: empty-dir
           emptyDir: {}
-        {{- if $.Values.backend.themeCustomization.enabled }}
+        {{- if $.Values.backend.configuration.themeCustomization.enabled }}
         - name: theme-customization
           configMap:
             name: {{ include "docs.theme.fullname" $ }}

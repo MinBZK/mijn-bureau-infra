@@ -97,6 +97,12 @@ spec:
               value: {{ .Values.frontend.containerPorts.http | quote }}
             - name: NEXT_PUBLIC_API_ORIGIN
               value: {{ include "docs.baseUrl" . | quote }}
+            - name: API_ORIGIN
+              value: {{ .Values.frontend.configuration.apiOrigin | quote }}
+            - name: SW_DEACTIVATED
+              value: {{ .Values.frontend.configuration.serviceWorkerDeactivated | quote }}
+            - name: PUBLISH_AS_MIT
+              value: {{ .Values.frontend.configuration.publishAsMit | quote }}
             {{- if .Values.frontend.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.frontend.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}

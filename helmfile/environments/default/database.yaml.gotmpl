@@ -38,6 +38,7 @@ database:
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "nextcloud" "database_admin" | sha1sum | quote}}
 
   docs:
+    engine: django.db.backends.postgresql_psycopg2
     name: docs
     host: docs-postgresql
     port: 5432

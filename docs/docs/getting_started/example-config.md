@@ -324,6 +324,9 @@ Configure SMTP settings for transactional emails:
 
 ```yaml
 smtp:
+  from:
+    email: you@example.com
+    name: "Mijn Bureau"
   host: youremailhostname
   port: 587
   tls:

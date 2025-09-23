@@ -102,7 +102,7 @@ spec:
             - name: COLLABORATION_SERVER_SECRET
               value: {{ .Values.collaboration.api.secret | quote }}
             - name: Y_PROVIDER_API_KEY
-              value: {{ .Values.yProvider.api.key | quote }}
+              value: {{ .Values.yProvider.configuration.api.key | quote }}
             {{- if .Values.yProvider.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.yProvider.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
