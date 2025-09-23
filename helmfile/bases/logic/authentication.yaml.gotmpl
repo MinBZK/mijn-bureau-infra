@@ -1,0 +1,25 @@
+{{- if .Values.application.keycloak.enabled }}
+authentication:
+  oidc:
+    {{- if not .Values.authentication.oidc.issuer }}
+    issuer: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau"
+    {{- end }}
+    {{- if not .Values.authentication.oidc.authorization_endpoint }}
+    authorization_endpoint: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau/protocol/openid-connect/auth"
+    {{- end }}
+    {{- if not .Values.authentication.oidc.token_endpoint }}
+    token_endpoint: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau/protocol/openid-connect/token"
+    {{- end }}
+    {{- if not .Values.authentication.oidc.introspection_endpoint }}
+    introspection_endpoint: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau/protocol/openid-connect/token/introspect"
+    {{- end }}
+    {{- if not .Values.authentication.oidc.userinfo_endpoint }}
+    userinfo_endpoint: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau/protocol/openid-connect/userinfo"
+    {{- end }}
+    {{- if not .Values.authentication.oidc.end_session_endpoint }}
+    end_session_endpoint: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau/protocol/openid-connect/logout"
+    {{- end }}
+    {{- if not .Values.authentication.oidc.jwks_uri }}
+    jwks_uri: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau/protocol/openid-connect/certs"
+    {{- end }}
+{{- end }}

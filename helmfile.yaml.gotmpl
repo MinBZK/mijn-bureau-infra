@@ -1,35 +1,34 @@
-environments:
-  default:
-  demo:
-    values:
-      - "helmfile/environments/demo/*.yaml.gotmpl"
-    # secrets:
-    #   - "helmfile/environments/{{ .Environment.Name }}/*.secrets.yaml"
-  production:
-    values:
-      - "helmfile/environments/production/*.yaml.gotmpl"
-    # secrets:
-    #   - "helmfile/environments/{{ .Environment.Name }}/*.secrets.yaml"
+bases:
+  - "helmfile/bases/environment.yaml.gotmpl"
+
+---
 
 bases:
   - "helmfile/bases/default.yaml.gotmpl"
 
+helmfiles:
+  - path: "helmfile/bases/logic/authentication.yaml.gotmpl"
+    values: &values
+      - "helmfile/environments/default/*.yaml*"
+      - {{ toYaml .Values | nindent 8 }}
+  - path: "helmfile/bases/logic/ai.yaml.gotmpl"
+    values: *values
 ---
 
 helmfiles:
   - path: "helmfile/apps/grist/helmfile-child.yaml.gotmpl"
-    values: &values
+    values: &appvalues
       - "helmfile/environments/default/*.yaml*"
       - {{ toYaml .Values | nindent 8 }}
   - path: "helmfile/apps/ollama/helmfile-child.yaml.gotmpl"
-    values: *values
+    values: *appvalues
   - path: "helmfile/apps/keycloak/helmfile-child.yaml.gotmpl"
-    values: *values
+    values: *appvalues
   - path: "helmfile/apps/chat/helmfile-child.yaml.gotmpl"
-    values: *values
+    values: *appvalues
   - path: "helmfile/apps/collabora/helmfile-child.yaml.gotmpl"
-    values: *values
+    values: *appvalues
   - path: "helmfile/apps/nextcloud/helmfile-child.yaml.gotmpl"
-    values: *values
+    values: *appvalues
   - path: "helmfile/apps/docs/helmfile-child.yaml.gotmpl"
-    values: *values
+    values: *appvalues

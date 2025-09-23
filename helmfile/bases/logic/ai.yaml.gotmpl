@@ -1,0 +1,13 @@
+{{- if .Values.application.ollama.enabled }}
+ai:
+  llm:
+    {{- if not .Values.ai.llm.model }}
+    model: {{ .Values.application.ollama.model | quote }}
+    {{- end }}
+    {{- if not .Values.ai.llm.endpoint }}
+    endpoint: "http://ollama.{{ .Values.application.ollama.namespace }}.svc.cluster.local:11434"
+    {{- end }}
+    {{- if not .Values.ai.llm.apiKey }}
+    apiKey: ""
+    {{- end }}
+{{- end }}

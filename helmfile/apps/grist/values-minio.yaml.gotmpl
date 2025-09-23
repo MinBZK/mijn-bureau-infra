@@ -863,13 +863,13 @@ metrics:
   prometheusAuthType: public
   ## @param metrics.enabled Enable the export of Prometheus metrics
   ##
-  enabled: false
+  enabled: {{ .Values.metric.enabled | default false  }}
   ## Prometheus Operator ServiceMonitor configuration
   ##
   serviceMonitor:
     ## @param metrics.serviceMonitor.enabled If the operator is installed in your cluster, set to true to create a Service Monitor Entry
     ##
-    enabled: false
+    enabled: {{ .Values.metric.serviceMonitor.enabled | default false  }}
     ## @param metrics.serviceMonitor.namespace Namespace which Prometheus is running in
     ##
     namespace: ""
@@ -914,7 +914,7 @@ metrics:
   prometheusRule:
     ## @param metrics.prometheusRule.enabled Create a Prometheus Operator PrometheusRule (also requires `metrics.enabled` to be `true` and `metrics.prometheusRule.rules`)
     ##
-    enabled: false
+    enabled: {{ .Values.metric.prometheusRule.enabled | default false  }}
     ## @param metrics.prometheusRule.namespace Namespace for the PrometheusRule Resource (defaults to the Release Namespace)
     ##
     namespace: ""

@@ -1,0 +1,31 @@
+application:
+  keycloak:
+    enabled: true
+    namespace: test-namespace
+  ollama:
+    enabled: true
+    namespace: test-namespace
+    model: "llama3.2"
+
+global:
+  domain: "test-override.example"
+  hostname:
+    keycloak: "id-test"
+
+# Test environment with CUSTOM authentication and AI values
+# Smart logic should NOT override these user-provided values
+authentication:
+  oidc:
+    issuer: "https://custom-auth.example.com/realms/custom"
+    authorization_endpoint: "https://custom-auth.example.com/auth"
+    token_endpoint: "https://custom-auth.example.com/token"
+    introspection_endpoint: "https://custom-auth.example.com/introspect"
+    userinfo_endpoint: "https://custom-auth.example.com/userinfo"
+    end_session_endpoint: "https://custom-auth.example.com/logout"
+    jwks_uri: "https://custom-auth.example.com/certs"
+
+ai:
+  llm:
+    model: "custom-model"
+    endpoint: "https://custom-ai.example.com/api"
+    apiKey: "custom-api-key"

@@ -2,13 +2,13 @@ authentication:
 
   # setup openID Connect (OIDC) authentication
   oidc:
-    issuer: "https://id.kubernetes.local/realms/mijnbureau"
-    authorization_endpoint: "https://id.kubernetes.local/realms/mijnbureau/protocol/openid-connect/auth"
-    token_endpoint: "https://id.kubernetes.local/realms/mijnbureau/protocol/openid-connect/token"
-    introspection_endpoint: "https://id.kubernetes.local/realms/mijnbureau/protocol/openid-connect/token/introspect"
-    userinfo_endpoint: "https://id.kubernetes.local/realms/mijnbureau/protocol/openid-connect/userinfo"
-    end_session_endpoint: "https://id.kubernetes.local/realms/mijnbureau/protocol/openid-connect/logout"
-    jwks_uri: "https://id.kubernetes.local/realms/mijnbureau/protocol/openid-connect/certs"
+    issuer: ~
+    authorization_endpoint: ~
+    token_endpoint: ~
+    introspection_endpoint: ~
+    userinfo_endpoint: ~
+    end_session_endpoint: ~
+    jwks_uri: ~
     # Leave empty if the claim is not supplied.
     claims:
       username: preferred_username
