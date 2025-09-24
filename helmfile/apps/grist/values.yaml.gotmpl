@@ -11,6 +11,7 @@ image:
   tag: {{ .Values.container.grist.tag | quote }}
 
 auth:
+  enabled: false
   oidcIdpIssuer: {{ .Values.authentication.oidc.issuer | quote }}
   oidcIdpClientId: {{ .Values.authentication.client.grist.client_id | quote }}
   oidcIdpClientSecret: {{ .Values.authentication.client.grist.client_secret | quote }}
@@ -20,6 +21,12 @@ auth:
 
 autoscaling:
   hpa: {{ .Values.autoscaling.horizontal.grist | toYaml | nindent 4 }}
+
+ai:
+  enabled: true
+  endpoint: {{ .Values.ai.llm.endpoint | quote }}
+  model: {{ .Values.ai.llm.model | quote }}
+  apiKey: {{ .Values.ai.llm.apiKey | quote }}
 
 ingress:
   enabled: true
@@ -93,6 +100,16 @@ networkPolicy:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: minio
+      {{- end }}
+    # Ollama connectivity for AI features
+    - ports:
+        - port: 11434
+          protocol: TCP
+      {{- if .Values.application.ollama.enabled }}
+      to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ollama
       {{- end }}
 
 

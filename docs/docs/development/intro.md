@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# Introduction
+# Intro
 
 This document describes the development process and tools for MijnBureau. It aims to provide an easy and efficient way to contribute to the project.
 

@@ -2,7 +2,7 @@
 sidebar_position: 4
 ---
 
-# Testing MijnBureau
+# Testing
 
 This guide explains the testing process for MijnBureau. To ensure a secure and high-quality product, we test critical components and continuously improve our testing practices. The `./scripts/` directory contains scripts to enhance quality and security. Passing these scripts increases the likelihood of passing the CI/CD pipeline (though it is not guaranteed).
 

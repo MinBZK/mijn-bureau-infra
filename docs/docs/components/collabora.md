@@ -14,7 +14,7 @@ located in the folder `helmfile/environments/default`.
 | `global.hostname.collabora`                   | The name of the subdomain for the Collabora client  |
 | `application.collabora.enabled`               | Enable Collabora for your MijnBureau implementation |
 | `application.collabora.namespace`             | The Kubernetes namespace name                       |
-| `application.collabora.enableInsecureCollWSD` | Enable Insecure COOLWSD in Openshift                |
+| `application.collabora.enableInsecureCoolWSD` | Enable Insecure COOLWSD in Openshift                |
 | `tls.collabora.*`                             | The TLS settings for Collabora                      |
 | `autoscaling.horizontal.element.*`            | Autoscaling for Collabora.                          |
 | `container.collabora.*`                       | Container selection                                 |
@@ -28,7 +28,7 @@ Deploying **Collabora** on OpenShift requires additional configuration in both t
 
 On OpenShift, make sure to enable:
 
-- `application.collabora.enableInsecureCollWSD`
+- `application.collabora.enableInsecureCoolWSD`
 - `security.collabora.podSecurityContext`
 - `security.collabora.containerSecurityContext`
 - `autoscaling`

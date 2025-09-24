@@ -160,10 +160,14 @@ spec:
             - name: TYPEORM_TYPE
               value: {{ .Values.externalDatabase.type | quote }}
             {{- if .Values.ai.enabled }}
+              {{- if .Values.ai.endpoint }}
             - name: ASSISTANT_CHAT_COMPLETION_ENDPOINT
               value: {{ .Values.ai.endpoint | quote }}
+              {{- end }}
+              {{- if .Values.ai.apiKey }}
             - name: ASSISTANT_API_KEY
               value: {{ .Values.ai.apiKey | quote }}
+              {{- end }}
               {{- if .Values.ai.model }}
             - name: ASSISTANT_MODEL
               value: {{ .Values.ai.model | quote }}
