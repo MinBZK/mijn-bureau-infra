@@ -89,6 +89,9 @@ spec:
           args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
           {{- else if .Values.backend.celery.args }}
           args: {{- include "common.tplvalues.render" (dict "value" .Values.backend.celery.args "context" $) | nindent 12 }}
+            {{- if and .Values.backend.celery.configuration.concurrency.max .Values.backend.celery.configuration.concurrency.min }}
+            - {{ printf "--autoscale=%d,%d" ( int .Values.backend.celery.configuration.concurrency.max ) ( int .Values.backend.celery.configuration.concurrency.min ) }}
+            {{- end }}
           {{- end }}
           env:
             - name: BITNAMI_DEBUG

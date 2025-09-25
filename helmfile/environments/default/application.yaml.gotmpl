@@ -198,6 +198,11 @@ application:
         cssUrl: ""
         homepageFeatureEnabled: false
         theme: ""
+      celery:
+        concurrency:
+          # Number of celery processes to start. Each worker takes 80Mib.
+          min: 3
+          max: 9
     collaboration:
       secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "collaborationSecret" | sha1sum | quote }}
     frontend:

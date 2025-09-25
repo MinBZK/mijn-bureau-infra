@@ -1094,6 +1094,9 @@ backend:
       broker:
         # Celery broker transport options
         transportOptions: "{}"
+      concurrency:
+        min: 10
+        max: 100
 
 ## @section Impress frontend Parameters
 ##

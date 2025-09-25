@@ -141,6 +141,10 @@ backend:
                 matchLabels:
                   app.kubernetes.io/name: minio
           {{- end }}
+    configuration:
+      concurrency:
+        min: {{ .Values.application.docs.backend.celery.concurrency.min }}
+        max: {{ .Values.application.docs.backend.celery.concurrency.max }}
 
 frontend:
   image:
