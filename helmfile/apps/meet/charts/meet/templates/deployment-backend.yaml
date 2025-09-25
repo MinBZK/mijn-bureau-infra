@@ -1,0 +1,217 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}-backend
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: meet-backend
+  {{- if or .Values.meet_backend.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.meet_backend.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.meet_backend.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.meet_backend.replicaCount }}
+  {{- end }}
+  {{- if .Values.meet_backend.updateStrategy }}
+  strategy: {{- toYaml .Values.meet_backend.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.meet_backend.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: meet-backend
+  template:
+    metadata:
+      {{- if .Values.meet_backend.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: meet-backend
+    spec:
+      {{- include "meet_backend.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "meet.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.meet_backend.automountServiceAccountToken }}
+      {{- if .Values.meet_backend.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.meet_backend.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.meet_backend.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.meet_backend.podAffinityPreset "component" "meet" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.meet_backend.podAntiAffinityPreset "component" "meet" "customLabels" $podLabels "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.meet_backend.nodeAffinityPreset.type "key" .Values.meet_backend.nodeAffinityPreset.key "values" .Values.meet_backend.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.meet_backend.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.meet_backend.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.meet_backend.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.meet_backend.priorityClassName }}
+      priorityClassName: {{ .Values.meet_backend.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.meet_backend.schedulerName }}
+      schedulerName: {{ .Values.meet_backend.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.meet_backend.runtimeClassName }}
+      runtimeClassName: {{ .Values.meet_backend.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.meet_backend.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.meet_backend.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.meet_backend.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.meet_backend.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.meet_backend.terminationGracePeriodSeconds }}
+      {{- end }}
+      initContainers:
+        {{- if and .Values.defaultInitContainers.volumePermissions.enabled .Values.persistence.enabled }}
+        {{- include "meet.defaultInitContainers.volumePermissions" (dict "context" . "component" "meet") | nindent 8 }}
+        {{- end }}
+        {{- if .Values.meet_backend.initContainers }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.initContainers "context" $) | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: meet
+          image: {{ template "meet_backend.image" . }}
+          imagePullPolicy: {{ .Values.meet_backend.image.pullPolicy }}
+          {{- if .Values.meet_backend.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.meet_backend.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.meet_backend.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.meet_backend.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.args "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: BITNAMI_DEBUG
+              value: {{ ternary "true" "false" (or .Values.meet_backend.image.debug .Values.diagnosticMode.enabled) | quote }}
+            - name: DJANGO_CONFIGURATION
+              value: Production
+            - name: DJANGO_SECRET_KEY
+              value: {{ .Values.meet_backend.secretKey | quote }}
+            - name: DJANGO_LANGUAGE_CODE
+              value: {{ .Values.meet_backend.languageCode | quote }}
+            - name: DJANGO_CSRF_TRUSTED_ORIGINS
+              value: {{ .Values.meet_backend.CSRFTrustedOrigins | quote }}
+            - name: DJANGO_CORS_ALLOW_ALL_ORIGINS
+              value: "false"
+            - name: DJANGO_CORS_ALLOWED_ORIGINS
+              value: {{ .Values.meet_backend.CORSAllowedOrigins | quote}}
+            - name: DB_HOST
+              value: {{ .Values.externalDatabase.host | quote }}
+            - name: DB_NAME
+              value: {{ .Values.externalDatabase.database | quote }}
+            - name: DB_USER
+              value: {{ .Values.externalDatabase.username | quote }}
+            - name: DB_PASSWORD
+              value: {{ .Values.externalDatabase.password | quote }}
+            - name: DB_PORT
+              value: {{ .Values.externalDatabase.port | quote }}
+            - name: AWS_S3_ENDPOINT_URL
+              value: "{{.Values.externalMinio.endpoint}}:{{ .Values.externalMinio.port }}"
+            - name: AWS_S3_ACCESS_KEY_ID
+              value: {{ .Values.externalMinio.accessKey | quote }}
+            - name: AWS_S3_SECRET_ACCESS_KEY
+              value: {{ .Values.externalMinio.secretKey | quote }}
+            - name: AWS_STORAGE_BUCKET_NAME
+              value: {{ .Values.externalMinio.bucket | quote }}
+            - name: REDIS_URL
+              value: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/1"
+            - name: OIDC_RP_CLIENT_ID
+              value: {{ .Values.authentication.client.client_id | quote }}
+            - name: OIDC_RP_CLIENT_SECRET
+              value: {{ .Values.authentication.client.client_secret | quote }}
+            - name: OIDC_OP_JWKS_ENDPOINT
+              value: {{ .Values.authentication.jwks_uri | quote }}
+            - name: OIDC_OP_AUTHORIZATION_ENDPOINT
+              value: {{ .Values.authentication.authorization_endpoint | quote }}
+            - name: OIDC_OP_TOKEN_ENDPOINT
+              value: {{ .Values.authentication.token_endpoint | quote }}
+            - name: OIDC_OP_USER_ENDPOINT
+              value: {{ .Values.authentication.userinfo_endpoint | quote }}
+            - name: OIDC_OP_LOGOUT_ENDPOINT
+              value: {{ .Values.authentication.end_session_endpoint | quote }}
+            - name: OIDC_USERINFO_FULLNAME_FIELDS
+              value: "{{ .Values.authentication.claims.given_name }},{{ .Values.authentication.claims.family_name }}"
+            - name: OIDC_USERINFO_SHORTNAME_FIELD
+              value: {{ .Values.authentication.claims.given_name | quote }}
+            - name: LIVEKIT_API_KEY
+              value: {{ .Values.externalLivekit.apiKey | quote }}
+            - name: LIVEKIT_API_SECRET
+              value: {{ .Values.externalLivekit.apiSecret | quote }}
+            - name: LIVEKIT_API_URL
+              value: {{ .Values.externalLivekit.apiUrl | quote }}
+            - name: RESOURCE_DEFAULT_ACCESS_LEVEL
+              value: "restricted"
+            - name: ALLOW_UNREGISTERED_ROOMS
+              value: "false"
+            - name: RECORDING_ENABLE
+              value: "false"
+            {{- if .Values.meet_backend.ecxtraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          envFrom:
+            {{- if .Values.meet_backend.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.meet_backend.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.meet_backend.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.meet_backend.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.meet_backend.resources }}
+          resources: {{- toYaml .Values.meet_backend.resources | nindent 12 }}
+          {{- else if ne .Values.meet_backend.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.meet_backend.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.meet_backend.containerPorts.http }}
+            {{- if .Values.meet_backend.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.meet_backend.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.meet_backend.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.meet_backend.livenessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /__heartbeat__
+              port: 8000
+          {{- end }}
+          {{- if .Values.meet_backend.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.meet_backend.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.meet_backend.readinessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /__heartbeat__
+              port: 8000
+          {{- end }}
+          {{- if .Values.meet_backend.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.meet_backend.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.meet_backend.startupProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /__heartbeat__
+              port: 8000
+          {{- end }}
+          {{- end }}
+          {{- if .Values.meet_backend.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+        {{- if .Values.meet_backend.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.meet_backend.sidecars "context" $) | nindent 8 }}
+        {{- end }}
