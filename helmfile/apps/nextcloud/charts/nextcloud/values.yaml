@@ -963,3 +963,4 @@ metrics:
 ## This value is automatically applied via the postStart lifecycle hook
 collabora:
   url: ""
+  wopi_allowlist: ""

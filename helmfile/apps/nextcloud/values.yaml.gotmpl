@@ -181,3 +181,4 @@ persistence:
 # The is the URL is used to connect Collabora Server with Next Cloud Office App automaticlly
 collabora:
   url: "https://{{ .Values.global.hostname.collabora | default "collabora" }}.{{ .Values.global.domain | default "example.com"  }}"
+  wopi_allowlist: {{ index .Values.cluster.networking.podSubnet 0 }}

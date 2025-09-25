@@ -40,6 +40,9 @@ collabora:
   # When true, enables OpenShift-specific initContainer workaround.
   enableInsecureCoolWSD : {{ .Values.application.collabora.enableInsecureCoolWSD  | quote }}
 
+  aliasgroups:
+    - host: "{{ .Values.global.hostname.nextcloud | default "nextcloud" }}.{{ .Values.global.domain | default "example.com"  }}"
+
 containerPorts:
   # The internal port exposed by the Collabora container (used in deployment)
   http: 9980
@@ -125,14 +128,13 @@ autoscaling:
 networkPolicy:
   enabled: true
   # Restrict external access - only allow specific ingress sources
-  allowExternal: false
+  allowExternal: true
   # Restrict external egress - only allow specific destinations
   allowExternalEgress: false
 
-  extraIngress:
-   # Allow traffic from ingress controller namespace
-   - ports:
-       - port: 9980
+  extraEgress:
+    - ports:
+       - port: 443
          protocol: TCP
 
 # extraVolumes Additional volumes to be mounted into the pod
@@ -179,9 +181,6 @@ affinity: {}
 diagnosticMode:
   enabled: false
 
-extraEnvVars:
-  - name: WOPI_HOST
-    value: "https://{{ .Values.global.hostname.nextcloud | default "nextcloud" }}.{{ .Values.global.domain | default "example.com"  }}"
 
 # OpenShift-specific workaround:
 {{- if .Values.application.collabora.enableInsecureCoolWSD }}
