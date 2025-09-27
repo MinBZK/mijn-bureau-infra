@@ -56,3 +56,9 @@ application:
     turnTLSecretName: ~
     keys:
       apikey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "livekit" "apikey" | sha1sum | quote }}
+
+  # meet is a video conferencing frontend for livekit
+  meet:
+    enabled: true
+    namespace: ~
+    secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "meet" "secretkey" | sha1sum | quote }}

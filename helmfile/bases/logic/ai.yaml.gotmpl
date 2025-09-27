@@ -5,7 +5,7 @@ ai:
     model: {{ .Values.application.ollama.model | quote }}
     {{- end }}
     {{- if not .Values.ai.llm.endpoint }}
-    endpoint: "http://ollama.{{ .Values.application.ollama.namespace }}.svc.cluster.local:11434"
+    endpoint: "http://ollama.{{ .Values.application.ollama.namespace }}.svc.{{ .Values.cluster.networking.domain }}:11434"
     {{- end }}
     {{- if not .Values.ai.llm.apiKey }}
     apiKey: ""

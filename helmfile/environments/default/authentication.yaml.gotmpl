@@ -20,6 +20,9 @@ authentication:
       email_verified: email_verified
 
   client:
+    meet:
+      client_id: "meet"
+      client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "meet_client_secret" | sha1sum | quote}}
     grist:
       client_id: "grist"
       client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "grist_client_secret" | sha1sum | quote}}

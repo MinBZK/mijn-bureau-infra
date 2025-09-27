@@ -1,0 +1,10 @@
+{{- if .Values.application.livekit.enabled }}
+livekit:
+  meet:
+    {{- if not .Values.livekit.meet.apiURL }}
+    {{- $first := index .Values.application.livekit.keys 0 }}
+    apiKey: {{ $first.name| quote }}
+    apiSecret: {{ $first.value | quote }}
+    apiURL: "https://livekit.{{ .Values.application.livekit.namespace }}.svc.{{ .Values.cluster.networking.domain }}
+    {{- end }}
+{{- end }}

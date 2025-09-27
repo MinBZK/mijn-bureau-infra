@@ -13,6 +13,9 @@ helmfiles:
       - {{ toYaml .Values | nindent 8 }}
   - path: "helmfile/bases/logic/ai.yaml.gotmpl"
     values: *values
+  - path: "helmfile/bases/logic/livekit.yaml.gotmpl"
+    values: *values
+
 ---
 
 helmfiles:
@@ -23,6 +26,8 @@ helmfiles:
   - path: "helmfile/apps/ollama/helmfile-child.yaml.gotmpl"
     values: *appvalues
   - path: "helmfile/apps/keycloak/helmfile-child.yaml.gotmpl"
+    values: *appvalues
+  - path: "helmfile/apps/meet/helmfile-child.yaml.gotmpl"
     values: *appvalues
   - path: "helmfile/apps/chat/helmfile-child.yaml.gotmpl"
     values: *appvalues

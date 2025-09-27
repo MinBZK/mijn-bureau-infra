@@ -1401,6 +1401,25 @@ keycloakConfigCli:
             "protocol": "openid-connect"
           },
           {
+            "clientId": "{{ .Values.authentication.client.meet.client_id }}",
+            "name": "Meet",
+            "description": "livekit-based video conferencing with Meet",
+            "rootUrl": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}",
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": {{ .Values.authentication.client.meet.client_secret | quote }},
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}"
+            ],
+            "protocol": "openid-connect"
+          },
+          {
             "clientId": "{{ .Values.authentication.client.nextcloud.client_id }}",
             "name": "NextCloud",
             "description": "File storage and collaboration platform",
