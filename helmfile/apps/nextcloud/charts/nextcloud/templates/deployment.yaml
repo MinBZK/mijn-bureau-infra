@@ -297,6 +297,37 @@ spec:
                           fi
                           {{- end }}
                         fi
+
+                        echo "Installing richdocuments app..."
+                        if ! php /var/www/html/occ app:install richdocuments; then
+                          echo "WARNING: Failed to install richdocuments app (maybe already present)"
+                        else
+                          echo "richdocuments app installation completed"
+                        fi
+
+                        if [ -d "/var/www/html/custom_apps/richdocuments" ] || php /var/www/html/occ app:list | grep -q "richdocuments"; then
+                          echo "Enabling richdocuments app..."
+                          if ! php /var/www/html/occ app:enable richdocuments; then
+                            echo "WARNING: Failed to enable richdocuments app"
+                          else
+                            echo "richdocuments app enablement completed"
+                          fi
+
+                          echo "Configuring WOPI URL for richdocuments..."
+                          if ! php /var/www/html/occ config:app:set richdocuments wopi_url --value="{{ .Values.collabora.url }}"; then
+                            echo "WARNING: Failed to configure WOPI URL"
+                          else
+                            echo "WOPI URL configuration completed"
+                          fi
+
+                          echo "Configuring WOPI Allow List for richdocuments..."
+                          if ! php /var/www/html/occ config:app:set richdocuments wopi_allowlist --value="{{ .Values.collabora.wopi_allowlist }}"; then
+                              echo "WARNING: Failed to configure WOPI Allow List"
+                          else
+                              echo "WOPI Allow List configuration completed"
+                          fi
+                        fi
+
                         break
                       fi
                       echo "Waiting for NextCloud... (${counter}/60)"

@@ -1476,6 +1476,18 @@ provisioning:
   ## @param provisioning.sleepTime Sleep time before checking Minio availability
   ##
   sleepTime: 5
+  ## @param provisioning.waitTimeout Timeout in seconds for waiting for MinIO to become available (init container)
+  ##
+  waitTimeout: 120
+  ## @param provisioning.retryAttempts Number of retry attempts when checking MinIO availability
+  ##
+  retryAttempts: 12
+  ## @param provisioning.retryInterval Sleep time in seconds between retry attempts
+  ##
+  retryInterval: 5
+  ## @param provisioning.backoffLimit Maximum number of pod restarts allowed on failure (uses exponential backoff)
+  ##
+  backoffLimit: 8
   ## @param provisioning.schedulerName Name of the k8s scheduler (other than default) for MinIO&reg; provisioning
   ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
   ##

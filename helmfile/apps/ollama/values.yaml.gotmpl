@@ -12,9 +12,17 @@ imagePullSecrets:
 ollama:
   models:
     pull:
+      {{- if .Values.application.ollama.model }}
       - {{ .Values.application.ollama.model | quote }}
+      {{- else }}
+      []
+      {{- end }}
     run:
+      {{- if .Values.application.ollama.model }}
       - {{ .Values.application.ollama.model | quote }}
+      {{- else }}
+      []
+      {{- end }}
   mountPath: "/home/ollama/.ollama"
   gpu:
     enabled: {{ .Values.application.ollama.gpu.enabled | default false }}

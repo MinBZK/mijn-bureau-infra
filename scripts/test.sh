@@ -43,9 +43,9 @@ export MIJNBUREAU_MASTER_PASSWORD=test
 export SOPS_AGE_KEY="$SECRET"
 
 # Set conftest output format for GitHub Actions
-CONFTEST_OPTIONS=""
+CONFTEST_OPTIONS="--quiet"
 if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
-  CONFTEST_OPTIONS="--output github"
+  CONFTEST_OPTIONS="--quiet --output github"
 fi
 readonly CONFTEST_OPTIONS
 

@@ -177,3 +177,8 @@ persistence:
   storageClass: {{ coalesce .Values.pvc.nextcloud.nextcloud.storageClass .Values.pvc.default.storageClass | quote }}
   accessModes: {{ coalesce .Values.pvc.nextcloud.nextcloud.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
   size: {{ coalesce .Values.pvc.nextcloud.nextcloud.size .Values.pvc.default.size "8Gi" }}
+
+# The is the URL is used to connect Collabora Server with Next Cloud Office App automaticlly
+collabora:
+  url: "https://{{ .Values.global.hostname.collabora | default "collabora" }}.{{ .Values.global.domain | default "example.com"  }}"
+  wopi_allowlist: {{ index .Values.cluster.networking.podSubnet 0 }}

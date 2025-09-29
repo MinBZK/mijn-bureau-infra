@@ -88,6 +88,7 @@ extraDeploy:
         app.kubernetes.io/name: {{ .Release.Name }}-cli
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/version: 1.0.0
+        app.kubernetes.io/managed-by: Helm
       name: {{ .Release.Name }}-cli
     spec:
       egress:

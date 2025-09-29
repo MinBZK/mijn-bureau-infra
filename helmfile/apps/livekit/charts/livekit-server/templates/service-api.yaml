@@ -1,0 +1,54 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: livekit-server
+  {{- if or .Values.service_api.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.service_api.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service_api.type }}
+  {{- if and .Values.service_api.clusterIP (eq .Values.service_api.type "ClusterIP") }}
+  clusterIP: {{ .Values.service_api.clusterIP }}
+  {{- end }}
+  {{- if .Values.service_api.sessionAffinity }}
+  sessionAffinity: {{ .Values.service_api.sessionAffinity }}
+  {{- end }}
+  {{- if .Values.service_api.sessionAffinityConfig }}
+  sessionAffinityConfig: {{- include "common.tplvalues.render" (dict "value" .Values.service_api.sessionAffinityConfig "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if or (eq .Values.service_api.type "LoadBalancer") (eq .Values.service_api.type "NodePort") }}
+  externalTrafficPolicy: {{ .Values.service_api.externalTrafficPolicy | quote }}
+  {{- end }}
+  {{- if and (eq .Values.service_api.type "LoadBalancer") (not (empty .Values.service_api.loadBalancerSourceRanges)) }}
+  loadBalancerSourceRanges: {{ .Values.service_api.loadBalancerSourceRanges }}
+  {{- end }}
+  {{- if and (eq .Values.service_api.type "LoadBalancer") (not (empty .Values.service_api.loadBalancerIP)) }}
+  loadBalancerIP: {{ .Values.service_api.loadBalancerIP }}
+  {{- end }}
+  ports:
+    - name: http
+      port: {{ .Values.service_api.ports.http }}
+      {{- if not (eq .Values.service_api.ports.http .Values.livekit.config.port) }}
+      targetPort: {{ .Values.livekit.config.port }}
+      {{- end }}
+      protocol: TCP
+      {{- if and (or (eq .Values.service_api.type "NodePort") (eq .Values.service_api.type "LoadBalancer")) (not (empty .Values.service_api.nodePorts.http)) }}
+      nodePort: {{ .Values.service_api.nodePorts.http }}
+      {{- else if eq .Values.service_api.type "ClusterIP" }}
+      nodePort: null
+      {{- end }}
+    {{- if .Values.service_api.extraPorts }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.service_api.extraPorts "context" $) | nindent 4 }}
+    {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.livekit.podLabels .Values.commonLabels) "context" .) | fromYaml }}
+  selector: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: livekit-server

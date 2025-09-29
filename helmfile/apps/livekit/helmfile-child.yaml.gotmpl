@@ -1,0 +1,22 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: livekit-server
+    chart: charts/livekit-server
+    condition: application.livekit.enabled
+    namespace: {{ .Values.application.livekit.namespace }}
+    {{- if and (eq .Environment.Name "demo") ( .Values.application.livekit.enabled) }}
+    needs:
+      - {{ .Values.application.livekit.namespace }}/livekit-redis
+    {{- end }}
+    values:
+      - "values.yaml.gotmpl"
+
+  - name: livekit-redis
+    chart: ../common/charts/redis
+    version: "21.2.6"
+    namespace: {{ .Values.application.livekit.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.livekit.enabled) | toYaml }}
+    values:
+      - "values-redis.yaml.gotmpl"

@@ -2,3 +2,4 @@
 /helmfile/apps/**/*.yml
 /template/CHART_NAME/**/*.yaml
 /template/CHART_NAME/**/*.yml
+/docs/build/

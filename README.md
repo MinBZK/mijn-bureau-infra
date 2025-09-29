@@ -92,6 +92,7 @@ It currently includes the following open-source components
 | Spreadsheet       | Grist                | [v1.6.1](https://github.com/gristlabs/grist-core/tree/v1.6.1)                     | [documentation](https://support.getgrist.com/self-managed/)                   | Apache-2.0 |
 | File sharing      | Nextcloud            | [v30.0.7](https://github.com/nextcloud/server/tree/v30.0.7)                       | [documentation](https://nextcloud.com/)                                       | AGPL-3.0   |
 | Office            | Collabora            | [v25.04.5.1](https://github.com/CollaboraOnline/online/releases/tag/cp-25.04.5-1) | [documentation](https://sdk.collaboraonline.com/docs/installation/index.html) | MPL-2.0    |
+| Video backend     | Livekit              | [v1.9.1](https://github.com/livekit/livekit/releases/tag/v1.9.1)                  | [documentation](https://livekit.io/)                                          | Apache-2.0 |
 
 ---
 

@@ -125,9 +125,9 @@ jobs:
 
       - name: Run conftest against rendered manifests
         run: |
-          conftest test /tmp/manifest/production --output=github --parser yaml
-          conftest test /tmp/manifest/demo --output=github --parser yaml
-          conftest test /tmp/manifest/default --output=github --parser yaml
+          conftest test /tmp/manifest/production --output=github --parser yaml --quiet
+          conftest test /tmp/manifest/demo --output=github --parser yaml --quiet
+          conftest test /tmp/manifest/default --output=github --parser yaml --quiet
 
   test-values:
     runs-on: ubuntu-latest

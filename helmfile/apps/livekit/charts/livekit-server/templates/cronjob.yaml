@@ -1,0 +1,50 @@
+{{ if .Values.cronjob.create }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: livekit-server
+  {{- if .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.cronjob.schedule | quote }}
+  concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy | default "Forbid" }}
+  successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit | default 1 }}
+  failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit | default 1 }}
+  startingDeadlineSeconds: {{ .Values.cronjob.startingDeadlineSeconds | default 100 }}
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: {{ .Values.cronjob.ttlSecondsAfterFinished | default 100 }}
+      template:
+        metadata:
+          labels: {{- include "common.labels.matchLabels" . | nindent 12 }}
+            app.kubernetes.io/component: cronjob
+          {{- with .Values.cronjob.podAnnotations }}
+          annotations: {{- toYaml . | nindent 12 }}
+          {{- end }}
+        spec:
+          {{- include "livekit_server.imagePullSecrets" . | nindent 10 }}
+          restartPolicy: {{ .Values.cronjob.restartPolicy | default "OnFailure" }}
+          serviceAccountName: {{ template "livekit_server.serviceAccountName" . }}
+          {{- if .Values.livekit.nodeSelector }}
+          nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.livekit.nodeSelector "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livekit.tolerations }}
+          tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.tolerations "context" .) | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: {{ include "common.names.fullname" . }}-cronjob
+              image: {{ template "cronjob.image" . }}
+              imagePullPolicy: {{ .Values.cronjob.image.pullPolicy }}
+              {{- if .Values.livekit.containerSecurityContext.enabled }}
+              securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.livekit.containerSecurityContext "context" $) | nindent 16 }}
+              {{- end }}
+              command: {{- include "common.tplvalues.render" (dict "value" .Values.cronjob.command "context" $) | nindent 16 }}
+              args: {{- include "common.tplvalues.render" (dict "value" .Values.cronjob.args "context" $) | nindent 16 }}
+              resources:
+                {{- toYaml .Values.cronjob.resources | nindent 16 }}
+{{- end }}

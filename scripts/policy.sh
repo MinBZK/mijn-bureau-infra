@@ -36,7 +36,7 @@ fi
 
 RANDOM_DIR=$(mktemp -d)
 echo "Created random folder: $RANDOM_DIR"
-helmfile -e $ENVIRONMENTS template --skip-refresh --output-dir=$RANDOM_DIR
+helmfile -e $ENVIRONMENTS template --skip-refresh --output-dir=$RANDOM_DIR > /dev/null 2>&1
 if [ $? -ne 0 ]; then
   echo "Failed to render Helmfile templates. Please check your Helmfile configuration."
   exit 1

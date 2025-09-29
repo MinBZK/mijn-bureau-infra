@@ -956,3 +956,11 @@ metrics:
     ##   prometheus: my-prometheus
     ##
     selector: {}
+
+## @param collabora.url The URL of your Collabora Online Server
+## Used by the Nextcloud Office (richdocuments) app to connect automatically
+## Example: "https://collabora.example.com/"
+## This value is automatically applied via the postStart lifecycle hook
+collabora:
+  url: ""
+  wopi_allowlist: ""

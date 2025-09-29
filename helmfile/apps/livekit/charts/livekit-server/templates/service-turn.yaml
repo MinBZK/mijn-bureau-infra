@@ -1,0 +1,58 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+{{- if .Values.livekit.config.turn.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: turn-{{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: livekit-server
+  {{- if or .Values.service_turn.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.service_turn.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service_turn.type }}
+  {{- if and .Values.service_turn.clusterIP (eq .Values.service_turn.type "ClusterIP") }}
+  clusterIP: {{ .Values.service_turn.clusterIP }}
+  {{- end }}
+  {{- if .Values.service_turn.sessionAffinity }}
+  sessionAffinity: {{ .Values.service_turn.sessionAffinity }}
+  {{- end }}
+  {{- if .Values.service_turn.sessionAffinityConfig }}
+  sessionAffinityConfig: {{- include "common.tplvalues.render" (dict "value" .Values.service_turn.sessionAffinityConfig "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if or (eq .Values.service_turn.type "LoadBalancer") (eq .Values.service_turn.type "NodePort") }}
+  externalTrafficPolicy: {{ .Values.service_turn.externalTrafficPolicy | quote }}
+  {{- end }}
+  {{- if and (eq .Values.service_turn.type "LoadBalancer") (not (empty .Values.service_turn.loadBalancerSourceRanges)) }}
+  loadBalancerSourceRanges: {{ .Values.service_turn.loadBalancerSourceRanges }}
+  {{- end }}
+  {{- if and (eq .Values.service_turn.type "LoadBalancer") (not (empty .Values.service_turn.loadBalancerIP)) }}
+  loadBalancerIP: {{ .Values.service_turn.loadBalancerIP }}
+  {{- end }}
+  ports:
+    {{- if .Values.livekit.config.turn.tls_port }}
+    - name: turn-tls
+      port: {{ .Values.livekit.config.turn.tls_port }}
+      protocol: TCP
+      nodePort: {{ .Values.livekit.config.turn.tls_port }}
+      targetPort: turn-tls
+    {{- end }}
+    {{- if .Values.livekit.config.turn.udp_port }}
+    - name: turn-udp
+      port: {{ .Values.livekit.config.turn.udp_port }}
+      protocol: UDP
+      nodePort: {{ .Values.livekit.config.turn.udp_port }}
+      targetPort: turn-udp
+    {{- end }}
+    {{- if .Values.service_turn.extraPorts }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.service_turn.extraPorts "context" $) | nindent 4 }}
+    {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.livekit.podLabels .Values.commonLabels) "context" .) | fromYaml }}
+  selector: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: livekit-server
+{{ end }}

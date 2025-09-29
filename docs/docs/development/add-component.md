@@ -2,7 +2,7 @@
 sidebar_position: 3
 ---
 
-# Adding a New Component
+# New Component
 
 This guide explains how to add a new component to MijnBureau. It outlines the architectural decisions and rules that must be followed to ensure consistency and flexibility across the suite.
 

@@ -11,7 +11,7 @@ application:
   ollama:
     enabled: true
     namespace: ~
-    model: "llama3.2"
+    model: "llama3.2:1b"
     gpu:
       enabled: false
       type:
@@ -38,13 +38,24 @@ application:
   collabora:
     enabled: true
     namespace: ~
-    # This copies default config and disables capabilities in `/tmp/cool/coolwsd.xml`.
-    # Only required when running on OpenShift clusters, not needed in normal Kubernetes.
-    enableInsecureCollWSD: true
+    # required when running on OpenShift clusters with restricted security context constraints.
+    enableInsecureCoolWSD: false
 
+  # nextcloud is a self hosted file sharing platform
   nextcloud:
     enabled: true
     namespace: ~
+
+  # livekit is a video conferencing backend system
+  livekit:
+    enabled: true
+    namespace: ~
+    loadBalancerIP: ~ # initial ip address for loadbalancer, cronjob will update it every hour
+    portRangeStart: 30001 # UDP port range for loadbalancer
+    portRangeEnd: 30009
+    turnTLSecretName: ~
+    keys:
+      apikey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "livekit" "apikey" | sha1sum | quote }}
 
   docs:
     enabled: true

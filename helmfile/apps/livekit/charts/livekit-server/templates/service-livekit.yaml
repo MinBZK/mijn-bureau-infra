@@ -1,0 +1,66 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: livekit-{{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: livekit-server
+  {{- if or .Values.service_livekit.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.service_livekit.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service_livekit.type }}
+  {{- if and .Values.service_livekit.clusterIP (eq .Values.service_livekit.type "ClusterIP") }}
+  clusterIP: {{ .Values.service_livekit.clusterIP }}
+  {{- end }}
+  {{- if .Values.service_livekit.sessionAffinity }}
+  sessionAffinity: {{ .Values.service_livekit.sessionAffinity }}
+  {{- end }}
+  {{- if .Values.service_livekit.sessionAffinityConfig }}
+  sessionAffinityConfig: {{- include "common.tplvalues.render" (dict "value" .Values.service_livekit.sessionAffinityConfig "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if or (eq .Values.service_livekit.type "LoadBalancer") (eq .Values.service_livekit.type "NodePort") }}
+  externalTrafficPolicy: {{ .Values.service_livekit.externalTrafficPolicy | quote }}
+  {{- end }}
+  {{- if and (eq .Values.service_livekit.type "LoadBalancer") (not (empty .Values.service_livekit.loadBalancerSourceRanges)) }}
+  loadBalancerSourceRanges: {{ .Values.service_livekit.loadBalancerSourceRanges }}
+  {{- end }}
+  {{- if and (eq .Values.service_livekit.type "LoadBalancer") (not (empty .Values.service_livekit.loadBalancerIP)) }}
+  loadBalancerIP: {{ .Values.service_livekit.loadBalancerIP }}
+  {{- end }}
+  ports:
+    {{- if .Values.livekit.config.rtc.port_range_start }}
+    {{- range $port := untilStep (int .Values.livekit.config.rtc.port_range_start)  (int ( add (int64 .Values.livekit.config.rtc.port_range_end) 1)) 1 }}
+    - name: port-{{  $port }}
+      port: {{  $port  }}
+      nodePort: {{  $port  }}
+      targetPort: port-{{  $port }}
+      protocol: UDP
+    {{- end }}
+    {{- end }}
+    {{- if .Values.livekit.config.rtc.tcp_port }}
+    - name: rtc-tcp
+      port: {{ .Values.livekit.config.rtc.tcp_port }}
+      protocol: TCP
+      nodePort: {{ .Values.livekit.config.rtc.tcp_port }}
+      targetPort: rtc-tcp
+    {{- end }}
+    {{- if  .Values.livekit.config.rtc.udp_port }}
+    - name: rtc-udp
+      port: {{ .Values.livekit.config.rtc.udp_port }}
+      protocol: UDP
+      nodePort: {{ .Values.livekit.config.rtc.udp_port }}
+      targetPort: rtc-udp
+    {{- end }}
+    {{- if .Values.service_livekit.extraPorts }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.service_livekit.extraPorts "context" $) | nindent 4 }}
+    {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.livekit.podLabels .Values.commonLabels) "context" .) | fromYaml }}
+  selector: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: livekit-server

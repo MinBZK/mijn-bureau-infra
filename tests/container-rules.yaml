@@ -6,27 +6,78 @@ container:
   default:
     registry: "test-registry.example.com"
     imagePullSecret: test-pull-secret
+
+  ollama:
+    registry: ""
+    imagePullSecret: ""
+
+  keycloak:
+    registry: ""
+    imagePullSecret: ""
+
+  keycloak_cli:
+    registry: ""
+    imagePullSecret: ""
+
   grist:
     registry: ""
     imagePullSecret: ""
+
   minio:
     registry: ""
     imagePullSecret: ""
-  elementweb:
+
+  minio_shell:
     registry: ""
     imagePullSecret: ""
-  synapse:
-    registry: ""
-    imagePullSecret: ""
+
   minio_console:
     registry: ""
     imagePullSecret: ""
+
+  postgres:
+    registry: ""
+    imagePullSecret: ""
+
+  postgres_exporter:
+    registry: ""
+    imagePullSecret: ""
+
+  redis:
+    registry: ""
+    imagePullSecret: ""
+
+  redis_exporter:
+    registry: ""
+    imagePullSecret: ""
+
+  elementweb:
+    registry: ""
+    imagePullSecret: ""
+
+  synapse:
+    registry: ""
+    imagePullSecret: ""
+
   collabora:
     registry: ""
     imagePullSecret: ""
+
   nextcloud:
     registry: ""
     imagePullSecret: ""
   docs:
+    registry: ""
+    imagePullSecret: ""
+
+  osShell:
+    registry: ""
+    imagePullSecret: ""
+
+  livekit_server:
+    registry: ""
+    imagePullSecret: ""
+
+  kubectl:
     registry: ""
     imagePullSecret: ""

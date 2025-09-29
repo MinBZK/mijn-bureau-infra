@@ -9,8 +9,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
   annotations:
     confighash: config-{{ .Values.collabora | toYaml | sha256sum | trunc 32 }}
-  labels:
-    {{- include "collabora.labels" . | nindent 4 }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: collabora
 data:
   {{- if .Values.collabora.extra_params }}
   extra_params: {{ .Values.collabora.extra_params }}

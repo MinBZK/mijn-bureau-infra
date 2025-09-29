@@ -3,7 +3,7 @@ cache:
     host: "grist-redis-headless"
     port: 6379
     isInternal: true
-    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "redis" "password" | sha1sum | quote }}
+    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "grist" "password" | sha1sum | quote }}
   synapse:
     host: "chat-redis-master"
     port: 6379
@@ -13,7 +13,12 @@ cache:
     host: "nextcloud-redis-headless"
     port: 6379
     isInternal: true
-    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "redis" "password" | sha1sum | quote }}
+    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "nextcloud" "password" | sha1sum | quote }}
+  livekit:
+    host: "livekit-redis-master"
+    port: 6379
+    isInternal: true
+    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "livekit" "password" | sha1sum | quote }}
   docs:
     host: "docs-redis-master"
     port: 6379

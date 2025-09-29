@@ -7,8 +7,8 @@ required_labels := {
 	"app.kubernetes.io/instance",
 	"app.kubernetes.io/version",
 	"app.kubernetes.io/component",
-	"app.kubernetes.io/part-of",
-	"app.kubernetes.io/managed-by"
+  "app.kubernetes.io/part-of",
+	"app.kubernetes.io/managed-by",
 }
 
 # Define the minimum required labels (most critical ones)

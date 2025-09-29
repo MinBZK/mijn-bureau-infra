@@ -38,7 +38,10 @@ collabora:
   extra_params: --o:ssl.enable=false --o:ssl.termination=true
 
   # When true, enables OpenShift-specific initContainer workaround.
-  enableInsecureCollWSD : {{ .Values.application.collabora.enableInsecureCollWSD  | quote }}
+  enableInsecureCoolWSD : {{ .Values.application.collabora.enableInsecureCoolWSD  | quote }}
+
+  aliasgroups:
+    - host: "{{ .Values.global.hostname.nextcloud | default "nextcloud" }}.{{ .Values.global.domain | default "example.com"  }}"
 
 containerPorts:
   # The internal port exposed by the Collabora container (used in deployment)
@@ -125,21 +128,20 @@ autoscaling:
 networkPolicy:
   enabled: true
   # Restrict external access - only allow specific ingress sources
-  allowExternal: false
+  allowExternal: true
   # Restrict external egress - only allow specific destinations
   allowExternalEgress: false
 
-  extraIngress:
-   # Allow traffic from ingress controller namespace
-   - ports:
-       - port: 9980
+  extraEgress:
+    - ports:
+       - port: 443
          protocol: TCP
 
 # extraVolumes Additional volumes to be mounted into the pod
 extraVolumes:
   - name: nginx-conf
     emptyDir: {}
-{{- if .Values.application.collabora.enableInsecureCollWSD }}
+{{- if .Values.application.collabora.enableInsecureCoolWSD }}
   - name: cool
     emptyDir: {}
 {{- end }}
@@ -148,7 +150,7 @@ extraVolumes:
 extraVolumeMounts:
   - name: nginx-conf
     mountPath: /etc/nginx/conf.d
-{{- if .Values.application.collabora.enableInsecureCollWSD }}
+{{- if .Values.application.collabora.enableInsecureCoolWSD }}
   - name: cool
     mountPath: /etc/coolwsd/
 {{- end }}
@@ -179,8 +181,9 @@ affinity: {}
 diagnosticMode:
   enabled: false
 
+
 # OpenShift-specific workaround:
-{{- if .Values.application.collabora.enableInsecureCollWSD }}
+{{- if .Values.application.collabora.enableInsecureCoolWSD }}
 # Adds an initContainer that copies default `coolwsd.xml` and disables capabilities.
 initContainers:
  - name: shell

@@ -24,6 +24,9 @@ spec:
   {{- if .Values.provisioning.cleanupAfterFinished.enabled }}
   ttlSecondsAfterFinished: {{ .Values.provisioning.cleanupAfterFinished.seconds }}
   {{- end }}
+  {{- if .Values.provisioning.backoffLimit }}
+  backoffLimit: {{ .Values.provisioning.backoffLimit }}
+  {{- end }}
   parallelism: 1
   template:
     metadata:
@@ -60,7 +63,7 @@ spec:
               wait-for-port \
                 --host={{ include "common.names.fullname" . }} \
                 --state=inuse \
-                --timeout=120 \
+                --timeout={{ .Values.provisioning.waitTimeout | default 120 }} \
                 {{ .Values.service.ports.api | int64 }};
               echo "Minio is available";
           {{- if .Values.provisioning.resources }}
@@ -87,8 +90,8 @@ spec:
 
               retry_while() {
                 local -r cmd="${1:?cmd is missing}"
-                local -r retries="${2:-12}"
-                local -r sleep_time="${3:-5}"
+                local -r retries="${2:-{{ .Values.provisioning.retryAttempts | default 12 }}}"
+                local -r sleep_time="${3:-{{ .Values.provisioning.retryInterval | default 5 }}}"
                 local return_value=1
 
                 read -r -a command <<< "$cmd"
