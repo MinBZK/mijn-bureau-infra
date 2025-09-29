@@ -11,7 +11,7 @@ image:
   tag: {{ .Values.container.grist.tag | quote }}
 
 auth:
-  enabled: false
+  enabled: true
   oidcIdpIssuer: {{ .Values.authentication.oidc.issuer | quote }}
   oidcIdpClientId: {{ .Values.authentication.client.grist.client_id | quote }}
   oidcIdpClientSecret: {{ .Values.authentication.client.grist.client_secret | quote }}

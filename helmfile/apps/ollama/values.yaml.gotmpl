@@ -77,4 +77,26 @@ persistentVolume:
 podSecurityContext: {{.Values.security.default.podSecurityContext | toYaml | nindent 2  }}
 securityContext: {{.Values.security.default.containerSecurityContext | toYaml | nindent 2  }}
 
+networkPolicy:
+  enabled: true
+  allowExternal: false
+  allowExternalEgress: false
+
+  extraIngress:
+    # Allow traffic from ingress controller and other apps
+    - ports:
+        - port: 11434
+          protocol: TCP
+
+  # Specific egress rules for required services only
+  extraEgress:
+    # Allow HTTPS access for model downloads from external registries
+    - ports:
+        - port: 443
+          protocol: TCP
+    # Allow HTTP access for model downloads
+    - ports:
+        - port: 80
+          protocol: TCP
+
 {{- end }}

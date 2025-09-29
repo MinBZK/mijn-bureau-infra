@@ -1,0 +1,75 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "ollama.fullname" . }}
+  namespace: {{ include "ollama.namespace" . }}
+  labels:
+    {{- include "ollama.labels" . | nindent 4 }}
+  {{- with .Values.networkPolicy.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "ollama.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  {{- if .Values.networkPolicy.allowExternalEgress }}
+  egress:
+    - {}
+  {{- else }}
+  egress:
+    # Allow DNS resolution
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # Allow HTTPS access for model downloads and registry access
+    - ports:
+        - port: 443
+          protocol: TCP
+        - port: 80
+          protocol: TCP
+    {{- if .Values.networkPolicy.extraEgress }}
+    {{- toYaml .Values.networkPolicy.extraEgress | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  ingress:
+    # Allow access to Ollama service port
+    - ports:
+        - port: {{ .Values.ollama.port | default 11434 }}
+          protocol: TCP
+      {{- if not .Values.networkPolicy.allowExternal }}
+      from:
+        # Allow access from pods with the same labels (self-access)
+        - podSelector:
+            matchLabels:
+              {{- include "ollama.selectorLabels" . | nindent 14 }}
+        # Allow access from pods with client label
+        - podSelector:
+            matchLabels:
+              {{ include "ollama.fullname" . }}-client: "true"
+        {{- if .Values.networkPolicy.ingressNSMatchLabels }}
+        # Allow access from specific namespaces
+        - namespaceSelector:
+            matchLabels:
+              {{- range $key, $value := .Values.networkPolicy.ingressNSMatchLabels }}
+              {{ $key | quote }}: {{ $value | quote }}
+              {{- end }}
+          {{- if .Values.networkPolicy.ingressNSPodMatchLabels }}
+          podSelector:
+            matchLabels:
+              {{- range $key, $value := .Values.networkPolicy.ingressNSPodMatchLabels }}
+              {{ $key | quote }}: {{ $value | quote }}
+              {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- if .Values.networkPolicy.extraIngress }}
+    {{- toYaml .Values.networkPolicy.extraIngress | nindent 4 }}
+    {{- end }}
+{{- end }}
