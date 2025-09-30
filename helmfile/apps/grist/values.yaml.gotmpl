@@ -24,9 +24,15 @@ autoscaling:
 
 ai:
   enabled: true
-  endpoint: {{ .Values.ai.llm.endpoint | quote }}
+{{- if .Values.ai.llm.endpoint }}
+  endpoint: "{{ .Values.ai.llm.endpoint}}/chat/completions"
+{{- end }}
+{{- if .Values.ai.llm.model }}
   model: {{ .Values.ai.llm.model | quote }}
+{{- end }}
+{{- if .Values.ai.llm.apiKey }}
   apiKey: {{ .Values.ai.llm.apiKey | quote }}
+{{- end }}
 
 ingress:
   enabled: true

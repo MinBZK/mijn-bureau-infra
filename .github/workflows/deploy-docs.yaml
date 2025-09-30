@@ -45,7 +45,7 @@ jobs:
           path: docs/build
 
   deploy-cloudflare-pages:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     name: Deploy docs to Cloudflare Pages
     needs: build
     runs-on: ubuntu-latest

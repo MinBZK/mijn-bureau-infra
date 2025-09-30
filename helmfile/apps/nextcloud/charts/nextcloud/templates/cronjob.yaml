@@ -1,0 +1,201 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: nextcloud-cronjob
+  {{- if .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.cronjob.schedule | quote }}
+  concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy | default "Forbid" }}
+  successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit | default 1 }}
+  failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit | default 1 }}
+  startingDeadlineSeconds: {{ .Values.cronjob.startingDeadlineSeconds | default 100 }}
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: {{ .Values.cronjob.ttlSecondsAfterFinished | default 100 }}
+      template:
+        metadata:
+          labels: {{- include "common.labels.matchLabels" . | nindent 12 }}
+            app.kubernetes.io/component: nextcloud-cronjob
+          {{- with .Values.cronjob.podAnnotations }}
+          annotations: {{- toYaml . | nindent 12 }}
+          {{- end }}
+        spec:
+          {{- include "nextcloud.imagePullSecrets" . | nindent 10 }}
+          restartPolicy: {{ .Values.cronjob.restartPolicy | default "OnFailure" }}
+          serviceAccountName: {{ template "nextcloud.serviceAccountName" . }}
+          {{- if .Values.nodeSelector }}
+          nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.nodeSelector "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.tolerations }}
+          tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" .) | nindent 12 }}
+          {{- end }}
+          initContainers:
+            {{- if .Values.initContainers }}
+              {{- include "common.tplvalues.render" (dict "value" .Values.initContainers "context" $) | nindent 8 }}
+            {{- end }}
+            - name: "nextcloud-php-provisioning"
+              image: {{ template "nextcloud.image" . }}
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command:
+                - /bin/bash
+                - -ec
+                - |
+                  #!/bin/bash
+
+                  echo "Start provisioning"
+                  cp /usr/local/etc/php/php.ini-production /shared/php.ini
+                  mkdir -p /shared/conf.d
+                  echo "Setup default PHP config"
+                  cp /usr/local/etc/php/conf.d/*.ini /shared/conf.d/
+                  if [ -d /php-configs ]; then
+                    echo "Setup custom PHP config"
+                    cp /php-configs/* /shared/conf.d/
+                  fi
+                  echo "Provisioning completed"
+              volumeMounts:
+                - name: empty-dir
+                  mountPath: /shared
+                {{- if .Values.phpConfigs }}
+                - name: nextcloud-php-config
+                  mountPath: /php-configs
+                {{- end }}
+
+          containers:
+            - name: {{ include "common.names.fullname" . }}-cronjob
+              image: {{ template "nextcloud.image" . }}
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              {{- if .Values.containerSecurityContext.enabled }}
+              securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 16 }}
+              {{- end }}
+              command: {{- include "common.tplvalues.render" (dict "value" .Values.cronjob.command "context" $) | nindent 16 }}
+              args: {{- include "common.tplvalues.render" (dict "value" .Values.cronjob.args "context" $) | nindent 16 }}
+              resources:
+                {{- toYaml .Values.cronjob.resources | nindent 16 }}
+              env:
+                - name: NEXTCLOUD_ADMIN_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "nextcloud.secretName" . }}
+                      key: {{ include "nextcloud.secretUsernameKey" . }}
+                - name: NEXTCLOUD_ADMIN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "nextcloud.secretName" . }}
+                      key: {{ include "nextcloud.secretPasswordKey" . }}
+                - name: REDIS_HOST_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "nextcloud.redis.secretName" . }}
+                      key: {{ include "nextcloud.redis.secretPasswordKey" . }}
+                {{- if eq .Values.externalDatabase.type "mysql" }}
+                - name: MYSQL_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "nextcloud.database.secretName" . }}
+                      key: {{ include "nextcloud.database.secretUsernameKey" . }}
+                - name: MYSQL_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "nextcloud.database.secretName" . }}
+                      key: {{ include "nextcloud.database.secretPasswordKey" . }}
+                {{- end }}
+                {{- if eq .Values.externalDatabase.type "postgresql" }}
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "nextcloud.database.secretName" . }}
+                      key: {{ include "nextcloud.database.secretUsernameKey" . }}
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "nextcloud.database.secretName" . }}
+                      key: {{ include "nextcloud.database.secretPasswordKey" . }}
+                {{- end }}
+              envFrom:
+                - configMapRef:
+                    name: {{ printf "%s-env-vars" (include "common.names.fullname" .) }}
+                {{- if .Values.extraEnvVarsCM }}
+                - configMapRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsCM "context" $) }}
+                {{- end }}
+                {{- if .Values.extraEnvVarsSecret }}
+                - secretRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsSecret "context" $) }}
+                {{- end }}
+              volumeMounts:
+                - name: empty-dir
+                  mountPath: /tmp
+                  subPath: tmp-dir
+                - name: empty-dir
+                  mountPath: /usr/local/etc/php/php.ini
+                  subPath: php.ini
+                - name: empty-dir
+                  mountPath: /usr/local/etc/php/conf.d
+                  subPath: conf.d
+                - name: empty-dir
+                  mountPath: /var/run/apache2
+                  subPath: apache-run
+                - name: nextcloud-data
+                  mountPath: /var/www/
+                  subPath: root
+                - name: nextcloud-data
+                  mountPath: /var/www/html
+                  subPath: html
+                - name: nextcloud-data
+                  mountPath: /var/www/html/config
+                  subPath: config
+                - name: nextcloud-data
+                  mountPath: /var/www/html/custom_apps
+                  subPath: custom_apps
+                - name: nextcloud-data
+                  mountPath: /var/www/tmp
+                  subPath: tmp
+                - name: nextcloud-data
+                  mountPath: /var/www/html/themes
+                  subPath: themes
+                {{- range $key, $value := .Values.builtinConfigs }}
+                {{- if $value }}
+                - name: nextcloud-config
+                  mountPath: /var/www/html/config/{{ $key }}
+                  subPath: {{ $key }}
+                {{- end }}
+                {{- end }}
+                - name: nextcloud-apache-config
+                  mountPath: /etc/apache2/ports.conf
+                  subPath: ports.conf
+                - name: nextcloud-apache-config
+                  mountPath: /etc/apache2/sites-available/000-default.conf
+                  subPath: 000-default.conf
+              {{- if .Values.extraVolumeMounts }}
+              {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
+              {{- end }}
+          volumes:
+            - name: empty-dir
+              emptyDir: {}
+            - name: nextcloud-data
+              {{- if .Values.persistence.enabled }}
+              persistentVolumeClaim:
+                claimName: {{ default (include "common.names.fullname" .) .Values.persistence.existingClaim }}
+              {{- else }}
+              emptyDir: {}
+              {{- end }}
+            - name: nextcloud-config
+              configMap:
+                name: {{ printf "%s-config" (include "common.names.fullname" .)  }}
+              {{- if .Values.phpConfigs }}
+            - name: nextcloud-php-config
+              configMap:
+                name: {{ printf "%s-php-config" (include "common.names.fullname" .)  }}
+              {{- end }}
+            - name: nextcloud-apache-config
+              configMap:
+                name: {{ printf "%s-apache-config" (include "common.names.fullname" .)  }}
+            {{- if .Values.extraVolumes }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
+            {{- end }}

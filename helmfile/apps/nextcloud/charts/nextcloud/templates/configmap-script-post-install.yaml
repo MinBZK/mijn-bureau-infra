@@ -1,0 +1,161 @@
+{{- /*
+Copyright Broadcom, Inc. All Rights Reserved.
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ (include "common.names.fullname" .) }}-script-post-install
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: nextcloud-scripts
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  oidc.sh: |-
+    #!/bin/bash
+    {{- if .Values.auth.oidc.enabled }}
+    echo "Waiting for NextCloud to be ready for user_oidc setup..."
+    counter=0
+    while [ "$counter" -lt 60 ]; do
+      if php /var/www/html/occ status | grep -q "installed: true"; then
+        echo "NextCloud is ready, setting up user_oidc app..."
+
+        echo "Installing user_oidc app..."
+        if ! php /var/www/html/occ app:install user_oidc; then
+          echo "WARNING: Failed to install user_oidc app"
+        else
+          echo "user_oidc app installation completed"
+        fi
+
+        echo "Enabling user_oidc app..."
+        if ! php /var/www/html/occ app:enable user_oidc; then
+          echo "WARNING: Failed to enable user_oidc app"
+        fi
+        echo "user_oidc app enablement completed"
+
+
+        echo "Configuring OIDC provider..."
+        if ! php /var/www/html/occ user_oidc:provider keycloak \
+          --clientid="{{ .Values.auth.oidc.clientId }}" \
+          --clientsecret="{{ .Values.auth.oidc.clientSecret }}" \
+          --discoveryuri="{{ .Values.auth.oidc.discoveryUri }}"; then
+          echo "WARNING: Failed to configure OIDC provider"
+        else
+          echo "OIDC provider configuration completed"
+        fi
+        break
+      fi
+      echo "Waiting for NextCloud... ($counter/60)"
+      sleep 5
+      counter=$((counter + 5))
+    done
+    {{- end }}
+
+
+  collabora.sh: |-
+    #!/bin/bash
+
+    echo "Waiting for NextCloud to be ready for user_oidc setup..."
+    counter=0
+    while [ "$counter" -lt 60 ]; do
+      if php /var/www/html/occ status | grep -q "installed: true"; then
+        echo "NextCloud is ready, setting up user_oidc app..."
+
+        echo "Installing richdocuments app..."
+        if ! php /var/www/html/occ app:install richdocuments; then
+          echo "WARNING: Failed to install richdocuments app (maybe already present)"
+        else
+          echo "richdocuments app installation completed"
+        fi
+
+        echo "Enabling richdocuments app..."
+        if ! php /var/www/html/occ app:enable richdocuments; then
+          echo "WARNING: Failed to enable richdocuments app"
+        else
+          echo "richdocuments app enablement completed"
+        fi
+
+        echo "Configuring WOPI URL for richdocuments..."
+        if ! php /var/www/html/occ config:app:set richdocuments wopi_url --value="{{ .Values.collabora.url }}"; then
+          echo "WARNING: Failed to configure WOPI URL"
+        else
+          echo "WOPI URL configuration completed"
+        fi
+
+        echo "Configuring WOPI Allow List for richdocuments..."
+        if ! php /var/www/html/occ config:app:set richdocuments wopi_allowlist --value="{{ .Values.collabora.wopi_allowlist }}"; then
+            echo "WARNING: Failed to configure WOPI Allow List"
+        else
+            echo "WOPI Allow List configuration completed"
+        fi
+
+        break
+      fi
+      echo "Waiting for NextCloud... ($counter/60)"
+      sleep 5
+      counter=$((counter + 5))
+    done
+
+  general-settings.sh: |-
+    #!/bin/bash
+
+    php /var/www/html/occ background:cron
+    php /var/www/html/occ encryption:enable
+
+    php /var/www/html/occ app:disable dashboard
+    php /var/www/html/occ app:disable nextcloud_announcements
+    php /var/www/html/occ app:disable photos
+    php /var/www/html/occ app:disable recommendations
+    php /var/www/html/occ app:disable weather_status
+    php /var/www/html/occ app:disable firstrunwizard
+    php /var/www/html/occ app:disable notifications
+    php /var/www/html/occ app:disable survey_client
+    php /var/www/html/occ app:disable user_status
+
+    php /var/www/html/occ app:enable admin_audit
+    php /var/www/html/occ app:enable encryption
+
+    php /var/www/html/occ config:app:set core shareapi_allow_links --value=no
+    php /var/www/html/occ config:app:set core shareapi_default_permissions --value=15
+
+    php /var/www/html/occ config:app:set files_sharing outgoing_server2server_share_enabled --value=no
+    php /var/www/html/occ config:app:set files_sharing incoming_server2server_share_enabled --value=no
+    php /var/www/html/occ config:app:set files_sharing federatedTrustedShareAutoAccept --value=no
+
+    php /var/www/html/occ config:app:set sharebymail sendpasswordmail --value=no
+    php /var/www/html/occ config:app:set sharebymail replyToInitiator --value=no
+
+    php /var/www/html/occ config:app:set files_downloadlimit download --value=10
+
+  contacts.sh: |-
+    #!/bin/bash
+
+    echo "Waiting for NextCloud to be ready for contacts setup..."
+    counter=0
+    while [ "$counter" -lt 60 ]; do
+      if php /var/www/html/occ status | grep -q "installed: true"; then
+        echo "NextCloud is ready, setting up contacts app..."
+
+        echo "Installing contacts app..."
+        if ! php /var/www/html/occ app:install contacts; then
+          echo "WARNING: Failed to install contacts app (maybe already present)"
+        else
+          echo "contacts app installation completed"
+        fi
+
+        echo "Enabling contacts app..."
+        if ! php /var/www/html/occ app:enable contacts; then
+          echo "WARNING: Failed to enable contacts app"
+        else
+          echo "contacts app enablement completed"
+        fi
+
+        break
+      fi
+      echo "Waiting for NextCloud... ($counter/60)"
+      sleep 5
+      counter=$((counter + 5))
+    done

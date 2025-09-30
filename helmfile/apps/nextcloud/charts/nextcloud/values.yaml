@@ -315,10 +315,10 @@ extraContainerPorts: []
 ##
 livenessProbe:
   enabled: false
-  initialDelaySeconds: 10
-  periodSeconds: 10
+  initialDelaySeconds: 60
+  periodSeconds: 20
   timeoutSeconds: 5
-  failureThreshold: 3
+  failureThreshold: 5
   successThreshold: 1
 ## @param readinessProbe.enabled Enable readinessProbe on Nextcloud containers
 ## @param readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
@@ -329,10 +329,10 @@ livenessProbe:
 ##
 readinessProbe:
   enabled: false
-  initialDelaySeconds: 10
-  periodSeconds: 10
+  initialDelaySeconds: 60
+  periodSeconds: 20
   timeoutSeconds: 5
-  failureThreshold: 3
+  failureThreshold: 5
   successThreshold: 1
 ## @param startupProbe.enabled Enable startupProbe on Nextcloud containers
 ## @param startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
@@ -343,8 +343,8 @@ readinessProbe:
 ##
 startupProbe:
   enabled: false
-  initialDelaySeconds: 30
-  periodSeconds: 10
+  initialDelaySeconds: 60
+  periodSeconds: 20
   timeoutSeconds: 5
   failureThreshold: 30
   successThreshold: 1
@@ -834,6 +834,29 @@ ingress:
   ##             name: http
   ##
   extraRules: []
+
+cronjob:
+  command:
+    - /bin/sh
+  args:
+    - -c
+    - |
+      php -f /var/www/html/cron.php
+  schedule: "*/5 * * * *" # every 5 minutes
+  backoffLimit: 2
+  startingDeadlineSeconds: 60
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  ttlSecondsAfterFinished: 120
+  podAnnotations: {}
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 100m
+    limits:
+      memory: 128Mi
+      cpu: 200m
 
 ## @section Persistence Parameters
 ##

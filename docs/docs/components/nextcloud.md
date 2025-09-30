@@ -56,6 +56,8 @@ NextCloud supports multiple storage backends:
 
 The database, cache, and object store are automatically created when running in demo environment. For production environment you need to supply them separately.
 
+> **Note:** For optimal NextCloud operation, ensure that your PVC datastore supports `ReadWriteMany` access mode. Without this configuration, scheduled tasks (cronjobs) will not function correctly.
+
 ## Email Configuration
 
 NextCloud can send notifications and sharing invitations via email when SMTP settings are configured in the `smtp.*` configuration section.

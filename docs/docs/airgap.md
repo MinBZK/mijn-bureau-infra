@@ -40,3 +40,16 @@ Use the provided script to download all charts and containers required by MijnBu
 ```bash
 ./scripts/airgap_prepare.py
 ```
+
+## Create Custom Containers
+
+Some containers require internet access to download plugins, apps, or models during runtime. In particular:
+
+- **Ollama**: Needs internet access to download AI models.
+- **Nextcloud**: Needs internet access to download apps, such as the essential OpenID Connect app.
+
+In airgapped environments, these downloads will fail. To avoid issues, we recommend pre-building custom container images that already include all required models (for Ollama) and apps (for Nextcloud). Download and bundle these dependencies in advance, then transfer the custom images to your airgapped environment.
+
+If you encounter issues, review the container logs to identify missing dependencies and update your custom images accordingly.
+
+We have airgapped prebuild containers on our backlog, but did not yet have time for this.
