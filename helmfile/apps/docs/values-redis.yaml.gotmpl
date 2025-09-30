@@ -1629,6 +1629,9 @@ networkPolicy:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: docs
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: oauth2-proxy
   ## @param networkPolicy.extraEgress Add extra egress rules to the NetworkPolicy
   ## e.g:
   ## extraEgress:

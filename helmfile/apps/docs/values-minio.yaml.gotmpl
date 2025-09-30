@@ -734,7 +734,7 @@ networkPolicy:
   allowExternalEgress: false
   ## @param networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
   ##
-  addExternalClientAccess: true
+  addExternalClientAccess: false
   ## @param networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
   ## e.g:
   ## extraIngress:
@@ -759,6 +759,9 @@ networkPolicy:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: docs
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: oauth2-proxy
         - podSelector:
             matchLabels:
               app.kubernetes.io/part-of: minio

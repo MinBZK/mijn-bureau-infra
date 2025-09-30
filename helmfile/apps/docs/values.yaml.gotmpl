@@ -318,14 +318,13 @@ ingressCollaborationsApi:
   extraTls: {{ .Values.tls.docs | toYaml | nindent 4 }}
 
 ingressMedia:
-  enabled: true
+  enabled: {{ eq .Values.cluster.ingress.type "nginx" | toYaml }}
   hostname: {{ $hostname }}
   ingressClassName: {{ .Values.cluster.ingress.className | quote }}
   annotations:
     {{- if .Values.cluster.ingress.annotations }}
     {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
     {{- end }}
-    {{- if eq .Values.cluster.ingress.type "nginx" }}
     nginx.ingress.kubernetes.io/auth-url: {{ printf "http%s://%s/api/v1.0/documents/media-auth/" ( ternary "s" "" .Values.global.tls.enabled ) $hostname }}
     nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
     nginx.ingress.kubernetes.io/upstream-vhost: {{ printf "%s:%s" .Values.objectstore.docs.endpoint .Values.objectstore.docs.port }}
@@ -333,9 +332,6 @@ ingressMedia:
     nginx.ingress.kubernetes.io/configuration-snippet: |
       add_header Content-Security-Policy "default-src 'none'" always;
       add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-    {{- else if eq .Values.cluster.ingress.type "haproxy-openshift" }}
-    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
-    {{- end }}
   tls: {{ .Values.global.tls.enabled | default true }}
   selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
   extraTls: {{ .Values.tls.docs | toYaml | nindent 4 }}

@@ -26,6 +26,14 @@ releases:
     values:
       - "values-minio.yaml.gotmpl"
 
+  - name: docs-oauth2-proxy
+    chart: ../common/charts/oauth2-proxy
+    version: "7.0.3"
+    namespace: {{ .Values.application.docs.namespace }}
+    installed: {{ and .Values.application.docs.enabled ( eq .Values.cluster.ingress.type "haproxy-openshift" ) | toYaml }}
+    values:
+      - "values-oauth2-proxy.yaml.gotmpl"
+
   - name: docs
     chart: charts/docs
     condition: application.docs.enabled

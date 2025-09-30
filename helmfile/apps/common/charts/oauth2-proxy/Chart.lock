@@ -1,0 +1,9 @@
+dependencies:
+- name: redis
+  repository: file://../../../common/charts/redis
+  version: 21.2.6
+- name: common
+  repository: file://../../../common/charts/common
+  version: 2.31.1
+digest: sha256:5429277812f66c7a31b93282de47bcecbddec7c31bd5c3cf0dce58954e71e948
+generated: "2025-09-25T14:47:38.080888295Z"
