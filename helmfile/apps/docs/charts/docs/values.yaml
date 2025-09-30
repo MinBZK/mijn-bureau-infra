@@ -2956,14 +2956,6 @@ auth:
       shortNameField: "given_name"
     # Essential claims in OIDC token
     userEssentialClaims: "[]"
-  login:
-    # Login redirect url
-    redirectUrl: https://docs.127.0.0.1.nip.io
-    # Login redirect url on failure
-    redirectUrlFailure: https://docs.127.0.0.1.nip.io
-  logout:
-    # Logout redirect url
-    redirectUrl: https://docs.127.0.0.1.nip.io
   api:
     usersList:
       # Limit on API users

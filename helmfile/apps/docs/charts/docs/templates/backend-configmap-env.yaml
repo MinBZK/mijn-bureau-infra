@@ -39,7 +39,8 @@ data:
   CONVERSION_API_SECURE: {{ .Values.yProvider.configuration.conversionApi.secure | quote }}
   CONVERSION_API_TIMEOUT: {{ .Values.yProvider.configuration.conversionApi.timeout | quote }}
   CRISP_WEBSITE_ID: {{ .Values.backend.configuration.analytics.crisp.websiteId | quote }}
-  DOCUMENT_IMAGE_MAX_SIZE: {{ int .Values.backend.configuration.document.maxSize | quote }}
+  # FIXME Disabled until next docs release 3.8.x, see https://github.com/suitenumerique/docs/issues/1369
+  # DOCUMENT_IMAGE_MAX_SIZE: {{ int .Values.backend.configuration.document.maxSize | quote }}
   FRONTEND_CSS_URL: {{ .Values.backend.configuration.frontend.cssUrl | quote }}
   FRONTEND_HOMEPAGE_FEATURE_ENABLED: {{ .Values.backend.configuration.frontend.homepageFeatureEnabled | quote }}
   FRONTEND_THEME: {{ .Values.backend.configuration.frontend.theme | quote }}
