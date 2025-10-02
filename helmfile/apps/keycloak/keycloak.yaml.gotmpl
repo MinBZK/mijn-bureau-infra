@@ -1197,7 +1197,7 @@ keycloakConfigCli:
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
   annotations:
-    helm.sh/hook: "post-install,post-upgrade,post-rollback"
+    # helm.sh/hook: "post-install,post-upgrade,post-rollback"
     helm.sh/hook-delete-policy: "hook-succeeded,before-hook-creation"
     helm.sh/hook-weight: "5"
   ## @param keycloakConfigCli.command Command for running the container (set to default if not set). Use array form
@@ -1361,25 +1361,47 @@ keycloakConfigCli:
         "duplicateEmailsAllowed": false,
         "rememberMe": true,
         "loginWithEmailAllowed": true,
+        "bruteForceProtected": true,
+        "permanentLockout": false,
+        "maxTemporaryLockouts": 0,
+        "bruteForceStrategy": "LINEAR",
+        "maxFailureWaitSeconds": 900,
+        "minimumQuickLoginWaitSeconds": 60,
+        "waitIncrementSeconds": 60,
+        "quickLoginCheckMilliSeconds": 1000,
+        "maxDeltaTimeSeconds": 43200,
+        "failureFactor": 30,
         "clients": [
           {
             "clientId": "{{ .Values.authentication.client.grist.client_id }}",
             "name": "Grist",
-            "description": "",
+            "description": "Smart spreadsheets with Grist",
             "rootUrl": "https://{{ .Values.global.hostname.grist }}.{{ .Values.global.domain }}",
-            "adminUrl": "https://{{ .Values.global.hostname.grist }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.grist }}.{{ .Values.global.domain }}/o/docs/admin",
             "baseUrl": "https://{{ .Values.global.hostname.grist }}.{{ .Values.global.domain }}",
             "enabled": true,
             "alwaysDisplayInConsole": true,
             "clientAuthenticatorType": "client-secret",
             "secret": {{ .Values.authentication.client.grist.client_secret | quote }},
             "redirectUris": [
-              "/*"
+              "/oauth2/callback"
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.grist }}.{{ .Values.global.domain }}"
             ],
-            "protocol": "openid-connect"
+            "protocol": "openid-connect",
+            "standardFlowEnabled": true,
+            "directAccessGrantsEnabled": true,
+            "frontchannelLogout": false,
+            "attributes": {
+              "backchannel.logout.session.required": "true",
+              "realm_client": "false",
+              "client.secret.creation.time": "1759388679",
+              "standard.token.exchange.enabled": "false",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.grist }}.{{ .Values.global.domain }}/oauth2/callback",
+              "frontchannel.logout.session.required": "true",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.grist }}.{{ .Values.global.domain }}/*"
+            }
           },
           {
             "clientId": "{{ .Values.authentication.client.synapse.client_id }}",
@@ -1393,12 +1415,24 @@ keycloakConfigCli:
             "clientAuthenticatorType": "client-secret",
             "secret": {{ .Values.authentication.client.synapse.client_secret | quote }},
             "redirectUris": [
-              "/*"
+              "/_synapse/client/oidc/callback"
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}"
             ],
-            "protocol": "openid-connect"
+            "protocol": "openid-connect",
+            "standardFlowEnabled": true,
+            "directAccessGrantsEnabled": true,
+            "frontchannelLogout": false,
+            "attributes": {
+              "backchannel.logout.session.required": "true",
+              "realm_client": "false",
+              "client.secret.creation.time": "1759388679",
+              "standard.token.exchange.enabled": "false",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}/_synapse/client/oidc/backchannel_logout",
+              "frontchannel.logout.session.required": "true",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}/*"
+            }
           },
           {
             "clientId": "{{ .Values.authentication.client.meet.client_id }}",
@@ -1417,7 +1451,19 @@ keycloakConfigCli:
             "webOrigins": [
               "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}"
             ],
-            "protocol": "openid-connect"
+            "protocol": "openid-connect",
+            "standardFlowEnabled": true,
+            "directAccessGrantsEnabled": true,
+            "frontchannelLogout": false,
+            "attributes": {
+              "backchannel.logout.session.required": "true",
+              "realm_client": "false",
+              "client.secret.creation.time": "1759388679",
+              "standard.token.exchange.enabled": "false",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/oauth2/callback",
+              "frontchannel.logout.session.required": "true",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/*"
+            }
           },
           {
             "clientId": "{{ .Values.authentication.client.nextcloud.client_id }}",
@@ -1436,7 +1482,19 @@ keycloakConfigCli:
             "webOrigins": [
               "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}"
             ],
-            "protocol": "openid-connect"
+            "protocol": "openid-connect",
+            "standardFlowEnabled": true,
+            "directAccessGrantsEnabled": true,
+            "frontchannelLogout": false,
+            "attributes": {
+              "backchannel.logout.session.required": "true",
+              "realm_client": "false",
+              "client.secret.creation.time": "1759388679",
+              "standard.token.exchange.enabled": "false",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}/index.php/apps/user_oidc/backchannel-logout/keycloak",
+              "frontchannel.logout.session.required": "true",
+              "post.logout.redirect.uris": "+"
+            }
           }
         ],
         {{- if eq .Environment.Name "demo" }}
@@ -1461,6 +1519,9 @@ keycloakConfigCli:
         {{- end }}
         "passwordPolicy": "length(12) and notContainsUsername(undefined) and forceExpiredPasswordChange(365) and notEmail(undefined) and passwordHistory(2)",
         "internationalizationEnabled": true,
+        "eventsEnabled": true,
+        "eventsExpiration": 86400,
+        "adminEventsEnabled": true,
         "supportedLocales": [
           "en",
           "nl"
