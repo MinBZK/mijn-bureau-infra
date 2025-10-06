@@ -38,3 +38,6 @@ authentication:
     docs:
       client_id: "docs"
       client_secret: {{ derivePassword 1 "long" ( requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "docs_client_secret" | sha1sum | quote }}
+    drive:
+      client_id: "drive"
+      client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "drive_client_secret" | sha1sum | quote}}

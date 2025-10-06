@@ -1,4 +1,4 @@
-runtimeClassName
+
 # SPDX-License-Identifier: APACHE-2.0
 
 ## @section Global parameters
@@ -132,11 +132,11 @@ diagnosticMode:
   ##
   livenessProbe:
     enabled: true
-    initialDelaySeconds: foo
-    periodSeconds: bar
-    timeoutSeconds: foo
-    failureThreshold: bar
-    successThreshold: foo
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
   ## @param %%MAIN_OBJECT_BLOCK%%.readinessProbe.enabled Enable readinessProbe on %%MAIN_CONTAINER_NAME%% containers
   ## @param %%MAIN_OBJECT_BLOCK%%.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
   ## @param %%MAIN_OBJECT_BLOCK%%.readinessProbe.periodSeconds Period seconds for readinessProbe
@@ -146,11 +146,11 @@ diagnosticMode:
   ##
   readinessProbe:
     enabled: true
-    initialDelaySeconds: foo
-    periodSeconds: bar
-    timeoutSeconds: foo
-    failureThreshold: bar
-    successThreshold: foo
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
   ## @param %%MAIN_OBJECT_BLOCK%%.startupProbe.enabled Enable startupProbe on %%MAIN_CONTAINER_NAME%% containers
   ## @param %%MAIN_OBJECT_BLOCK%%.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
   ## @param %%MAIN_OBJECT_BLOCK%%.startupProbe.periodSeconds Period seconds for startupProbe
@@ -160,11 +160,11 @@ diagnosticMode:
   ##
   startupProbe:
     enabled: false
-    initialDelaySeconds: foo
-    periodSeconds: bar
-    timeoutSeconds: foo
-    failureThreshold: bar
-    successThreshold: foo
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
   ## @param %%MAIN_OBJECT_BLOCK%%.customLivenessProbe Custom livenessProbe that overrides the default one
   ##
   customLivenessProbe: {}

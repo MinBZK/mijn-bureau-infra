@@ -1,0 +1,181 @@
+global:
+  ## Global Docker image parameters
+  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+  ## @param global.imageRegistry Global Docker Image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: {{(coalesce .Values.container.drive_backend.registry .Values.container.default.registry) | quote }}
+  imagePullSecrets:
+    - name: {{ (coalesce .Values.container.drive_backend.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+drive:
+  image:
+    registry: {{(coalesce .Values.container.drive_backend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.drive_backend.repository | quote }}
+    tag: {{ .Values.container.drive_backend.tag | quote }}
+
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.drive.driveBackend | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.drive | toYaml | nindent 6 }}
+
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  secretKey: {{ .Values.application.drive.secretKey | quote }}
+  CSRFTrustedOrigins: "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
+  CORSAllowedOrigins: "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
+  AllowedHosts: "{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
+
+  superuserEmail: {{  .Values.secret.drive.adminUser | quote }}
+  superuserPassword: {{  .Values.secret.drive.adminPassword | quote }}
+  serverToServerKey: {{ .Values.application.drive.secrettoServerKey | quote }}
+  baseUrl: "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
+  externalMinioAPI: "https://{{ .Values.global.hostname.drive }}-minio.{{ .Values.global.domain }}"
+
+  {{ if .Values.application.collabora.enabled }}
+  wopiClients: "collabora"
+  collaborDiscoveryUrl: "https://{{ .Values.global.hostname.collabora }}.{{ .Values.global.domain }}/hosting/discovery"
+  {{ end }}
+
+  celery:
+    resources: {{ .Values.resource.drive.celery | toYaml | nindent 6 }}
+
+  celeryBeat:
+    resources: {{ .Values.resource.drive.celeryBeat | toYaml | nindent 6 }}
+
+drive_frontend:
+  image:
+    registry: {{(coalesce .Values.container.drive_frontend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.drive_frontend.repository | quote }}
+    tag: {{ .Values.container.drive_frontend.tag | quote }}
+
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.drive.driveFrontend | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.drive | toYaml | nindent 6 }}
+
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+
+
+
+ingress:
+  ## @param ingress.enabled Enable ingress record generation for drive
+  ##
+  enabled: true
+  hostname: {{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}
+  extraTls: {{ .Values.tls.drive | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+
+ingressMedia:
+  enabled: true
+  pathType: Prefix
+  hostname: {{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  path: /media
+  extraPaths:
+    - path: /media-auth
+      pathType: Prefix
+      backend:
+        service:
+          name: drive-nginx
+          port:
+            name: http
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Content-Security-Policy "default-src 'none'" always;
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- else if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.drive | toYaml | nindent 4 }}
+
+ingressMediaPreview:
+  enabled: true
+  pathType: Prefix
+  hostname: {{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  path: /media/preview
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Content-Security-Policy "default-src 'none'" always;
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- else if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.drive | toYaml | nindent 4 }}
+
+externalRedis:
+  host: {{ .Values.cache.drive.host | quote }}
+  port: {{ .Values.cache.drive.port | quote }}
+  password: {{ .Values.cache.drive.password | quote }}
+
+externalMinio:
+  endpoint: {{ .Values.objectstore.drive.endpoint | quote }}
+  port: {{ .Values.objectstore.drive.port | quote }}
+  accessKey: {{ .Values.objectstore.drive.username | quote }}
+  secretKey: {{ .Values.objectstore.drive.rootPassword | quote }}
+  bucket: {{ .Values.objectstore.drive.bucket | quote }}
+  useSSL: {{ .Values.objectstore.drive.useSSL | quote }}
+  pathStyle: true
+
+externalDatabase:
+  database: {{ .Values.database.drive.name | quote }}
+  username: {{ .Values.database.drive.user | quote }}
+  host: {{ .Values.database.drive.host | quote }}
+  password: {{ .Values.database.drive.password | quote }}
+  port: {{ .Values.database.drive.port | quote }}
+  type: {{ .Values.database.drive.type | quote }}
+  logging: true
+
+authentication:
+  issuer: {{ .Values.authentication.oidc.issuer | quote }}
+  authorization_endpoint: {{ .Values.authentication.oidc.authorization_endpoint | quote }}
+  token_endpoint: {{ .Values.authentication.oidc.token_endpoint | quote }}
+  introspection_endpoint: {{ .Values.authentication.oidc.introspection_endpoint | quote }}
+  userinfo_endpoint: {{ .Values.authentication.oidc.userinfo_endpoint | quote }}
+  end_session_endpoint: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
+  jwks_uri: {{ .Values.authentication.oidc.jwks_uri | quote }}
+  claims:
+    username: {{ .Values.authentication.oidc.claims.username | quote }}
+    display_name: {{ .Values.authentication.oidc.claims.display_name | quote }}
+    given_name: {{ .Values.authentication.oidc.claims.given_name | quote }}
+    family_name: {{ .Values.authentication.oidc.claims.family_name | quote }}
+
+  client:
+    client_id: {{ .Values.authentication.client.drive.client_id | quote }}
+    client_secret: {{ .Values.authentication.client.drive.client_secret | quote }}
