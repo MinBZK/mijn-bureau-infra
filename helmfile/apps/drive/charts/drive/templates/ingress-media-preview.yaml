@@ -1,0 +1,56 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.ingressMediaPreview.enabled }}
+apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ template "common.names.fullname" . }}-media-preview
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: drive
+  {{- if or .Values.ingressMediaPreview.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.ingressMediaPreview.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingressMediaPreview.ingressClassName }}
+  ingressClassName: {{ .Values.ingressMediaPreview.ingressClassName | quote }}
+  {{- end }}
+  rules:
+    {{- if .Values.ingressMediaPreview.hostname }}
+    - host: {{ .Values.ingressMediaPreview.hostname }}
+      http:
+        paths:
+          {{- if .Values.ingressMediaPreview.extraPaths }}
+          {{- toYaml .Values.ingressMediaPreview.extraPaths | nindent 10 }}
+          {{- end }}
+          - path: {{ .Values.ingressMediaPreview.path }}
+            pathType: {{ .Values.ingressMediaPreview.pathType }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-nginx" (include "common.names.fullname" .)) "servicePort" "http" "context" $) | nindent 14 }}
+    {{- end }}
+    {{- range .Values.ingressMediaPreview.extraHosts }}
+    - host: {{ .name | quote }}
+      http:
+        paths:
+          - path: {{ default "/" .path }}
+            pathType: {{ default "ImplementationSpecific" .pathType }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "common.names.fullname" $) "servicePort" "http" "context" $) | nindent 14 }}
+    {{- end }}
+    {{- if .Values.ingressMediaPreview.extraRules }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.ingressMediaPreview.extraRules "context" $) | nindent 4 }}
+    {{- end }}
+  {{- if or (and .Values.ingressMediaPreview.tls (or (include "common.ingress.certManagerRequest" ( dict "annotations" .Values.ingressMediaPreview.annotations )) .Values.ingressMediaPreview.selfSigned)) .Values.ingressMediaPreview.extraTls }}
+  tls:
+    {{- if and .Values.ingressMediaPreview.tls (or (include "common.ingress.certManagerRequest" ( dict "annotations" .Values.ingressMediaPreview.annotations )) .Values.ingressMediaPreview.selfSigned) }}
+    - hosts:
+        - {{ .Values.ingressMediaPreview.hostname | quote }}
+      secretName: {{ printf "%s-tls" .Values.ingressMediaPreview.hostname }}
+    {{- end }}
+    {{- if .Values.ingressMediaPreview.extraTls }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.ingressMediaPreview.extraTls "context" $) | nindent 4 }}
+    {{- end }}
+  {{- end }}
+{{- end }}

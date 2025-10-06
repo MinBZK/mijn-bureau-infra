@@ -77,6 +77,7 @@ collabora:
 
   aliasgroups:
     - host: "{{ .Values.global.hostname.nextcloud | default "nextcloud" }}.{{ .Values.global.domain | default "example.com"  }}"
+    - host: "{{ .Values.global.hostname.drive | default "drive" }}.{{ .Values.global.domain | default "example.com"  }}"
 
 containerPorts:
   # The internal port exposed by the Collabora container (used in deployment)

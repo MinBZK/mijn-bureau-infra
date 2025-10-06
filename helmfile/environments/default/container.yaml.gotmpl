@@ -133,6 +133,17 @@ container:
     registry: "registry-1.docker.io"
     repository: "lasuite/conversations-frontend"
     tag: "main" # prototype, so no versioning yet
+
+  drive_backend:
+    registry: "registry-1.docker.io"
+    repository: "lasuite/drive-backend"
+    tag: "v0.7.0"
+    imagePullSecret: ~
+
+  drive_frontend:
+    registry: "registry-1.docker.io"
+    repository: "lasuite/drive-frontend"
+    tag: "v0.7.0"
     imagePullSecret: ~
 
   nginx:

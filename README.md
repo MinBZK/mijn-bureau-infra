@@ -96,6 +96,7 @@ It currently includes the following open-source components
 | Video backend      | Livekit              | [v1.9.1](https://github.com/livekit/livekit/releases/tag/v1.9.1)                  | [documentation](https://livekit.io/)                                                 | Apache-2.0 |
 | Video conferencing | meet                 | [v0.1.38](https://github.com/suitenumerique/meet/releases/tag/v0.1.38)            | [documentation](https://github.com/suitenumerique/meet/tree/main/docs)               | MIT        |
 | AI Assistent       | Conversations        | [main](https://github.com/suitenumerique/conversations/)                          | [documentation](https://github.com/suitenumerique/conversations/blob/main/README.md) | MIT        |
+| File sharing       | drive                | [v0.7.0](https://github.com/suitenumerique/drive/releases/tag/v0.7.0)             | [documentation](https://github.com/suitenumerique/drive/blob/main/README.md)         | MIT        |
 
 ---
 

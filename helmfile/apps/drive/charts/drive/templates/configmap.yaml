@@ -1,0 +1,59 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: drive
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  DJANGO_CONFIGURATION: Production
+  DJANGO_SETTINGS_MODULE: drive.settings
+  DJANGO_SECRET_KEY: {{ .Values.drive.secretKey | quote }}
+  DJANGO_SERVER_TO_SERVER_API_TOKENS: {{ .Values.drive.serverToServerKey | quote }}
+  DJANGO_LANGUAGE_CODE: {{ .Values.drive.languageCode | quote }}
+  DJANGO_ALLOWED_HOSTS: {{ .Values.drive.AllowedHosts | quote }}
+  DJANGO_CSRF_TRUSTED_ORIGINS: {{ .Values.drive.CSRFTrustedOrigins | quote }}
+  DJANGO_CORS_ALLOW_ALL_ORIGINS: "false"
+  DJANGO_CORS_ALLOWED_ORIGINS: {{ .Values.drive.CORSAllowedOrigins | quote}}
+  LOGIN_REDIRECT_URL: {{ .Values.drive.baseUrl | quote }}
+  LOGIN_REDIRECT_URL_FAILURE: {{ .Values.drive.baseUrl | quote }}
+  LOGOUT_REDIRECT_UR: {{ .Values.drive.baseUrl | quote }}
+  DB_HOST: {{ .Values.externalDatabase.host | quote }}
+  DB_NAME: {{ .Values.externalDatabase.database | quote }}
+  DB_USER: {{ .Values.externalDatabase.username | quote }}
+  DB_PASSWORD: {{ .Values.externalDatabase.password | quote }}
+  DB_PORT: {{ .Values.externalDatabase.port | quote }}
+  REDIS_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
+  OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
+  OIDC_RP_CLIENT_SECRET: {{ .Values.authentication.client.client_secret | quote }}
+  OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.jwks_uri | quote }}
+  OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.authorization_endpoint | quote }}
+  OIDC_OP_TOKEN_ENDPOINT: {{ .Values.authentication.token_endpoint | quote }}
+  OIDC_OP_USER_ENDPOINT: {{ .Values.authentication.userinfo_endpoint | quote }}
+  OIDC_OP_LOGOUT_ENDPOINT: {{ .Values.authentication.end_session_endpoint | quote }}
+  OIDC_USERINFO_FULLNAME_FIELDS: "{{ .Values.authentication.claims.given_name }},{{ .Values.authentication.claims.family_name }}"
+  OIDC_USERINFO_SHORTNAME_FIELD: {{ .Values.authentication.claims.given_name | quote }}
+  # AWS_S3_ENDPOINT_URL: "http://{{ .Values.externalMinio.endpoint}}:{{ .Values.externalMinio.port }}"
+  AWS_S3_ENDPOINT_URL: {{ .Values.drive.externalMinioAPI | quote }}
+  AWS_S3_ACCESS_KEY_ID: {{ .Values.externalMinio.accessKey | quote }}
+  AWS_S3_SECRET_ACCESS_KEY: {{ .Values.externalMinio.secretKey | quote }}
+  AWS_STORAGE_BUCKET_NAME: {{ .Values.externalMinio.bucket | quote }}
+  # AWS_S3_DOMAIN_REPLACE: "{{ .Values.drive.baseUrl }}/media/"
+  AWS_S3_SIGNATURE_VERSION: "s3v4"
+  CELERY_BROKER_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
+  WOPI_CLIENTS: {{ .Values.drive.wopiClients | quote }}
+  WOPI_SRC_BASE_URL: "{{ template "common.names.fullname" . }}-backend:{{ .Values.drive.containerPorts.http }}"
+  WOPI_COLLABORA_DISCOVERY_URL: {{ .Values.drive.collaborDiscoveryUrl | quote }}
+  MEDIA_BASE_URL: "{{ .Values.drive.baseUrl }}"
+  FRONTEND_FEEDBACK_BUTTON_SHOW: "false"
+  LOGGING_LEVEL_HANDLERS_CONSOLE: DEBUG
+  LOGGING_LEVEL_LOGGERS_ROOT: DEBUG
+  LOGGING_LEVEL_LOGGERS_APP: DEBUG

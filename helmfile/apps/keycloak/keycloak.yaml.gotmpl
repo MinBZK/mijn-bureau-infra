@@ -1,4 +1,4 @@
-#
+
 # SPDX-License-Identifier: APACHE-2.0
 
 ## @section Global parameters
@@ -1532,6 +1532,49 @@ keycloakConfigCli:
               "standard.token.exchange.enabled": "false",
               "frontchannel.logout.url": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/api/v1.0/logout/",
               "post.logout.redirect.uris": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/*",
+              "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "backchannel.logout.revoke.offline.tokens": "false"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.drive.client_id }}",
+            "name": "Drive",
+            "description": "AI assistant with LaSuite drive",
+            "rootUrl": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": {{ .Values.authentication.client.drive.client_secret | quote }},
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": true,
+            "serviceAccountsEnabled": false,
+            "publicClient": true,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "1759388679",
+              "backchannel.logout.session.required": "true",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.url": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/*",
               "frontchannel.logout.session.required": "false",
               "oauth2.device.authorization.grant.enabled": "false",
               "display.on.consent.screen": "false",
