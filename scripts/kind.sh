@@ -49,7 +49,7 @@ if ! command -v docker &> /dev/null; then
   exit 1
 fi
 
-echo "0. Creating certificats"
+echo "0. Creating certificates"
 mkcert -install > /dev/null 2>&1
 if [ -z "$DOMAIN" ]; then
 mkcert -install "127.0.0.1.sslip.io" "*.127.0.0.1.sslip.io" > /dev/null 2>&1

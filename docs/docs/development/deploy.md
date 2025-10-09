@@ -15,6 +15,7 @@ This guide walks you through deploying MijnBureau to a local Kubernetes cluster 
 - [Go](https://go.dev/doc/install) (for installing cloud-provider-kind)
 - [Helm](https://helm.sh/docs/intro/install/)
 - [Helmfile](https://helmfile.readthedocs.io/en/latest/#installation)
+- [mkcerts](https://github.com/FiloSottile/mkcert)
 
 ---
 
@@ -27,6 +28,8 @@ MijnBureau requires a LoadBalancer for features like video conferencing. KIND cl
 ```bash
 go install sigs.k8s.io/cloud-provider-kind@latest
 ```
+
+> **Note:** Linux users may need to supply the full path to `go` and perform: `sudo mv ~/go/bin/cloud-provider-kind /usr/local/go/bin/`.
 
 ### Create the KIND Cluster
 
@@ -115,6 +118,7 @@ kubectl config current-context
 Apply your configuration with Helmfile:
 
 ```bash
+helmfile init
 helmfile -e <environment> apply
 ```
 
