@@ -243,6 +243,7 @@ synapse:
   oidcProviders:
     - idp_id: mijnbureau
       idp_name: "MijnBureau authenticatie"
+      backchannel_logout_enabled: true
       discover: false
       issuer: {{ .Values.authentication.oidc.issuer | quote }}
       client_id: {{ .Values.authentication.client.synapse.client_id | quote }}
