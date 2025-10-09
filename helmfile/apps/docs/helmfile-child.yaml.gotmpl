@@ -6,7 +6,7 @@ releases:
     chart: ../common/charts/postgresql
     version: "16.7.18"
     namespace: {{ .Values.application.docs.namespace }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.docs.enabled) | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.docs.enabled) | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
 
@@ -14,7 +14,7 @@ releases:
     chart: ../common/charts/redis
     version: "21.2.6"
     namespace: {{ .Values.application.docs.namespace }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.docs.enabled) | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.docs.enabled) | toYaml }}
     values:
       - "values-redis.yaml.gotmpl"
 
@@ -22,7 +22,7 @@ releases:
     chart: ../common/charts/minio
     version: "17.0.11"
     namespace: {{ .Values.application.docs.namespace }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.docs.enabled) | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.docs.enabled) | toYaml }}
     values:
       - "values-minio.yaml.gotmpl"
 
@@ -30,7 +30,7 @@ releases:
     chart: charts/docs
     condition: application.docs.enabled
     namespace: {{ .Values.application.docs.namespace }}
-    {{- if and (eq .Environment.Name "demo") ( .Values.application.docs.enabled) }}
+    {{- if and (eq .Environment.Name "demo") (.Values.application.docs.enabled) }}
     needs:
       - {{ .Values.application.docs.namespace }}/docs-postgresql
       - {{ .Values.application.docs.namespace }}/docs-redis
@@ -38,3 +38,13 @@ releases:
     {{- end }}
     values:
       - "values.yaml.gotmpl"
+
+  - name: docs-nginx
+    chart: ../common/charts/nginx
+    version: "22.0.0"
+    namespace: {{ .Values.application.docs.namespace }}
+    installed: {{ and .Values.application.docs.enabled (eq .Values.cluster.ingress.type "haproxy-openshift") | toYaml }}
+    needs:
+      - {{ .Values.application.docs.namespace }}/docs
+    values:
+      - "values-nginx.yaml.gotmpl"

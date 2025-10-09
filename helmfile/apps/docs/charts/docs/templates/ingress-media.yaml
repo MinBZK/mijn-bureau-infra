@@ -29,7 +29,7 @@ spec:
           {{- end }}
           - path: {{ .Values.ingressMedia.path }}
             pathType: {{ .Values.ingressMedia.pathType }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-media" (include "common.names.fullname" .)) "servicePort" "http" "context" $) | nindent 14 }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-nginx" (include "common.names.fullname" .)) "servicePort" "http" "context" $) | nindent 14 }}
     {{- end }}
     {{- range .Values.ingressMedia.extraHosts }}
     - host: {{ .name | quote }}

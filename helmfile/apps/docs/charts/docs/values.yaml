@@ -2536,17 +2536,13 @@ ingressMedia:
   ## ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
   ## e.g:
   ## annotations:
-  ##   kubernetes.io/ingress.class: nginx
-  ##   cert-manager.io/cluster-issuer: cluster-issuer-name
+  ##   nginx.ingress.kubernetes.io/auth-url: https://docs.127.0.0.1.nip.io/api/v1.0/documents/media-auth/
+  ##   nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
+  ##   nginx.ingress.kubernetes.io/upstream-vhost: dev-backend-minio.impress.svc.cluster.local:9000
+  ##   nginx.ingress.kubernetes.io/configuration-snippet: |
+  ##     add_header Content-Security-Policy "default-src 'none'" always;
   ##
-  annotations:
-    # FIXME not all ingresses are nginx and should these be set here, or in hemlfile values?
-    nginx.ingress.kubernetes.io/auth-url: https://docs.127.0.0.1.nip.io/api/v1.0/documents/media-auth/
-    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
-    nginx.ingress.kubernetes.io/upstream-vhost: dev-backend-minio.impress.svc.cluster.local:9000
-    nginx.ingress.kubernetes.io/rewrite-target: /docs-media-storage/$1
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      add_header Content-Security-Policy "default-src 'none'" always;
+  annotations: {}
   ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
   ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`
   ## You can:
@@ -2617,64 +2613,6 @@ ingressMedia:
   ##             name: http
   ##
   extraRules: []
-## Docs media service parameters
-serviceMedia:
-  ## @param serviceMedia.type Impress frontend service type
-  ##
-  # FIXME external name is not supported by Bitnami. Perhaps we should implement this in another way
-  type: ExternalName
-  ## @param serviceMedia.ports.http Impress frontend service HTTP port
-  ##
-  ports:
-    http: ""
-  ## @param serviceMedia.externalName Impress frontend service HTTP port
-  ##
-  externalName: minio.docs.svc.cluster.local
-  ## Node ports to expose
-  ## @param serviceMedia.nodePorts.http Node port for HTTP
-  ## @param serviceMedia.nodePorts.https Node port for HTTPS
-  ## NOTE: choose port between <30000-32767>
-  ##
-  nodePorts:
-    http: ""
-  ## @param serviceMedia.clusterIP Impress frontend service Cluster IP
-  ## e.g.:
-  ## clusterIP: None
-  ##
-  clusterIP: ""
-  ## @param serviceMedia.loadBalancerIP Impress frontend service Load Balancer IP
-  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
-  ##
-  loadBalancerIP: ""
-  ## @param serviceMedia.loadBalancerSourceRanges Impress frontend service Load Balancer sources
-  ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
-  ## e.g:
-  ## loadBalancerSourceRanges:
-  ##   - 10.10.10.0/24
-  ##
-  loadBalancerSourceRanges: []
-  ## @param serviceMedia.externalTrafficPolicy Impress frontend service external traffic policy
-  ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
-  ##
-  externalTrafficPolicy: Cluster
-  ## @param serviceMedia.annotations Additional custom annotations for Impress frontend service
-  ##
-  annotations: {}
-  ## @param serviceMedia.extraPorts Extra ports to expose in Impress frontend service (normally used with the `sidecars` value)
-  ##
-  extraPorts: []
-  ## @param serviceMedia.sessionAffinity Control where client requests go, to the same pod or round-robin
-  ## Values: ClientIP or None
-  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/
-  ##
-  sessionAffinity: None
-  ## @param serviceMedia.sessionAffinityConfig Additional settings for the sessionAffinity
-  ## sessionAffinityConfig:
-  ##   clientIP:
-  ##     timeoutSeconds: 300
-  ##
-  sessionAffinityConfig: {}
-
 
 ## @section Persistence Parameters
 ##

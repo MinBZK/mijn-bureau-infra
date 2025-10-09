@@ -52,7 +52,7 @@ backend:
       - ports:
           - port: {{ .Values.objectstore.docs.port }}
             protocol: TCP
-        {{- if .Values.objectstore.grist.isInternal }}
+        {{- if .Values.objectstore.docs.isInternal }}
         to:
           - podSelector:
               matchLabels:
@@ -135,7 +135,7 @@ backend:
         - ports:
             - port: {{ .Values.objectstore.docs.port }}
               protocol: TCP
-          {{- if .Values.objectstore.grist.isInternal }}
+          {{- if .Values.objectstore.docs.isInternal }}
           to:
             - podSelector:
                 matchLabels:
@@ -201,7 +201,7 @@ yProvider:
       - ports:
           - port: {{ .Values.objectstore.docs.port }}
             protocol: TCP
-        {{- if .Values.objectstore.grist.isInternal }}
+        {{- if .Values.objectstore.docs.isInternal }}
         to:
           - podSelector:
               matchLabels:
@@ -319,16 +319,23 @@ ingressCollaborationsApi:
 
 ingressMedia:
   enabled: true
+  pathType: Prefix
   hostname: {{ $hostname }}
   ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  path: /media
+  extraPaths:
+    - path: /media-auth
+      pathType: Prefix
+      backend:
+        service:
+          name: docs-nginx
+          port:
+            name: http
   annotations:
     {{- if .Values.cluster.ingress.annotations }}
     {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
     {{- end }}
     {{- if eq .Values.cluster.ingress.type "nginx" }}
-    nginx.ingress.kubernetes.io/auth-url: {{ printf "http%s://%s/api/v1.0/documents/media-auth/" ( ternary "s" "" .Values.global.tls.enabled ) $hostname }}
-    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
-    nginx.ingress.kubernetes.io/upstream-vhost: {{ printf "%s:%s" .Values.objectstore.docs.endpoint .Values.objectstore.docs.port }}
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/configuration-snippet: |
       add_header Content-Security-Policy "default-src 'none'" always;
