@@ -11,7 +11,42 @@
 {{- $hostName := printf "%s.%s" .Values.global.hostname.collabora .Values.global.domain -}}
 {{- $clientHostName := printf "%s.%s" .Values.global.hostname.collabora .Values.global.domain -}}
 
-clusterDomain: {{ .Values.cluster.networking.domain }}
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+global:
+  ## Global Docker image parameters
+  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+  ## @param global.imageRegistry Global Docker Image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: {{ .Values.container.default.registry | quote }}
+  imagePullSecrets: []
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+  ## Security parameters
+  ## @param global.security.allowInsecureImages Allows skipping image verification
+  ##
+  security:
+    allowInsecureImages: true
+  ## Compatibility adaptations for Kubernetes platforms
+  ##
+  compatibility:
+    ## Compatibility adaptations for Openshift
+    ## @param global.compatibility.openshift.adaptSecurityContext Adapt the securityContext sections of the deployment to make them compatible with Openshift restricted-v2 SCC: remove runAsUser, runAsGroup and fsGroup and let the platform use their allowed default IDs. Possible values: auto (apply if the detected running cluster is Openshift), force (perform the adaptation always), disabled (do not perform adaptation)
+    ##
+
+    openshift:
+      {{- if .Values.application.collabora.enableInsecureCoolWSD }}
+      adaptSecurityContext: disabled
+      {{- else }}
+      adaptSecurityContext: auto
+      {{- end }}
+    ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
+    ##
+    omitEmptySeLinuxOptions: false
+
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
@@ -141,19 +176,11 @@ networkPolicy:
 extraVolumes:
   - name: nginx-conf
     emptyDir: {}
-{{- if .Values.application.collabora.enableInsecureCoolWSD }}
-  - name: cool
-    emptyDir: {}
-{{- end }}
 
 # extraVolumeMounts Mount paths for the extra volumes defined above
 extraVolumeMounts:
   - name: nginx-conf
     mountPath: /etc/nginx/conf.d
-{{- if .Values.application.collabora.enableInsecureCoolWSD }}
-  - name: cool
-    mountPath: /etc/coolwsd/
-{{- end }}
 
 # livenessProbe.enabled Enable Kubernetes liveness probe
 livenessProbe:
@@ -180,22 +207,3 @@ affinity: {}
 
 diagnosticMode:
   enabled: false
-
-
-# OpenShift-specific workaround:
-{{- if .Values.application.collabora.enableInsecureCoolWSD }}
-# Adds an initContainer that copies default `coolwsd.xml` and disables capabilities.
-initContainers:
- - name: shell
-   image: {{ coalesce .Values.container.collabora.registry .Values.container.default.registry }}/{{ .Values.container.collabora.repository }}:{{ .Values.container.collabora.tag }}
-   imagePullPolicy: Always
-   command: ['sh', '-c', 'cp -r /etc/coolwsd/* /tmp/cool/ && sed -i "s|true</capabilities>|false</capabilities>|g" /tmp/cool/coolwsd.xml']
-   volumeMounts:
-     - name: cool
-       mountPath: /tmp/cool/
-
-global:
-  compatibility:
-    openshift:
-      adaptSecurityContext: disabled
-{{- end }}

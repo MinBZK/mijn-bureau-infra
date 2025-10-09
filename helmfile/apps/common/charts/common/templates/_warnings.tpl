@@ -3,20 +3,6 @@ Copyright Broadcom, Inc. All Rights Reserved.
 SPDX-License-Identifier: APACHE-2.0
 */}}
 
-{{/* vim: set filetype=mustache: */}}
-{{/*
-Warning about using rolling tag.
-Usage:
-{{ include "common.warnings.rollingTag" .Values.path.to.the.imageRoot }}
-*/}}
-{{- define "common.warnings.rollingTag" -}}
-
-{{- if and (contains "bitnami/" .repository) (not (.tag | toString | regexFind "-r\\d+$|sha256:")) }}
-WARNING: Rolling tag detected ({{ .repository }}:{{ .tag }}), please note that it is strongly recommended to avoid using rolling tags in a production environment.
-+info https://techdocs.broadcom.com/us/en/vmware-tanzu/application-catalog/tanzu-application-catalog/services/tac-doc/apps-tutorials-understand-rolling-tags-containers-index.html
-{{- end }}
-{{- end -}}
-
 {{/*
 Warning about replaced images from the original.
 Usage:
@@ -32,15 +18,6 @@ Usage:
     {{- $affectedImages = append $affectedImages (printf "%s/%s:%s" .registry .repository .tag) -}}
     {{- $printMessage = true -}}
   {{- end -}}
-{{- end -}}
-{{- if $printMessage }}
-
-⚠ SECURITY WARNING: Original containers have been substituted. This Helm chart was designed, tested, and validated on multiple platforms using a specific set of Bitnami and Tanzu Application Catalog containers. Substituting other containers is likely to cause degraded security and performance, broken chart features, and missing environment variables.
-
-Substituted images detected:
-{{- range $affectedImages }}
-  - {{ . }}
-{{- end }}
 {{- end -}}
 {{- end -}}
 

@@ -1,4 +1,6 @@
 global:
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+
   security:
     allowInsecureImages: true
 
@@ -56,7 +58,7 @@ ingress:
 
 resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 
-resources: {{ .Values.resource.grist | toYaml | nindent 2 }}
+resources: {{ .Values.resource.grist.grist | default dict | toYaml | nindent 2 }}
 
 networkPolicy:
   enabled: true

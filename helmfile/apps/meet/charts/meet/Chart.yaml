@@ -1,0 +1,25 @@
+#
+# SPDX-License-Identifier: APACHE-2.0
+
+annotations:
+  category: video-conferencing
+  licenses: Apache-2.0
+apiVersion: v2
+appVersion: 0.1.0
+dependencies:
+  - name: common
+    repository: "file://../../../common/charts/common"
+    version: 2.31.1
+description: video conferencing solution
+home: https://minbzk.github.io/mijn-bureau-infra/
+keywords:
+  - video
+  - conferencing
+  - meet
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: meet
+sources:
+  - https://minbzk.github.io/mijn-bureau-infra/
+version: 0.1.0

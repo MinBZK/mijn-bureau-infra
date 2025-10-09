@@ -91,7 +91,6 @@ The following table lists the helpers available in the library which are scoped 
 | Helper identifier                       | Description                                                                                                                                                            | Expected Input                                                                      |
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | `common.errors.upgrade.passwords.empty` | It will ensure required passwords are given when we are upgrading a chart. If `validationErrors` is not empty it will throw an error and will stop the upgrade action. | `dict "validationErrors" (list $validationError00 $validationError01)  "context" $` |
-| `common.errors.insecureImages`          | Throw error when original container images are replaced. The error can be bypassed by setting the `global.security.allowInsecureImages` to true.                       | `dict "images" (list .Values.path.to.the.imageRoot) "context" $`                    |
 
 ### Images
 
@@ -179,11 +178,9 @@ The following table lists the helpers available in the library which are scoped 
 
 ### Warnings
 
-| Helper identifier                | Description                                                       | Expected Input                                             |
-| -------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------- |
-| `common.warnings.rollingTag`     | Warning about using rolling tag.                                  | `ImageRoot` see [ImageRoot](#imageroot) for the structure. |
-| `common.warnings.modifiedImages` | Warning about replaced images from the original.                  | `ImageRoot` see [ImageRoot](#imageroot) for the structure. |
-| `common.warnings.resources`      | Warning about not setting the resource object in all deployments. | `dict "sections" (list "path1" "path2") context $`         |
+| Helper identifier           | Description                                                       | Expected Input                                     |
+| --------------------------- | ----------------------------------------------------------------- | -------------------------------------------------- |
+| `common.warnings.resources` | Warning about not setting the resource object in all deployments. | `dict "sections" (list "path1" "path2") context $` |
 
 ## Special input schemas
 

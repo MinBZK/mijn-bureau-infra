@@ -19,5 +19,3 @@ Access the pod you want to debug by executing
   kubectl exec --namespace {{ include "common.names.namespace" . | quote }} -ti <NAME OF THE POD> -- bash
 
 {{- end }}
-
-{{- include "common.warnings.rollingTag" .Values.image }}

@@ -20,5 +20,4 @@ Access the pod you want to debug by executing
 
 {{- end }}
 
-{{- include "common.warnings.rollingTag" .Values.image }}
 {{- include "grist.validateValues" . }}

@@ -29,8 +29,6 @@ To install the chart with the release name `my-release`:
 helm install my-release git+https://github.com/MinBZK/mijn-bureau-infra@helmfile/apps/livekit/charts?ref=main
 ```
 
-> Note: You need to substitute the placeholders `REGISTRY_NAME` and `REPOSITORY_NAME` with a reference to your Helm chart registry and repository.
-
 The command deploys livekit_server on the Kubernetes cluster in the default configuration. The [Parameters](#parameters) section lists the parameters that can be configured during installation.
 
 > **Tip**: List all releases using `helm list`

@@ -29,6 +29,7 @@ spec:
     metadata:
       {{- if .Values.podAnnotations }}
       annotations: {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-coolwsd.yaml") . | sha256sum }}
       {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: collabora
@@ -75,7 +76,6 @@ spec:
         {{- if .Values.initContainers }}
           {{- include "common.tplvalues.render" (dict "value" .Values.initContainers "context" $) | nindent 8 }}
         {{- end }}
-
       containers:
         - name: "collabora"
           image: {{ template "collabora.image" . }}
@@ -167,6 +167,9 @@ spec:
             - name: empty-dir
               mountPath: /tmp
               subPath: tmp-dir
+            - name: coolwsd-config
+              mountPath: /etc/coolwsd/coolwsd.xml
+              subPath: coolwsd.xml
           {{- if .Values.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
@@ -181,3 +184,6 @@ spec:
           {{- if .Values.extraVolumes }}
           {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
           {{- end }}
+        - name: coolwsd-config
+          configMap:
+            name: {{ include "collabora.fullname" . }}-coolwsd

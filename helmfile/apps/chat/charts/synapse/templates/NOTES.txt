@@ -49,10 +49,6 @@ In order to replicate the container startup scripts execute this command:
 {{- end }}
 {{- end }}
 
-{{- include "common.warnings.rollingTag" .Values.image }}
-{{/*{{- include "common.warnings.rollingTag" .Values.worker.image }}*/}}
-{{- include "common.warnings.rollingTag" .Values.defaultInitContainers.volumePermissions.image }}
+
 {{/*{{- include "common.warnings.resources" (dict "sections" (list "master" "worker" "defaultInitContainers.volumePermissions") "context" .) }}*/}}
-{{/*{{- include "common.warnings.modifiedImages" (dict "images" (list .Values.synapse.image .Values.%%OTHER_OBJECT_BLOCK%%.image .Values.defaultInitContainers.volumePermissions.image) "context" .) }}*/}}
-{{/*{{- include "common.errors.insecureImages" (dict "images" (list .Values.synapse.image .Values.%%OTHER_OBJECT_BLOCK%%.image .Values.defaultInitContainers.volumePermissions.image) "context" .) }}*/}}
 {{- include "synapse.validateValues" . }}

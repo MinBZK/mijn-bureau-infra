@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "common.names.fullname" . }}-superuser
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: meet-superuser
+  {{- if .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished | default 100 }}
+  backoffLimit:  {{ .Values.job.backoffLimit | default 6 }}
+  template:
+    metadata:
+      labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: meet-superuser
+      annotations:
+        {{- if .Values.job.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.job.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        helm.sh/hook: post-install,post-upgrade
+        helm.sh/hook-delete-policy: before-hook-creation
+    spec:
+      {{- include "meet_backend.imagePullSecrets" . | nindent 6 }}
+      restartPolicy: {{ .Values.job.restartPolicy | default "OnFailure" }}
+      serviceAccountName: {{ template "meet.serviceAccountName" . }}
+      {{- if .Values.meet_backend.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.meet_backend.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.meet_backend.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "common.names.fullname" . }}-superuser
+          env:
+            - name: DB_HOST
+              value: {{ .Values.externalDatabase.host | quote }}
+            - name: DB_NAME
+              value: {{ .Values.externalDatabase.database | quote }}
+            - name: DB_USER
+              value:  {{ .Values.externalDatabase.username | quote }}
+            - name: DB_PASSWORD
+              value:  {{ .Values.externalDatabase.password | quote }}
+            - name: DB_PORT
+              value: {{ .Values.externalDatabase.port | quote }}
+            - name: DJANGO_CONFIGURATION
+              value: Production
+            - name: DJANGO_SETTINGS_MODULE
+              value: meet.settings
+            - name: DJANGO_SECRET_KEY
+              value: {{ .Values.meet_backend.secretKey | quote }}
+          envFrom:
+            - secretRef:
+                name: {{ template "common.names.fullname" . }}
+          image: {{ template "meet_backend.image" . }}
+          imagePullPolicy: {{ .Values.meet_backend.image.pullPolicy }}
+          {{- if .Values.meet_backend.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.meet_backend.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.job.commandSuperuser "context" $) | nindent 10 }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.job.argsSuperuser "context" $) | nindent 10 }}
+          resources:
+            {{- toYaml .Values.job.resources | nindent 12 }}

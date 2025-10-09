@@ -147,18 +147,6 @@ ingress:
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
 
-# This section is for setting volume permissions on PVC's.
-defaultInitContainers:
-  volumePermissions:
-    enabled: true
-    image:
-      registry: {{ coalesce .Values.container.osShell.registry .Values.container.default.registry | quote }}
-      repository: {{ .Values.container.osShell.repository }}
-      pullPolicy: Always
-      tag: {{ .Values.container.osShell.tag }}
-      pullSecrets:
-        - {{ coalesce .Values.container.osShell.imagePullSecret .Values.container.default.imagePullSecret | toYaml }}
-
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
   # Specifies whether a service account should be created
@@ -300,3 +288,26 @@ synapse:
     msc3266_enabled: true
     # MSC4222 needed for syncv2 state_after. This allows clients to correctly track the state of the room.
     msc4222_enabled: true
+
+defaultInitContainers:
+  ## 'volume-permissions' init container
+  ## Changes the owner and group of the persistent volume mount(s) point(s) to runAsUser:fsGroup values
+  ##   based on the *podSecurityContext/*containerSecurityContext parameters
+  ##
+  volumePermissions:
+
+    enabled: true
+
+    image:
+      registry: {{ coalesce .Values.container.osShell.registry .Values.container.default.registry | quote }}
+      repository: {{ .Values.container.osShell.repository }}
+      pullPolicy: Always
+      tag: {{ .Values.container.osShell.tag }}
+      pullSecrets:
+        - {{ coalesce .Values.container.osShell.imagePullSecret .Values.container.default.imagePullSecret | toYaml }}
+
+    containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 6 }}
+
+    resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+
+    resources: {}

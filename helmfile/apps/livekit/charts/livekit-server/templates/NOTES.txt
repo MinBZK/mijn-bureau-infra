@@ -21,5 +21,3 @@ Access the pod you want to debug by executing
 In order to replicate the container startup scripts execute this command:
 
 {{- end }}
-
-{{- include "common.warnings.rollingTag" .Values.livekit.image }}

@@ -224,7 +224,11 @@ automountServiceAccountToken: false
 ## @param hostAliases collabora pods host aliases
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
 ##
-hostAliases: []
+hostAliases:
+  - ip: "127.0.0.1"
+    hostnames:
+      - "rating.collaboraonline.com"
+
 ## @param deploymentAnnotations Annotations for collabora deployment
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##

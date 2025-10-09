@@ -81,3 +81,11 @@ container:
   kubectl:
     registry: ""
     imagePullSecret: ""
+
+  meet_backend:
+    registry: ""
+    imagePullSecret: ""
+
+  meet_frontend:
+    registry: ""
+    imagePullSecret: ""

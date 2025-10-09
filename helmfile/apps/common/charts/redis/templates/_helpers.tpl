@@ -224,9 +224,6 @@ Used for fetching Redis ACL user passwords from Kubernetes Secrets
 
 {{/* Check if there are rolling tags in the images */}}
 {{- define "redis.checkRollingTags" -}}
-{{- include "common.warnings.rollingTag" .Values.image }}
-{{- include "common.warnings.rollingTag" .Values.sentinel.image }}
-{{- include "common.warnings.rollingTag" .Values.metrics.image }}
 {{- end -}}
 
 {{/*

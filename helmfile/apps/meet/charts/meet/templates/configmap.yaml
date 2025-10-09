@@ -1,0 +1,48 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: meet
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  DJANGO_CONFIGURATION: Production
+  DJANGO_SETTINGS_MODULE: meet.settings
+  DJANGO_SECRET_KEY: {{ .Values.meet_backend.secretKey | quote }}
+  DJANGO_LANGUAGE_CODE: {{ .Values.meet_backend.languageCode | quote }}
+  DJANGO_ALLOWED_HOSTS: {{ .Values.meet_backend.AllowedHosts | quote }}
+  DJANGO_CSRF_TRUSTED_ORIGINS: {{ .Values.meet_backend.CSRFTrustedOrigins | quote }}
+  DJANGO_CORS_ALLOW_ALL_ORIGINS: "false"
+  DJANGO_CORS_ALLOWED_ORIGINS: {{ .Values.meet_backend.CORSAllowedOrigins | quote}}
+  DB_HOST: {{ .Values.externalDatabase.host | quote }}
+  DB_NAME: {{ .Values.externalDatabase.database | quote }}
+  DB_USER: {{ .Values.externalDatabase.username | quote }}
+  DB_PASSWORD: {{ .Values.externalDatabase.password | quote }}
+  DB_PORT: {{ .Values.externalDatabase.port | quote }}
+  REDIS_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/1"
+  OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
+  OIDC_RP_CLIENT_SECRET: {{ .Values.authentication.client.client_secret | quote }}
+  OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.jwks_uri | quote }}
+  OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.authorization_endpoint | quote }}
+  OIDC_OP_TOKEN_ENDPOINT: {{ .Values.authentication.token_endpoint | quote }}
+  OIDC_OP_USER_ENDPOINT: {{ .Values.authentication.userinfo_endpoint | quote }}
+  OIDC_OP_LOGOUT_ENDPOINT: {{ .Values.authentication.end_session_endpoint | quote }}
+  OIDC_USERINFO_FULLNAME_FIELDS: "{{ .Values.authentication.claims.given_name }},{{ .Values.authentication.claims.family_name }}"
+  OIDC_USERINFO_SHORTNAME_FIELD: {{ .Values.authentication.claims.given_name | quote }}
+  LIVEKIT_API_KEY: {{ .Values.externalLivekit.apiKey | quote }}
+  LIVEKIT_API_SECRET: {{ .Values.externalLivekit.apiSecret | quote }}
+  LIVEKIT_API_URL: {{ .Values.externalLivekit.apiUrl | quote }}
+  RESOURCE_DEFAULT_ACCESS_LEVEL: "restricted"
+  ALLOW_UNREGISTERED_ROOMS: "false"
+  RECORDING_ENABLE: "false"
+  CELERY_BROKER_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
+  LIVEKIT_FORCE_WSS_PROTOCOL: "true"
+  LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND: "true"

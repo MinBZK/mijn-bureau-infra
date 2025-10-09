@@ -45,6 +45,9 @@ data:
           echo "WARNING: Failed to configure OIDC provider"
         else
           echo "OIDC provider configuration completed"
+          php /var/www/html/occ config:app:set user_oidc provider-1-checkBearer --value=1
+          php /var/www/html/occ config:app:set user_oidc provider-1-bearerProvisioning --value=1
+          php /var/www/html/occ config:app:set user_oidc allow_multiple_user_backends  --value=0
         fi
         break
       fi
@@ -54,6 +57,61 @@ data:
     done
     {{- end }}
 
+  drawio.sh: |-
+    #!/bin/bash
+
+    echo "Waiting for NextCloud to be ready for deck setup..."
+    counter=0
+    while [ "$counter" -lt 60 ]; do
+      if php /var/www/html/occ status | grep -q "installed: true"; then
+        echo "NextCloud is ready, setting up drawio app..."
+
+        echo "Installing drawio app..."
+        if ! php /var/www/html/occ app:install drawio; then
+          echo "WARNING: Failed to install drawio app"
+        else
+          echo "drawio app installation completed"
+        fi
+
+        echo "Enabling drawio app..."
+        if ! php /var/www/html/occ app:enable drawio; then
+          echo "WARNING: Failed to enable drawio app"
+        fi
+        echo "drawio app enablement completed"
+        break
+      fi
+      echo "Waiting for NextCloud... ($counter/60)"
+      sleep 5
+      counter=$((counter + 5))
+    done
+
+  deck.sh: |-
+    #!/bin/bash
+
+    echo "Waiting for NextCloud to be ready for deck setup..."
+    counter=0
+    while [ "$counter" -lt 60 ]; do
+      if php /var/www/html/occ status | grep -q "installed: true"; then
+        echo "NextCloud is ready, setting up deck app..."
+
+        echo "Installing deck app..."
+        if ! php /var/www/html/occ app:install deck; then
+          echo "WARNING: Failed to install deck app"
+        else
+          echo "deck app installation completed"
+        fi
+
+        echo "Enabling deck app..."
+        if ! php /var/www/html/occ app:enable deck; then
+          echo "WARNING: Failed to enable deck app"
+        fi
+        echo "deck app enablement completed"
+        break
+      fi
+      echo "Waiting for NextCloud... ($counter/60)"
+      sleep 5
+      counter=$((counter + 5))
+    done
 
   collabora.sh: |-
     #!/bin/bash
@@ -114,6 +172,7 @@ data:
     php /var/www/html/occ app:disable notifications
     php /var/www/html/occ app:disable survey_client
     php /var/www/html/occ app:disable user_status
+    php /var/www/html/occ app:disable files_reminders
 
     php /var/www/html/occ app:enable admin_audit
     php /var/www/html/occ app:enable encryption
@@ -129,6 +188,11 @@ data:
     php /var/www/html/occ config:app:set sharebymail replyToInitiator --value=no
 
     php /var/www/html/occ config:app:set files_downloadlimit download --value=10
+    php /var/www/html/occ config:app:set theming name --value=MijnBureau
+    php /var/www/html/occ config:app:set theming backgroundMime --value=backgroundColor
+
+    php /var/www/html/occ config:system:set maintenance_window_start --type=integer --value=1
+    php /var/www/html/occ config:system:set default_phone_region --value=NL
 
   contacts.sh: |-
     #!/bin/bash

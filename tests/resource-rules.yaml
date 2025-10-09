@@ -1,0 +1,41 @@
+application:
+  ollama:
+    enabled: false
+
+  grist:
+    enabled: true
+
+  keycloak:
+    enabled: false
+
+# Test explicit component-level resource overrides
+resource:
+  grist:
+    grist:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "1000m"
+        memory: "2Gi"
+    postgresql:
+      requests:
+        cpu: "250m"
+        memory: "512Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+    redis:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "200m"
+        memory: "512Mi"
+    minio:
+      requests:
+        cpu: "200m"
+        memory: "512Mi"
+      limits:
+        cpu: "400m"
+        memory: "1Gi"

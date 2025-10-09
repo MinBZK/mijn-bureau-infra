@@ -9,7 +9,7 @@ global:
     - name: {{ (coalesce .Values.container.livekit_server.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
   ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
   ##
-  defaultStorageClass: ""
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
 
 commonLabels:
   app.kubernetes.io/part-of: livekit
@@ -24,7 +24,7 @@ livekit:
     tag: {{ .Values.container.livekit_server.tag | quote }}
 
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
-  resources: {{ .Values.resource.livekit | toYaml | nindent 4 }}
+  resources: {{ .Values.resource.livekit.livekit | default dict | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:

@@ -3,7 +3,6 @@ global:
     allowInsecureImages: true
 
   defaultStorageClass: {{ coalesce .Values.pvc.nextcloud.nextcloud.storageClass .Values.pvc.default.storageClass | quote }}
-  storageClass: {{ coalesce .Values.pvc.nextcloud.nextcloud.storageClass .Values.pvc.default.storageClass | quote }}
   imagePullSecrets:
     - name: {{ (coalesce .Values.container.nextcloud.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
 
@@ -41,7 +40,7 @@ resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 {{- end }}
 
-resources: {{ .Values.resource.nextcloud | toYaml | nindent 2 }}
+resources: {{ .Values.resource.nextcloud.nextcloud | default dict | toYaml | nindent 2 }}
 
 networkPolicy:
   enabled: true

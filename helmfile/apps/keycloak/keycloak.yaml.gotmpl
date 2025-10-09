@@ -20,7 +20,6 @@ global:
   ##
   imagePullSecrets: []
   defaultStorageClass: {{ coalesce .Values.pvc.keycloak.keycloak.storageClass .Values.pvc.default.storageClass | quote }}
-  storageClass: {{ coalesce .Values.pvc.keycloak.keycloak.storageClass .Values.pvc.default.storageClass | quote }}
   ## Security parameters
   ##
   security:
@@ -374,7 +373,7 @@ resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 ##     cpu: 3
 ##     memory: 1024Mi
 ##
-resources: {{ .Values.resource.keycloak | toYaml | nindent 2 }}
+resources: {{ .Values.resource.keycloak.keycloak | default dict | toYaml | nindent 2 }}
 ## Configure extra options for Keycloak containers' liveness, readiness and startup probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes
 ## @param livenessProbe.enabled Enable livenessProbe on Keycloak containers
@@ -1229,7 +1228,7 @@ keycloakConfigCli:
   ##     cpu: 3
   ##     memory: 1024Mi
   ##
-  resources: {{ .Values.resource.keycloak | toYaml | nindent 4 }}
+  resources: {{ .Values.resource.keycloak.keycloak | default dict | toYaml | nindent 4 }}
   ## keycloak-config-cli containers' Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
   ## @param keycloakConfigCli.containerSecurityContext.enabled Enabled keycloak-config-cli Security Context
@@ -1397,6 +1396,25 @@ keycloakConfigCli:
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}"
+            ],
+            "protocol": "openid-connect"
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.meet.client_id }}",
+            "name": "Meet",
+            "description": "livekit-based video conferencing with Meet",
+            "rootUrl": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}",
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": {{ .Values.authentication.client.meet.client_secret | quote }},
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}"
             ],
             "protocol": "openid-connect"
           },

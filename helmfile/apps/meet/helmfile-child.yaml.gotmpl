@@ -1,0 +1,31 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: meet
+    chart: charts/meet
+    condition: application.meet.enabled
+    namespace: {{ .Values.application.meet.namespace }}
+    {{- if and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) }}
+    needs:
+      - {{ .Values.application.meet.namespace }}/meet-redis
+      - {{ .Values.application.meet.namespace }}/meet-postgresql
+    {{- end }}
+    values:
+      - "values.yaml.gotmpl"
+
+  - name: meet-postgresql
+    chart: ../common/charts/postgresql
+    version: "16.7.18"
+    namespace: {{ .Values.application.meet.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) | toYaml }}
+    values:
+      - "values-postgresql.yaml.gotmpl"
+
+  - name: meet-redis
+    chart: ../common/charts/redis
+    version: "21.2.6"
+    namespace: {{ .Values.application.meet.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) | toYaml }}
+    values:
+      - "values-redis.yaml.gotmpl"

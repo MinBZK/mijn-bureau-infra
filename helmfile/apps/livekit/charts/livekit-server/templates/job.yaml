@@ -1,4 +1,3 @@
-{{ if .Values.cronjob.create }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -8,7 +7,12 @@ metadata:
     app.kubernetes.io/component: livekit-server
   {{- if .Values.commonAnnotations }}
   {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
-  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" (dict "value" $annotations "context" $) | nindent 4 }}
+    {{- end }}
   {{- end }}
 spec:
   ttlSecondsAfterFinished: {{ .Values.cronjob.ttlSecondsAfterFinished | default 100 }}
@@ -16,9 +20,12 @@ spec:
   template:
     metadata:
       labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
-        app.kubernetes.io/component: livekit-server
+        app.kubernetes.io/component: livekit-server-job
+      annotations:
+        helm.sh/hook: post-install,post-upgrade
+        helm.sh/hook-delete-policy: before-hook-creation
       {{- with .Values.cronjob.podAnnotations }}
-      annotations: {{- toYaml . | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
       {{- include "livekit_server.imagePullSecrets" . | nindent 6 }}
@@ -41,4 +48,3 @@ spec:
           args: {{- include "common.tplvalues.render" (dict "value" .Values.cronjob.args "context" $) | nindent 10 }}
           resources:
             {{- toYaml .Values.cronjob.resources | nindent 12 }}
-{{- end }}

@@ -1,0 +1,115 @@
+global:
+  ## Global Docker image parameters
+  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+  ## @param global.imageRegistry Global Docker Image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: {{(coalesce .Values.container.meet_frontend.registry .Values.container.default.registry) | quote }}
+  imagePullSecrets:
+    - name: {{ (coalesce .Values.container.meet_frontend.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+meet:
+  image:
+    registry: {{(coalesce .Values.container.meet_frontend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.meet_frontend.repository | quote }}
+    tag: {{ .Values.container.meet_frontend.tag | quote }}
+
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.meet.meetBackend | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.meet | toYaml | nindent 6 }}
+
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+
+meet_backend:
+  image:
+    registry: {{(coalesce .Values.container.meet_backend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.meet_backend.repository | quote }}
+    tag: {{ .Values.container.meet_backend.tag | quote }}
+
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.meet.meetFrontend | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.meet | toYaml | nindent 6 }}
+
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+
+  secretKey: {{ .Values.application.meet.secretKey | quote }}
+
+  {{- if eq .Values.global.defaultLocale "nl-nl" }}
+    languageCode: nl-nl
+  {{- end }}
+  CSRFTrustedOrigins: "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}"
+  CORSAllowedOrigins: "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}"
+  AllowedHosts: "{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}"
+
+  superuserEmail: {{  .Values.secret.meet.adminUser | quote }}
+  superuserPassword: {{  .Values.secret.meet.adminPassword | quote }}
+
+ingress:
+  ## @param ingress.enabled Enable ingress record generation for meet
+  ##
+  enabled: true
+  hostname: {{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}
+  extraTls: {{ .Values.tls.meet | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+
+externalLivekit:
+  apiKey: {{ .Values.livekit.meet.apiKey | quote }}
+  apiSecret: {{ .Values.livekit.meet.apiSecret | quote }}
+  apiUrl: {{ .Values.livekit.meet.apiURL | quote }}
+
+externalRedis:
+  host: {{ .Values.cache.meet.host | quote }}
+  port: {{ .Values.cache.meet.port | quote }}
+  password: {{ .Values.cache.meet.password | quote }}
+
+externalDatabase:
+  database: {{ .Values.database.meet.name | quote }}
+  username: {{ .Values.database.meet.user | quote }}
+  host: {{ .Values.database.meet.host | quote }}
+  password: {{ .Values.database.meet.password | quote }}
+  port: {{ .Values.database.meet.port | quote }}
+  type: {{ .Values.database.meet.type | quote }}
+  logging: true
+
+
+authentication:
+  issuer: {{ .Values.authentication.oidc.issuer | quote }}
+  authorization_endpoint: {{ .Values.authentication.oidc.authorization_endpoint | quote }}
+  token_endpoint: {{ .Values.authentication.oidc.token_endpoint | quote }}
+  introspection_endpoint: {{ .Values.authentication.oidc.introspection_endpoint | quote }}
+  userinfo_endpoint: {{ .Values.authentication.oidc.userinfo_endpoint | quote }}
+  end_session_endpoint: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
+  jwks_uri: {{ .Values.authentication.oidc.jwks_uri | quote }}
+  claims:
+    username: {{ .Values.authentication.oidc.claims.username | quote }}
+    display_name: {{ .Values.authentication.oidc.claims.display_name | quote }}
+    given_name: {{ .Values.authentication.oidc.claims.given_name | quote }}
+    family_name: {{ .Values.authentication.oidc.claims.family_name | quote }}
+
+  client:
+    client_id: {{ .Values.authentication.client.meet.client_id | quote }}
+    client_secret: {{ .Values.authentication.client.meet.client_secret | quote }}

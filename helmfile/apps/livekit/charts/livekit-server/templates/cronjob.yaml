@@ -22,7 +22,7 @@ spec:
       template:
         metadata:
           labels: {{- include "common.labels.matchLabels" . | nindent 12 }}
-            app.kubernetes.io/component: cronjob
+            app.kubernetes.io/component: livekit-server-cronjob
           {{- with .Values.cronjob.podAnnotations }}
           annotations: {{- toYaml . | nindent 12 }}
           {{- end }}
