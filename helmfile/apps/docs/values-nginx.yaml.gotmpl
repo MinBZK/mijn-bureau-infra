@@ -331,7 +331,7 @@ resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 ##     cpu: 3
 ##     memory: 1024Mi
 ##
-resources: {}
+resources: {{ .Values.resource.docs.nginx | default dict | toYaml | nindent 2 }}
 ## NGINX containers' lifecycleHooks
 ## ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/

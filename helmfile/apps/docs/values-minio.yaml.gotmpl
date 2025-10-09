@@ -354,7 +354,7 @@ resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 ##     cpu: 3
 ##     memory: 1024Mi
 ##
-resources: {}
+resources: {{ .Values.resource.docs.minio | default dict | toYaml | nindent 2 }}
 ## Configure extra options for liveness probe
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
 ## @param livenessProbe.enabled Enable livenessProbe
