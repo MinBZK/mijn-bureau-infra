@@ -32,3 +32,6 @@ authentication:
     nextcloud:
       client_id: "nextcloud"
       client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "nextcloud_client_secret" | sha1sum | quote}}
+    drive:
+      client_id: "drive"
+      client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "drive_client_secret" | sha1sum | quote}}

@@ -1,0 +1,582 @@
+---
+# Source: drive/templates/backend_deployment.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: drive-release-backend
+  namespace: "icbr-poc-berry"
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: drive
+      app.kubernetes.io/instance: drive-release
+      app.kubernetes.io/component: backend
+---
+# Source: drive/templates/frontend_deployment.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: drive-release-frontend
+  namespace: "icbr-poc-berry"
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: drive
+      app.kubernetes.io/instance: drive-release
+      app.kubernetes.io/component: frontend
+---
+# Source: drive/templates/backend_svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: drive-release-backend
+  namespace: "icbr-poc-berry"
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backend
+  annotations:
+    {}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/component: backend
+---
+# Source: drive/templates/frontend_svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: drive-release-frontend
+  namespace: "icbr-poc-berry"
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: frontend
+  annotations:
+    {}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/component: frontend
+---
+# Source: drive/templates/media_svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: drive-release-media
+  namespace: "icbr-poc-berry"
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: media
+  annotations:
+    {}
+spec:
+  type: ExternalName
+  externalName: minio.drive.svc.cluster.local
+---
+# Source: drive/templates/backend_celery_beat.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drive-release-backend-celery-beat
+  namespace: "icbr-poc-berry"
+  annotations:
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backend-celery-beat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: drive
+      app.kubernetes.io/instance: drive-release
+      app.kubernetes.io/component: backend-celery-beat
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/name: drive
+        app.kubernetes.io/instance: drive-release
+        app.kubernetes.io/component: backend-celery-beat
+    spec:
+      shareProcessNamespace: false
+      containers:
+        - name: drive
+          image: "lasuite/drive-backend:latest"
+          imagePullPolicy: IfNotPresent
+          args:
+            - celery
+            - -A
+            - drive.celery_app
+            - beat
+            - -l
+            - INFO
+          env:
+          livenessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - celery -A drive.celery_app inspect ping
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - celery -A drive.celery_app inspect ping
+            initialDelaySeconds: 15
+            timeoutSeconds: 5
+          volumeMounts:
+      volumes:
+---
+# Source: drive/templates/backend_celery_worker.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drive-release-backend-celery
+  namespace: "icbr-poc-berry"
+  annotations:
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backend-celery-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: drive
+      app.kubernetes.io/instance: drive-release
+      app.kubernetes.io/component: backend-celery-worker
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/name: drive
+        app.kubernetes.io/instance: drive-release
+        app.kubernetes.io/component: backend-celery-worker
+    spec:
+      shareProcessNamespace: false
+      containers:
+        - name: drive
+          image: "lasuite/drive-backend:latest"
+          imagePullPolicy: IfNotPresent
+          args:
+            - celery
+            - -A
+            - drive.celery_app
+            - worker
+            - -l
+            - INFO
+            - -n
+            - drive@%h
+          env:
+          livenessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - celery -A drive.celery_app inspect ping -d drive@$HOSTNAME
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - celery -A drive.celery_app inspect ping -d drive@$HOSTNAME
+            initialDelaySeconds: 15
+            timeoutSeconds: 5
+          volumeMounts:
+      volumes:
+---
+# Source: drive/templates/backend_deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drive-release-backend
+  namespace: "icbr-poc-berry"
+  annotations:
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: drive
+      app.kubernetes.io/instance: drive-release
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/name: drive
+        app.kubernetes.io/instance: drive-release
+        app.kubernetes.io/component: backend
+    spec:
+      shareProcessNamespace: false
+      containers:
+        - name: drive
+          image: "lasuite/drive-backend:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /__heartbeat__
+              port: 8000
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+          readinessProbe:
+            httpGet:
+              path: /__lbheartbeat__
+              port: 8000
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+          volumeMounts:
+      volumes:
+---
+# Source: drive/templates/frontend_deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drive-release-frontend
+  namespace: "icbr-poc-berry"
+  annotations:
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: drive
+      app.kubernetes.io/instance: drive-release
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/name: drive
+        app.kubernetes.io/instance: drive-release
+        app.kubernetes.io/component: frontend
+    spec:
+      shareProcessNamespace: false
+      containers:
+        - name: drive
+          image: "lasuite/drive-frontend:latest"
+          imagePullPolicy: IfNotPresent
+          env:
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+      volumes:
+---
+# Source: drive/templates/backend_job_configure_wopi.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: drive-release-backend-configure-wopi
+  namespace: "icbr-poc-berry"
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true,Force=true
+    argocd.argoproj.io/hook: PostSync
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backend-job-configure-wopi
+spec:
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/name: drive
+        app.kubernetes.io/instance: drive-release
+        app.kubernetes.io/component: backend-job-configure-wopi
+    spec:
+      shareProcessNamespace: false
+      containers:
+        - name: drive
+          image: "lasuite/drive-backend:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              python manage.py trigger_wopi_configuration
+          env:
+          volumeMounts:
+      restartPolicy: Never
+      volumes:
+---
+# Source: drive/templates/backend_job_createsuperuser.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: drive-release-backend-createsuperuser
+  namespace: "icbr-poc-berry"
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true,Force=true
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backend-job-createsuperuser
+spec:
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/name: drive
+        app.kubernetes.io/instance: drive-release
+        app.kubernetes.io/component: backend-job-createsuperuser
+    spec:
+      shareProcessNamespace: false
+      containers:
+        - name: drive
+          image: "lasuite/drive-backend:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              python manage.py createsuperuser --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
+          env:
+          volumeMounts:
+      restartPolicy: Never
+      volumes:
+---
+# Source: drive/templates/backend_job_migrate.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: drive-release-backend-migrate
+  namespace: "icbr-poc-berry"
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true,Force=true
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backend-job-migrate
+spec:
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/name: drive
+        app.kubernetes.io/instance: drive-release
+        app.kubernetes.io/component: backend-job-migrate
+    spec:
+      shareProcessNamespace: false
+      containers:
+        - name: drive
+          image: "lasuite/drive-backend:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - python
+            - manage.py
+            - migrate
+            - --no-input
+          env:
+          volumeMounts:
+      restartPolicy: Never
+      volumes:
+---
+# Source: drive/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: drive-release
+  namespace: "icbr-poc-berry"
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  tls:
+    - secretName: "drive-release-tls"
+      hosts:
+        - "drive.example.com"
+  rules:
+    - host: "drive.example.com"
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: drive-release-frontend
+                port:
+                  number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: drive-release-backend
+                port:
+                  number: 80
+---
+# Source: drive/templates/ingress_admin.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: drive-release-admin
+  namespace: "icbr-poc-berry"
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  tls:
+    - secretName: "drive-release-tls"
+      hosts:
+        - "drive.example.com"
+  rules:
+    - host: "drive.example.com"
+      http:
+        paths:
+          - path: "/admin"
+            pathType: Prefix
+            backend:
+              service:
+                name: drive-release-backend
+                port:
+                  number: 80
+          - path: /static
+            pathType: Prefix
+            backend:
+              service:
+                name: drive-release-backend
+                port:
+                  number: 80
+---
+# Source: drive/templates/ingress_media.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: drive-release-media
+  namespace: "icbr-poc-berry"
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    nginx.ingress.kubernetes.io/auth-response-headers: Authorization, X-Amz-Date, X-Amz-Content-SHA256
+    nginx.ingress.kubernetes.io/auth-url: https://drive.example.com/api/v1.0/items/media-auth/
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Content-Security-Policy "default-src 'none'" always;
+      add_header Content-Disposition "attachment";
+    nginx.ingress.kubernetes.io/upstream-vhost: minio.drive.svc.cluster.local:9000
+spec:
+  tls:
+    - secretName: "drive-release-tls"
+      hosts:
+        - "drive.example.com"
+  rules:
+    - host: "drive.example.com"
+      http:
+        paths:
+          - path: "/media/(.*)"
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: drive-release-media
+                port:
+                  number: 9000
+---
+# Source: drive/templates/ingress_media_preview.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: drive-release-media-preview
+  namespace: "icbr-poc-berry"
+  labels:
+    helm.sh/chart: drive-0.7.0
+    app.kubernetes.io/name: drive
+    app.kubernetes.io/instance: drive-release
+    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    nginx.ingress.kubernetes.io/auth-response-headers: Authorization, X-Amz-Date, X-Amz-Content-SHA256
+    nginx.ingress.kubernetes.io/auth-url: https://drive.example.com/api/v1.0/items/media-auth/
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Content-Security-Policy "default-src 'none'" always;
+    nginx.ingress.kubernetes.io/upstream-vhost: minio.drive.svc.cluster.local:9000
+spec:
+  tls:
+    - secretName: "drive-release-tls"
+      hosts:
+        - "drive.example.com"
+  rules:
+    - host: "drive.example.com"
+      http:
+        paths:
+          - path: "/media/preview/(.*)"
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: drive-release-media
+                port:
+                  number: 9000
