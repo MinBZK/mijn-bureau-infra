@@ -20,9 +20,5 @@ Access the pod you want to debug by executing
 
 {{- end }}
 
-{{- include "common.warnings.rollingTag" .Values.frontend.image }}
-{{- include "common.warnings.rollingTag" .Values.backend.image }}
-{{- include "common.warnings.rollingTag" .Values.yProvider.image }}
-{{- include "common.warnings.rollingTag" .Values.defaultInitContainers.volumePermissions.image }}
 {{- include "common.warnings.resources" (dict "sections" (list "backend" "frontend" "yProvider" "defaultInitContainers.volumePermissions") "context" .) }}
 {{- include "docs.validateValues" . }}
