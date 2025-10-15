@@ -24,6 +24,9 @@ backend:
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   pdb:
     maxUnavailable: 1
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.docs.backend | toYaml | nindent 6 }}
+    vpa: {{ .Values.autoscaling.vertical.docs.backend | toYaml | nindent 6 }}
   networkPolicy:
     extraEgress:
       # Database connectivity
@@ -107,6 +110,9 @@ backend:
     resources: {{ .Values.resource.docs.celery | toYaml | nindent 6 }}
     podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 6 }}
     containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 6 }}
+    autoscaling:
+      hpa: {{ .Values.autoscaling.horizontal.docs.celery | toYaml | nindent 8 }}
+      vpa: {{ .Values.autoscaling.vertical.docs.celery | toYaml | nindent 8 }}
     networkPolicy:
       extraEgress:
         # Database connectivity
@@ -158,6 +164,9 @@ frontend:
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   pdb:
     maxUnavailable: 1
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.docs.frontend | toYaml | nindent 6 }}
+    vpa: {{ .Values.autoscaling.vertical.docs.frontend | toYaml | nindent 6 }}
   configuration:
     publishAsMit: {{ .Values.application.docs.frontend.publishAsMit }}
 
@@ -173,6 +182,9 @@ yProvider:
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   pdb:
     maxUnavailable: 1
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.docs.yProvider | toYaml | nindent 6 }}
+    vpa: {{ .Values.autoscaling.vertical.docs.yProvider | toYaml | nindent 6 }}
   networkPolicy:
     extraEgress:
       # Database connectivity

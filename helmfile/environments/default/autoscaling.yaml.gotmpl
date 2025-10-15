@@ -54,10 +54,45 @@ autoscaling:
       maxReplicas: 3
       targetCPU: 80
       targetMemory: ""
+    docs:
+      backend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      celery:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      frontend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      yProvider:
+        # Disabled, see: https://github.com/MinBZK/mijn-bureau-infra/issues/219
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
 
   vertical:
     synapse:
-        master:
+      master:
+        enabled: false
+        annotations: {}
+        controlledResources: []
+        maxAllowed: {}
+        minAllowed: {}
+        updatePolicy:
+          updateMode: Auto
+      worker:
+        default:
           enabled: false
           annotations: {}
           controlledResources: []
@@ -65,12 +100,36 @@ autoscaling:
           minAllowed: {}
           updatePolicy:
             updateMode: Auto
-        worker:
-          default:
-            enabled: false
-            annotations: {}
-            controlledResources: []
-            maxAllowed: {}
-            minAllowed: {}
-            updatePolicy:
-              updateMode: Auto
+    docs:
+      backend:
+        enabled: true
+        annotations: {}
+        controlledResources: []
+        maxAllowed: {}
+        minAllowed: {}
+        updatePolicy:
+          updateMode: Auto
+      celery:
+        enabled: false
+        annotations: {}
+        controlledResources: []
+        maxAllowed: {}
+        minAllowed: {}
+        updatePolicy:
+          updateMode: Auto
+      frontend:
+        enabled: false
+        annotations: {}
+        controlledResources: []
+        maxAllowed: {}
+        minAllowed: {}
+        updatePolicy:
+          updateMode: Auto
+      yProvider:
+        enabled: false
+        annotations: {}
+        controlledResources: []
+        maxAllowed: {}
+        minAllowed: {}
+        updatePolicy:
+          updateMode: Auto
