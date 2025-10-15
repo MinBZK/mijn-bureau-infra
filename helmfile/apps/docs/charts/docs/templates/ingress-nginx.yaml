@@ -1,0 +1,58 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.ingressNginx.enabled }}
+apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ template "common.names.fullname" . }}-media
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: docs
+  {{- if or .Values.ingressNginx.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.ingressNginx.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingressNginx.ingressClassName }}
+  ingressClassName: {{ .Values.ingressNginx.ingressClassName | quote }}
+  {{- end }}
+  rules:
+    {{- if .Values.ingressNginx.hostname }}
+    - host: {{ .Values.ingressNginx.hostname }}
+      http:
+        paths:
+          {{- if .Values.ingressNginx.extraPaths }}
+          {{- toYaml .Values.ingressNginx.extraPaths | nindent 10 }}
+          {{- end }}
+          {{- range .Values.ingressNginx.paths }}
+          - path: {{ . }}
+            pathType: {{ $.Values.ingressNginx.pathType }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-nginx" (include "common.names.fullname" $)) "servicePort" "http" "context" $) | nindent 14 }}
+          {{- end }}
+    {{- end }}
+    {{- range .Values.ingressNginx.extraHosts }}
+    - host: {{ .name | quote }}
+      http:
+        paths:
+          - path: {{ default "/" .path }}
+            pathType: {{ default "ImplementationSpecific" .pathType }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "common.names.fullname" $) "servicePort" "http" "context" $) | nindent 14 }}
+    {{- end }}
+    {{- if .Values.ingressNginx.extraRules }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.ingressNginx.extraRules "context" $) | nindent 4 }}
+    {{- end }}
+  {{- if or (and .Values.ingressNginx.tls (or (include "common.ingress.certManagerRequest" ( dict "annotations" .Values.ingressNginx.annotations )) .Values.ingressNginx.selfSigned)) .Values.ingressNginx.extraTls }}
+  tls:
+    {{- if and .Values.ingressNginx.tls (or (include "common.ingress.certManagerRequest" ( dict "annotations" .Values.ingressNginx.annotations )) .Values.ingressNginx.selfSigned) }}
+    - hosts:
+        - {{ .Values.ingressNginx.hostname | quote }}
+      secretName: {{ printf "%s-tls" .Values.ingressNginx.hostname }}
+    {{- end }}
+    {{- if .Values.ingressNginx.extraTls }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.ingressNginx.extraTls "context" $) | nindent 4 }}
+    {{- end }}
+  {{- end }}
+{{- end }}

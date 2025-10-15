@@ -7,6 +7,8 @@ cluster:
       - "10.244.0.0/16"
     serviceSubnet:
       - "10.96.0.0/12"
+    dnsServers:
+      - "172.30.0.10"
 
   ingress:
     # allowed types are nginx, haproxy-openshift, or none. If you want support for other ingress controllers, please create a PR

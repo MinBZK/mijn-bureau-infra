@@ -30,9 +30,9 @@ data:
   API_USERS_LIST_THROTTLE_RATE_SUSTAINED: {{ .Values.auth.api.usersList.throttleRateSustained | quote }}
   CACHES_KEY_PREFIX: {{ .Values.yProvider.configuration.caches.keyPrefix | quote }}
   CACHES_DEFAULT_TIMEOUT: {{ .Values.yProvider.configuration.caches.defaultTimeout | quote }}
-  COLLABORATION_API_URL: {{ printf "http%s://%s%s" ( ternary "s" "" .Values.ingressCollaborationApi.tls ) .Values.ingressCollaborationApi.hostname .Values.ingressCollaborationApi.path | quote }}
+  COLLABORATION_API_URL: {{ printf "http%s://%s%s" ( ternary "s" "" .Values.ingressNginx.tls ) .Values.ingressNginx.hostname .Values.ingressNginx.paths.collaborationApi | quote }}
   COLLABORATION_SERVER_SECRET: {{ .Values.collaboration.api.secret | quote }}
-  COLLABORATION_WS_URL: {{ printf "ws%s://%s%s" ( ternary "s" "" .Values.ingressCollaborationWS.tls ) .Values.ingressCollaborationWS.hostname .Values.ingressCollaborationWS.path | quote }}
+  COLLABORATION_WS_URL: {{ printf "ws%s://%s%s" ( ternary "s" "" .Values.ingressNginx.tls ) .Values.ingressNginx.hostname .Values.ingressNginx.paths.collaborationWs | quote }}
   COLLABORATION_WS_NOT_CONNECTED_READY_ONLY: {{ .Values.collaboration.webSockets.notConnected.readOnly | quote }}
   CONVERSION_API_CONTENT_FIELD: {{ .Values.yProvider.configuration.conversionApi.contentField | quote }}
   CONVERSION_API_ENDPOINT: {{ .Values.yProvider.configuration.conversionApi.endpoint | quote }}

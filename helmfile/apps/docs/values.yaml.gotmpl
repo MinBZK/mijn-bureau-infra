@@ -166,7 +166,7 @@ yProvider:
     registry: {{(coalesce .Values.container.docs.registry .Values.container.default.registry) | quote }}
     repository: {{ .Values.container.docs.yProvider.repository | quote }}
     tag: {{ .Values.container.docs.yProvider.tag | quote }}
-  replicaCount: 1
+  replicaCount: 5
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.docs.backend | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
@@ -254,83 +254,10 @@ ingressAdmin:
   selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
   extraTls: {{ .Values.tls.docs | toYaml | nindent 4 }}
 
-ingressCollaborationApi:
+ingressNginx:
   enabled: true
   hostname: {{ $hostname }}
   ingressClassName: {{ .Values.cluster.ingress.className | quote }}
-  annotations:
-    {{- if .Values.cluster.ingress.annotations }}
-    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
-    {{- end }}
-    {{- if eq .Values.cluster.ingress.type "nginx" }}
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-    {{- else if eq .Values.cluster.ingress.type "haproxy-openshift" }}
-    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
-    {{- end }}
-  tls: {{ .Values.global.tls.enabled | default true }}
-  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
-  extraTls: {{ .Values.tls.docs | toYaml | nindent 4 }}
-
-ingressCollaborationWS:
-  enabled: true
-  hostname: {{ $hostname }}
-  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
-  annotations:
-    {{- if .Values.cluster.ingress.annotations }}
-    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
-    {{- end }}
-    {{- if eq .Values.cluster.ingress.type "nginx" }}
-    nginx.ingress.kubernetes.io/enable-websocket: "true"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "86400"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "86400"
-    nginx.ingress.kubernetes.io/upstream-hash-by: $arg_room
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-    {{- else if eq .Values.cluster.ingress.type "haproxy-openshift" }}
-    haproxy.router.openshift.io/timeout-tunnel: "86400"
-    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
-    {{- end }}
-  tls: {{ .Values.global.tls.enabled | default true }}
-  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
-  extraTls: {{ .Values.tls.docs | toYaml | nindent 4 }}
-
-ingressCollaborationsApi:
-  enabled: true
-  hostname: {{ $hostname }}
-  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
-  annotations:
-    {{- if .Values.cluster.ingress.annotations }}
-    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
-    {{- end }}
-    {{- if eq .Values.cluster.ingress.type "nginx" }}
-    nginx.ingress.kubernetes.io/upstream-hash-by: $arg_room
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-    {{- else if eq .Values.cluster.ingress.type "haproxy-openshift" }}
-    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
-    {{- end }}
-  tls: {{ .Values.global.tls.enabled | default true }}
-  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
-  extraTls: {{ .Values.tls.docs | toYaml | nindent 4 }}
-
-ingressMedia:
-  enabled: true
-  pathType: Prefix
-  hostname: {{ $hostname }}
-  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
-  path: /media
-  extraPaths:
-    - path: /media-auth
-      pathType: Prefix
-      backend:
-        service:
-          name: docs-nginx
-          port:
-            name: http
   annotations:
     {{- if .Values.cluster.ingress.annotations }}
     {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
@@ -340,7 +267,11 @@ ingressMedia:
     nginx.ingress.kubernetes.io/configuration-snippet: |
       add_header Content-Security-Policy "default-src 'none'" always;
       add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    nginx.ingress.kubernetes.io/enable-websocket: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "86400"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "86400"
     {{- else if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/timeout-tunnel: "86400"
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
   tls: {{ .Values.global.tls.enabled | default true }}
