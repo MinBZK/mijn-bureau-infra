@@ -1,0 +1,31 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: "conversations"
+    chart: "charts/conversations"
+    condition: application.conversations.enabled
+    namespace: {{ .Values.application.conversations.namespace | quote }}
+    values:
+      - "values-conversations.yaml.gotmpl"
+    {{- if and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) }}
+    needs:
+      - {{ .Values.application.conversations.namespace }}/conversations-redis
+      - {{ .Values.application.conversations.namespace }}/conversations-postgresql
+    {{- end }}
+
+  - name: conversations-postgresql
+    chart: ../common/charts/postgresql
+    version: "16.7.18"
+    namespace: {{ .Values.application.conversations.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) | toYaml }}
+    values:
+      - "values-postgresql.yaml.gotmpl"
+
+  - name: conversations-redis
+    chart: ../common/charts/redis
+    version: "21.2.6"
+    namespace: {{ .Values.application.conversations.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) | toYaml }}
+    values:
+      - "values-redis.yaml.gotmpl"

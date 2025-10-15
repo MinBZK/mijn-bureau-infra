@@ -63,6 +63,12 @@ application:
     namespace: ~
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "meet" "secretkey" | sha1sum | quote }}
 
+  # conversations is an prototype AI assistant from LaSuite
+  conversations:
+    enabled: false
+    namespace: ~
+    secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "conversations" "secretkey" | sha1sum | quote }}
+
   docs:
     enabled: true
     namespace: ~

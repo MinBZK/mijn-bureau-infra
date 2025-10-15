@@ -150,7 +150,7 @@ ingress:
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
   # Specifies whether a service account should be created
-  create: false
+  create: true
   # Automatically mount a ServiceAccount's API credentials?
   automountServiceAccountToken: false
 
@@ -243,6 +243,7 @@ synapse:
   oidcProviders:
     - idp_id: mijnbureau
       idp_name: "MijnBureau authenticatie"
+      backchannel_logout_enabled: true
       discover: false
       issuer: {{ .Values.authentication.oidc.issuer | quote }}
       client_id: {{ .Values.authentication.client.synapse.client_id | quote }}
@@ -311,3 +312,12 @@ defaultInitContainers:
     resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 
     resources: {}
+
+
+job:
+  InitContainers:
+    image:
+      registry: {{ coalesce .Values.container.kubectl.registry .Values.container.default.registry | quote }}
+      repository: {{ .Values.container.kubectl.repository }}
+      tag: {{ .Values.container.kubectl.tag }}
+      pullPolicy: Always

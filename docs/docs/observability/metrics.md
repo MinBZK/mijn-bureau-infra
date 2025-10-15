@@ -21,5 +21,3 @@ podMonitor:
 ```
 
 For more details about these monitors, refer to the Prometheus Operator documentation.
-
-Our software is tested on [HavenPlus](https://havenplus.commonground.nl/docs/overview) compliant clusters, which you can use as a reference for your own setup.

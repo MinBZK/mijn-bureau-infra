@@ -1,6 +1,6 @@
-# Keycloak - Identity and Access Management
+# Keycloak
 
-MijnBureau supplies an installation of [KeyCloak](https://www.keycloak.org/). Keycloak is an Identity and Access Management system.
+MijnBureau supplies an installation of [KeyCloak](https://www.keycloak.org/). Keycloak is an Identity and Access Management system. You can choice to use this component or your existing identity provider like microsoft Entra ID, Okta, GOogle Cloud idenity or OneLogin.
 
 ## Configuration
 

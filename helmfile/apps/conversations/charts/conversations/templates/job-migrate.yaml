@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "common.names.fullname" . }}-migrate
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: conversations-migrate
+  {{- if .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished | default 100 }}
+  backoffLimit:  {{ .Values.job.backoffLimit | default 6 }}
+  template:
+    metadata:
+      labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: conversations-migrate
+      annotations:
+        {{- if .Values.job.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.job.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+        helm.sh/hook: post-install,post-upgrade
+        helm.sh/hook-delete-policy: before-hook-creation
+    spec:
+      {{- include "conversations.imagePullSecrets" . | nindent 6 }}
+      restartPolicy: {{ .Values.job.restartPolicy | default "OnFailure" }}
+      serviceAccountName: {{ template "conversations.serviceAccountName" . }}
+      {{- if .Values.conversations.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.conversations.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.conversations.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.conversations.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "common.names.fullname" . }}-migrate
+          env:
+            - name: DB_HOST
+              value: {{ .Values.externalDatabase.host | quote }}
+            - name: DB_NAME
+              value: {{ .Values.externalDatabase.database | quote }}
+            - name: DB_USER
+              value:  {{ .Values.externalDatabase.username | quote }}
+            - name: DB_PASSWORD
+              value:  {{ .Values.externalDatabase.password | quote }}
+            - name: DB_PORT
+              value: {{ .Values.externalDatabase.port | quote }}
+            - name: DJANGO_CONFIGURATION
+              value: Production
+            - name: DJANGO_SETTINGS_MODULE
+              value: conversations.settings
+            - name: DJANGO_SECRET_KEY
+              value: {{ .Values.conversations.secretKey | quote }}
+          image: {{ template "conversations.image" . }}
+          imagePullPolicy: {{ .Values.conversations.image.pullPolicy }}
+          {{- if .Values.conversations.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.conversations_backend.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.job.command "context" $) | nindent 10 }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.job.args "context" $) | nindent 10 }}
+          resources:
+            {{- toYaml .Values.job.resources | nindent 12 }}

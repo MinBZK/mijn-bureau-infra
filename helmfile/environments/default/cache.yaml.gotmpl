@@ -24,6 +24,11 @@ cache:
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "meet" "password" | sha1sum | quote }}
+  conversations:
+    host: "conversations-redis-master"
+    port: 6379
+    isInternal: true
+    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "conversations" "password" | sha1sum | quote }}
   docs:
     host: "docs-redis-master"
     port: 6379

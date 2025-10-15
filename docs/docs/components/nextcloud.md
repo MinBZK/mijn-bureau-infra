@@ -1,6 +1,6 @@
-# NextCloud - File Sharing & Collaboration
+# NextCloud
 
-MijnBureau supplies an installation of [NextCloud](https://nextcloud.com/). NextCloud is an open-source file sharing and collaboration platform that enables secure storage, sharing, and collaboration on files and documents.
+MijnBureau supplies an installation of [NextCloud](https://nextcloud.com/). NextCloud is an open-source file sharing and collaboration platform that enables secure storage, sharing, and collaboration on files and documents. Nextcloud has a high degree of flexibility and allows you to install many applications.
 
 ## Configuration
 

@@ -1,11 +1,10 @@
-# Collabora Online
+# Collabora
 
-MijnBureau supplies an installation of [Collabora](https://www.collaboraonline.com/) based office. The reference Homeserver implementation
+MijnBureau supplies an installation of [Collabora](https://www.collaboraonline.com/) based office. Collabora Online is a powerful online document editing suite. There is also a [desktop application](https://www.collaboraonline.com/collabora-office/) available
 
 ## Configuration
 
-To configure this solution, you can override the default settings for your
-[selected environment](https://minbzk.github.io/mijn-bureau-infra/docs/category/installation). The defaults are
+To configure this solution, you can override the default settings for your environment. The defaults are
 located in the folder `helmfile/environments/default`.
 
 | Name                                          | Description                                         |

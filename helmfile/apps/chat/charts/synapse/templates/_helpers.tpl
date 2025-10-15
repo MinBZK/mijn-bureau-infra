@@ -36,6 +36,10 @@ Return the proper synapse image name
   {{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global) }}
 {{- end -}}
 
+{{- define "synapse_job.image" -}}
+  {{ include "common.images.image" (dict "imageRoot" .Values.job.InitContainers.image "global" .Values.global) }}
+{{- end -}}
+
 {{/*
 Return the proper image name (for the init container volume-permissions image)
 */}}

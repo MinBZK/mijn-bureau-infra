@@ -47,6 +47,16 @@ database:
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "meet" "database" | sha1sum | quote}}
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "meet" "database_admin" | sha1sum | quote}}
 
+  conversations:
+    type: postgresql
+    host: conversations-postgresql
+    name: conversations
+    user: conversations
+    port: 5432
+    isInternal: true
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "conversations" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "conversations" "database_admin" | sha1sum | quote}}
+
   docs:
     engine: django.db.backends.postgresql_psycopg2
     name: docs

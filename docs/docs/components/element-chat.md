@@ -1,12 +1,10 @@
-# Element - Chat
+# Element
 
-MijnBureau supplies an installation of [Matrix](https://matrix.org/) based chat. The reference Homeserver implementation
-[Synapse](https://element-hq.github.io/synapse/latest/) is combined with the [Element](https://element.io/) chat web client.
+MijnBureau supplies an installation of [Matrix](https://matrix.org/) based chat. [Element Synapse](https://element-hq.github.io/synapse/latest/) is combined with the [Element Web](https://element.io/) chat web client. Their are also [desktop and mobile apps](https://matrix.org/ecosystem/clients/) available to connect to Synapse directly
 
 ## Configuration
 
-To configure this solution, you can override the default settings for your
-[selected environment](https://minbzk.github.io/mijn-bureau-infra/docs/category/installation). The defaults are
+To configure this solution, you can override the default settings for your environment. The defaults are
 located in the folder `helmfile/environments/default`.
 
 | Name                               | Description                                                  |

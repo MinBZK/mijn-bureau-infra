@@ -37,7 +37,7 @@ spec:
       http:
         paths:
           - path: {{ default "/" .path }}
-            pathType: {{ default "ImplementationSpecific" .pathType }}
+            pathType: {{ default "Prefix" .pathType }}
             backend: {{- include "common.ingress.backend" (dict "serviceName" (include "common.names.fullname" $) "servicePort" "http" "context" $) | nindent 14 }}
     {{- end }}
     {{- if .Values.ingress.extraRules }}

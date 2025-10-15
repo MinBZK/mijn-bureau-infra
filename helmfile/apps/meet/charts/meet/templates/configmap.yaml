@@ -46,3 +46,6 @@ data:
   CELERY_BROKER_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
   LIVEKIT_FORCE_WSS_PROTOCOL: "true"
   LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND: "true"
+  LOGIN_REDIRECT_URL: {{ .Values.ingress.hostname | quote }}
+  LOGIN_REDIRECT_URL_FAILURE: {{ .Values.ingress.hostname | quote }}
+  LOGOUT_REDIRECT_URL: {{ .Values.ingress.hostname | quote }}

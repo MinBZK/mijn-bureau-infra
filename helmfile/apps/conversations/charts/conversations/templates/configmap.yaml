@@ -1,0 +1,47 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: conversations
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  COLLABORATION_SERVER_SECRET: {{ .Values.conversations.secretKey | quote }}
+  CONVERSATIONS_BASE_URL: {{ .Values.conversations.baseUrl | quote }}
+  LOGIN_REDIRECT_URL: {{ .Values.conversations.baseUrl | quote }}
+  LOGIN_REDIRECT_URL_FAILURE: {{ .Values.conversations.baseUrl | quote }}
+  LOGOUT_REDIRECT_UR: {{ .Values.conversations.baseUrl | quote }}
+  DJANGO_CONFIGURATION: Feature
+  DJANGO_SETTINGS_MODULE: conversations.settings
+  DJANGO_SECRET_KEY: {{ .Values.conversations.secretKey | quote }}
+  DJANGO_LANGUAGE_CODE: {{ .Values.conversations.languageCode | quote }}
+  DJANGO_ALLOWED_HOSTS: {{ .Values.conversations.AllowedHosts | quote }}
+  DJANGO_CSRF_TRUSTED_ORIGINS: {{ .Values.conversations.CSRFTrustedOrigins | quote }}
+  DJANGO_CORS_ALLOW_ALL_ORIGINS: "false"
+  DJANGO_CORS_ALLOWED_ORIGINS: {{ .Values.conversations.CORSAllowedOrigins | quote}}
+  DB_HOST: {{ .Values.externalDatabase.host | quote }}
+  DB_NAME: {{ .Values.externalDatabase.database | quote }}
+  DB_USER: {{ .Values.externalDatabase.username | quote }}
+  DB_PASSWORD: {{ .Values.externalDatabase.password | quote }}
+  DB_PORT: {{ .Values.externalDatabase.port | quote }}
+  REDIS_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/1"
+  OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
+  OIDC_RP_CLIENT_SECRET: {{ .Values.authentication.client.client_secret | quote }}
+  OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.jwks_uri | quote }}
+  OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.authorization_endpoint | quote }}
+  OIDC_OP_TOKEN_ENDPOINT: {{ .Values.authentication.token_endpoint | quote }}
+  OIDC_OP_USER_ENDPOINT: {{ .Values.authentication.userinfo_endpoint | quote }}
+  OIDC_OP_LOGOUT_ENDPOINT: {{ .Values.authentication.end_session_endpoint | quote }}
+  OIDC_USERINFO_FULLNAME_FIELDS: "{{ .Values.authentication.claims.given_name }},{{ .Values.authentication.claims.family_name }}"
+  OIDC_USERINFO_SHORTNAME_FIELD: {{ .Values.authentication.claims.given_name | quote }}
+  AI_BASE_URL: {{ .Values.ai.endpoint | quote }}
+  AI_API_KEY: {{ .Values.ai.apiKey | quote }}
+  AI_MODEL: {{ .Values.ai.model | quote }}

@@ -1,6 +1,6 @@
-# Livekit - Video conferencing backend
+# Livekit
 
-MijnBureau supplies an installation of [livekit](https://livekit.io/). Livekit is an open-source video conferencing backend that enables video conferencing through the WebRTC standard.
+MijnBureau supplies an installation of [livekit](https://livekit.io/). Livekit is an open-source video conferencing backend that enables video conferencing through the WebRTC standard. Running video conferencing requires in-dept knowledge of your network. You can also use a [hosted livekit](https://livekit.io/pricing) solution if that better suites your needs.
 
 ## Configuration
 

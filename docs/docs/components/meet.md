@@ -1,11 +1,10 @@
 # Meet
 
-MijnBureau supplies an installation of [Meet](hhttps://github.com/suitenumerique/meet). It is a video conferencing solutions that uses livekit.
+MijnBureau supplies an installation of [Meet](https://github.com/suitenumerique/meet). It is a video conferencing solutions that uses livekit.
 
 ## Configuration
 
-To configure this solution, you can override the default settings for your
-[selected environment](https://minbzk.github.io/mijn-bureau-infra/docs/category/installation). The defaults are
+To configure this solution, you can override the default settings for your environment. The defaults are
 located in the folder `helmfile/environments/default`.
 
 | Name                            | Description                                    |

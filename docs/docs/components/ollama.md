@@ -1,7 +1,7 @@
-# Ollama - AI LLM
+# Ollama
 
 MijnBureau supplies an installation of [Ollama](https://ollama.com/). Ollama is a lightweight
-framework for building and running LLMs locally
+framework for building and running LLMs locally. It opens an OpenAI compatiable interface for you AI LLMs.
 
 ## Purpose
 
@@ -20,6 +20,8 @@ This model has only 1 billion parameters, making it:
 
 The small size of this model (1.3GB) means it fits easily into memory, but comes at the cost of significantly reduced capabilities compared to larger, more capable models.
 
+You can use a bigger model if you have GPUs available. To get a list of all available models see the [library](https://ollama.com/library).
+
 ## Implementation notes
 
 Ollama needs to be able to download the llama3.2:1b model and requires internet access to do so.
@@ -29,14 +31,15 @@ Ollama needs to be able to download the llama3.2:1b model and requires internet 
 To configure this solution, you can override the default settings for your environment. The defaults are
 located in the folder `helmfile/environments/default`.
 
-| Name                       | Description                          |
-| -------------------------- | ------------------------------------ |
-| `application.ai.enabled`   | Enable Ollama                        |
-| `application.ai.namespace` | The Kubernetes namespace name        |
-| `container.ollama.*`       | Container settings to overwrite      |
-| `ai.selfhost.*`            | Applicatoin configuration for ollama |
-| `resource.ollama.*`        | Resource configuration               |
-| `pvc.ollama.*`             | Storage configuration                |
+| Name                           | Description                          |
+| ------------------------------ | ------------------------------------ |
+| `application.ollama.enabled`   | Enable Ollama                        |
+| `application.ollama.namespace` | The Kubernetes namespace name        |
+| `application.ollama.model`     | AI Model to use                      |
+| `container.ollama.*`           | Container settings to overwrite      |
+| `ai.selfhost.*`                | Applicatoin configuration for ollama |
+| `resource.ollama.*`            | Resource configuration               |
+| `pvc.ollama.*`                 | Storage configuration                |
 
 ## Performance Requirements
 

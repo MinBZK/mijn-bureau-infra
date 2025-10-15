@@ -32,6 +32,9 @@ authentication:
     nextcloud:
       client_id: "nextcloud"
       client_secret: {{ derivePassword 1 "long" ( requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "nextcloud_client_secret" | sha1sum | quote }}
+    conversations:
+      client_id: "conversations"
+      client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "conversations_client_secret" | sha1sum | quote}}
     docs:
       client_id: "docs"
       client_secret: {{ derivePassword 1 "long" ( requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "docs_client_secret" | sha1sum | quote }}

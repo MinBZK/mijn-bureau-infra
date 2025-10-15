@@ -4,7 +4,7 @@ sidebar_position: 6
 
 # Secrets
 
-Sensitive values, such as database passwords, can be securely stored for MijnBureau using `helm-secrets`. Secrets can be managed in various ways, including secret managers like HashiCorp Vault or encryption tools like [SOPS](https://getsops.io/) and Vals. MijnBureau supports secrets handling and provides an example configuration for SOPS. A similar setup can be created for Vals.
+Sensitive values, such as database passwords, can be securely stored for MijnBureau using [helm-secrets](https://github.com/jkroepke/helm-secrets). Secrets can be managed in various ways, including secret managers like HashiCorp Vault or encryption tools like [SOPS](https://getsops.io/) and Vals. MijnBureau supports secrets handling and provides an example configuration for SOPS. A similar setup can be created for other tools.
 
 ### Example Secrets File
 

@@ -1,6 +1,6 @@
-# Grist - Spreadsheet
+# Grist
 
-MijnBureau supplies an installation of [Grist](https://www.getgrist.com/). Grist is an Collaborative spreadsheet tool.
+MijnBureau supplies an installation of [Grist](https://www.getgrist.com/). Grist is an Collaborative spreadsheet tool. Grist also has a [desktop app](https://github.com/gristlabs/grist-desktop?tab=readme-ov-file) available.
 
 ## Configuration
 

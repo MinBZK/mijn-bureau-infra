@@ -1,0 +1,91 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "common.names.fullname" . }}-keygen
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: synapse-keygen
+  {{- if .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished | default 100 }}
+  backoffLimit:  {{ .Values.job.backoffLimit | default 6 }}
+  template:
+    metadata:
+      labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: synapse-keygen
+      annotations:
+        {{- if .Values.job.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.job.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+        helm.sh/hook: post-install,post-upgrade
+        helm.sh/hook-delete-policy: before-hook-creation
+    spec:
+      {{- include "synapse.imagePullSecrets" . | nindent 6 }}
+      restartPolicy: {{ .Values.job.restartPolicy | default "OnFailure" }}
+      serviceAccountName: {{ template "synapse.serviceAccountName" . }}-keygen
+      {{- if .Values.synapse.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.synapse.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.synapse.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.synapse.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: kubectl
+          image: {{ template "synapse_job.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              cp /opt/bitnami/kubectl/bin/kubectl /tmp/kubectl
+          resources:
+            {{- toYaml .Values.job.resources | nindent 12 }}
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+      containers:
+        - name: {{ include "common.names.fullname" . }}-keygen
+          image: {{ template "synapse.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.master.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.master.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              # Check if secret already exists
+              if /tmp/kubectl get secret synapse-signing-key >/dev/null 2>&1; then
+                echo "Secret 'synapse-signing-key' already exists, skipping creation"
+                exit 0
+              fi
+
+              synapse_homeserver \
+                --config-path /synapse/config/homeserver.yaml \
+                --generate-keys
+
+              /tmp/kubectl create secret generic synapse-signing-key --from-file=/synapse/keys/synapse_signing_key
+          resources:
+            {{- toYaml .Values.job.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /synapse/config
+              name: synapse
+              readOnly: true
+            - name: synapse-keys
+              mountPath: /synapse/keys
+            - name: empty-dir
+              mountPath: /tmp
+      volumes:
+        - name: synapse-keys
+          emptyDir: {}
+        - name: synapse
+          configMap:
+            defaultMode: 420
+            name: {{ include "common.names.fullname" . }}
+        - name: empty-dir
+          emptyDir: {}
