@@ -57,6 +57,9 @@ spec:
       {{- if .Values.backend.celery.schedulerName }}
       schedulerName: {{ .Values.backend.celery.schedulerName | quote }}
       {{- end }}
+      {{- if .Values.backend.celery.runtimeClassName }}
+      runtimeClassName: {{ .Values.backend.celery.runtimeClassName | quote }}
+      {{- end }}
       {{- if .Values.backend.celery.topologySpreadConstraints }}
       topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.backend.celery.topologySpreadConstraints "context" .) | nindent 8 }}
       {{- end }}

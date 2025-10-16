@@ -59,6 +59,9 @@ spec:
       {{- if .Values.backend.schedulerName }}
       schedulerName: {{ .Values.backend.schedulerName | quote }}
       {{- end }}
+      {{- if .Values.backend.runtimeClassName }}
+      runtimeClassName: {{ .Values.backend.runtimeClassName | quote }}
+      {{- end }}
       {{- if .Values.backend.topologySpreadConstraints }}
       topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.backend.topologySpreadConstraints "context" .) | nindent 8 }}
       {{- end }}

@@ -330,6 +330,10 @@ backend:
   ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
   ##
   topologySpreadConstraints: []
+  ## @param meet.runtimeClassName Name of the runtime class name for meet pods
+  ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+  ##
+  runtimeClassName: ""
   ## @param backend.schedulerName Name of the k8s scheduler (other than default) for Impress backend pods
   ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
   ##
@@ -931,6 +935,10 @@ backend:
     ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
     ##
     topologySpreadConstraints: []
+    ## @param meet.runtimeClassName Name of the runtime class name for meet pods
+    ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+    ##
+    runtimeClassName: ""
     ## @param backend.celery.schedulerName Name of the k8s scheduler (other than default) for Celery worker pods
     ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
     ##
@@ -1094,8 +1102,8 @@ backend:
       ## @param backend.celery.configuration.broker.transportOptions Celery broker transport options
       broker:
         transportOptions: "{}"
-      ## @param backend.celery.configuration.concurrency.min Minimum amount of workers available
-      ## @param backend.celery.configuration.concurrency.max Maximum amount of workers available
+      ## @param backend.celery.configuration.concurrency.min Minimum amount of workers available. Each worker takes 80Mib.
+      ## @param backend.celery.configuration.concurrency.max Maximum amount of workers available. Each worker takes 80Mib.
       concurrency:
         min: 10
         max: 100
@@ -1358,6 +1366,10 @@ frontend:
   ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
   ##
   topologySpreadConstraints: []
+  ## @param meet.runtimeClassName Name of the runtime class name for meet pods
+  ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+  ##
+  runtimeClassName: ""
   ## @param frontend.schedulerName Name of the k8s scheduler (other than default) for Impress frontend pods
   ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
   ##
@@ -1832,6 +1844,10 @@ yProvider:
   ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
   ##
   topologySpreadConstraints: []
+  ## @param meet.runtimeClassName Name of the runtime class name for meet pods
+  ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+  ##
+  runtimeClassName: ""
   ## @param yProvider.schedulerName Name of the k8s scheduler (other than default) for Impress y-provider pods
   ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
   ##

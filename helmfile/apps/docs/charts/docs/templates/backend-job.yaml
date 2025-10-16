@@ -11,7 +11,7 @@ metadata:
   name: {{ template "docs.backend.fullname" $ }}-{{ $config.name | lower | default "random" | replace "_" "-" }}
   namespace: {{ include "common.names.namespace" $ | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
-    app.kubernetes.io/component: backend
+    app.kubernetes.io/component: backend-{{ $config.name | lower | default "random" | replace "_" "-" }}
   annotations:
     {{- if or $config.annotations $.Values.commonAnnotations }}
     {{- $annotations := include "common.tplvalues.merge" (dict "values" (list $config.annotations $.Values.commonAnnotations) "context" .) }}
