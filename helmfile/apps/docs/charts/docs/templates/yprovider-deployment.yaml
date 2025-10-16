@@ -122,7 +122,7 @@ spec:
           {{- end }}
           ports:
             - name: https
-              containerPort: {{ .Values.yProvider.containerPorts.https }}
+              containerPort: {{ .Values.yProvider.containerPorts.http }}
             {{- if .Values.yProvider.extraContainerPorts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.yProvider.extraContainerPorts "context" $) | nindent 12 }}
             {{- end }}
@@ -133,7 +133,7 @@ spec:
           livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.yProvider.livenessProbe "enabled") "context" $) | nindent 12 }}
             httpGet:
               path: /ping
-              port: {{ .Values.yProvider.containerPorts.https }}
+              port: {{ .Values.yProvider.containerPorts.http }}
           {{- end }}
           {{- if .Values.yProvider.customReadinessProbe }}
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.yProvider.customReadinessProbe "context" $) | nindent 12 }}
@@ -141,7 +141,7 @@ spec:
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.yProvider.readinessProbe "enabled") "context" $) | nindent 12 }}
             httpGet:
               path: /ping
-              port: {{ .Values.yProvider.containerPorts.https }}
+              port: {{ .Values.yProvider.containerPorts.http }}
           {{- end }}
           {{- if .Values.yProvider.customStartupProbe }}
           startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.yProvider.customStartupProbe "context" $) | nindent 12 }}
@@ -149,7 +149,7 @@ spec:
           startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.yProvider.startupProbe "enabled") "context" $) | nindent 12 }}
             httpGet:
               path: /ping
-              port: {{ .Values.yProvider.containerPorts.https }}
+              port: {{ .Values.yProvider.containerPorts.http }}
           {{- end }}
           {{- end }}
           {{- if .Values.yProvider.lifecycleHooks }}

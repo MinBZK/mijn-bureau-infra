@@ -429,23 +429,23 @@ backend:
   ## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
   ##
   networkPolicy:
-    ## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+    ## @param backend.networkPolicy.enabled Specifies whether a NetworkPolicy should be created
     ##
     enabled: true
-    ## @param networkPolicy.allowExternal Don't require server label for connections
+    ## @param backend.networkPolicy.allowExternal Don't require server label for connections
     ## The Policy model to apply. When set to false, only pods with the correct
     ## server label will have network access to the ports server is listening
     ## on. When true, server will accept connections from any source
     ## (with the correct destination port).
     ##
     allowExternal: true
-    ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+    ## @param backend.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
     ##
     allowExternalEgress: false
-    ## @param networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+    ## @param backend.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
     ##
     addExternalClientAccess: false
-    ## @param networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+    ## @param backend.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
     ## e.g:
     ## extraIngress:
     ##   - ports:
@@ -461,7 +461,7 @@ backend:
     ##                 values:
     ##                   - frontend
     extraIngress: []
-    ## @param networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+    ## @param backend.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
     ## e.g:
     ## extraEgress:
     ##   - ports:
@@ -478,14 +478,14 @@ backend:
     ##                   - frontend
     ##
     extraEgress: []
-    ## @param networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param backend.networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
     ## e.g:
     ## ingressPodMatchLabels:
     ##   my-client: "true"
     #
     ingressPodMatchLabels: {}
-    ## @param networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
-    ## @param networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param backend.networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param backend.networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
     ##
     ingressNSMatchLabels: {}
     ingressNSPodMatchLabels: {}
@@ -495,18 +495,15 @@ backend:
     ##
     type: ClusterIP
     ## @param backend.service.ports.http Impress backend service HTTP port
-    ## @param backend.service.ports.https Impress backend service HTTPS port
     ##
     ports:
       http: 80
     ## Node ports to expose
     ## @param backend.service.nodePorts.http Node port for HTTP
-    ## @param backend.service.nodePorts.https Node port for HTTPS
     ## NOTE: choose port between <30000-32767>
     ##
     nodePorts:
       http: ""
-      https: ""
     ## @param backend.service.clusterIP Impress backend service Cluster IP
     ## e.g.:
     ## clusterIP: None
@@ -544,16 +541,22 @@ backend:
     ##     timeoutSeconds: 300
     ##
     sessionAffinityConfig: {}
-  ## Docs backend jobs configuration
+  ## Docs backend job configurations dedicated to run a specific management command, for example after a deployment
   ## @param backend.jobs.ttlSecondsAfterFinished Period to wait before remove jobs
   ## @param backend.jobs.backoffLimit Numbers of jobs retries
+  ## @param backend.jobs.jobs [array] A list of job configurations.
+  ## Example:
+  ##   jobs:
+  ##     - name: ""
+  ##       annotations:
+  ##         argocd.argoproj.io/hook: PostSync
+  ##         argocd.argoproj.io/sync-options: Replace=true,Force=true
+  ##       command: []
+  ##       restartPolicy: Never
   jobs:
     ttlSecondsAfterFinished: 30
     backoffLimit: 2
     jobs:
-      ## @param backend.migrate.annotations Annotations for the migrate job
-      ## @param backend.migrate.command Backend migrate command
-      ## @param backend.migrate.restartPolicy Backend migrate job restart policy
       - name: migrate
         annotations:
           argocd.argoproj.io/sync-options: Replace=true,Force=true
@@ -571,9 +574,6 @@ backend:
 
             python manage.py migrate --no-input
         restartPolicy: Never
-      ## @param backend.createSuperUser.annotations Annotations for the create super user job
-      ## @param backend.createSuperUser.command Backend create superuser command
-      ## @param backend.createSuperUser.restartPolicy Backend create superuser job restart policy
       - name: createSuperUser
         annotations:
           argocd.argoproj.io/sync-options: Replace=true,Force=true
@@ -591,18 +591,6 @@ backend:
 
             python manage.py createsuperuser --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
         restartPolicy: Never
-      ## @extra backend.job job dedicated to run a specific management command, for example after a deployment
-      ## @extra backend.job.annotations Annotations to add to the job [default: argocd.argoproj.io/hook: PostSync]
-      ## @param backend.job.name The name to use to describe this job
-      ## @param backend.job.command The management command to execute
-      ## @param backend.job.restartPolicy The restart policy for the job.
-      ## @skip backend.job.annotations.argocd.argoproj.io/hook
-      - name: ""
-        annotations:
-          argocd.argoproj.io/hook: PostSync
-          argocd.argoproj.io/sync-options: Replace=true,Force=true
-        command: []
-        restartPolicy: Never
   # List of cronjob to add
   # cronJobs:
   #   - name: reset-database
@@ -614,106 +602,117 @@ backend:
   ## @param backend.cronJobs Cron job name, schedule, command
   cronJobs: []
   configuration:
+    ## @param backend.configuration.ai.enabled Enable AI options
+    ## @param backend.configuration.ai.allowReachFrom Users that can use AI must be this level. options are "public", "authenticated", "restricted"
+    ## @param backend.configuration.ai.apiKey AI key to be used for AI Base url
+    ## @param backend.configuration.ai.baseUrl OpenAI compatible AI base url
+    ## @param backend.configuration.ai.model AI Model to use
     ai:
-      # Enable AI options
       enabled: false
-      # Users that can use AI must be this level. options are "public", "authenticated", "restricted"
       allowReachFrom: "authenticated"
-      # AI key to be used for AI Base url
       apiKey: "myApiKey"
-      # OpenAI compatible AI base url
       baseUrl: "http://dev-backend-ai.docs.svc.cluster.local"
-      # AI Model to use
       model: "myModel"
     analytics:
       crisp:
-        # Crisp website id for support
+        ## @param backend.configuration.analytics.crisp.websiteId Crisp website id for support
         websiteId: ""
     django:
-      configuration: Feature
+      ## @param backend.configuration.django.configuration Django environment settings, can be one of `Build`, `Development`, `Demo`, `Feature`, 'Test', `Staging`, `PreProduction`, or `Production`
+      configuration: Production
+      ## @param backend.configuration.django.cors.allowAllOrigins Allow all CORS origins
+      ## @param backend.configuration.django.cors.allowedOriginRegexes List of origins allowed for CORS using regulair expressions
+      ## @param backend.configuration.django.cors.allowedOrigins List of origins allowed for CORS
       cors:
-        # Allow all CORS origins
         allowAllOrigins: false
-        # List of origins allowed for CORS using regulair expressions
         allowedOriginRegexes: ""
-        # List of origins allowed for CORS
         allowedOrigins: ""
+      ## @param backend.configuration.django.email.backend Email backend library
+      ## @param backend.configuration.django.email.from Email address used as sender
+      ## @param backend.configuration.django.email.brandName Brand name for email
+      ## @param backend.configuration.django.email.host.name Hostname of email
+      ## @param backend.configuration.django.email.host.username User to authenticate with on the email host
+      ## @param backend.configuration.django.email.host.password Password to authenticate with on the email host
+      ## @param backend.configuration.django.email.logoImg Logo for the email
+      ## @param backend.configuration.django.email.port Port used to connect to email host
+      ## @param backend.configuration.django.email.useSsl Use ssl for email host connection
+      ## @param backend.configuration.django.email.useTls Use tls for email host connection
       email:
-        # Email backend library
         backend: django.core.mail.backends.smtp.EmailBackend
-        # Email address used as sender
         from: from@example.com
-        # Brand name for email
         brandName: "La Suite Numérique"
         host:
-          # Hostname of email
           name: "mailcatcher"
-          # User to authenticate with on the email host
           username: ""
-          # Password to authenticate with on the email host
           password: ""
-        # Logo for the email
         logoImg: https://docs.127.0.0.1.nip.io/assets/logo-suite-numerique.png
-        # Port used to connect to email host
         port: 1025
-        # Use ssl for email host connection
         useSsl: false
-        # Use tls for email host connection
         useTls: false
+      ## @param backend.configuration.django.serverToServerApiTokens Server to server API tokens
       serverToServerApiTokens: secret-api-key
+      ## @param backend.configuration.django.secretKey Django secret key
       secretKey: djangoSecretKey
+      ## @param backend.configuration.django.settingsModule Django settings module
       settingsModule: impress.settings
+      ## @param backend.configuration.django.storagesStaticFilesBackend Implementation for the static files backend storage
       storagesStaticFilesBackend: whitenoise.storage.CompressedManifestStaticFilesStorage
+      ## @param backend.configuration.django.superUser.email Super user e-mail address
+      ## @param backend.configuration.django.superUser.password Super user password
       superUser:
         email: you@example.com
         password: admin
+    ## @param backend.configuration.document.maxSize Maximum size of documents and attachments in bytes
     document:
-      # Maximum size of document in bytes
       maxSize: 10485760
+    ## @param backend.configuration.frontend.cssUrl To add a external css file to the app
+    ## @param backend.configuration.frontend.homepageFeatureEnabled Frontend feature flag to display the homepage
+    ## @param backend.configuration.frontend.theme Frontend theme to use
     frontend:
-      # To add a external css file to the app
       cssUrl: ""
-      # Frontend feature flag to display the homepage
       homepageFeatureEnabled: false
-      # Frontend theme to use
       theme: ""
-    # Default language
+    ## @param backend.configuration.languageCode Default language
     languageCode: "en-us"
+    ## @param backend.configuration.logging.level.handlers.console Logging level for the console handler.
+    ## @param backend.configuration.logging.level.loggers.root Default logging level. options are "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"
+    ## @param backend.configuration.logging.level.loggers.app Application logging level. options are "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"
     logging:
       level:
         handlers:
           console: ERROR
         loggers:
-          # Default logging level. options are "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"
           root: INFO
-          # Application logging level. options are "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"
           app: INFO
+    ## @param backend.configuration.malwareDetection.backend The malware detection backend use from the django-lasuite package
+    ## @extra backend.configuration.malwareDetection.parameters A dict containing all the parameters to initiate the malware detection backend
+    ## @skip backend.configuration.malwareDetection.parameters.callback_path
     malwareDetection:
-      # The malware detection backend use from the django-lasuite package
       backend: lasuite.malware_detection.backends.dummy.DummyBackend
-      # A dict containing all the parameters to initiate the malware detection backend
-      parameters: { "callback_path": "core.malware_detection.malware_detection_callback", }
-    # Sentry host
+      parameters:
+        callback_path: "core.malware_detection.malware_detection_callback"
+    ## @param backend.configuration.sentryDsn Sentry host
     sentryDsn: ""
-    # Duration of the cookie session
+    ## @param backend.configuration.sessionCookieAge Duration of the cookie session
     sessionCookieAge: 43200
-    #
+    ## @param backend.configuration.spectacularSettingsEnableDjangoDeployCheck Runs exemplary schema generation and emits warnings as part of "./manage.py check --deploy"
     spectacularSettingsEnableDjangoDeployCheck: false
     ## Theme customization and translation options
     ## Ref: https://github.com/suitenumerique/docs/blob/main/docs/theming.md
-    ## @param backend.themeCustomization.enabled Enable theme customization
-    ## @param backend.themeCustomization.fileContent Content of the theme customization file. Must be a json object.
-    ## @param backend.themeCustomization.mountPath Path where the customization file will be mounted in the backend deployment.
+    ## @param backend.configuration.themeCustomization.enabled Enable theme customization
+    ## @param backend.configuration.themeCustomization.cacheTimeout Cache duration for the customization settings
+    ## @param backend.configuration.themeCustomization.fileContent Content of the theme customization file. Must be a json object.
+    ## @param backend.configuration.themeCustomization.filePath Full path to the file customizing the theme. An example is provided in src/backend/impress/configuration/theme/default.json
+    ## @param backend.configuration.themeCustomization.mountPath Path where the customization file will be mounted in the backend deployment.
     themeCustomization:
       enabled: false
-      # Cache duration for the customization settings
       cacheTimeout: 86400
       fileContent: ""
-      # Full path to the file customizing the theme. An example is provided in src/backend/impress/configuration/theme/default.json
       filePath: ""
       mountPath: /app/impress/configuration/theme
-    # Trashbin cutoff
+    ## @param backend.configuration.trashbinCutoffDays Trashbin cutoff in days
     trashbinCutoffDays: 30
+  ## @section Celery worker parameters
   celery:
     ## Celery worker image
     ## @param backend.celery.replicaCount Number of Celery worker replicas to deploy
@@ -1030,23 +1029,23 @@ backend:
     ## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
     ##
     networkPolicy:
-      ## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+      ## @param backend.celery.networkPolicy.enabled Specifies whether a NetworkPolicy should be created
       ##
       enabled: true
-      ## @param networkPolicy.allowExternal Don't require server label for connections
+      ## @param backend.celery.networkPolicy.allowExternal Don't require server label for connections
       ## The Policy model to apply. When set to false, only pods with the correct
       ## server label will have network access to the ports server is listening
       ## on. When true, server will accept connections from any source
       ## (with the correct destination port).
       ##
       allowExternal: true
-      ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+      ## @param backend.celery.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
       ##
       allowExternalEgress: false
-      ## @param networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+      ## @param backend.celery.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
       ##
       addExternalClientAccess: false
-      ## @param networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+      ## @param backend.celery.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
       ## e.g:
       ## extraIngress:
       ##   - ports:
@@ -1062,7 +1061,7 @@ backend:
       ##                 values:
       ##                   - frontend
       extraIngress: []
-      ## @param networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+      ## @param backend.celery.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
       ## e.g:
       ## extraEgress:
       ##   - ports:
@@ -1079,21 +1078,23 @@ backend:
       ##                   - frontend
       ##
       extraEgress: []
-      ## @param networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+      ## @param backend.celery.networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
       ## e.g:
       ## ingressPodMatchLabels:
       ##   my-client: "true"
       #
       ingressPodMatchLabels: {}
-      ## @param networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
-      ## @param networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+      ## @param backend.celery.networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+      ## @param backend.celery.networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
       ##
       ingressNSMatchLabels: {}
       ingressNSPodMatchLabels: {}
     configuration:
+      ## @param backend.celery.configuration.broker.transportOptions Celery broker transport options
       broker:
-        # Celery broker transport options
         transportOptions: "{}"
+      ## @param backend.celery.configuration.concurrency.min Minimum amount of workers available
+      ## @param backend.celery.configuration.concurrency.max Maximum amount of workers available
       concurrency:
         min: 10
         max: 100
@@ -1135,7 +1136,6 @@ frontend:
   ##
   replicaCount: 1
   ## @param frontend.containerPorts.http Impress frontend HTTP container port
-  ## @param frontend.containerPorts.https Impress frontend HTTPS container port
   ##
   containerPorts:
     http: 8080
@@ -1456,23 +1456,23 @@ frontend:
   ## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
   ##
   networkPolicy:
-    ## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+    ## @param frontend.networkPolicy.enabled Specifies whether a NetworkPolicy should be created
     ##
     enabled: true
-    ## @param networkPolicy.allowExternal Don't require server label for connections
+    ## @param frontend.networkPolicy.allowExternal Don't require server label for connections
     ## The Policy model to apply. When set to false, only pods with the correct
     ## server label will have network access to the ports server is listening
     ## on. When true, server will accept connections from any source
     ## (with the correct destination port).
     ##
     allowExternal: true
-    ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+    ## @param frontend.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
     ##
     allowExternalEgress: false
-    ## @param networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+    ## @param frontend.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
     ##
     addExternalClientAccess: false
-    ## @param networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+    ## @param frontend.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
     ## e.g:
     ## extraIngress:
     ##   - ports:
@@ -1488,7 +1488,7 @@ frontend:
     ##                 values:
     ##                   - frontend
     extraIngress: []
-    ## @param networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+    ## @param frontend.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
     ## e.g:
     ## extraEgress:
     ##   - ports:
@@ -1505,14 +1505,14 @@ frontend:
     ##                   - frontend
     ##
     extraEgress: []
-    ## @param networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param frontend.networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
     ## e.g:
     ## ingressPodMatchLabels:
     ##   my-client: "true"
     #
     ingressPodMatchLabels: {}
-    ## @param networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
-    ## @param networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param frontend.networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param frontend.networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
     ##
     ingressNSMatchLabels: {}
     ingressNSPodMatchLabels: {}
@@ -1522,13 +1522,11 @@ frontend:
     ##
     type: ClusterIP
     ## @param frontend.service.ports.http Impress frontend service HTTP port
-    ## @param frontend.service.ports.https Impress frontend service HTTPS port
     ##
     ports:
       http: 80
     ## Node ports to expose
     ## @param frontend.service.nodePorts.http Node port for HTTP
-    ## @param frontend.service.nodePorts.https Node port for HTTPS
     ## NOTE: choose port between <30000-32767>
     ##
     nodePorts:
@@ -1571,11 +1569,11 @@ frontend:
     ##
     sessionAffinityConfig: {}
   configuration:
-    # Backend domain - it uses the current domain if not initialized
+    ## @param frontend.configuration.apiOrigin Backend domain - it uses the current domain if not initialized
     apiOrigin: ""
-    # To not install the service worker
+    ## @param frontend.configuration.serviceWorkerDeactivated To not install the service worker
     serviceWorkerDeactivated: false
-    # Removes packages whose licences are incompatible with the MIT licence (xl-docx-exporter: GPL, xl-pdf-exporter: GPL, xl-multi-column: GPL)
+    ## @param frontend.configuration.publishAsMit Removes packages whose licences are incompatible with the MIT licence (xl-docx-exporter: GPL, xl-pdf-exporter: GPL, xl-multi-column: GPL)
     publishAsMit: true
 
 ## @section Docs y-provider Parameters
@@ -1613,10 +1611,9 @@ yProvider:
   ##
   replicaCount: 1
   ## @param yProvider.containerPorts.http Impress y-provider HTTP container port
-  ## @param yProvider.containerPorts.https Impress y-provider HTTPS container port
   ##
   containerPorts:
-    https: 4444
+    http: 4444
   ## @param yProvider.extraContainerPorts Optionally specify extra list of additional ports for Impress y-provider containers
   ## e.g:
   ## extraContainerPorts:
@@ -1933,23 +1930,23 @@ yProvider:
   ## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
   ##
   networkPolicy:
-    ## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+    ## @param yProvider.networkPolicy.enabled Specifies whether a NetworkPolicy should be created
     ##
     enabled: true
-    ## @param networkPolicy.allowExternal Don't require server label for connections
+    ## @param yProvider.networkPolicy.allowExternal Don't require server label for connections
     ## The Policy model to apply. When set to false, only pods with the correct
     ## server label will have network access to the ports server is listening
     ## on. When true, server will accept connections from any source
     ## (with the correct destination port).
     ##
     allowExternal: true
-    ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+    ## @param yProvider.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
     ##
     allowExternalEgress: false
-    ## @param networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+    ## @param yProvider.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
     ##
     addExternalClientAccess: false
-    ## @param networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+    ## @param yProvider.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
     ## e.g:
     ## extraIngress:
     ##   - ports:
@@ -1965,7 +1962,7 @@ yProvider:
     ##                 values:
     ##                   - frontend
     extraIngress: []
-    ## @param networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+    ## @param yProvider.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
     ## e.g:
     ## extraEgress:
     ##   - ports:
@@ -1982,14 +1979,14 @@ yProvider:
     ##                   - frontend
     ##
     extraEgress: []
-    ## @param networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param yProvider.networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
     ## e.g:
     ## ingressPodMatchLabels:
     ##   my-client: "true"
     #
     ingressPodMatchLabels: {}
-    ## @param networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
-    ## @param networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param yProvider.networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param yProvider.networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
     ##
     ingressNSMatchLabels: {}
     ingressNSPodMatchLabels: {}
@@ -1999,17 +1996,15 @@ yProvider:
     ##
     type: ClusterIP
     ## @param yProvider.service.ports.http Impress y-provider service HTTP port
-    ## @param yProvider.service.ports.https Impress y-provider service HTTPS port
     ##
     ports:
       http: 443
     ## Node ports to expose
     ## @param yProvider.service.nodePorts.http Node port for HTTP
-    ## @param yProvider.service.nodePorts.https Node port for HTTPS
     ## NOTE: choose port between <30000-32767>
     ##
     nodePorts:
-      https: ""
+      http: ""
     ## @param yProvider.service.clusterIP Impress y-provider service Cluster IP
     ## e.g.:
     ## clusterIP: None
@@ -2048,22 +2043,22 @@ yProvider:
     ##
     sessionAffinityConfig: {}
   configuration:
+    ## @param yProvider.configuration.api.key Y provider API key
     api:
-      # Y provider API key
       key: my-secret
+    ## @param yProvider.configuration.caches.keyPrefix The prefix used to every cache keys.
+    ## @param yProvider.configuration.caches.defaultTimeout Cache default timeout
     caches:
-      # The prefix used to every cache keys.
       keyPrefix: "docs"
-      # Cache default timeout
       defaultTimeout: 30
+    ## @param yProvider.configuration.conversionApi.contentField Conversion api content field
+    ## @param yProvider.configuration.conversionApi.endpoint Conversion API endpoint
+    ## @param yProvider.configuration.conversionApi.secure Require secure conversion api
+    ## @param yProvider.configuration.conversionApi.timeout Conversion api timeout
     conversionApi:
-      # Conversion api content field
       contentField: content
-      # Conversion API endpoint
       endpoint: convert
-      # Require secure conversion api
       secure: false
-      # Conversion api timeout
       timeout: 30
 
 ## @section Traffic Exposure Parameters
@@ -2186,35 +2181,35 @@ ingress:
 ## ref: http://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
 ingressAdmin:
-  ## @param ingress.enabled Enable ingress record generation for Docs admin
+  ## @param ingressAdmin.enabled Enable ingress record generation for Docs admin
   ##
   enabled: false
-  ## @param ingress.pathType Ingress path type for admin path
+  ## @param ingressAdmin.adminPathType Ingress path type for admin path
   ##
   adminPathType: Prefix
-  ## @param ingress.pathType Ingress path type for static path
+  ## @param ingressAdmin.staticPathType Ingress path type for static path
   ##
   staticPathType: Prefix
-  ## @param ingress.apiVersion Force Ingress API version (automatically detected if not set)
+  ## @param ingressAdmin.apiVersion Force Ingress API version (automatically detected if not set)
   ##
   apiVersion: ""
-  ## @param ingress.hostname Default host for the ingress record
+  ## @param ingressAdmin.hostname Default host for the ingress record
   ##
   hostname: docs.local
-  ## @param ingress.ingressClassName IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)
+  ## @param ingressAdmin.ingressClassName IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)
   ## This is supported in Kubernetes 1.18+ and required if you have more than one IngressClass marked as the default for your cluster .
   ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
   ##
   ingressClassName: ""
-  ## @param ingress.adminPath Default admin path for the ingress record
+  ## @param ingressAdmin.adminPath Default admin path for the ingress record
   ## NOTE: You may need to set this to '/*' in order to use this with ALB ingress controllers
   ##
   adminPath: /admin
-  ## @param ingress.staticPath Default static path for the ingress record
+  ## @param ingressAdmin.staticPath Default static path for the ingress record
   ## NOTE: You may need to set this to '/*' in order to use this with ALB ingress controllers
   ##
   staticPath: /static
-  ## @param ingress.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
+  ## @param ingressAdmin.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
   ## Use this parameter to set the required annotations for cert-manager, see
   ## ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
   ## e.g:
@@ -2223,7 +2218,7 @@ ingressAdmin:
   ##   cert-manager.io/cluster-issuer: cluster-issuer-name
   ##
   annotations: {}
-  ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
+  ## @param ingressAdmin.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
   ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`
   ## You can:
   ##   - Use the `ingress.secrets` parameter to create this TLS secret
@@ -2231,17 +2226,17 @@ ingressAdmin:
   ##   - Rely on Helm to create self-signed certificates by setting `ingress.selfSigned=true`
   ##
   tls: false
-  ## @param ingress.selfSigned Create a TLS secret for this ingress record using self-signed certificates generated by Helm
+  ## @param ingressAdmin.selfSigned Create a TLS secret for this ingress record using self-signed certificates generated by Helm
   ##
   selfSigned: false
-  ## @param ingress.extraHosts An array with additional hostname(s) to be covered with the ingress record
+  ## @param ingressAdmin.extraHosts An array with additional hostname(s) to be covered with the ingress record
   ## e.g:
   ## extraHosts:
   ##   - name: docs.local
   ##     path: /
   ##
   extraHosts: []
-  ## @param ingress.extraPaths An array with additional arbitrary paths that may need to be added to the ingress under the main host
+  ## @param ingressAdmin.extraPaths An array with additional arbitrary paths that may need to be added to the ingress under the main host
   ## e.g:
   ## extraPaths:
   ## - path: /*
@@ -2250,7 +2245,7 @@ ingressAdmin:
   ##     servicePort: use-annotation
   ##
   extraPaths: []
-  ## @param ingress.extraTls TLS configuration for additional hostname(s) to be covered with this ingress record
+  ## @param ingressAdmin.extraTls TLS configuration for additional hostname(s) to be covered with this ingress record
   ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
   ## e.g:
   ## extraTls:
@@ -2259,7 +2254,7 @@ ingressAdmin:
   ##   secretName: docs.local-tls
   ##
   extraTls: []
-  ## @param ingress.secrets Custom TLS certificates as secrets
+  ## @param ingressAdmin.secrets Custom TLS certificates as secrets
   ## NOTE: 'key' and 'certificate' are expected in PEM format
   ## NOTE: 'name' should line up with a 'secretName' set further up
   ## If it is not set and you're using cert-manager, this is unneeded, as it will create a secret for you with valid certificates
@@ -2279,7 +2274,7 @@ ingressAdmin:
   ##       -----END CERTIFICATE-----
   ##
   secrets: []
-  ## @param ingress.extraRules Additional rules to be covered with this ingress record
+  ## @param ingressAdmin.extraRules Additional rules to be covered with this ingress record
   ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
   ## e.g:
   ## extraRules:
@@ -2318,7 +2313,8 @@ ingressCollaborationWS:
   ## NOTE: You may need to set this to '/*' in order to use this with ALB ingress controllers
   ##
   path: /collaboration/ws/
-  ## @param ingressCollaborationWS.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
+  ## @extra ingressCollaborationWS.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
+  ## @skip ingressCollaborationWS.annotations.nginx
   ## Use this parameter to set the required annotations for cert-manager, see
   ## ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
   ## e.g:
@@ -2405,28 +2401,29 @@ ingressCollaborationWS:
 ## ref: http://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
 ingressCollaborationApi:
-  ## @param ingress.enabled Enable ingress record generation for Docs collaboration API
+  ## @param ingressCollaborationApi.enabled Enable ingress record generation for Docs collaboration API
   ##
   enabled: false
-  ## @param ingress.pathType Ingress path type
+  ## @param ingressCollaborationApi.pathType Ingress path type
   ##
   pathType: ImplementationSpecific
-  ## @param ingress.apiVersion Force Ingress API version (automatically detected if not set)
+  ## @param ingressCollaborationApi.apiVersion Force Ingress API version (automatically detected if not set)
   ##
   apiVersion: ""
-  ## @param ingress.hostname Default host for the ingress record
+  ## @param ingressCollaborationApi.hostname Default host for the ingress record
   ##
   hostname: docs.local
-  ## @param ingress.ingressClassName IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)
+  ## @param ingressCollaborationApi.ingressClassName IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)
   ## This is supported in Kubernetes 1.18+ and required if you have more than one IngressClass marked as the default for your cluster .
   ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
   ##
   ingressClassName: ""
-  ## @param ingress.path Default path for the ingress record
+  ## @param ingressCollaborationApi.path Default path for the ingress record
   ## NOTE: You may need to set this to '/*' in order to use this with ALB ingress controllers
   ##
   path: /collaboration/api/
-  ## @param ingress.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
+  ## @extra ingressCollaborationApi.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
+  ## @skip ingressCollaborationApi.annotations.nginx
   ## Use this parameter to set the required annotations for cert-manager, see
   ## ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
   ## e.g:
@@ -2436,7 +2433,7 @@ ingressCollaborationApi:
   ##
   annotations:
     nginx.ingress.kubernetes.io/upstream-hash-by: $arg_room
-  ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
+  ## @param ingressCollaborationApi.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
   ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`
   ## You can:
   ##   - Use the `ingress.secrets` parameter to create this TLS secret
@@ -2444,17 +2441,17 @@ ingressCollaborationApi:
   ##   - Rely on Helm to create self-signed certificates by setting `ingress.selfSigned=true`
   ##
   tls: false
-  ## @param ingress.selfSigned Create a TLS secret for this ingress record using self-signed certificates generated by Helm
+  ## @param ingressCollaborationApi.selfSigned Create a TLS secret for this ingress record using self-signed certificates generated by Helm
   ##
   selfSigned: false
-  ## @param ingress.extraHosts An array with additional hostname(s) to be covered with the ingress record
+  ## @param ingressCollaborationApi.extraHosts An array with additional hostname(s) to be covered with the ingress record
   ## e.g:
   ## extraHosts:
   ##   - name: docs.local
   ##     path: /
   ##
   extraHosts: []
-  ## @param ingress.extraPaths An array with additional arbitrary paths that may need to be added to the ingress under the main host
+  ## @param ingressCollaborationApi.extraPaths An array with additional arbitrary paths that may need to be added to the ingress under the main host
   ## e.g:
   ## extraPaths:
   ## - path: /*
@@ -2463,7 +2460,7 @@ ingressCollaborationApi:
   ##     servicePort: use-annotation
   ##
   extraPaths: []
-  ## @param ingress.extraTls TLS configuration for additional hostname(s) to be covered with this ingress record
+  ## @param ingressCollaborationApi.extraTls TLS configuration for additional hostname(s) to be covered with this ingress record
   ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
   ## e.g:
   ## extraTls:
@@ -2472,7 +2469,7 @@ ingressCollaborationApi:
   ##   secretName: docs.local-tls
   ##
   extraTls: []
-  ## @param ingress.secrets Custom TLS certificates as secrets
+  ## @param ingressCollaborationApi.secrets Custom TLS certificates as secrets
   ## NOTE: 'key' and 'certificate' are expected in PEM format
   ## NOTE: 'name' should line up with a 'secretName' set further up
   ## If it is not set and you're using cert-manager, this is unneeded, as it will create a secret for you with valid certificates
@@ -2492,7 +2489,7 @@ ingressCollaborationApi:
   ##       -----END CERTIFICATE-----
   ##
   secrets: []
-  ## @param ingress.extraRules Additional rules to be covered with this ingress record
+  ## @param ingressCollaborationApi.extraRules Additional rules to be covered with this ingress record
   ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
   ## e.g:
   ## extraRules:
@@ -2510,28 +2507,28 @@ ingressCollaborationApi:
 ## ref: http://kubernetes.io/docs/concepts/services-networking/ingress/
 ##
 ingressMedia:
-  ## @param ingress.enabled Enable ingress record generation for Docs media
+  ## @param ingressMedia.enabled Enable ingress record generation for Docs media
   ##
   enabled: false
-  ## @param ingress.pathType Ingress path type
+  ## @param ingressMedia.pathType Ingress path type
   ##
   pathType: ImplementationSpecific
-  ## @param ingress.apiVersion Force Ingress API version (automatically detected if not set)
+  ## @param ingressMedia.apiVersion Force Ingress API version (automatically detected if not set)
   ##
   apiVersion: ""
-  ## @param ingress.hostname Default host for the ingress record
+  ## @param ingressMedia.hostname Default host for the ingress record
   ##
   hostname: docs.local
-  ## @param ingress.ingressClassName IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)
+  ## @param ingressMedia.ingressClassName IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)
   ## This is supported in Kubernetes 1.18+ and required if you have more than one IngressClass marked as the default for your cluster .
   ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
   ##
   ingressClassName: ""
-  ## @param ingress.path Default path for the ingress record
+  ## @param ingressMedia.path Default path for the ingress record
   ## NOTE: You may need to set this to '/*' in order to use this with ALB ingress controllers
   ##
   path: /media/(.*)
-  ## @param ingress.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
+  ## @param ingressMedia.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
   ## Use this parameter to set the required annotations for cert-manager, see
   ## ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
   ## e.g:
@@ -2543,7 +2540,7 @@ ingressMedia:
   ##     add_header Content-Security-Policy "default-src 'none'" always;
   ##
   annotations: {}
-  ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
+  ## @param ingressMedia.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
   ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`
   ## You can:
   ##   - Use the `ingress.secrets` parameter to create this TLS secret
@@ -2551,17 +2548,17 @@ ingressMedia:
   ##   - Rely on Helm to create self-signed certificates by setting `ingress.selfSigned=true`
   ##
   tls: false
-  ## @param ingress.selfSigned Create a TLS secret for this ingress record using self-signed certificates generated by Helm
+  ## @param ingressMedia.selfSigned Create a TLS secret for this ingress record using self-signed certificates generated by Helm
   ##
   selfSigned: false
-  ## @param ingress.extraHosts An array with additional hostname(s) to be covered with the ingress record
+  ## @param ingressMedia.extraHosts An array with additional hostname(s) to be covered with the ingress record
   ## e.g:
   ## extraHosts:
   ##   - name: docs.local
   ##     path: /
   ##
   extraHosts: []
-  ## @param ingress.extraPaths An array with additional arbitrary paths that may need to be added to the ingress under the main host
+  ## @param ingressMedia.extraPaths An array with additional arbitrary paths that may need to be added to the ingress under the main host
   ## e.g:
   ## extraPaths:
   ## - path: /*
@@ -2570,7 +2567,7 @@ ingressMedia:
   ##     servicePort: use-annotation
   ##
   extraPaths: []
-  ## @param ingress.extraTls TLS configuration for additional hostname(s) to be covered with this ingress record
+  ## @param ingressMedia.extraTls TLS configuration for additional hostname(s) to be covered with this ingress record
   ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
   ## e.g:
   ## extraTls:
@@ -2579,7 +2576,7 @@ ingressMedia:
   ##   secretName: docs.local-tls
   ##
   extraTls: []
-  ## @param ingress.secrets Custom TLS certificates as secrets
+  ## @param ingressMedia.secrets Custom TLS certificates as secrets
   ## NOTE: 'key' and 'certificate' are expected in PEM format
   ## NOTE: 'name' should line up with a 'secretName' set further up
   ## If it is not set and you're using cert-manager, this is unneeded, as it will create a secret for you with valid certificates
@@ -2599,7 +2596,7 @@ ingressMedia:
   ##       -----END CERTIFICATE-----
   ##
   secrets: []
-  ## @param ingress.extraRules Additional rules to be covered with this ingress record
+  ## @param ingressMedia.extraRules Additional rules to be covered with this ingress record
   ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
   ## e.g:
   ## extraRules:
@@ -2613,55 +2610,6 @@ ingressMedia:
   ##             name: http
   ##
   extraRules: []
-
-## @section Persistence Parameters
-##
-
-## Enable persistence using Persistent Volume Claims
-## ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
-##
-persistence:
-  ## @param persistence.enabled Enable persistence using Persistent Volume Claims
-  ##
-  enabled: true
-  ## @param persistence.mountPath Path to mount the volume at.
-  ##
-  mountPath: /docs/data
-  ## @param persistence.subPath The subdirectory of the volume to mount to, useful in dev environments and one PV for multiple services
-  ##
-  subPath: ""
-  ## @param persistence.storageClass Storage class of backing PVC
-  ## If defined, storageClassName: <storageClass>
-  ## If set to "-", storageClassName: "", which disables dynamic provisioning
-  ## If undefined (the default) or set to null, no storageClassName spec is
-  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-  ##   GKE, AWS & OpenStack)
-  ##
-  storageClass: ""
-  ## @param persistence.annotations Persistent Volume Claim annotations
-  ##
-  annotations: {}
-  ## @param persistence.accessModes Persistent Volume Access Modes
-  ##
-  accessModes:
-    - ReadWriteOnce
-  ## @param persistence.size Size of data volume
-  ##
-  size: 8Gi
-  ## @param persistence.dataSource Custom PVC data source
-  ##
-  dataSource: {}
-  ## @param persistence.existingClaim The name of an existing PVC to use for persistence
-  ##
-  existingClaim: ""
-  ## @param persistence.selector Selector to match an existing Persistent Volume for WordPress data PVC
-  ## If set, the PVC can't have a PV dynamically provisioned for it
-  ## E.g.
-  ## selector:
-  ##   matchLabels:
-  ##     app: my-app
-  ##
-  selector: {}
 
 ## @section Default init containers Parameters
 
@@ -2743,25 +2691,6 @@ defaultInitContainers:
 ## @section Other Parameters
 ##
 
-## RBAC configuration
-##
-rbac:
-  ## @param rbac.create Specifies whether RBAC resources should be created
-  ##
-  create: false
-  ## @param rbac.rules Custom RBAC rules to set
-  ## e.g:
-  ## rules:
-  ##   - apiGroups:
-  ##       - ""
-  ##     resources:
-  ##       - pods
-  ##     verbs:
-  ##       - get
-  ##       - list
-  ##
-  rules: []
-
 ## ServiceAccount configuration
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
 ##
@@ -2835,7 +2764,12 @@ metrics:
     ##
     selector: {}
 
-## @section Configuration paramaters
+## @section Docs configuration paramaters
+
+## @param collaboration.api.secret Secret for the collaboration API
+## @param collaboration.loggingEnabled Enable logging
+## @param collaboration.webSockets.notConnected.readOnly Users not connected to the collaboration server cannot edit
+## @param collaboration.webSockets.notConnected.cacheTimeout Cache used to store current editor session key when only users without websocket are editing a document
 collaboration:
   api:
     # Collaboration api secret
@@ -2843,90 +2777,89 @@ collaboration:
   loggingEnabled: true
   webSockets:
     notConnected:
-      # Users not connected to the collaboration server cannot edit
       readOnly: false
-      # Cache used to store current editor session key when only users without websocket are editing a document
       cacheTimeout: 120
 
 auth:
   oidc:
-    # Allow duplicate emails
+    ## @param auth.oidc.allowDuplicateEmails Allow duplicate emails
+    ## @param auth.oidc.authRequestExtraParams OIDC extra auth parameters
+    ## @param auth.oidc.createUser Create used on OIDC
+    ## @param auth.oidc.fallbackToEmailForIdentification Fallback to email for identification
     allowDuplicateEmails: false
-    # OIDC extra auth parameters
     authRequestExtraParams: "{}"
-    # Create used on OIDC
     createUser: false
-    # Fallback to email for identification
     fallbackToEmailForIdentification: true
+    ## @param auth.oidc.openIdProvider.jwksEndpoint JWKS endpoint for OIDC
+    ## @param auth.oidc.openIdProvider.authorizationEndpoint Authorization endpoint for OIDC
+    ## @param auth.oidc.openIdProvider.tokenEndpoint Token endpoint for OIDC
+    ## @param auth.oidc.openIdProvider.userEndpoint User endpoint for OIDC
+    ## @param auth.oidc.openIdProvider.logoutEndpoint Logout endpoint for OIDC
     openIdProvider:
-      # JWKS endpoint for OIDC
       jwksEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/certs
-      # Authorization endpoint for OIDC
       authorizationEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/auth
-      # Token endpoint for OIDC
       tokenEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/token
-      # User endpoint for OIDC
       userEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/userinfo
-      # Logout endpoint for OIDC
       logoutEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/logout
+    ## @param auth.oidc.redirect.allowedHosts Allowed hosts for OIDC redirect url
+    ## @param auth.oidc.redirect.requireHttps Require https for OIDC redirect url
     redirect:
-      # Allowed hosts for OIDC redirect url
       allowedHosts: []
-      # Require https for OIDC redirect url
       requireHttps: false
+    ## @param auth.oidc.relyingParty.clientId Client id used for OIDC
+    ## @param auth.oidc.relyingParty.clientSecret Client secret used for OIDC
+    ## @param auth.oidc.relyingParty.scopes Scopes requested for OIDC
+    ## @param auth.oidc.relyingParty.signAlgo Verification algorithm used OIDC tokens
     relyingParty:
-      # Client id used for OIDC
       clientId: docs
-      # Client secret used for OIDC
       clientSecret: ThisIsAnExampleKeyForDevPurposeOnly
-      # Scopes requested for OIDC
       scopes: "openid email"
-      # Verification algorithm used OIDC tokens
       signAlgo: RS256
-    # Store OIDC token
+    ## @param auth.oidc.storeIdToken Store OIDC token
+    ## @param auth.oidc.useNonce Use nonce for OIDC
     storeIdToken: true
-    # Use nonce for OIDC
     useNonce: true
+    ## @param auth.oidc.userInfo.fullNameField OIDC token claims to create full name
+    ## @param auth.oidc.userInfo.shortNameField OIDC token claims to create shortname
     userInfo:
-      # OIDC token claims to create full name
       fullNameField: "given_name,usual_name"
-      # OIDC token claims to create shortname
       shortNameField: "given_name"
-    # Essential claims in OIDC token
+    ## @param auth.oidc.userEssentialClaims Essential claims in OIDC token
     userEssentialClaims: "[]"
+  ## @param auth.api.usersList.limit Limit on API users
+  ## @param auth.api.usersList.throttleRateBurst Throttle rate for api on burst
+  ## @param auth.api.usersList.throttleRateSustained Throttle rate for api
   api:
     usersList:
-      # Limit on API users
       limit: 5
-      # Throttle rate for api on burst
       throttleRateBurst: "30/minute"
-      # Throttle rate for api
       throttleRateSustained: "180/hour"
 
+
+## @param database.engine Engine to use for database connections
+## @param database.host Host of the database
+## @param database.port Port of the database
+## @param database.name Name of the database
+## @param database.user User to authenticate with
+## @param database.password Password to authenticate with
 database:
-  # Engine to use for database connections
   engine: django.db.backends.postgresql_psycopg2
-  # Host of the database
   host: localhost
-  # Port of the database
   port: 5432
-  # Name of the database
   name: impress
-  # User to authenticate with
   user: dinum
-  # Password to authenticate with
   password: pass
 
+## @param redis.url Cache url, also used as Celery broker.
 redis:
-  # Cache url, also used as Celery broker.
   url: redis://user:pass@redis-master:6379/1
 
+## @param awsS3.endpointUrl S3 endpoint
+## @param awsS3.accessKeyId Access id for s3 endpoint
+## @param awsS3.secretAccessKey Access key for s3 endpoint
+## @param awsS3.storageBucketName Bucket name for s3 endpoint
 awsS3:
-  # S3 endpoint
   endpointUrl: http://dev-backend-minio.docs.svc.cluster.local:9000
-  # Access id for s3 endpoint
   accessKeyId: dinum
-  # Access key for s3 endpoint
   secretAccessKey: password
-  # Bucket name for s3 endpoint
   storageBucketName: docs-media-storage

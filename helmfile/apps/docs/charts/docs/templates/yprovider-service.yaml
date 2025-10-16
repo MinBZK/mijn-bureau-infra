@@ -37,8 +37,8 @@ spec:
   ports:
     - name: http
       port: {{ .Values.yProvider.service.ports.http }}
-      {{- if not (eq .Values.yProvider.service.ports.http .Values.yProvider.containerPorts.https) }}
-      targetPort: {{ .Values.yProvider.containerPorts.https }}
+      {{- if not (eq .Values.yProvider.service.ports.http .Values.yProvider.containerPorts.http) }}
+      targetPort: {{ .Values.yProvider.containerPorts.http }}
       {{- end }}
       protocol: TCP
       {{- if and (or (eq .Values.yProvider.service.type "NodePort") (eq .Values.yProvider.service.type "LoadBalancer")) (not (empty .Values.yProvider.service.nodePorts.http)) }}

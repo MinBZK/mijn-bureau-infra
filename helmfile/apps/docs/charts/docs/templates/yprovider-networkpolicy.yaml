@@ -38,7 +38,7 @@ spec:
     {{- end }}
   ingress:
     - ports:
-        - port: {{ .Values.yProvider.containerPorts.https }}
+        - port: {{ .Values.yProvider.containerPorts.http }}
         {{- range .Values.yProvider.extraContainerPorts }}
         - port: {{ .containerPort }}
         {{- end }}
