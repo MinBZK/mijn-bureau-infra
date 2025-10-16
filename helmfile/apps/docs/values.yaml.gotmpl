@@ -69,12 +69,16 @@ backend:
           - port: 4444
   configuration:
     ai:
-      enabled: {{ not ( empty .Values.ai.llm.model ) }}
+      enabled: {{ not (empty .Values.ai.llm.model) }}
       allowReachFrom: "authenticated"
       apiKey: {{ .Values.ai.llm.apiKey }}
       baseUrl: {{ .Values.ai.llm.endpoint }}
       model: {{ .Values.ai.llm.model }}
     django:
+      cors:
+        allowAllOrigins: false
+        allowedOriginRegexes: ""
+        allowedOrigins: {{ printf "http%s://%s:%d" (ternary "s" "" (.Values.global.tls.enabled | default true)) $hostname }}
       email:
         brandName: {{ .Values.smtp.from.name }}
         from: {{ .Values.smtp.from.email }}
@@ -394,7 +398,7 @@ redis:
   url: {{ printf "redis://default:%s@%s:%d/1" .Values.cache.docs.password .Values.cache.docs.host .Values.cache.docs.port }}
 
 awsS3:
-  endpointUrl: {{ printf "http%s://%s:%d" ( ternary "s" "" .Values.objectstore.docs.useSSL ) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port }}
+  endpointUrl: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.docs.useSSL) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port }}
   accessKeyId: {{ .Values.objectstore.docs.username }}
   secretAccessKey: {{ .Values.objectstore.docs.rootPassword }}
   storageBucketName: {{ .Values.objectstore.docs.bucket }}
