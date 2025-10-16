@@ -58,7 +58,7 @@ spec:
       {{- if $.Values.backend.topologySpreadConstraints }}
       topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" $.Values.backend.topologySpreadConstraints "context" .) | nindent 8 }}
       {{- end }}
-      restartPolicy: {{ $config.restartPolicy | default "Never" }}
+      restartPolicy: {{ $config.restartPolicy | default "OnFailure" }}
       containers:
         - name: {{ template "docs.backend.fullname" $ }}
           image: {{ template "docs.backend.image" $ }}

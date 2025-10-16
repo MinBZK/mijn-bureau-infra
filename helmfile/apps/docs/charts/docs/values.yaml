@@ -554,8 +554,8 @@ backend:
   ##       command: []
   ##       restartPolicy: Never
   jobs:
-    ttlSecondsAfterFinished: 30
-    backoffLimit: 2
+    ttlSecondsAfterFinished: 3600
+    backoffLimit: 20
     jobs:
       - name: migrate
         annotations:
@@ -573,7 +573,7 @@ backend:
             echo "Database is ready"
 
             python manage.py migrate --no-input
-        restartPolicy: Never
+        restartPolicy: OnFailure
       - name: createSuperUser
         annotations:
           argocd.argoproj.io/sync-options: Replace=true,Force=true
@@ -590,7 +590,7 @@ backend:
             echo "Database is ready"
 
             python manage.py createsuperuser --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
-        restartPolicy: Never
+        restartPolicy: OnFailure
   # List of cronjob to add
   # cronJobs:
   #   - name: reset-database
@@ -599,6 +599,7 @@ backend:
   #       - "/bin/sh"
   #       - "-c"
   #       - python manage.py flush --no-input
+  #     restartPolicy: OnFailure
   ## @param backend.cronJobs Cron job name, schedule, command
   cronJobs: []
   configuration:
