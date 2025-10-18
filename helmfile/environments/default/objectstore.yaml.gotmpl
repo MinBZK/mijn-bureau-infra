@@ -25,3 +25,12 @@ objectstore:
     useSSL: false
     isInternal: true
     rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "docs" | sha1sum | quote }}
+
+  drive:
+    bucket: "drive"
+    username: "admin"
+    endpoint: "drive-minio"
+    port: 9000
+    useSSL: false
+    isInternal: true
+    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "drive" | sha1sum | quote }}

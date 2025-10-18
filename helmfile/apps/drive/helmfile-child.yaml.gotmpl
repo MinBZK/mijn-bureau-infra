@@ -1,0 +1,50 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: drive-postgresql
+    chart: ../common/charts/postgresql
+    version: "16.7.18"
+    namespace: {{ .Values.application.drive.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) | toYaml }}
+    values:
+      - "values-postgresql.yaml.gotmpl"
+
+  - name: drive-redis
+    chart: ../common/charts/redis
+    version: "21.2.6"
+    namespace: {{ .Values.application.drive.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) | toYaml }}
+    values:
+      - "values-redis.yaml.gotmpl"
+
+  - name: drive-minio
+    chart: ../common/charts/minio
+    version: "17.0.11"
+    namespace: {{ .Values.application.drive.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) | toYaml }}
+    values:
+      - "values-minio.yaml.gotmpl"
+
+  - name: drive
+    chart: charts/drive
+    condition: application.drive.enabled
+    namespace: {{ .Values.application.drive.namespace }}
+    {{- if and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) }}
+    needs:
+      - {{ .Values.application.drive.namespace }}/drive-postgresql
+      - {{ .Values.application.drive.namespace }}/drive-redis
+      - {{ .Values.application.drive.namespace }}/drive-minio
+    {{- end }}
+    values:
+      - "values.yaml.gotmpl"
+
+  - name: drive-nginx
+    chart: ../common/charts/nginx
+    version: "22.0.0"
+    namespace: {{ .Values.application.drive.namespace }}
+    installed: {{ and .Values.application.drive.enabled (eq .Values.cluster.ingress.type "haproxy-openshift") | toYaml }}
+    needs:
+      - {{ .Values.application.drive.namespace }}/drive
+    values:
+      - "values-nginx.yaml.gotmpl"

@@ -6,10 +6,8 @@ MijnBureau includes a file-sharing feature to enable secure and efficient collab
 
 ## Screenshots
 
-Below are previews of the file-sharing feature:
+Below are previews of the file-sharing feature. We have two solutions. One based on nextcloud the other based on LaSuite drive.
 
 ![File Sharing Preview 1](/img/features/filestorage.png)
-
-We are also exploring the integration of a second file-sharing technology:
 
 ![File Sharing Preview 2](/img/features/filestorage2.png)

@@ -46,8 +46,8 @@ meet_backend:
 
   secretKey: {{ .Values.application.meet.secretKey | quote }}
 
-  {{- if eq .Values.global.defaultLocale "nl-nl" }}
-    languageCode: nl-nl
+  {{- if eq .Values.global.defaultLocale "nl" }}
+  languageCode: nl-nl
   {{- end }}
   CSRFTrustedOrigins: "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}"
   CORSAllowedOrigins: "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}"

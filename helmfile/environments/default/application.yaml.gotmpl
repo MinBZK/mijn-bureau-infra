@@ -69,6 +69,7 @@ application:
     namespace: ~
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "conversations" "secretkey" | sha1sum | quote }}
 
+  # docs is a note taking and document collaboration system from LaSuite
   docs:
     enabled: true
     namespace: ~
@@ -82,3 +83,10 @@ application:
       publishAsMit: false
     yProvider:
       key: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "yProviderKey" | sha1sum | quote }}
+
+  # drive is a document management system from LaSuite
+  drive:
+    enabled: false
+    namespace: ~
+    secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secretkey" | sha1sum | quote }}
+    secrettoServerKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secrettoServerKey" | sha1sum | quote }}

@@ -38,15 +38,3 @@ Meet offers several advanced features that are currently disabled, including:
 Id you need one of thesse solutions let us know and we will add it.
 
 For more details or to request additional features, please refer to the official [Meet documentation](https://github.com/suitenumerique/meet).
-
-    app.kubernetes.io/component: meet-backend
-    app.kubernetes.io/instance: meet
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: meet
-    app.kubernetes.io/part-of: meet
-    app.kubernetes.io/version: 0.1.0
-
-8000
-app.kubernetes.io/component: meet-backend
-app.kubernetes.io/instance: meet
-app.kubernetes.io/name: meet
