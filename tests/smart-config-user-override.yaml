@@ -27,5 +27,10 @@ authentication:
 ai:
   llm:
     model: "custom-model"
-    endpoint: "https://custom-ai.example.com/api"
+    endpoint:
+      host: "custom-ai.example.com"
+      port: 443
+      openApiVersion: "v1"
+      isSsl: true
+      isInternal: false
     apiKey: "custom-api-key"

@@ -27,5 +27,10 @@ authentication:
 ai:
   llm:
     model: ~
-    endpoint: ~
+    endpoint:
+      host: ~
+      port: ~
+      openApiVersion: "v1"
+      isSsl: true
+      isInternal: false
     apiKey: ~

@@ -252,7 +252,12 @@ application:
 ai:
   llm:
     model: "gpt-4.1"
-    endpoint: "https://your-custom-endpoint.com/v1"
+    endpoint:
+      host: your-custom-endpoint.com
+      port: 443
+      openApiVersion: "v1"
+      isSsl: true
+      isInternal: false
     apiKey: yourapikey
 ```
 
