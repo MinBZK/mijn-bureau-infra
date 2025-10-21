@@ -4,8 +4,13 @@ ai:
     {{- if not .Values.ai.llm.model }}
     model: {{ .Values.application.ollama.model | quote }}
     {{- end }}
-    {{- if not .Values.ai.llm.endpoint }}
-    endpoint: "http://ollama.{{ .Values.application.ollama.namespace }}.svc.{{ .Values.cluster.networking.domain }}:11434"
+    {{- if not .Values.ai.llm.endpoint.host }}
+    endpoint:
+      host: ollama
+      port: 11434
+      openApiVersion: "v1"
+      isSsl: false
+      isInternal: true
     {{- end }}
     {{- if not .Values.ai.llm.apiKey }}
     apiKey: ""

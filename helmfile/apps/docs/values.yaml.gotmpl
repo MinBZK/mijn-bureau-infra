@@ -10,7 +10,7 @@ global:
 commonLabels:
   app.kubernetes.io/part-of: docs
 
-clusterDomain: {{ .Values.cluster.networking.domain }}
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
 
 backend:
   image:
@@ -62,7 +62,17 @@ backend:
               matchLabels:
                 app.kubernetes.io/name: minio
         {{- end }}
-      # Allow https egress for keycloak connection
+      {{- if .Values.ai.llm.endpoint.isInternal }}
+      # AI connectivity
+      - ports:
+          - port: {{ .Values.ai.llm.endpoint.port }}
+            protocol: TCP
+        to:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: ollama
+      {{- end }}
+      # Allow https egress for keycloak connection and external AI
       - ports:
           - port: 443
       # Allow http egress for yProvider connection
@@ -73,7 +83,7 @@ backend:
       enabled: {{ not (empty .Values.ai.llm.model) }}
       allowReachFrom: "authenticated"
       apiKey: {{ .Values.ai.llm.apiKey }}
-      baseUrl: {{ .Values.ai.llm.endpoint }}
+      baseUrl: "http{{ ternary "s" "" .Values.ai.llm.endpoint.isSsl }}://{{ .Values.ai.llm.endpoint.host }}:{{ .Values.ai.llm.endpoint.port }}/{{ .Values.ai.llm.endpoint.openApiVersion }}"
       model: {{ .Values.ai.llm.model }}
     django:
       cors:

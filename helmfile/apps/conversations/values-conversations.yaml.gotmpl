@@ -111,5 +111,5 @@ authentication:
 
 ai:
   model: {{ .Values.ai.llm.model | quote }}
-  endpoint: {{ .Values.ai.llm.endpoint | quote }}
+  endpoint: "http{{ ternary "s" "" .Values.ai.llm.endpoint.isSsl }}://{{ .Values.ai.llm.endpoint.host }}:{{ .Values.ai.llm.endpoint.port }}/{{ .Values.ai.llm.endpoint.openApiVersion }}"
   apiKey: {{ .Values.ai.llm.apiKey | quote }}
