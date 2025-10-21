@@ -37,7 +37,7 @@ located in the folder `helmfile/environments/default`.
 | `application.ollama.namespace` | The Kubernetes namespace name        |
 | `application.ollama.model`     | AI Model to use                      |
 | `container.ollama.*`           | Container settings to overwrite      |
-| `ai.selfhost.*`                | Applicatoin configuration for ollama |
+| `ai.llm.*`                     | Application configuration for ollama |
 | `resource.ollama.*`            | Resource configuration               |
 | `pvc.ollama.*`                 | Storage configuration                |
 
