@@ -330,7 +330,7 @@ backend:
   ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
   ##
   topologySpreadConstraints: []
-  ## @param meet.runtimeClassName Name of the runtime class name for meet pods
+  ## @param backend.runtimeClassName Name of the runtime class name for meet pods
   ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
   ##
   runtimeClassName: ""
@@ -545,9 +545,18 @@ backend:
     ##     timeoutSeconds: 300
     ##
     sessionAffinityConfig: {}
+  ## @param backend.envVars Configure backend container environment variables, see https://github.com/suitenumerique/docs/blob/main/docs/env.md
+  ## @extra backend.envVars.BY_VALUE Example environment variable by setting value directly
+  ## @extra backend.envVars.FROM_CONFIGMAP.configMapKeyRef.name Name of a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra backend.envVars.FROM_CONFIGMAP.configMapKeyRef.key Key within a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra backend.envVars.FROM_SECRET.secretKeyRef.name Name of a Secret when configuring env vars from a Secret
+  ## @extra backend.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
+  ## @skip backend.envVars
+  envVars: ~
   ## Docs backend job configurations dedicated to run a specific management command, for example after a deployment
   ## @param backend.jobs.ttlSecondsAfterFinished Period to wait before remove jobs
   ## @param backend.jobs.backoffLimit Numbers of jobs retries
+  ## @param backend.jobs.releaseSuffix String to make jobs unique per install, to prevent immutability errors
   ## @param backend.jobs.jobs [array] A list of job configurations.
   ## Example:
   ##   jobs:
@@ -560,6 +569,7 @@ backend:
   jobs:
     ttlSecondsAfterFinished: 3600
     backoffLimit: 20
+    releaseSuffix: ""
     jobs:
       - name: migrate
         annotations:
@@ -606,117 +616,15 @@ backend:
   #     restartPolicy: OnFailure
   ## @param backend.cronJobs Cron job name, schedule, command
   cronJobs: []
-  configuration:
-    ## @param backend.configuration.ai.enabled Enable AI options
-    ## @param backend.configuration.ai.allowReachFrom Users that can use AI must be this level. options are "public", "authenticated", "restricted"
-    ## @param backend.configuration.ai.apiKey AI key to be used for AI Base url
-    ## @param backend.configuration.ai.baseUrl OpenAI compatible AI base url
-    ## @param backend.configuration.ai.model AI Model to use
-    ai:
-      enabled: false
-      allowReachFrom: "authenticated"
-      apiKey: "myApiKey"
-      baseUrl: "http://dev-backend-ai.docs.svc.cluster.local"
-      model: "myModel"
-    analytics:
-      crisp:
-        ## @param backend.configuration.analytics.crisp.websiteId Crisp website id for support
-        websiteId: ""
-    django:
-      ## @param backend.configuration.django.configuration Django environment settings, can be one of `Build`, `Development`, `Demo`, `Feature`, 'Test', `Staging`, `PreProduction`, or `Production`
-      configuration: Production
-      ## @param backend.configuration.django.cors.allowAllOrigins Allow all CORS origins
-      ## @param backend.configuration.django.cors.allowedOriginRegexes List of origins allowed for CORS using regulair expressions
-      ## @param backend.configuration.django.cors.allowedOrigins List of origins allowed for CORS
-      cors:
-        allowAllOrigins: false
-        allowedOriginRegexes: ""
-        allowedOrigins: ""
-      ## @param backend.configuration.django.email.backend Email backend library
-      ## @param backend.configuration.django.email.from Email address used as sender
-      ## @param backend.configuration.django.email.brandName Brand name for email
-      ## @param backend.configuration.django.email.host.name Hostname of email
-      ## @param backend.configuration.django.email.host.username User to authenticate with on the email host
-      ## @param backend.configuration.django.email.host.password Password to authenticate with on the email host
-      ## @param backend.configuration.django.email.logoImg Logo for the email
-      ## @param backend.configuration.django.email.port Port used to connect to email host
-      ## @param backend.configuration.django.email.useSsl Use ssl for email host connection
-      ## @param backend.configuration.django.email.useTls Use tls for email host connection
-      email:
-        backend: django.core.mail.backends.smtp.EmailBackend
-        from: from@example.com
-        brandName: "La Suite Numérique"
-        host:
-          name: "mailcatcher"
-          username: ""
-          password: ""
-        logoImg: https://docs.127.0.0.1.nip.io/assets/logo-suite-numerique.png
-        port: 1025
-        useSsl: false
-        useTls: false
-      ## @param backend.configuration.django.serverToServerApiTokens Server to server API tokens
-      serverToServerApiTokens: secret-api-key
-      ## @param backend.configuration.django.secretKey Django secret key
-      secretKey: djangoSecretKey
-      ## @param backend.configuration.django.settingsModule Django settings module
-      settingsModule: impress.settings
-      ## @param backend.configuration.django.storagesStaticFilesBackend Implementation for the static files backend storage
-      storagesStaticFilesBackend: whitenoise.storage.CompressedManifestStaticFilesStorage
-      ## @param backend.configuration.django.superUser.email Super user e-mail address
-      ## @param backend.configuration.django.superUser.password Super user password
-      superUser:
-        email: you@example.com
-        password: admin
-    ## @param backend.configuration.document.maxSize Maximum size of documents and attachments in bytes
-    document:
-      maxSize: 10485760
-    ## @param backend.configuration.frontend.cssUrl To add a external css file to the app
-    ## @param backend.configuration.frontend.homepageFeatureEnabled Frontend feature flag to display the homepage
-    ## @param backend.configuration.frontend.theme Frontend theme to use
-    frontend:
-      cssUrl: ""
-      homepageFeatureEnabled: false
-      theme: ""
-    ## @param backend.configuration.languageCode Default language
-    languageCode: "en-us"
-    ## @param backend.configuration.logging.level.handlers.console Logging level for the console handler.
-    ## @param backend.configuration.logging.level.loggers.root Default logging level. options are "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"
-    ## @param backend.configuration.logging.level.loggers.app Application logging level. options are "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"
-    logging:
-      level:
-        handlers:
-          console: ERROR
-        loggers:
-          root: INFO
-          app: INFO
-    ## @param backend.configuration.malwareDetection.backend The malware detection backend use from the django-lasuite package
-    ## @extra backend.configuration.malwareDetection.parameters A dict containing all the parameters to initiate the malware detection backend
-    ## @skip backend.configuration.malwareDetection.parameters.callback_path
-    malwareDetection:
-      backend: lasuite.malware_detection.backends.dummy.DummyBackend
-      parameters:
-        callback_path: "core.malware_detection.malware_detection_callback"
-    ## @param backend.configuration.sentryDsn Sentry host
-    sentryDsn: ""
-    ## @param backend.configuration.sessionCookieAge Duration of the cookie session
-    sessionCookieAge: 43200
-    ## @param backend.configuration.spectacularSettingsEnableDjangoDeployCheck Runs exemplary schema generation and emits warnings as part of "./manage.py check --deploy"
-    spectacularSettingsEnableDjangoDeployCheck: false
-    ## Theme customization and translation options
-    ## Ref: https://github.com/suitenumerique/docs/blob/main/docs/theming.md
-    ## @param backend.configuration.themeCustomization.enabled Enable theme customization
-    ## @param backend.configuration.themeCustomization.cacheTimeout Cache duration for the customization settings
-    ## @param backend.configuration.themeCustomization.fileContent Content of the theme customization file. Must be a json object.
-    ## @param backend.configuration.themeCustomization.filePath Full path to the file customizing the theme. An example is provided in src/backend/impress/configuration/theme/default.json
-    ## @param backend.configuration.themeCustomization.mountPath Path where the customization file will be mounted in the backend deployment.
-    themeCustomization:
-      enabled: false
-      cacheTimeout: 86400
-      fileContent: ""
-      filePath: ""
-      mountPath: /app/impress/configuration/theme
-    ## @param backend.configuration.trashbinCutoffDays Trashbin cutoff in days
-    trashbinCutoffDays: 30
+  ## Theme customization and translation options
+  ## Ref: https://github.com/suitenumerique/docs/blob/main/docs/theming.md
+  ## @param backend.themeCustomization.enabled Enable theme customization
+  ## @param backend.themeCustomization.fileContent Content of the theme customization file. Must be a json object.
+  ## @param backend.themeCustomization.mountPath Path where the customization file will be mounted in the backend deployment.
+  themeCustomization:
+    enabled: false
+    fileContent: ""
+    mountPath: /app/impress/configuration/theme
   ## @section Celery worker parameters
   celery:
     ## Celery worker image
@@ -935,7 +843,7 @@ backend:
     ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
     ##
     topologySpreadConstraints: []
-    ## @param meet.runtimeClassName Name of the runtime class name for meet pods
+    ## @param backend.celery.runtimeClassName Name of the runtime class name for meet pods
     ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
     ##
     runtimeClassName: ""
@@ -1099,9 +1007,6 @@ backend:
       ingressNSMatchLabels: {}
       ingressNSPodMatchLabels: {}
     configuration:
-      ## @param backend.celery.configuration.broker.transportOptions Celery broker transport options
-      broker:
-        transportOptions: "{}"
       ## @param backend.celery.configuration.concurrency.min Minimum amount of workers available. Each worker takes 80Mib.
       ## @param backend.celery.configuration.concurrency.max Maximum amount of workers available. Each worker takes 80Mib.
       concurrency:
@@ -1366,7 +1271,7 @@ frontend:
   ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
   ##
   topologySpreadConstraints: []
-  ## @param meet.runtimeClassName Name of the runtime class name for meet pods
+  ## @param frontend.runtimeClassName Name of the runtime class name for meet pods
   ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
   ##
   runtimeClassName: ""
@@ -1844,7 +1749,7 @@ yProvider:
   ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
   ##
   topologySpreadConstraints: []
-  ## @param meet.runtimeClassName Name of the runtime class name for meet pods
+  ## @param yProvider.runtimeClassName Name of the runtime class name for meet pods
   ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
   ##
   runtimeClassName: ""
@@ -2060,23 +1965,14 @@ yProvider:
     ##
     sessionAffinityConfig: {}
   configuration:
+    ## @param yProvider.configuration.loggingEnabled Enable logging
+    loggingEnabled: true
     ## @param yProvider.configuration.api.key Y provider API key
     api:
       key: my-secret
-    ## @param yProvider.configuration.caches.keyPrefix The prefix used to every cache keys.
-    ## @param yProvider.configuration.caches.defaultTimeout Cache default timeout
-    caches:
-      keyPrefix: "docs"
-      defaultTimeout: 30
-    ## @param yProvider.configuration.conversionApi.contentField Conversion api content field
-    ## @param yProvider.configuration.conversionApi.endpoint Conversion API endpoint
-    ## @param yProvider.configuration.conversionApi.secure Require secure conversion api
-    ## @param yProvider.configuration.conversionApi.timeout Conversion api timeout
-    conversionApi:
-      contentField: content
-      endpoint: convert
-      secure: false
-      timeout: 30
+    ## @param yProvider.configuration.collaboration.serverSecret Collaboration server secret
+    collaboration:
+      serverSecret: server-secret
 
 ## @section Traffic Exposure Parameters
 ##
@@ -2780,103 +2676,3 @@ metrics:
     ##   prometheus: my-prometheus
     ##
     selector: {}
-
-## @section Docs configuration paramaters
-
-## @param collaboration.api.secret Secret for the collaboration API
-## @param collaboration.loggingEnabled Enable logging
-## @param collaboration.webSockets.notConnected.readOnly Users not connected to the collaboration server cannot edit
-## @param collaboration.webSockets.notConnected.cacheTimeout Cache used to store current editor session key when only users without websocket are editing a document
-collaboration:
-  api:
-    # Collaboration api secret
-    secret: my-secret
-  loggingEnabled: true
-  webSockets:
-    notConnected:
-      readOnly: false
-      cacheTimeout: 120
-
-auth:
-  oidc:
-    ## @param auth.oidc.allowDuplicateEmails Allow duplicate emails
-    ## @param auth.oidc.authRequestExtraParams OIDC extra auth parameters
-    ## @param auth.oidc.createUser Create used on OIDC
-    ## @param auth.oidc.fallbackToEmailForIdentification Fallback to email for identification
-    allowDuplicateEmails: false
-    authRequestExtraParams: "{}"
-    createUser: false
-    fallbackToEmailForIdentification: true
-    ## @param auth.oidc.openIdProvider.jwksEndpoint JWKS endpoint for OIDC
-    ## @param auth.oidc.openIdProvider.authorizationEndpoint Authorization endpoint for OIDC
-    ## @param auth.oidc.openIdProvider.tokenEndpoint Token endpoint for OIDC
-    ## @param auth.oidc.openIdProvider.userEndpoint User endpoint for OIDC
-    ## @param auth.oidc.openIdProvider.logoutEndpoint Logout endpoint for OIDC
-    openIdProvider:
-      jwksEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/certs
-      authorizationEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/auth
-      tokenEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/token
-      userEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/userinfo
-      logoutEndpoint: https://docs-keycloak.127.0.0.1.nip.io/realms/docs/protocol/openid-connect/logout
-    ## @param auth.oidc.redirect.allowedHosts Allowed hosts for OIDC redirect url
-    ## @param auth.oidc.redirect.requireHttps Require https for OIDC redirect url
-    redirect:
-      allowedHosts: []
-      requireHttps: false
-    ## @param auth.oidc.relyingParty.clientId Client id used for OIDC
-    ## @param auth.oidc.relyingParty.clientSecret Client secret used for OIDC
-    ## @param auth.oidc.relyingParty.scopes Scopes requested for OIDC
-    ## @param auth.oidc.relyingParty.signAlgo Verification algorithm used OIDC tokens
-    relyingParty:
-      clientId: docs
-      clientSecret: ThisIsAnExampleKeyForDevPurposeOnly
-      scopes: "openid email"
-      signAlgo: RS256
-    ## @param auth.oidc.storeIdToken Store OIDC token
-    ## @param auth.oidc.useNonce Use nonce for OIDC
-    storeIdToken: true
-    useNonce: true
-    ## @param auth.oidc.userInfo.fullNameField OIDC token claims to create full name
-    ## @param auth.oidc.userInfo.shortNameField OIDC token claims to create shortname
-    userInfo:
-      fullNameField: "given_name,usual_name"
-      shortNameField: "given_name"
-    ## @param auth.oidc.userEssentialClaims Essential claims in OIDC token
-    userEssentialClaims: "[]"
-  ## @param auth.api.usersList.limit Limit on API users
-  ## @param auth.api.usersList.throttleRateBurst Throttle rate for api on burst
-  ## @param auth.api.usersList.throttleRateSustained Throttle rate for api
-  api:
-    usersList:
-      limit: 5
-      throttleRateBurst: "30/minute"
-      throttleRateSustained: "180/hour"
-
-
-## @param database.engine Engine to use for database connections
-## @param database.host Host of the database
-## @param database.port Port of the database
-## @param database.name Name of the database
-## @param database.user User to authenticate with
-## @param database.password Password to authenticate with
-database:
-  engine: django.db.backends.postgresql_psycopg2
-  host: localhost
-  port: 5432
-  name: impress
-  user: dinum
-  password: pass
-
-## @param redis.url Cache url, also used as Celery broker.
-redis:
-  url: redis://user:pass@redis-master:6379/1
-
-## @param awsS3.endpointUrl S3 endpoint
-## @param awsS3.accessKeyId Access id for s3 endpoint
-## @param awsS3.secretAccessKey Access key for s3 endpoint
-## @param awsS3.storageBucketName Bucket name for s3 endpoint
-awsS3:
-  endpointUrl: http://dev-backend-minio.docs.svc.cluster.local:9000
-  accessKeyId: dinum
-  secretAccessKey: password
-  storageBucketName: docs-media-storage

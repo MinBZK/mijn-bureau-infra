@@ -3,7 +3,7 @@
 SPDX-License-Identifier: APACHE-2.0
 */}}
 
-{{- if .Values.backend.configuration.themeCustomization.enabled }}
+{{- if .Values.backend.themeCustomization.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -16,5 +16,5 @@ metadata:
   {{- end }}
 data:
   default.json: |
-    {{ .Values.backend.configuration.themeCustomization.fileContent | toJson | indent 4 }}
+    {{ .Values.backend.themeCustomization.fileContent | toJson | indent 4 }}
 {{- end }}

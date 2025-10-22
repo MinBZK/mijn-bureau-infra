@@ -2,6 +2,7 @@
 
 SPDX-License-Identifier: APACHE-2.0
 */}}
+{{- $envVars := include "docs.common.env" (list . .Values.backend) -}}
 
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
@@ -99,12 +100,13 @@ spec:
           env:
             - name: BITNAMI_DEBUG
               value: {{ ternary "true" "false" (or .Values.backend.image.debug .Values.diagnosticMode.enabled) | quote }}
+            {{- if $envVars }}
+            {{- $envVars | indent 12 }}
+            {{- end }}
             {{- if .Values.backend.celery.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.backend.celery.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
           envFrom:
-            - configMapRef:
-                name: {{ template "docs.backend.fullname" . }}-env
             {{- if .Values.backend.celery.extraEnvVarsCM }}
             - configMapRef:
                 name: {{ include "common.tplvalues.render" (dict "value" .Values.backend.celery.extraEnvVarsCM "context" $) }}
@@ -154,9 +156,9 @@ spec:
             - name: empty-dir
               mountPath: /tmp
               subPath: tmp-dir
-            {{- if .Values.backend.configuration.themeCustomization.enabled }}
+            {{- if .Values.backend.themeCustomization.enabled }}
             - name: theme-customization
-              mountPath: {{ .Values.backend.configuration.themeCustomization.mountPath }}
+              mountPath: {{ .Values.backend.themeCustomization.mountPath }}
               readOnly: true
             {{- end }}
           {{- if .Values.backend.celery.extraVolumeMounts }}
@@ -168,7 +170,7 @@ spec:
       volumes:
         - name: empty-dir
           emptyDir: {}
-        {{- if .Values.backend.configuration.themeCustomization.enabled }}
+        {{- if .Values.backend.themeCustomization.enabled }}
         - name: theme-customization
           configMap:
             name: {{ include "docs.theme.fullname" . }}

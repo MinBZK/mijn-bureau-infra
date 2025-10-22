@@ -2,13 +2,15 @@
 
 SPDX-License-Identifier: APACHE-2.0
 */}}
+{{- $envVars := include "docs.common.env" (list . .Values.backend) -}}
+
 {{- range $job, $config := $.Values.backend.jobs.jobs }}
 {{- if $config.command }}
 ---
 apiVersion: {{ include "common.capabilities.job.apiVersion" $ }}
 kind: Job
 metadata:
-  name: {{ template "docs.backend.fullname" $ }}-{{ $config.name | lower | default "random" | replace "_" "-" }}
+  name: {{ template "docs.backend.fullname" $ }}-{{ $config.name | lower | default "random" | replace "_" "-" }}-{{ $.Values.backend.jobs.releaseSuffix }}
   namespace: {{ include "common.names.namespace" $ | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
     app.kubernetes.io/component: backend-{{ $config.name | lower | default "random" | replace "_" "-" }}
@@ -72,9 +74,14 @@ spec:
           {{- if $.Values.backend.args }}
           args: {{- include "common.tplvalues.render" (dict "value" $.Values.backend.args "context" $) | nindent 12 }}
           {{- end }}
+          env:
+            {{- if $envVars }}
+            {{- $envVars | indent 12 }}
+            {{- end }}
+            {{- if $.Values.backend.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" $.Values.backend.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
           envFrom:
-            - configMapRef:
-                name: {{ template "docs.backend.fullname" $ }}-env
             {{- if $.Values.backend.extraEnvVarsCM }}
             - configMapRef:
                 name: {{ include "common.tplvalues.render" (dict "value" $.Values.backend.extraEnvVarsCM "context" $) }}
@@ -92,9 +99,9 @@ spec:
             - name: empty-dir
               mountPath: /tmp
               subPath: tmp-dir
-            {{- if $.Values.backend.configuration.themeCustomization.enabled }}
+            {{- if $.Values.backend.themeCustomization.enabled }}
             - name: theme-customization
-              mountPath: {{ $.Values.backend.configuration.themeCustomization.mountPath }}
+              mountPath: {{ $.Values.backend.themeCustomization.mountPath }}
               readOnly: true
             {{- end }}
             {{- if $.Values.backend.extraVolumeMounts }}
@@ -106,7 +113,7 @@ spec:
       volumes:
         - name: empty-dir
           emptyDir: {}
-        {{- if $.Values.backend.configuration.themeCustomization.enabled }}
+        {{- if $.Values.backend.themeCustomization.enabled }}
         - name: theme-customization
           configMap:
             name: {{ include "docs.theme.fullname" $ }}

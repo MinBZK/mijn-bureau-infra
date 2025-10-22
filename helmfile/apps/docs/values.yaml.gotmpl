@@ -1,4 +1,8 @@
-{{ $hostname := printf "%s.%s" .Values.global.hostname.docs .Values.global.domain }}
+{{- $releaseId := now | unixEpoch }}
+{{- $hostname := printf "%s.%s" .Values.global.hostname.docs .Values.global.domain }}
+{{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
+{{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
+{{- $redisUrl := printf "redis://default:%s@%s:%d/1" .Values.cache.docs.password .Values.cache.docs.host .Values.cache.docs.port -}}
 
 global:
   security:
@@ -78,174 +82,250 @@ backend:
       # Allow http egress for yProvider connection
       - ports:
           - port: 4444
-  configuration:
-    ai:
-      enabled: {{ not (empty .Values.ai.llm.model) }}
-      allowReachFrom: "authenticated"
-      apiKey: {{ .Values.ai.llm.apiKey }}
-      baseUrl: "http{{ ternary "s" "" .Values.ai.llm.endpoint.isSsl }}://{{ .Values.ai.llm.endpoint.host }}:{{ .Values.ai.llm.endpoint.port }}/{{ .Values.ai.llm.endpoint.openApiVersion }}"
-      model: {{ .Values.ai.llm.model }}
-    django:
-      cors:
-        allowAllOrigins: false
-        allowedOriginRegexes: ""
-        allowedOrigins: {{ printf "http%s://%s:%d" (ternary "s" "" (.Values.global.tls.enabled | default true)) $hostname }}
-      email:
-        brandName: {{ .Values.smtp.from.name }}
-        from: {{ .Values.smtp.from.email }}
-        host:
-          name: {{ .Values.smtp.host }}
-          username: {{ .Values.smtp.username }}
-          password: {{ .Values.smtp.password }}
-        logoImg: {{ .Values.smtp.from.logoImage }}
-        port: {{ .Values.smtp.port }}
-        useTls: {{ .Values.smtp.tls.enabled }}
-      secretKey: {{ .Values.application.docs.backend.django.secretKey }}
-      superUser:
-        email: {{ .Values.secret.docs.superUser.email }}
-        password: {{ .Values.secret.docs.superUser.password }}
-      storagesStaticFilesBackend: django.contrib.staticfiles.storage.StaticFilesStorage
-    languageCode: {{ .Values.global.defaultLocale | default "nl" }}
-    themeCustomization:
-      enabled: true
-      fileContent: |
-        {
-          "translations": {
-              "en": {
-                "translation": {
-                  "Docs": "Mijn Bureau Docs",
-                  "New doc": "+"
-                }
-              }
-            },
-          "footer": {
-            "default": {
-              "logo": {
-                "src": "/assets/icon-docs.svg",
-                "width": "54px",
-                "alt": "Docs Logo",
-                "withTitle": true
-              },
-              "externalLinks": [
-                {
-                  "label": "GitHub",
-                  "href": "https://github.com/suitenumerique/docs/"
-                },
-                {
-                  "label": "DINUM",
-                  "href": "https://www.numerique.gouv.fr/dinum/"
-                },
-                {
-                  "label": "ZenDiS",
-                  "href": "https://zendis.de/"
-                },
-                {
-                  "label": "BlockNote.js",
-                  "href": "https://www.blocknotejs.org/"
-                }
-              ],
-              "bottomInformation": {
-                "label": "Unless otherwise stated, all content on this site is under",
-                "link": {
-                  "label": "licence etalab-2.0",
-                  "href": "https://github.com/etalab/licence-ouverte/blob/master/LO.md"
-                }
-              }
-            },
+  jobs:
+    releaseSuffix: {{ $releaseId | quote }}
+  envVars:
+    AWS_S3_ENDPOINT_URL: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.docs.useSSL) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port | quote }}
+    AWS_S3_ACCESS_KEY_ID: {{ .Values.objectstore.docs.username | quote }}
+    AWS_S3_SECRET_ACCESS_KEY: {{ .Values.objectstore.docs.rootPassword | quote }}
+    AWS_STORAGE_BUCKET_NAME: {{ .Values.objectstore.docs.bucket | quote }}
+    AI_FEATURE_ENABLED: {{ not (empty .Values.ai.llm.model) | quote }}
+    {{- if .Values.ai.llm.endpoint.host }}
+    AI_ALLOW_REACH_FROM: "authenticated"
+    AI_API_KEY: {{ .Values.ai.llm.apiKey | quote }}
+    AI_BASE_URL: {{ printf "http%s://%s:%d/%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.openApiVersion }}
+    AI_MODEL: {{ .Values.ai.llm.model | quote }}
+    {{- end }}
+    API_USERS_LIST_LIMIT: "5"
+    API_USERS_LIST_THROTTLE_RATE_BURST: "30/minute"
+    API_USERS_LIST_THROTTLE_RATE_SUSTAINED: "180/hour"
+    CACHES_KEY_PREFIX: "docs-{{ $releaseId }}"
+    CACHES_DEFAULT_TIMEOUT: "30"
+    COLLABORATION_API_URL: {{ printf "http%s://%s%s" $sslPostfix $hostname "/collaboration/api/" | quote }}
+    COLLABORATION_SERVER_SECRET: {{ .Values.application.docs.collaboration.secret | quote }}
+    COLLABORATION_WS_URL: {{ printf "ws%s://%s%s" $sslPostfix $hostname "/collaboration/ws/" | quote }}
+    COLLABORATION_WS_NOT_CONNECTED_READY_ONLY: "true"
+    CONVERSION_API_CONTENT_FIELD: "content"
+    CONVERSION_API_ENDPOINT: "convert"
+    CONVERSION_API_SECURE: "false"
+    CONVERSION_API_TIMEOUT: "30"
+    CRISP_WEBSITE_ID: ""
+    # FIXME Disabled until next docs release 3.8.x, see https://github.com/suitenumerique/docs/issues/1369
+    # DOCUMENT_IMAGE_MAX_SIZE: 10485760
+    FRONTEND_CSS_URL: ""
+    FRONTEND_HOMEPAGE_FEATURE_ENABLED: "false"
+    FRONTEND_THEME: ""
+    DB_ENGINE: {{ .Values.database.docs.engine | quote}}
+    DB_HOST: {{ .Values.database.docs.host | quote }}
+    DB_PORT: {{ .Values.database.docs.port | quote }}
+    DB_NAME: {{ .Values.database.docs.name | quote }}
+    DB_USER: {{ .Values.database.docs.user | quote }}
+    DB_PASSWORD: {{ .Values.database.docs.password | quote }}
+    DJANGO_ALLOWED_HOSTS: {{ $hostname | quote }}
+    DJANGO_CELERY_BROKER_URL: {{ $redisUrl | quote }}
+    DJANGO_CELERY_BROKER_TRANSPORT_OPTIONS: ""
+    DJANGO_CORS_ALLOW_ALL_ORIGINS: "false"
+    DJANGO_CORS_ALLOWED_ORIGIN_REGEXES: ""
+    DJANGO_CORS_ALLOWED_ORIGINS: {{ $baseUrl | quote }}
+    DJANGO_CSRF_TRUSTED_ORIGINS: {{ $baseUrl | quote }}
+    DJANGO_CONFIGURATION: "Production"
+    DJANGO_EMAIL_BACKEND: "django.core.mail.backends.smtp.EmailBackend"
+    DJANGO_EMAIL_BRAND_NAME: {{ .Values.smtp.from.name | quote }}
+    DJANGO_EMAIL_FROM: {{ .Values.smtp.from.email | quote }}
+    DJANGO_EMAIL_HOST: {{ .Values.smtp.host | quote }}
+    DJANGO_EMAIL_HOST_PASSWORD: {{ .Values.smtp.password | quote }}
+    DJANGO_EMAIL_HOST_USER: {{ .Values.smtp.username | quote }}
+    DJANGO_EMAIL_LOGO_IMG: {{ .Values.smtp.from.logoImage | quote }}
+    DJANGO_EMAIL_PORT: {{ .Values.smtp.port | quote }}
+    DJANGO_EMAIL_USE_SSL: "false"
+    DJANGO_EMAIL_USE_TLS: {{ .Values.smtp.tls.enabled | quote }}
+    DJANGO_SERVER_TO_SERVER_API_TOKENS: "secret-api-key"
+    DJANGO_SECRET_KEY: {{ .Values.application.docs.backend.django.secretKey | quote }}
+    DJANGO_SETTINGS_MODULE: "impress.settings"
+    DJANGO_SUPERUSER_EMAIL: {{ .Values.secret.docs.superUser.email | quote }}
+    DJANGO_SUPERUSER_PASSWORD: {{ .Values.secret.docs.superUser.password | quote }}
+    LANGUAGE_CODE: {{ .Values.global.defaultLocale | default "nl" | quote }}
+    LOGGING_LEVEL_HANDLERS_CONSOLE: "ERROR"
+    LOGGING_LEVEL_LOGGERS_APP: "INFO"
+    LOGGING_LEVEL_LOGGERS_ROOT: "INFO"
+    LOGIN_REDIRECT_URL: {{ $baseUrl | quote }}
+    LOGIN_REDIRECT_URL_FAILURE: {{ $baseUrl | quote }}
+    LOGOUT_REDIRECT_URL: {{ $baseUrl | quote }}
+    MALWARE_DETECTION_BACKEND: "lasuite.malware_detection.backends.dummy.DummyBackend"
+    MALWARE_DETECTION_PARAMETERS: '{"callback_path": "core.malware_detection.malware_detection_callback",}'
+    MEDIA_BASE_URL: {{ $baseUrl | quote }}
+    NO_WEBSOCKET_CACHE_TIMEOUT: "120"
+    OIDC_ALLOW_DUPLICATE_EMAILS: "false"
+    OIDC_AUTH_REQUEST_EXTRA_PARAMS: "{}"
+    OIDC_CREATE_USER: "false"
+    OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION: "true"
+    OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.oidc.jwks_uri | quote }}
+    OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.oidc.authorization_endpoint | quote }}
+    OIDC_OP_TOKEN_ENDPOINT: {{ .Values.authentication.oidc.token_endpoint | quote }}
+    OIDC_OP_USER_ENDPOINT: {{ .Values.authentication.oidc.userinfo_endpoint | quote }}
+    OIDC_OP_LOGOUT_ENDPOINT: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
+    OIDC_REDIRECT_ALLOWED_HOSTS: "[{{ $baseUrl }}]"
+    OIDC_REDIRECT_REQUIRE_HTTPS: "true"
+    OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.docs.client_id | quote }}
+    OIDC_RP_CLIENT_SECRET: {{ .Values.authentication.client.docs.client_secret | quote }}
+    OIDC_RP_SIGN_ALGO: "RS256"
+    OIDC_RP_SCOPES: "openid email"
+    OIDC_STORE_ID_TOKEN: "true"
+    OIDC_USE_NONCE: "true"
+    OIDC_USERINFO_FULLNAME_FIELDS: {{ .Values.authentication.oidc.claims.given_name | quote }}
+    OIDC_USERINFO_SHORTNAME_FIELD: {{ .Values.authentication.oidc.claims.display_name | quote }}
+    PYTHONPATH: "/app"
+    REDIS_URL: {{ $redisUrl | quote }}
+    SENTRY_DSN: ""
+    SESSION_COOKIE_AGE: "43200"
+    SPECTACULAR_SETTINGS_ENABLE_DJANGO_DEPLOY_CHECK: "false"
+    STORAGES_STATICFILES_BACKEND: "django.contrib.staticfiles.storage.StaticFilesStorage"
+    THEME_CUSTOMIZATION_CACHE_TIMEOUT: "86400"
+    THEME_CUSTOMIZATION_FILE_PATH: ""
+    TRASHBIN_CUTOFF_DAYS: "30"
+    USER_OIDC_ESSENTIAL_CLAIMS: ""
+    Y_PROVIDER_API_BASE_URL: "http://docs-y-provider:443/api/"
+    Y_PROVIDER_API_KEY: {{ .Values.application.docs.yProvider.key | quote }}
+  themeCustomization:
+    enabled: true
+    fileContent: |
+      {
+        "translations": {
             "en": {
-              "legalLinks": [
-                {
-                  "label": "Legal Notice",
-                  "href": "#"
-                },
-                {
-                  "label": "Personal data and cookies",
-                  "href": "#"
-                },
-                {
-                  "label": "Accessibility",
-                  "href": "#"
-                }
-              ],
-              "bottomInformation": {
-                "label": "Unless otherwise stated, all content on this site is under",
-                "link": {
-                  "label": "licence MIT",
-                  "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
-                }
+              "translation": {
+                "Docs": "Mijn Bureau Docs",
+                "New doc": "+"
               }
+            }
+          },
+        "footer": {
+          "default": {
+            "logo": {
+              "src": "/assets/icon-docs.svg",
+              "width": "54px",
+              "alt": "Docs Logo",
+              "withTitle": true
             },
-            "fr": {
-              "legalLinks": [
-                {
-                  "label": "Mentions légales",
-                  "href": "#"
-                },
-                {
-                  "label": "Données personnelles et cookies",
-                  "href": "#"
-                },
-                {
-                  "label": "Accessibilité",
-                  "href": "#"
-                }
-              ],
-              "bottomInformation": {
-                "label": "Sauf mention contraire, tout le contenu de ce site est sous",
-                "link": {
-                  "label": "licence MIT",
-                  "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
-                }
+            "externalLinks": [
+              {
+                "label": "GitHub",
+                "href": "https://github.com/suitenumerique/docs/"
+              },
+              {
+                "label": "DINUM",
+                "href": "https://www.numerique.gouv.fr/dinum/"
+              },
+              {
+                "label": "ZenDiS",
+                "href": "https://zendis.de/"
+              },
+              {
+                "label": "BlockNote.js",
+                "href": "https://www.blocknotejs.org/"
               }
-            },
-            "de": {
-              "legalLinks": [
-                {
-                  "label": "Impressum",
-                  "href": "#"
-                },
-                {
-                  "label": "Personenbezogene Daten und Cookies",
-                  "href": "#"
-                },
-                {
-                  "label": "Barrierefreiheit",
-                  "href": "#"
-                }
-              ],
-              "bottomInformation": {
-                "label": "Sofern nicht anders angegeben, steht der gesamte Inhalt dieser Website unter",
-                "link": {
-                  "label": "licence MIT",
-                  "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
-                }
+            ],
+            "bottomInformation": {
+              "label": "Unless otherwise stated, all content on this site is under",
+              "link": {
+                "label": "licence etalab-2.0",
+                "href": "https://github.com/etalab/licence-ouverte/blob/master/LO.md"
               }
-            },
-            "nl": {
-              "legalLinks": [
-                {
-                  "label": "Wettelijke bepalingen",
-                  "href": "#"
-                },
-                {
-                  "label": "Persoonlijke gegevens en cookies",
-                  "href": "#"
-                },
-                {
-                  "label": "Toegankelijkheid",
-                  "href": "#"
-                }
-              ],
-              "bottomInformation": {
-                "label": "Tenzij anders vermeld, is alle inhoud van deze site ondergebracht onder",
-                "link": {
-                  "label": "licence MIT",
-                  "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
-                }
+            }
+          },
+          "en": {
+            "legalLinks": [
+              {
+                "label": "Legal Notice",
+                "href": "#"
+              },
+              {
+                "label": "Personal data and cookies",
+                "href": "#"
+              },
+              {
+                "label": "Accessibility",
+                "href": "#"
+              }
+            ],
+            "bottomInformation": {
+              "label": "Unless otherwise stated, all content on this site is under",
+              "link": {
+                "label": "licence MIT",
+                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
+              }
+            }
+          },
+          "fr": {
+            "legalLinks": [
+              {
+                "label": "Mentions légales",
+                "href": "#"
+              },
+              {
+                "label": "Données personnelles et cookies",
+                "href": "#"
+              },
+              {
+                "label": "Accessibilité",
+                "href": "#"
+              }
+            ],
+            "bottomInformation": {
+              "label": "Sauf mention contraire, tout le contenu de ce site est sous",
+              "link": {
+                "label": "licence MIT",
+                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
+              }
+            }
+          },
+          "de": {
+            "legalLinks": [
+              {
+                "label": "Impressum",
+                "href": "#"
+              },
+              {
+                "label": "Personenbezogene Daten und Cookies",
+                "href": "#"
+              },
+              {
+                "label": "Barrierefreiheit",
+                "href": "#"
+              }
+            ],
+            "bottomInformation": {
+              "label": "Sofern nicht anders angegeben, steht der gesamte Inhalt dieser Website unter",
+              "link": {
+                "label": "licence MIT",
+                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
+              }
+            }
+          },
+          "nl": {
+            "legalLinks": [
+              {
+                "label": "Wettelijke bepalingen",
+                "href": "#"
+              },
+              {
+                "label": "Persoonlijke gegevens en cookies",
+                "href": "#"
+              },
+              {
+                "label": "Toegankelijkheid",
+                "href": "#"
+              }
+            ],
+            "bottomInformation": {
+              "label": "Tenzij anders vermeld, is alle inhoud van deze site ondergebracht onder",
+              "link": {
+                "label": "licence MIT",
+                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
               }
             }
           }
-        }"
+        }
+      }"
   celery:
     livenessProbe:
       enabled: false
@@ -373,8 +453,8 @@ yProvider:
   configuration:
     api:
       key: {{ .Values.application.docs.yProvider.key }}
-    caches:
-      keyPrefix: {{ now | unixEpoch | quote }}
+    collaboration:
+      serverSecret: {{ .Values.application.docs.collaboration.secret }}
 
 ingress:
   enabled: true
@@ -506,43 +586,3 @@ ingressMedia:
   tls: {{ .Values.global.tls.enabled | default true }}
   selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
   extraTls: {{ .Values.tls.docs | toYaml | nindent 4 }}
-
-collaboration:
-  api:
-    secret: {{ .Values.application.docs.collaboration.secret }}
-  webSockets:
-    notConnectedReadOnly: true
-
-auth:
-  oidc:
-    userInfo:
-      shortNameField: {{ .Values.authentication.oidc.claims.given_name }}
-      fullNameField: {{ .Values.authentication.oidc.claims.display_name }}
-    openIdProvider:
-      jwksEndpoint: {{ .Values.authentication.oidc.jwks_uri }}
-      authorizationEndpoint: {{ .Values.authentication.oidc.authorization_endpoint }}
-      tokenEndpoint: {{ .Values.authentication.oidc.token_endpoint }}
-      userEndpoint: {{ .Values.authentication.oidc.userinfo_endpoint }}
-      logoutEndpoint: {{ .Values.authentication.oidc.end_session_endpoint }}
-    relyingParty:
-      clientId: {{ .Values.authentication.client.docs.client_id }}
-      clientSecret: {{ .Values.authentication.client.docs.client_secret }}
-      signAlgo: RS256
-      scopes: "openid email"
-
-database:
-  engine: {{ .Values.database.docs.engine }}
-  host: {{ .Values.database.docs.host }}
-  port: {{ .Values.database.docs.port }}
-  name: {{ .Values.database.docs.name }}
-  user: {{ .Values.database.docs.user }}
-  password: {{ .Values.database.docs.password }}
-
-redis:
-  url: {{ printf "redis://default:%s@%s:%d/1" .Values.cache.docs.password .Values.cache.docs.host .Values.cache.docs.port }}
-
-awsS3:
-  endpointUrl: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.docs.useSSL) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port }}
-  accessKeyId: {{ .Values.objectstore.docs.username }}
-  secretAccessKey: {{ .Values.objectstore.docs.rootPassword }}
-  storageBucketName: {{ .Values.objectstore.docs.bucket }}

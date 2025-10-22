@@ -121,3 +121,43 @@ Base URL for the deployment
 {{- define "docs.baseUrl" -}}
 {{- printf "http%s://%s" ( ternary "s" "" .Values.ingress.tls ) .Values.ingress.hostname -}}
 {{- end -}}
+
+{{/*
+transform dictionary of environment variables
+Usage : {{ include "docs.env.transformDict" .Values.envVars }}
+
+Example:
+envVars:
+  # Using simple strings as env vars
+  ENV_VAR_NAME: "envVar value"
+  # Using a value from a configMap
+  ENV_VAR_FROM_CM:
+    configMapKeyRef:
+      name: cm-name
+      key: "key_in_cm"
+  # Using a value from a secret
+  ENV_VAR_FROM_SECRET:
+    secretKeyRef:
+      name: secret-name
+      key: "key_in_secret"
+*/}}
+{{- define "docs.env.transformDict" -}}
+{{- range $key, $value := . }}
+- name: {{ $key | quote }}
+{{- if $value | kindIs "map" }}
+  valueFrom: {{ $value | toYaml | nindent 4 }}
+{{- else }}
+  value: {{ $value | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+
+{{/*
+docs env vars
+*/}}
+{{- define "docs.common.env" -}}
+{{- $topLevelScope := index . 0 -}}
+{{- $workerScope := index . 1 -}}
+{{- include "docs.env.transformDict" $workerScope.envVars -}}
+{{- end }}

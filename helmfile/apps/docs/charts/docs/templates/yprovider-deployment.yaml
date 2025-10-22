@@ -99,11 +99,11 @@ spec:
             - name: COLLABORATION_BACKEND_BASE_URL
               value: {{ include "docs.baseUrl" . | quote }}
             - name: COLLABORATION_LOGGING
-              value: {{ .Values.collaboration.loggingEnabled | quote }}
+              value: {{ .Values.yProvider.configuration.loggingEnabled | quote }}
             - name: COLLABORATION_SERVER_ORIGIN
               value: {{ include "docs.baseUrl" . | quote }}
             - name: COLLABORATION_SERVER_SECRET
-              value: {{ .Values.collaboration.api.secret | quote }}
+              value: {{ .Values.yProvider.configuration.collaboration.serverSecret | quote }}
             - name: Y_PROVIDER_API_KEY
               value: {{ .Values.yProvider.configuration.api.key | quote }}
             {{- if .Values.yProvider.extraEnvVars }}
