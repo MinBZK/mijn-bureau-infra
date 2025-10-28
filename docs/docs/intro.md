@@ -44,7 +44,7 @@ We are actively expanding the suite with plans to include:
 MijnBureau currently includes the following key components:
 
 | Feature            | Functional Component | Component Version                                                                 | Upstream Documentation                                                               | LICENSE    |
-| ------------------ | -------------------- |-----------------------------------------------------------------------------------| ------------------------------------------------------------------------------------ | ---------- |
+| ------------------ | -------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------- |
 | Identity Provider  | Keycloak             | [26.2.4](https://github.com/keycloak/keycloak/releases/tag/26.2.4)                | [documentation](https://www.keycloak.org/documentation)                              | Apache-2.0 |
 | Chat               | Element Synapse      | [v1.129](https://github.com/element-hq/synapse/tree/v1.129.0)                     | [documentation](https://element-hq.github.io/synapse/latest/)                        | AGPL-3.0   |
 | Chat UI            | Element Web          | [V1.11.106](https://github.com/element-hq/element-web/tree/v1.11.106)             | [documentation](https://element.io/)                                                 | AGPL-3.0   |
