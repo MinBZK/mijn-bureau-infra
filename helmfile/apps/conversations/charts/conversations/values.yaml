@@ -90,7 +90,7 @@ conversations:
   image:
     registry: docker.io
     repository: lasuite/conversations-backend
-    tag: main
+    tag: v0.0.5
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -454,7 +454,7 @@ conversations_frontend:
   image:
     registry: docker.io
     repository: lasuite/conversations-frontend
-    tag: main
+    tag: v0.0.5
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
