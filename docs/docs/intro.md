@@ -44,7 +44,7 @@ We are actively expanding the suite with plans to include:
 MijnBureau currently includes the following key components:
 
 | Feature            | Functional Component | Component Version                                                                 | Upstream Documentation                                                               | LICENSE    |
-| ------------------ | -------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------- |
+| ------------------ | -------------------- |-----------------------------------------------------------------------------------| ------------------------------------------------------------------------------------ | ---------- |
 | Identity Provider  | Keycloak             | [26.2.4](https://github.com/keycloak/keycloak/releases/tag/26.2.4)                | [documentation](https://www.keycloak.org/documentation)                              | Apache-2.0 |
 | Chat               | Element Synapse      | [v1.129](https://github.com/element-hq/synapse/tree/v1.129.0)                     | [documentation](https://element-hq.github.io/synapse/latest/)                        | AGPL-3.0   |
 | Chat UI            | Element Web          | [V1.11.106](https://github.com/element-hq/element-web/tree/v1.11.106)             | [documentation](https://element.io/)                                                 | AGPL-3.0   |
@@ -55,4 +55,4 @@ MijnBureau currently includes the following key components:
 | Notes              | Docs                 | [v3.8.0](https://github.com/suitenumerique/docs/releases/tag/v3.8.0)              | [documentation](https://github.com/suitenumerique/docs/tree/main/docs/installation)  | MIT        |
 | Video backend      | Livekit              | [v1.9.1](https://github.com/livekit/livekit/releases/tag/v1.9.1)                  | [documentation](https://livekit.io/)                                                 | Apache-2.0 |
 | Video conferencing | Meet                 | [v0.1.38](https://github.com/suitenumerique/meet/releases/tag/v0.1.38)            | [documentation](https://github.com/suitenumerique/meet/tree/main/docs)               | MIT        |
-| AI Assistent       | Conversations        | [main](https://github.com/suitenumerique/conversations/)                          | [documentation](https://github.com/suitenumerique/conversations/blob/main/README.md) | MIT        |
+| AI Assistent       | Conversations        | [v0.0.5](https://github.com/suitenumerique/conversations/tags/v0.0.5)             | [documentation](https://github.com/suitenumerique/conversations/blob/main/README.md) | MIT        |
