@@ -98,7 +98,7 @@ jobs:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY || 'dependabot'  }}
 
       - name: Upload rendered manifests
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: rendered-manifests
           path: /tmp/manifest/
@@ -113,7 +113,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: rendered-manifests
           path: /tmp/manifest
@@ -171,7 +171,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: "22"
 
@@ -208,7 +208,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: rendered-manifests
           path: /tmp/manifest
@@ -234,7 +234,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: rendered-manifests
           path: /tmp/manifest
@@ -283,7 +283,7 @@ jobs:
 
       - name: Find Comment
         if: ${{ steps.diff.outputs.file_size != '0' }}
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v4
         id: fc
         with:
           issue-number: ${{ github.event.pull_request.number }}
@@ -293,7 +293,7 @@ jobs:
       # comment on pr with diff
       - name: Comment on PR with diff
         if: ${{ steps.diff.outputs.file_size != '0' }}
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-path: formatted_diff.txt
