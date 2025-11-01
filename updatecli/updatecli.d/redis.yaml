@@ -1,0 +1,69 @@
+name: "Update redis container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump redis version to {{ source "redis_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  redis_latest_version:
+    name: "Get latest redis tag"
+    kind: dockerimage
+    spec:
+      image: "bitnamilegacy/redis"
+      architecture: amd64
+      tagfilter: "^[0-9.]+-debian-[0-9]+-r[0-9]+$"
+      versionfilter:
+        kind: regex/semver
+        regex: "([0-9]+\\.[0-9]+\\.[0-9]+)-debian-[0-9]+-r[0-9]+"
+        pattern: ">0.0.0"
+
+  redisexporter_latest_version:
+    name: "Get latest redis exporter tag"
+    kind: dockerimage
+    spec:
+      image: "bitnamilegacy/redis-exporter"
+      architecture: amd64
+      tagfilter: "^[0-9.]+-debian-[0-9]+-r[0-9]+$"
+      versionfilter:
+        kind: regex/semver
+        regex: "([0-9]+\\.[0-9]+\\.[0-9]+)-debian-[0-9]+-r[0-9]+"
+        pattern: ">0.0.0"
+
+targets:
+  update_redis_tag:
+    name: "Update redis tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.redis.tag"
+    sourceid: redis_latest_version
+    scmid: default
+
+  update_redisexporter_tag:
+    name: "Update redis exporter tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.redis_exporter.tag"
+    sourceid: redisexporter_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump redis version to {{ source "redis_latest_version" }}

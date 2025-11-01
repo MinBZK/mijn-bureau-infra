@@ -1,0 +1,89 @@
+name: "Update minio container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump minio version to {{ source "minio_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  minio_latest_version:
+    name: "Get latest minio tag"
+    kind: dockerimage
+    spec:
+      image: "bitnamilegacy/minio"
+      architecture: amd64
+      tagfilter: "^[0-9.]+-debian-[0-9]+-r[0-9]+$"
+      versionfilter:
+        kind: regex/semver
+        regex: "([0-9]+\\.[0-9]+\\.[0-9]+)-debian-[0-9]+-r[0-9]+"
+        pattern: ">0.0.0"
+
+  minioshell_latest_version:
+    name: "Get latest minio shell tag"
+    kind: dockerimage
+    spec:
+      image: "bitnamilegacy/os-shell"
+      architecture: amd64
+      tagfilter: "^[0-9.]+-debian-[0-9]+-r[0-9]+$"
+      versionfilter:
+        kind: regex/semver
+        regex: "([0-9]+)-debian-[0-9]+-r[0-9]+"
+        pattern: ">0.0.0"
+
+  minioconsole_latest_version:
+    name: "Get latest minio console tag"
+    kind: dockerimage
+    spec:
+      image: "bitnamilegacy/minio-object-browser"
+      architecture: amd64
+      tagfilter: "^[0-9.]+-debian-[0-9]+-r[0-9]+$"
+      versionfilter:
+        kind: regex/semver
+        regex: "([0-9]+\\.[0-9]+\\.[0-9]+)-debian-[0-9]+-r[0-9]+"
+        pattern: ">0.0.0"
+
+targets:
+  update_minio_tag:
+    name: "Update minio tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.minio.tag"
+    sourceid: minio_latest_version
+    scmid: default
+
+  update_minioshell_tag:
+    name: "Update minio tag"
+    kind: yaml
+    spec:
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.minio_shell.tag"
+    sourceid: minioshell_latest_version
+    scmid: default
+
+  update_minioconsole_tag:
+    name: "Update minio tag"
+    kind: yaml
+    spec:
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.minio_console.tag"
+    sourceid: minioconsole_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump minio version to {{ source "minio_latest_version" }}

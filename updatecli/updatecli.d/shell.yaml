@@ -1,0 +1,47 @@
+name: "Update shell container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump shell version to {{ source "shell_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  shell_latest_version:
+    name: "Get latest shell tag"
+    kind: dockerimage
+    spec:
+      image: "bitnamilegacy/os-shell"
+      architecture: amd64
+      tagfilter: "^[0-9.]+-debian-[0-9]+-r[0-9]+$"
+      versionfilter:
+        kind: regex/semver
+        regex: "([0-9]+)-debian-[0-9]+-r[0-9]+"
+        pattern: ">0.0.0"
+
+targets:
+  update_shell_tag:
+    name: "Update shell tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.osShell.tag"
+    sourceid: shell_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump shell version to {{ source "shell_latest_version" }}

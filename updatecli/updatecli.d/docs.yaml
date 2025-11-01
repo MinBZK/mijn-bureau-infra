@@ -1,0 +1,88 @@
+name: "Update docs container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump docs version to {{ source "docs_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  docs_latest_version:
+    name: "Get latest docs tag"
+    kind: dockerimage
+    spec:
+      image: "lasuite/impress-backend"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+  docsfront_latest_version:
+    name: "Get latest docs front tag"
+    kind: dockerimage
+    spec:
+      image: "lasuite/impress-frontend"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+  docsyprovider_latest_version:
+    name: "Get latest docs yprovider tag"
+    kind: dockerimage
+    spec:
+      image: "lasuite/impress-y-provider"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_docs_tag:
+    name: "Update docs tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.docs.backend.tag"
+    sourceid: docs_latest_version
+    scmid: default
+
+  update_docsfront_tag:
+    name: "Update docs tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.docs.frontend.tag"
+    sourceid: docsfront_latest_version
+    scmid: default
+
+  update_docsyprovider_tag:
+    name: "Update docs tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.docs.yProvider.tag"
+    sourceid: docsyprovider_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump docs version to {{ source "docs_latest_version" }}

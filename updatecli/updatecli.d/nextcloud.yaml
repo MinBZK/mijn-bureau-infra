@@ -1,0 +1,47 @@
+name: "Update nextcloud container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump nextcloud version to {{ source "nextcloud_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  nextcloud_latest_version:
+    name: "Get latest nextcloud tag"
+    kind: dockerimage
+    spec:
+      image: "library/nextcloud"
+      architecture: amd64
+      tagfilter: "^[0-9.]+-apache$"
+      versionfilter:
+        kind: regex/semver
+        regex: "([0-9]+\\.[0-9]+\\.[0-9]+)-apache"
+        pattern: ">0.0.0"
+
+targets:
+  update_nextcloud_tag:
+    name: "Update nextcloud tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.nextcloud.tag"
+    sourceid: nextcloud_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump nextcloud version to {{ source "nextcloud_latest_version" }}

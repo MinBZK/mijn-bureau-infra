@@ -1,0 +1,66 @@
+name: "Update meet container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump meet version to {{ source "meet_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  meet_latest_version:
+    name: "Get latest meet tag"
+    kind: dockerimage
+    spec:
+      image: "lasuite/meet-backend"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+  meetfront_latest_version:
+    name: "Get latest meet frontend tag"
+    kind: dockerimage
+    spec:
+      image: "lasuite/meet-frontend"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_meet_tag:
+    name: "Update meet tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.meet_backend.tag"
+    sourceid: meet_latest_version
+    scmid: default
+
+  update_meetfront_tag:
+    name: "Update meet front tag"
+    kind: yaml
+    spec:
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.meet_frontend.tag"
+    sourceid: meetfront_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump meet version to {{ source "meet_latest_version" }}
