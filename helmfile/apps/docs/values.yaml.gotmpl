@@ -99,7 +99,6 @@ backend:
     API_USERS_LIST_LIMIT: "5"
     API_USERS_LIST_THROTTLE_RATE_BURST: "30/minute"
     API_USERS_LIST_THROTTLE_RATE_SUSTAINED: "180/hour"
-    CACHES_KEY_PREFIX: "docs-{{ $releaseId }}"
     CACHES_DEFAULT_TIMEOUT: "30"
     COLLABORATION_API_URL: {{ printf "http%s://%s%s" $sslPostfix $hostname "/collaboration/api/" | quote }}
     COLLABORATION_SERVER_SECRET: {{ .Values.application.docs.collaboration.secret | quote }}

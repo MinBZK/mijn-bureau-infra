@@ -35,7 +35,11 @@ class GitmojiTitle(LineRule):
         pattern = r"^({:s})\(.*\)\s[a-zA-Z].*$".format("|".join(emojis))
         if not re.search(pattern, title):
             violation_msg = 'Title does not match regex "<gitmoji>(<scope>) <subject>"'
-            return [RuleViolation(self.id, violation_msg, title)]
+
+            # Special case for deps, updatecli forces a : after deps
+            depspattern = r"^({:s})\(deps):\s[a-zA-Z].*$".format("|".join(emojis))
+            if not re.search(depspattern, title):
+              return [RuleViolation(self.id, violation_msg, title)]
 
         # Dynamically generate scopes from folder names in helmfile/apps
         # Use the repository base directory from the GITLINT_GIT_CONTEXT environment variable if available

@@ -1,0 +1,69 @@
+name: "Update keycloak container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump keycloak version to {{ source "keycloak_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  keycloak_latest_version:
+    name: "Get latest keycloak tag"
+    kind: dockerimage
+    spec:
+      image: "bitnamilegacy/keycloak"
+      architecture: amd64
+      tagfilter: "^[0-9.]+-debian-[0-9]+-r[0-9]+$"
+      versionfilter:
+        kind: regex/semver
+        regex: "([0-9]+\\.[0-9]+\\.[0-9]+)-debian-[0-9]+-r[0-9]+"
+        pattern: ">0.0.0"
+
+  keycloakcli_latest_version:
+    name: "Get latest keycloakcli tag"
+    kind: dockerimage
+    spec:
+      image: "bitnamilegacy/keycloak-config-cli"
+      architecture: amd64
+      tagfilter: "^[0-9.]+-debian-[0-9]+-r[0-9]+$"
+      versionfilter:
+        kind: regex/semver
+        regex: "([0-9]+\\.[0-9]+\\.[0-9]+)-debian-[0-9]+-r[0-9]+"
+        pattern: ">0.0.0"
+
+targets:
+  update_keycloak_tag:
+    name: "Update Keycloak tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.keycloak.tag"
+    sourceid: keycloak_latest_version
+    scmid: default
+
+  update_keycloakcli_tag:
+    name: "Update Keycloakcli tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.keycloak_cli.tag"
+    sourceid: keycloakcli_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump keycloak version to {{ source "keycloak_latest_version" }}

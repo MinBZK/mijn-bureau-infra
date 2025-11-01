@@ -1,0 +1,45 @@
+name: "Update collabora container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump collabora version to {{ source "collabora_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  collabora_latest_version:
+    name: "Get latest collabora tag"
+    kind: dockerimage
+    spec:
+      image: "collabora/code"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: regex
+        pattern: ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$
+
+targets:
+  update_collabora_tag:
+    name: "Update collabora tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.collabora.tag"
+    sourceid: collabora_latest_version
+    scmid: default
+# actions:
+#   default:
+#     scmid: default
+#     kind: github/pullrequest
+#     title: ⬆️(deps) Bump collabora version to {{ source "collabora_latest_version" }}

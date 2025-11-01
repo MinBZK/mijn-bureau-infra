@@ -1,0 +1,67 @@
+name: "Update element container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump element version to {{ source "element_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  element_latest_version:
+    name: "Get latest element tag"
+    kind: dockerimage
+    spec:
+      image: "vectorim/element-web"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+  synapse_latest_version:
+    name: "Get latest synapse tag"
+    kind: dockerimage
+    spec:
+      image: "matrixdotorg/synapse"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_element_tag:
+    name: "Update element tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.elementweb.tag"
+    sourceid: element_latest_version
+    scmid: default
+
+  update_synapse_tag:
+    name: "Update synapse tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.synapse.tag"
+    sourceid: synapse_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump element version to {{ source "element_latest_version" }}

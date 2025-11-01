@@ -1,0 +1,69 @@
+name: "Update postgres container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump postgres version to {{ source "postgres_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  postgres_latest_version:
+    name: "Get latest postgres tag"
+    kind: dockerimage
+    spec:
+      image: "bitnamilegacy/postgresql"
+      architecture: amd64
+      tagfilter: "^[0-9.]+-debian-[0-9]+-r[0-9]+$"
+      versionfilter:
+        kind: regex/semver
+        regex: "([0-9]+\\.[0-9]+\\.[0-9]+)-debian-[0-9]+-r[0-9]+"
+        pattern: ">0.0.0"
+
+  postgresexporter_latest_version:
+    name: "Get latest postgresexporter tag"
+    kind: dockerimage
+    spec:
+      image: "bitnamilegacy/postgres-exporter"
+      architecture: amd64
+      tagfilter: "^[0-9.]+-debian-[0-9]+-r[0-9]+$"
+      versionfilter:
+        kind: regex/semver
+        regex: "([0-9]+\\.[0-9]+\\.[0-9]+)-debian-[0-9]+-r[0-9]+"
+        pattern: ">0.0.0"
+
+targets:
+  update_postgres_tag:
+    name: "Update postgres tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.postgres.tag"
+    sourceid: postgres_latest_version
+    scmid: default
+
+  update_postgresexporter_tag:
+    name: "Update postgresexporter tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.postgres_exporter.tag"
+    sourceid: postgresexporter_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump postgres version to {{ source "postgres_latest_version" }}
