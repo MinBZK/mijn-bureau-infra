@@ -1,0 +1,56 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.ingressMedia.enabled }}
+apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ template "common.names.fullname" . }}-media
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: drive
+  {{- if or .Values.ingressMedia.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.ingressMedia.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingressMedia.ingressClassName }}
+  ingressClassName: {{ .Values.ingressMedia.ingressClassName | quote }}
+  {{- end }}
+  rules:
+    {{- if .Values.ingressMedia.hostname }}
+    - host: {{ .Values.ingressMedia.hostname }}
+      http:
+        paths:
+          {{- if .Values.ingressMedia.extraPaths }}
+          {{- toYaml .Values.ingressMedia.extraPaths | nindent 10 }}
+          {{- end }}
+          - path: {{ .Values.ingressMedia.path }}
+            pathType: {{ .Values.ingressMedia.pathType }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-nginx" (include "common.names.fullname" .)) "servicePort" "http" "context" $) | nindent 14 }}
+    {{- end }}
+    {{- range .Values.ingressMedia.extraHosts }}
+    - host: {{ .name | quote }}
+      http:
+        paths:
+          - path: {{ default "/" .path }}
+            pathType: {{ default "ImplementationSpecific" .pathType }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "common.names.fullname" $) "servicePort" "http" "context" $) | nindent 14 }}
+    {{- end }}
+    {{- if .Values.ingressMedia.extraRules }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.ingressMedia.extraRules "context" $) | nindent 4 }}
+    {{- end }}
+  {{- if or (and .Values.ingressMedia.tls (or (include "common.ingress.certManagerRequest" ( dict "annotations" .Values.ingressMedia.annotations )) .Values.ingressMedia.selfSigned)) .Values.ingressMedia.extraTls }}
+  tls:
+    {{- if and .Values.ingressMedia.tls (or (include "common.ingress.certManagerRequest" ( dict "annotations" .Values.ingressMedia.annotations )) .Values.ingressMedia.selfSigned) }}
+    - hosts:
+        - {{ .Values.ingressMedia.hostname | quote }}
+      secretName: {{ printf "%s-tls" .Values.ingressMedia.hostname }}
+    {{- end }}
+    {{- if .Values.ingressMedia.extraTls }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.ingressMedia.extraTls "context" $) | nindent 4 }}
+    {{- end }}
+  {{- end }}
+{{- end }}

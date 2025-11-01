@@ -34,3 +34,8 @@ cache:
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "docs" "password" | sha1sum | quote }}
+  drive:
+    host: "drive-redis-master"
+    port: 6379
+    isInternal: true
+    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "drive" "password" | sha1sum | quote }}
