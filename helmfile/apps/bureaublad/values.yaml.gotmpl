@@ -1,0 +1,136 @@
+{{- $hostname := printf "%s.%s" .Values.global.hostname.bureaublad .Values.global.domain }}
+{{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
+{{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
+
+global:
+  security:
+    allowInsecureImages: true
+  imagePullSecrets:
+    - name: {{ (coalesce .Values.container.bureaublad.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+
+commonLabels:
+  app.kubernetes.io/part-of: bureaublad
+
+diagnosticMode:
+  enabled: false
+
+backend:
+  image:
+    registry: {{ (coalesce .Values.container.bureaublad.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.bureaublad.backend.repository | quote }}
+    tag: {{ .Values.container.bureaublad.backend.tag | quote }}
+  args:
+    - "--host"
+    - "0.0.0.0"
+    - "app.main:app"
+    - "--port"
+    - "8000"
+    - "--forwarded-allow-ips"
+    - "*"
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.bureaublad.backend | default dict | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.bureaublad.backend | toYaml | nindent 6 }}
+  networkPolicy:
+    extraEgress:
+      # External https access
+      - ports:
+          - port: 443
+            protocol: TCP
+      {{- if .Values.ai.llm.endpoint.isInternal }}
+      # AI connectivity
+      - ports:
+          - port: {{ .Values.ai.llm.endpoint.port }}
+            protocol: TCP
+        to:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: ollama
+      {{- end }}
+  envVars:
+    SECRET_KEY: {{ .Values.application.bureaublad.backend.secretKey | quote }}
+    ENVIRONMENT: "prod"
+    DEBUG: "false"
+    SESSION_MAX_AGE: "7200"
+    LOGGING_LEVEL: "DEBUG"
+    OIDC_CLIENT_ID: {{ .Values.authentication.client.bureaublad.client_id | quote }}
+    OIDC_CLIENT_SECRET: {{ .Values.authentication.client.bureaublad.client_secret | quote }}
+    OIDC_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.oidc.authorization_endpoint | quote }}
+    OIDC_LOGOUT_ENDPOINT: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
+    OIDC_POST_LOGIN_REDIRECT_URI: {{ $baseUrl }}
+    OIDC_POST_LOGOUT_REDIRECT_URI: {{ $baseUrl }}
+    OIDC_TOKEN_ENDPOINT: {{ .Values.authentication.oidc.token_endpoint | quote }}
+    OIDC_REVOCATION_ENDPOINT: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
+    OIDC_JWKS_ENDPOINT: {{ .Values.authentication.oidc.jwks_uri | quote }}
+    OIDC_ISSUER: {{ .Values.authentication.oidc.issuer | quote }}
+    OIDC_AUDIENCE: "bureaublad"
+    OIDC_USERNAME_CLAIM: {{ .Values.authentication.oidc.claims.username | quote }}
+    OIDC_SCOPES: "openid email profile"
+    OIDC_SIGNATURE_ALGORITM: "RS256"
+    OCS_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.nextcloud .Values.global.domain }}
+    CALENDAR_URL: ""
+    TASK_URL: ""
+    DRIVE_URL: ""
+    MEET_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.meet .Values.global.domain | quote }}
+    GRIST_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.grist .Values.global.domain | quote }}
+    CONVERSATION_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.conversations .Values.global.domain | quote }}
+    {{- if .Values.ai.llm.endpoint.host }}
+    AI_API_KEY: {{ .Values.ai.llm.apiKey | quote }}
+    AI_BASE_URL: {{ printf "http%s://%s:%d/%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.openApiVersion | quote }}
+    AI_MODEL: {{ .Values.ai.llm.model | quote }}
+    {{- end }}
+    THEME_CSS_URL: ""
+    SIDEBAR_LINKS_JSON: '{{ .Values.application.bureaublad.backend.sideBarLinks }}'
+    CORS_ALLOW_ORIGINS: '[{{ $baseUrl | quote }}]'
+    CORS_ALLOW_CREDENTIALS: false
+    CORS_ALLOW_METHODS: '["GET","POST","PUT","DELETE"]'
+    CORS_ALLOW_HEADERS: '["*"]'
+    TRUSTED_HOSTS: '[{{ $hostname | quote }}]'
+
+frontend:
+  image:
+    registry: {{ (coalesce .Values.container.bureaublad.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.bureaublad.frontend.repository | quote }}
+    tag: {{ .Values.container.bureaublad.frontend.tag | quote }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  extraVolumeMounts:
+    - name: empty-dir
+      mountPath: /var/cache/nginx
+    - name: empty-dir
+      mountPath: /var/run
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.bureaublad.frontend | default dict | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.bureaublad.frontend | toYaml | nindent 6 }}
+  envVars:
+    NEXT_PUBLIC_BACKEND_BASE_URL: /api
+    NGINX_PORT: 8080
+
+ingress:
+  enabled: true
+  hostname: {{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.bureaublad | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}

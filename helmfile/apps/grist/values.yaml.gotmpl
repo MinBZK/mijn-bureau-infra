@@ -27,7 +27,7 @@ autoscaling:
 ai:
   enabled: true
 {{- if .Values.ai.llm.endpoint.host }}
-  endpoint: "http{{ ternary "s" "" .Values.ai.llm.endpoint.isSsl }}://{{ .Values.ai.llm.endpoint.host }}:{{ .Values.ai.llm.endpoint.port }}/{{ .Values.ai.llm.endpoint.openApiVersion }}/chat/completions"
+  endpoint: {{ printf "http%s://%s:%d/%s/chat/completions" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.openApiVersion | quote }}
 {{- end }}
 {{- if .Values.ai.llm.model }}
   model: {{ .Values.ai.llm.model | quote }}

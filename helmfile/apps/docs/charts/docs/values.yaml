@@ -86,7 +86,6 @@ backend:
   ## @param backend.image.digest Impress backend image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
   ## @param backend.image.pullPolicy Impress backend image pull policy
   ## @param backend.image.pullSecrets Impress backend image pull secrets
-  ## @param backend.image.debug Enable Impress backend image debug mode
   ##
   image:
     registry: docker.io
@@ -104,7 +103,6 @@ backend:
     ##   - myRegistryKeySecretName
     ##
     pullSecrets: []
-    debug: false
   ## @param backend.replicaCount Number of Impress backend replicas to deploy
   ##
   replicaCount: 1
@@ -1027,7 +1025,6 @@ frontend:
   ## @param frontend.image.digest Impress frontend image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
   ## @param frontend.image.pullPolicy Impress frontend image pull policy
   ## @param frontend.image.pullSecrets Impress frontend image pull secrets
-  ## @param frontend.image.debug Enable Impress frontend image debug mode
   ##
   image:
     registry: docker.io
@@ -1045,7 +1042,6 @@ frontend:
     ##   - myRegistryKeySecretName
     ##
     pullSecrets: []
-    debug: false
   ## @param frontend.replicaCount Number of Impress frontend replicas to deploy
   ##
   replicaCount: 1
@@ -1506,7 +1502,6 @@ yProvider:
   ## @param yProvider.image.digest Impress y-provider image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
   ## @param yProvider.image.pullPolicy Impress y-provider image pull policy
   ## @param yProvider.image.pullSecrets Impress y-provider image pull secrets
-  ## @param yProvider.image.debug Enable Impress y-provider image debug mode
   ##
   image:
     registry: docker.io
@@ -1524,7 +1519,6 @@ yProvider:
     ##   - myRegistryKeySecretName
     ##
     pullSecrets: []
-    debug: false
   ## @param yProvider.replicaCount Number of Impress y-provider replicas to deploy
   ##
   replicaCount: 1

@@ -69,6 +69,7 @@ application:
     namespace: ~
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "conversations" "secretkey" | sha1sum | quote }}
 
+  # docs is a collaborative notes application
   docs:
     enabled: true
     namespace: ~
@@ -82,3 +83,11 @@ application:
       publishAsMit: false
     yProvider:
       key: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "yProviderKey" | sha1sum | quote }}
+
+  bureaublad:
+    enabled: true
+    namespace: ~
+    backend:
+      sideBarLinks: '[{"icon":"rvo-icon-home","url":"https://example.com","title":"Example Link","iframe":true}]'
+      secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "bureaublad" "secretkey" | sha1sum | quote }}
+    frontend:
