@@ -1,4 +1,4 @@
-# Conversations
+# Bureaublad
 
 MijnBureau supplies an installation of [Bureaublad](https://github.com/MinBZK/bureaublad). Bureaublad is a flexible dashboard application that aggregates information from multiple open-source components into a unified interface. Users can access essential tools and data from a single location without needing to switch between different applications.
 
