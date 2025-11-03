@@ -54,6 +54,7 @@ targets:
     name: "Update meet front tag"
     kind: yaml
     spec:
+      engine: yamlpath
       file: "helmfile/environments/default/container.yaml.gotmpl"
       key: "$.container.meet_frontend.tag"
     sourceid: meetfront_latest_version

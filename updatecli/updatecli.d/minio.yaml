@@ -68,6 +68,7 @@ targets:
     name: "Update minio tag"
     kind: yaml
     spec:
+      engine: yamlpath
       file: "helmfile/environments/default/container.yaml.gotmpl"
       key: "$.container.minio_shell.tag"
     sourceid: minioshell_latest_version
@@ -77,6 +78,7 @@ targets:
     name: "Update minio tag"
     kind: yaml
     spec:
+      engine: yamlpath
       file: "helmfile/environments/default/container.yaml.gotmpl"
       key: "$.container.minio_console.tag"
     sourceid: minioconsole_latest_version
