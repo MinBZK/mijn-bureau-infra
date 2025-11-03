@@ -100,7 +100,7 @@ spec:
           env:
             - name: BITNAMI_DEBUG
               value: {{ ternary "true" "false" (or .Values.meet_backend.image.debug .Values.diagnosticMode.enabled) | quote }}
-            {{- if .Values.meet_backend.ecxtraEnvVars }}
+            {{- if .Values.meet_backend.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
           envFrom:

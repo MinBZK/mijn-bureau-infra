@@ -2,19 +2,19 @@
 
 # docs
 
-%%DESCRIPTION%% (check existing examples)
+Docs is a collaborative text editor designed to address common challenges in knowledge building and sharing.
 
 ## TL;DR
 
-```console
-helm install my-release oci://registry-1.docker.io/bitnamicharts/docs
-```
+In the root directory of the Helm chart directory:
 
-Looking to use docs in production? Try [VMware Tanzu Application Catalog](https://bitnami.com/enterprise), the commercial edition of the Bitnami catalog.
+```console
+helm install my-release
+```
 
 ## Introduction
 
-%%INTRODUCTION%% (check existing examples)
+This chart bootstraps a Docs deployment on a Kubernetes cluster using the Helm package manager.
 
 ## Prerequisites
 
@@ -28,10 +28,8 @@ Looking to use docs in production? Try [VMware Tanzu Application Catalog](https:
 To install the chart with the release name `my-release`:
 
 ```console
-helm install my-release oci://REGISTRY_NAME/REPOSITORY_NAME/docs
+helm install my-release git+https://github.com/MinBZK/mijn-bureau-infra@helmfile/apps/docs/charts?ref=main
 ```
-
-> Note: You need to substitute the placeholders `REGISTRY_NAME` and `REPOSITORY_NAME` with a reference to your Helm chart registry and repository. For example, in the case of Bitnami, you need to use `REGISTRY_NAME=registry-1.docker.io` and `REPOSITORY_NAME=bitnamicharts`.
 
 The command deploys docs on the Kubernetes cluster in the default configuration. The [Parameters](#parameters) section lists the parameters that can be configured during installation.
 
@@ -45,24 +43,7 @@ It is strongly recommended to use immutable tags in a production environment. Th
 
 Bitnami will release a new chart updating its containers if a new version of the main container, significant changes, or critical vulnerabilities exist.
 
-### External database support
-
-%%IF NEEDED%%
-
-You may want to have docs connect to an external database rather than installing one inside your cluster. Typical reasons for this are to use a managed database service, or to share a common database server for all your applications. To achieve this, the chart allows you to specify credentials for an external database with the [`externalDatabase` parameter](#parameters). You should also disable the MariaDB installation with the `mariadb.enabled` option. Here is an example:
-
-```console
-mariadb.enabled=false
-externalDatabase.host=myexternalhost
-externalDatabase.user=myuser
-externalDatabase.password=mypassword
-externalDatabase.database=mydatabase
-externalDatabase.port=3306
-```
-
 ### Ingress
-
-%%IF NEEDED%%
 
 This chart provides support for Ingress resources. If you have an ingress controller installed on your cluster, such as [nginx-ingress-controller](https://github.com/bitnami/charts/tree/main/bitnami/nginx-ingress-controller) or [contour](https://github.com/bitnami/charts/tree/main/bitnami/contour) you can utilize the ingress controller to serve your application.To enable Ingress integration, set `ingress.enabled` to `true`.
 
@@ -103,8 +84,6 @@ tls.certFilename="cert.pem"
 tls.certKeyFilename="cert.key"
 tls.certCAFilename="ca.pem"
 ```
-
-### %%OTHER_SECTIONS%%
 
 ### Additional environment variables
 
@@ -167,7 +146,7 @@ As an alternative, use one of the preset configurations for pod affinity, pod an
 
 ### Prometheus metrics
 
-This chart can be integrated with Prometheus by setting `metrics.enabled` to `true`. %% EXPLAIN INTEGRATION. CHECK OTHER EXAMPLES %%. It will have the necessary annotations to be automatically scraped by Prometheus.
+This chart can be integrated with Prometheus by setting `metrics.enabled` to `true`. It will have the necessary annotations to be automatically scraped by Prometheus.
 
 #### Prometheus requirements
 

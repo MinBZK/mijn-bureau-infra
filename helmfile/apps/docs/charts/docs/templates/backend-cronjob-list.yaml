@@ -86,8 +86,6 @@ items:
                   args:
                     {{- toYaml .args | nindent 20 }}
                   env:
-                    - name: BITNAMI_DEBUG
-                      value: {{ ternary "true" "false" (or $.Values.backend.image.debug $.Values.diagnosticMode.enabled) | quote }}
                     {{- if $envVars }}
                     {{- $envVars | indent 20 }}
                     {{- end }}

@@ -94,8 +94,6 @@ spec:
           args: {{- include "common.tplvalues.render" (dict "value" .Values.yProvider.args "context" $) | nindent 12 }}
           {{- end }}
           env:
-            - name: BITNAMI_DEBUG
-              value: {{ ternary "true" "false" (or .Values.yProvider.image.debug .Values.diagnosticMode.enabled) | quote }}
             - name: COLLABORATION_BACKEND_BASE_URL
               value: {{ include "docs.baseUrl" . | quote }}
             - name: COLLABORATION_LOGGING

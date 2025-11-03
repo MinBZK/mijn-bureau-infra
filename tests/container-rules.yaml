@@ -66,6 +66,7 @@ container:
   nextcloud:
     registry: ""
     imagePullSecret: ""
+
   docs:
     registry: ""
     imagePullSecret: ""
@@ -89,3 +90,7 @@ container:
   meet_frontend:
     registry: ""
     imagePullSecret: ""
+
+  bureaublad:
+    imagePullSecret: ~
+    registry: ""
