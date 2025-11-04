@@ -5,7 +5,7 @@ annotations:
   category: Communications
   licenses: Apache-2.0
 apiVersion: v2
-appVersion: "1.133.0"
+appVersion: 1.141.0
 description: Mijn Bureau Synapse homeserver, the matrix reference implementation
 home: https://minbzk.github.io/mijn-bureau/
 icon: https://matrix.org/images/matrix-logo.svg

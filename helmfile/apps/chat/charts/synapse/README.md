@@ -230,7 +230,7 @@ The Synapse image stores the Synapse data and configurations at the `/synapse/da
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
 | `image.registry`    | Synapse master image registry                                                                                                                             | `docker.io`            |
 | `image.repository`  | Synapse master image repository                                                                                                                           | `matrixdotorg/synapse` |
-| `image.tag`         | Synapse master image tag (immutable tags are recommended)                                                                                                 | `v1.133.0`             |
+| `image.tag`         | Synapse master image tag (immutable tags are recommended)                                                                                                 | `v1.141.0`             |
 | `image.digest`      | Synapse master image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended) | `""`                   |
 | `image.pullPolicy`  | Synapse master image pull policy                                                                                                                          | `IfNotPresent`         |
 | `image.pullSecrets` | Synapse master image pull secrets                                                                                                                         | `[]`                   |

@@ -1,4 +1,4 @@
-name: "Update element container tags"
+name: "Update Element versions"
 
 scms:
   default:
@@ -41,7 +41,7 @@ sources:
 
 targets:
   update_element_tag:
-    name: "Update element tag"
+    name: "Update Element container tag"
     kind: yaml
     spec:
       engine: yamlpath
@@ -50,13 +50,82 @@ targets:
     sourceid: element_latest_version
     scmid: default
 
-  update_synapse_tag:
-    name: "Update synapse tag"
+  update_element_chart:
+    name: "Update Element chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/chat/charts/element-web/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: element_latest_version
+    scmid: default
+
+  update_synapse_container_tag:
+    name: "Update Synapse container tag"
     kind: yaml
     spec:
       engine: yamlpath
       file: "helmfile/environments/default/container.yaml.gotmpl"
       key: "$.container.synapse.tag"
+    sourceid: synapse_latest_version
+    scmid: default
+
+  update_synapse_values_tag:
+    name: "Update Synapse values tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/chat/charts/synapse/values.yaml"
+      key: "$.image.tag"
+    sourceid: synapse_latest_version
+    scmid: default
+
+  update_synapse_readme_version:
+    name: "Update Synapse README.md"
+    kind: file
+    spec:
+      files:
+        - "helmfile/apps/chat/charts/synapse/README.md"
+      matchpattern: "`v([0-9.]+)`"
+      replacepattern: '`{{ source "synapse_latest_version" }}`'
+    sourceid: synapse_latest_version
+    scmid: default
+
+  update_synapse_chart:
+    name: "Update synapse chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/chat/charts/synapse/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: synapse_latest_version
+    scmid: default
+
+  update_markdowns_element_version:
+    name: "Update markdown files with Element versions"
+    kind: file
+    spec:
+      files:
+        - "README.md"
+        - "docs/docs/intro.md"
+      matchpattern: "[vV]([0-9.]+)]\\Q(https://github.com/element-hq/element-web/tree/v\\E([0-9.]+)"
+      replacepattern: '{{ source "element_latest_version" }}](https://github.com/suitenumerique/docs/releases/tag/{{ source "synapse_latest_version" }}'
+    sourceid: element_latest_version
+    scmid: default
+
+  update_markdowns_synapse_version:
+    name: "Update markdown files with Synapse versions"
+    kind: file
+    spec:
+      files:
+        - "README.md"
+        - "docs/docs/intro.md"
+      matchpattern: "v([0-9.]+)]\\Q(https://github.com/element-hq/synapse/tree/v\\E([0-9.]+)"
+      replacepattern: '{{ source "synapse_latest_version" }}](https://github.com/suitenumerique/docs/releases/tag/{{ source "synapse_latest_version" }}'
     sourceid: synapse_latest_version
     scmid: default
 
