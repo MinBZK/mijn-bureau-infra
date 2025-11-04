@@ -1,0 +1,1180 @@
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+## @section Global parameters
+
+global:
+  ## Global Docker image parameters
+  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+  ## @param global.imageRegistry Global Docker Image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: ""
+  imagePullSecrets: []
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: ""
+  ## Security parameters
+  ## @param global.security.allowInsecureImages Allows skipping image verification
+  ##
+  security:
+    allowInsecureImages: false
+  ## Compatibility adaptations for Kubernetes platforms
+  ##
+  compatibility:
+    ## Compatibility adaptations for Openshift
+    ## @param global.compatibility.openshift.adaptSecurityContext Adapt the securityContext sections of the deployment to make them compatible with Openshift restricted-v2 SCC: remove runAsUser, runAsGroup and fsGroup and let the platform use their allowed default IDs. Possible values: auto (apply if the detected running cluster is Openshift), force (perform the adaptation always), disabled (do not perform adaptation)
+    ##
+    openshift:
+      adaptSecurityContext: auto
+    ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
+    ##
+    omitEmptySeLinuxOptions: false
+
+## @section Common parameters
+
+## @param kubeVersion Override Kubernetes version reported by .Capabilities
+##
+kubeVersion: ""
+## @param apiVersions Override Kubernetes API versions reported by .Capabilities
+##
+apiVersions: []
+## @param nameOverride String to partially override common.names.name
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: cluster.local
+## @param extraDeploy Array of extra objects to deploy with the release
+##
+extraDeploy: []
+## Diagnostic mode
+## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
+## @param diagnosticMode.command Command to override all containers in the chart release
+## @param diagnosticMode.args Args to override all containers in the chart release
+##
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section Backend Parameters
+##
+
+## Bureaublad backend API server
+##
+backend:
+  ## Bureaublad backend image
+  ## ref: https://github.com/MinBZK/bureaublad/pkgs/container/bureaublad-api
+  ## @param backend.image.registry backend image registry
+  ## @param backend.image.repository backend image repository
+  ## @skip backend.image.tag backend image tag (immutable tags are recommended)
+  ## @param backend.image.digest backend image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
+  ## @param backend.image.pullPolicy backend image pull policy
+  ## @param backend.image.pullSecrets backend image pull secrets
+  ##
+  image:
+    registry: ghcr.io
+    repository: minbzk/bureaublad-api
+    tag: v0.1.0
+    digest: ""
+    ## Specify a imagePullPolicy
+    ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
+    ##
+    pullPolicy: Always
+    ## Optionally specify an array of imagePullSecrets (secrets must be manually created in the namespace)
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ## e.g:
+    ## pullSecrets:
+    ##   - myRegistryKeySecretName
+    ##
+    pullSecrets: []
+  ## @param backend.replicaCount Number of backend replicas to deploy
+  ##
+  replicaCount: 1
+  ## @param backend.containerPorts.http backend HTTP container port
+  ##
+  containerPorts:
+    http: 8000
+  ## @param backend.extraContainerPorts Optionally specify extra list of additional ports for backend containers
+  ## e.g:
+  ## extraContainerPorts:
+  ##   - name: myservice
+  ##     containerPort: 9090
+  ##
+  extraContainerPorts: []
+  ## Configure extra options for backend containers' liveness and readiness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  ## @param backend.livenessProbe.enabled Enable livenessProbe on backend containers
+  ## @param backend.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+  ## @param backend.livenessProbe.periodSeconds Period seconds for livenessProbe
+  ## @param backend.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+  ## @param backend.livenessProbe.failureThreshold Failure threshold for livenessProbe
+  ## @param backend.livenessProbe.successThreshold Success threshold for livenessProbe
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param backend.readinessProbe.enabled Enable readinessProbe on backend containers
+  ## @param backend.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+  ## @param backend.readinessProbe.periodSeconds Period seconds for readinessProbe
+  ## @param backend.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+  ## @param backend.readinessProbe.failureThreshold Failure threshold for readinessProbe
+  ## @param backend.readinessProbe.successThreshold Success threshold for readinessProbe
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param backend.startupProbe.enabled Enable startupProbe on backend containers
+  ## @param backend.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+  ## @param backend.startupProbe.periodSeconds Period seconds for startupProbe
+  ## @param backend.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+  ## @param backend.startupProbe.failureThreshold Failure threshold for startupProbe
+  ## @param backend.startupProbe.successThreshold Success threshold for startupProbe
+  ##
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param backend.customLivenessProbe Custom livenessProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  ## @param backend.customReadinessProbe Custom readinessProbe that overrides the default one
+  ##
+  customReadinessProbe: {}
+  ## @param backend.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customStartupProbe: {}
+  ## backend resource requests and limits
+  ## ref: http://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+  ## @param backend.resourcesPreset Set backend container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if backend.resources is set (backend.resources is recommended for production).
+  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  ##
+  resourcesPreset: "nano"
+  ## @param backend.resources Set backend container requests and limits for different resources like CPU or memory (essential for production workloads)
+  ## Example:
+  ## resources:
+  ##   requests:
+  ##     cpu: 2
+  ##     memory: 512Mi
+  ##   limits:
+  ##     cpu: 3
+  ##     memory: 1024Mi
+  ##
+  resources: {}
+  ## Configure Pods Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+  ## @param backend.podSecurityContext.enabled Enable backend pods' Security Context
+  ## @param backend.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy for backend pods
+  ## @param backend.podSecurityContext.sysctls Set kernel settings using the sysctl interface for backend pods
+  ## @param backend.podSecurityContext.supplementalGroups Set filesystem extra groups for backend pods
+  ## @param backend.podSecurityContext.fsGroup Set fsGroup in backend pods' Security Context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## Configure Container Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  ## @param backend.containerSecurityContext.enabled Enabled backend container' Security Context
+  ## @param backend.containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in backend container
+  ## @param backend.containerSecurityContext.runAsUser Set runAsUser in backend container' Security Context
+  ## @param backend.containerSecurityContext.runAsGroup Set runAsGroup in backend container' Security Context
+  ## @param backend.containerSecurityContext.runAsNonRoot Set runAsNonRoot in backend container' Security Context
+  ## @param backend.containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in backend container' Security Context
+  ## @param backend.containerSecurityContext.privileged Set privileged in backend container' Security Context
+  ## @param backend.containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in backend container' Security Context
+  ## @param backend.containerSecurityContext.capabilities.drop List of capabilities to be dropped in backend container
+  ## @param backend.containerSecurityContext.seccompProfile.type Set seccomp profile in backend container
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+
+  ## @param backend.existingConfigmap The name of an existing ConfigMap with your custom configuration for backend
+  ##
+  existingConfigmap: ""
+  ## @param backend.command Override default backend container command (useful when using custom images)
+  ##
+  command: []
+  ## @param backend.args Override default backend container args (useful when using custom images)
+  ##
+  args: []
+  ## @param backend.automountServiceAccountToken Mount Service Account token in backend pods
+  ##
+  automountServiceAccountToken: false
+  ## @param backend.hostAliases backend pods host aliases
+  ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+  ##
+  hostAliases: []
+  ## @param backend.deploymentAnnotations Annotations for backend deployment
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  ##
+  deploymentAnnotations: {}
+  ## @param backend.podLabels Extra labels for backend pods
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+  ##
+  podLabels: {}
+  ## @param backend.podAnnotations Annotations for backend pods
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  ##
+  podAnnotations: {}
+  ## @param backend.podAffinityPreset Pod affinity preset. Ignored if `backend.affinity` is set. Allowed values: `soft` or `hard`
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ##
+  podAffinityPreset: ""
+  ## @param backend.podAntiAffinityPreset Pod anti-affinity preset. Ignored if `backend.affinity` is set. Allowed values: `soft` or `hard`
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ##
+  podAntiAffinityPreset: soft
+  ## Node backend.affinity preset
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+  ##
+  nodeAffinityPreset:
+    ## @param backend.nodeAffinityPreset.type Node affinity preset type. Ignored if `backend.affinity` is set. Allowed values: `soft` or `hard`
+    ##
+    type: ""
+    ## @param backend.nodeAffinityPreset.key Node label key to match. Ignored if `backend.affinity` is set
+    ##
+    key: ""
+    ## @param backend.nodeAffinityPreset.values Node label values to match. Ignored if `backend.affinity` is set
+    ## E.g.
+    ## values:
+    ##   - e2e-az1
+    ##   - e2e-az2
+    ##
+    values: []
+  ## @param backend.affinity Affinity for backend pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ## NOTE: `backend.podAffinityPreset`, `backend.podAntiAffinityPreset`, and `backend.nodeAffinityPreset` will be ignored when it's set
+  ##
+  affinity: {}
+  ## @param backend.nodeSelector Node labels for backend pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+  ##
+  nodeSelector: {}
+  ## @param backend.tolerations Tolerations for backend pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+  ## ONLY FOR DEPLOYMENTS:
+  ## @param backend.updateStrategy.type backend deployment strategy type
+  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  ## ONLY FOR STATEFULSETS:
+  ## @param backend.updateStrategy.type backend statefulset strategy type
+  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+  ##
+  updateStrategy:
+    ## ONLY FOR DEPLOYMENTS:
+    ## Can be set to RollingUpdate or Recreate
+    ## ONLY FOR STATEFULSETS:
+    ## Can be set to RollingUpdate or OnDelete
+    ##
+    type: RollingUpdate
+  ## @param backend.priorityClassName backend pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param backend.topologySpreadConstraints Topology Spread Constraints for backend pod assignment spread across your cluster among failure-domains
+  ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
+  ##
+  topologySpreadConstraints: []
+  ## @param backend.schedulerName Name of the k8s scheduler (other than default) for backend pods
+  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+  ##
+  schedulerName: ""
+  ## @param backend.runtimeClassName Name of the runtime class name for backend pods
+  ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+  ##
+  runtimeClassName: ""
+  ## @param backend.terminationGracePeriodSeconds Seconds backend pods need to terminate gracefully
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param backend.lifecycleHooks for backend containers to automate configuration before or after startup
+  ##
+  lifecycleHooks: {}
+  ## @param backend.extraEnvVars Array with extra environment variables to add to backend containers
+  ## e.g:
+  ## extraEnvVars:
+  ##   - name: FOO
+  ##     value: "bar"
+  ##
+  extraEnvVars: []
+  ## @param backend.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for backend containers
+  ##
+  extraEnvVarsCM: ""
+  ## @param backend.extraEnvVarsSecret Name of existing Secret containing extra env vars for backend containers
+  ##
+  extraEnvVarsSecret: ""
+  ## @param backend.extraVolumes Optionally specify extra list of additional volumes for the backend pods
+  ##
+  extraVolumes: []
+  ## @param backend.extraVolumeMounts Optionally specify extra list of additional volumeMounts for the backend containers
+  ##
+  extraVolumeMounts: []
+  ## @param backend.sidecars Add additional sidecar containers to the backend pods
+  ## e.g:
+  ## sidecars:
+  ##   - name: your-image-name
+  ##     image: your-image
+  ##     imagePullPolicy: Always
+  ##     ports:
+  ##       - name: portname
+  ##         containerPort: 1234
+  ##
+  sidecars: []
+  ## @param backend.initContainers Add additional init containers to the backend pods
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ## e.g:
+  ## initContainers:
+  ##  - name: your-image-name
+  ##    image: your-image
+  ##    imagePullPolicy: Always
+  ##    command: ['sh', '-c', 'echo "hello world"']
+  ##
+  initContainers: []
+  ## Pod Disruption Budget configuration
+  ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb
+  ## @param backend.pdb.create Enable/disable a Pod Disruption Budget creation
+  ## @param backend.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param backend.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable. Defaults to `1` if both `backend.pdb.minAvailable` and `backend.pdb.maxUnavailable` are empty.
+  ##
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+  ## Autoscaling configuration
+  ## ref: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+  ##
+  autoscaling:
+    ## @param backend.autoscaling.hpa.enabled Enable HPA for backend pods
+    ## @param backend.autoscaling.hpa.minReplicas Minimum number of replicas
+    ## @param backend.autoscaling.hpa.maxReplicas Maximum number of replicas
+    ## @param backend.autoscaling.hpa.targetCPU Target CPU utilization percentage
+    ## @param backend.autoscaling.hpa.targetMemory Target Memory utilization percentage
+    ##
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: ""
+  ## backend service parameters
+  ##
+  service:
+    ## @param backend.service.type backend service type
+    ##
+    type: ClusterIP
+    ## @param backend.service.ports.http backend service HTTP port
+    ##
+    ports:
+      http: 80
+    ## Node ports to expose
+    ## @param backend.service.nodePorts.http Node port for HTTP
+    ## NOTE: choose port between <30000-32767>
+    ##
+    nodePorts:
+      http: ""
+    ## @param backend.service.clusterIP backend service Cluster IP
+    ## e.g.:
+    ## clusterIP: None
+    ##
+    clusterIP: ""
+    ## @param backend.service.loadBalancerIP backend service Load Balancer IP
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
+    ##
+    loadBalancerIP: ""
+    ## @param backend.service.loadBalancerSourceRanges backend service Load Balancer sources
+    ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+    ## e.g:
+    ## loadBalancerSourceRanges:
+    ##   - 10.10.10.0/24
+    ##
+    loadBalancerSourceRanges: []
+    ## @param backend.service.externalTrafficPolicy backend service external traffic policy
+    ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+    ##
+    externalTrafficPolicy: Cluster
+    ## @param backend.service.annotations Additional custom annotations for backend service
+    ##
+    annotations: {}
+    ## @param backend.service.extraPorts Extra ports to expose in backend service (normally used with the `sidecars` value)
+    ##
+    extraPorts: []
+    ## @param backend.service.sessionAffinity Control where client requests go, to the same pod or round-robin
+    ## Values: ClientIP or None
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/
+    ##
+    sessionAffinity: None
+    ## @param backend.service.sessionAffinityConfig Additional settings for the sessionAffinity
+    ## sessionAffinityConfig:
+    ##   clientIP:
+    ##     timeoutSeconds: 300
+    ##
+    sessionAffinityConfig: {}
+  ## Network Policies
+  ## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
+  ##
+  networkPolicy:
+    ## @param backend.networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+    ##
+    enabled: true
+    ## @param backend.networkPolicy.allowExternal Don't require server label for connections
+    ## The Policy model to apply. When set to false, only pods with the correct
+    ## server label will have network access to the ports server is listening
+    ## on. When true, server will accept connections from any source
+    ## (with the correct destination port).
+    ##
+    allowExternal: true
+    ## @param backend.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+    ##
+    allowExternalEgress: false
+    ## @param backend.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+    ##
+    addExternalClientAccess: false
+    ## @param backend.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+    ## e.g:
+    ## extraIngress:
+    ##   - ports:
+    ##       - port: 1234
+    ##     from:
+    ##       - podSelector:
+    ##           - matchLabels:
+    ##               - role: frontend
+    ##       - podSelector:
+    ##           - matchExpressions:
+    ##               - key: role
+    ##                 operator: In
+    ##                 values:
+    ##                   - frontend
+    extraIngress: []
+    ## @param backend.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+    ## e.g:
+    ## extraEgress:
+    ##   - ports:
+    ##       - port: 1234
+    ##     to:
+    ##       - podSelector:
+    ##           - matchLabels:
+    ##               - role: frontend
+    ##       - podSelector:
+    ##           - matchExpressions:
+    ##               - key: role
+    ##                 operator: In
+    ##                 values:
+    ##                   - frontend
+    ##
+    extraEgress: []
+    ## @param backend.networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+    ## e.g:
+    ## ingressPodMatchLabels:
+    ##   my-client: "true"
+    #
+    ingressPodMatchLabels: {}
+    ## @param backend.networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param backend.networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+    ##
+    ingressNSMatchLabels: {}
+    ingressNSPodMatchLabels: {}
+  ## @param backend.envVars Configure backend container environment variables, see https://github.com/MinBZK/bureaublad/blob/main/backend/example.env
+  ## @extra backend.envVars.BY_VALUE Example environment variable by setting value directly
+  ## @extra backend.envVars.FROM_CONFIGMAP.configMapKeyRef.name Name of a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra backend.envVars.FROM_CONFIGMAP.configMapKeyRef.key Key within a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra backend.envVars.FROM_SECRET.secretKeyRef.name Name of a Secret when configuring env vars from a Secret
+  ## @extra backend.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
+  ## @skip backend.envVars
+  envVars: ~
+
+## @section Frontend Parameters
+##
+
+## Bureaublad frontend server
+##
+frontend:
+  ## Bureaublad frontend image
+  ## ref: https://github.com/MinBZK/bureaublad/pkgs/container/bureaublad-api
+  ## @param frontend.image.registry frontend image registry
+  ## @param frontend.image.repository frontend image repository
+  ## @skip frontend.image.tag frontend image tag (immutable tags are recommended)
+  ## @param frontend.image.digest frontend image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
+  ## @param frontend.image.pullPolicy frontend image pull policy
+  ## @param frontend.image.pullSecrets frontend image pull secrets
+  ##
+  image:
+    registry: ghcr.io
+    repository: minbzk/bureaublad-frontend
+    tag: v0.1.0
+    digest: ""
+    ## Specify a imagePullPolicy
+    ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
+    ##
+    pullPolicy: Always
+    ## Optionally specify an array of imagePullSecrets (secrets must be manually created in the namespace)
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ## e.g:
+    ## pullSecrets:
+    ##   - myRegistryKeySecretName
+    ##
+    pullSecrets: []
+  ## @param frontend.replicaCount Number of frontend replicas to deploy
+  ##
+  replicaCount: 1
+  ## @param frontend.containerPorts.http frontend HTTP container port
+  ##
+  containerPorts:
+    http: 8080
+  ## @param frontend.extraContainerPorts Optionally specify extra list of additional ports for frontend containers
+  ## e.g:
+  ## extraContainerPorts:
+  ##   - name: myservice
+  ##     containerPort: 9090
+  ##
+  extraContainerPorts: []
+  ## Configure extra options for frontend containers' liveness and readiness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  ## @param frontend.livenessProbe.enabled Enable livenessProbe on frontend containers
+  ## @param frontend.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+  ## @param frontend.livenessProbe.periodSeconds Period seconds for livenessProbe
+  ## @param frontend.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+  ## @param frontend.livenessProbe.failureThreshold Failure threshold for livenessProbe
+  ## @param frontend.livenessProbe.successThreshold Success threshold for livenessProbe
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param frontend.readinessProbe.enabled Enable readinessProbe on frontend containers
+  ## @param frontend.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+  ## @param frontend.readinessProbe.periodSeconds Period seconds for readinessProbe
+  ## @param frontend.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+  ## @param frontend.readinessProbe.failureThreshold Failure threshold for readinessProbe
+  ## @param frontend.readinessProbe.successThreshold Success threshold for readinessProbe
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param frontend.startupProbe.enabled Enable startupProbe on frontend containers
+  ## @param frontend.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+  ## @param frontend.startupProbe.periodSeconds Period seconds for startupProbe
+  ## @param frontend.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+  ## @param frontend.startupProbe.failureThreshold Failure threshold for startupProbe
+  ## @param frontend.startupProbe.successThreshold Success threshold for startupProbe
+  ##
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param frontend.customLivenessProbe Custom livenessProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  ## @param frontend.customReadinessProbe Custom readinessProbe that overrides the default one
+  ##
+  customReadinessProbe: {}
+  ## @param frontend.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customStartupProbe: {}
+  ## frontend resource requests and limits
+  ## ref: http://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+  ## @param frontend.resourcesPreset Set frontend container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if frontend.resources is set (frontend.resources is recommended for production).
+  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  ##
+  resourcesPreset: "nano"
+  ## @param frontend.resources Set frontend container requests and limits for different resources like CPU or memory (essential for production workloads)
+  ## Example:
+  ## resources:
+  ##   requests:
+  ##     cpu: 2
+  ##     memory: 512Mi
+  ##   limits:
+  ##     cpu: 3
+  ##     memory: 1024Mi
+  ##
+  resources: {}
+  ## Configure Pods Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+  ## @param frontend.podSecurityContext.enabled Enable frontend pods' Security Context
+  ## @param frontend.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy for frontend pods
+  ## @param frontend.podSecurityContext.sysctls Set kernel settings using the sysctl interface for frontend pods
+  ## @param frontend.podSecurityContext.supplementalGroups Set filesystem extra groups for frontend pods
+  ## @param frontend.podSecurityContext.fsGroup Set fsGroup in frontend pods' Security Context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## Configure Container Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  ## @param frontend.containerSecurityContext.enabled Enabled frontend container' Security Context
+  ## @param frontend.containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in frontend container
+  ## @param frontend.containerSecurityContext.runAsUser Set runAsUser in frontend container' Security Context
+  ## @param frontend.containerSecurityContext.runAsGroup Set runAsGroup in frontend container' Security Context
+  ## @param frontend.containerSecurityContext.runAsNonRoot Set runAsNonRoot in frontend container' Security Context
+  ## @param frontend.containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in frontend container' Security Context
+  ## @param frontend.containerSecurityContext.privileged Set privileged in frontend container' Security Context
+  ## @param frontend.containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in frontend container' Security Context
+  ## @param frontend.containerSecurityContext.capabilities.drop List of capabilities to be dropped in frontend container
+  ## @param frontend.containerSecurityContext.seccompProfile.type Set seccomp profile in frontend container
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+
+  ## @param frontend.existingConfigmap The name of an existing ConfigMap with your custom configuration for frontend
+  ##
+  existingConfigmap: ""
+  ## @param frontend.command Override default frontend container command (useful when using custom images)
+  ##
+  command: []
+  ## @param frontend.args Override default frontend container args (useful when using custom images)
+  ##
+  args: []
+  ## @param frontend.automountServiceAccountToken Mount Service Account token in frontend pods
+  ##
+  automountServiceAccountToken: false
+  ## @param frontend.hostAliases frontend pods host aliases
+  ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+  ##
+  hostAliases: []
+  ## @param frontend.deploymentAnnotations Annotations for frontend deployment
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  ##
+  deploymentAnnotations: {}
+  ## @param frontend.podLabels Extra labels for frontend pods
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+  ##
+  podLabels: {}
+  ## @param frontend.podAnnotations Annotations for frontend pods
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  ##
+  podAnnotations: {}
+  ## @param frontend.podAffinityPreset Pod affinity preset. Ignored if `frontend.affinity` is set. Allowed values: `soft` or `hard`
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ##
+  podAffinityPreset: ""
+  ## @param frontend.podAntiAffinityPreset Pod anti-affinity preset. Ignored if `frontend.affinity` is set. Allowed values: `soft` or `hard`
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ##
+  podAntiAffinityPreset: soft
+  ## Node frontend.affinity preset
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+  ##
+  nodeAffinityPreset:
+    ## @param frontend.nodeAffinityPreset.type Node affinity preset type. Ignored if `frontend.affinity` is set. Allowed values: `soft` or `hard`
+    ##
+    type: ""
+    ## @param frontend.nodeAffinityPreset.key Node label key to match. Ignored if `frontend.affinity` is set
+    ##
+    key: ""
+    ## @param frontend.nodeAffinityPreset.values Node label values to match. Ignored if `frontend.affinity` is set
+    ## E.g.
+    ## values:
+    ##   - e2e-az1
+    ##   - e2e-az2
+    ##
+    values: []
+  ## @param frontend.affinity Affinity for frontend pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ## NOTE: `frontend.podAffinityPreset`, `frontend.podAntiAffinityPreset`, and `frontend.nodeAffinityPreset` will be ignored when it's set
+  ##
+  affinity: {}
+  ## @param frontend.nodeSelector Node labels for frontend pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+  ##
+  nodeSelector: {}
+  ## @param frontend.tolerations Tolerations for frontend pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+  ## ONLY FOR DEPLOYMENTS:
+  ## @param frontend.updateStrategy.type frontend deployment strategy type
+  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  ## ONLY FOR STATEFULSETS:
+  ## @param frontend.updateStrategy.type frontend statefulset strategy type
+  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+  ##
+  updateStrategy:
+    ## ONLY FOR DEPLOYMENTS:
+    ## Can be set to RollingUpdate or Recreate
+    ## ONLY FOR STATEFULSETS:
+    ## Can be set to RollingUpdate or OnDelete
+    ##
+    type: RollingUpdate
+  ## @param frontend.priorityClassName frontend pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param frontend.topologySpreadConstraints Topology Spread Constraints for frontend pod assignment spread across your cluster among failure-domains
+  ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
+  ##
+  topologySpreadConstraints: []
+  ## @param frontend.schedulerName Name of the k8s scheduler (other than default) for frontend pods
+  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+  ##
+  schedulerName: ""
+  ## @param frontend.runtimeClassName Name of the runtime class name for frontend pods
+  ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+  ##
+  runtimeClassName: ""
+  ## @param frontend.terminationGracePeriodSeconds Seconds frontend pods need to terminate gracefully
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param frontend.lifecycleHooks for frontend containers to automate configuration before or after startup
+  ##
+  lifecycleHooks: {}
+  ## @param frontend.extraEnvVars Array with extra environment variables to add to frontend containers
+  ## e.g:
+  ## extraEnvVars:
+  ##   - name: FOO
+  ##     value: "bar"
+  ##
+  extraEnvVars: []
+  ## @param frontend.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for frontend containers
+  ##
+  extraEnvVarsCM: ""
+  ## @param frontend.extraEnvVarsSecret Name of existing Secret containing extra env vars for frontend containers
+  ##
+  extraEnvVarsSecret: ""
+  ## @param frontend.extraVolumes Optionally specify extra list of additional volumes for the frontend pods
+  ##
+  extraVolumes: []
+  ## @param frontend.extraVolumeMounts Optionally specify extra list of additional volumeMounts for the frontend containers
+  ##
+  extraVolumeMounts: []
+  ## @param frontend.sidecars Add additional sidecar containers to the frontend pods
+  ## e.g:
+  ## sidecars:
+  ##   - name: your-image-name
+  ##     image: your-image
+  ##     imagePullPolicy: Always
+  ##     ports:
+  ##       - name: portname
+  ##         containerPort: 1234
+  ##
+  sidecars: []
+  ## @param frontend.initContainers Add additional init containers to the frontend pods
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ## e.g:
+  ## initContainers:
+  ##  - name: your-image-name
+  ##    image: your-image
+  ##    imagePullPolicy: Always
+  ##    command: ['sh', '-c', 'echo "hello world"']
+  ##
+  initContainers: []
+  ## Pod Disruption Budget configuration
+  ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb
+  ## @param frontend.pdb.create Enable/disable a Pod Disruption Budget creation
+  ## @param frontend.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param frontend.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable. Defaults to `1` if both `frontend.pdb.minAvailable` and `frontend.pdb.maxUnavailable` are empty.
+  ##
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+  ## Autoscaling configuration
+  ## ref: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+  ##
+  autoscaling:
+    ## @param frontend.autoscaling.vpa.enabled Enable VPA for frontend pods
+    ## @param frontend.autoscaling.vpa.annotations Annotations for VPA resource
+    ## @param frontend.autoscaling.vpa.controlledResources VPA List of resources that the vertical pod autoscaler can control. Defaults to cpu and memory
+    ## @param frontend.autoscaling.vpa.maxAllowed VPA Max allowed resources for the pod
+    ## @param frontend.autoscaling.vpa.minAllowed VPA Min allowed resources for the pod
+    ##
+    vpa:
+      enabled: false
+      annotations: {}
+      controlledResources: []
+      maxAllowed: {}
+      minAllowed: {}
+      ## @param frontend.autoscaling.vpa.updatePolicy.updateMode Autoscaling update policy
+      ## Specifies whether recommended updates are applied when a Pod is started and whether recommended updates are applied during the life of a Pod
+      ## Possible values are "Off", "Initial", "Recreate", and "Auto".
+      ##
+      updatePolicy:
+        updateMode: Auto
+    ## @param frontend.autoscaling.hpa.enabled Enable HPA for frontend pods
+    ## @param frontend.autoscaling.hpa.minReplicas Minimum number of replicas
+    ## @param frontend.autoscaling.hpa.maxReplicas Maximum number of replicas
+    ## @param frontend.autoscaling.hpa.targetCPU Target CPU utilization percentage
+    ## @param frontend.autoscaling.hpa.targetMemory Target Memory utilization percentage
+    ##
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: ""
+  ## frontend service parameters
+  ##
+  service:
+    ## @param frontend.service.type frontend service type
+    ##
+    type: ClusterIP
+    ## @param frontend.service.ports.http frontend service HTTP port
+    ##
+    ports:
+      http: 80
+    ## Node ports to expose
+    ## @param frontend.service.nodePorts.http Node port for HTTP
+    ## NOTE: choose port between <30000-32767>
+    ##
+    nodePorts:
+      http: ""
+    ## @param frontend.service.clusterIP frontend service Cluster IP
+    ## e.g.:
+    ## clusterIP: None
+    ##
+    clusterIP: ""
+    ## @param frontend.service.loadBalancerIP frontend service Load Balancer IP
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
+    ##
+    loadBalancerIP: ""
+    ## @param frontend.service.loadBalancerSourceRanges frontend service Load Balancer sources
+    ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+    ## e.g:
+    ## loadBalancerSourceRanges:
+    ##   - 10.10.10.0/24
+    ##
+    loadBalancerSourceRanges: []
+    ## @param frontend.service.externalTrafficPolicy frontend service external traffic policy
+    ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+    ##
+    externalTrafficPolicy: Cluster
+    ## @param frontend.service.annotations Additional custom annotations for frontend service
+    ##
+    annotations: {}
+    ## @param frontend.service.extraPorts Extra ports to expose in frontend service (normally used with the `sidecars` value)
+    ##
+    extraPorts: []
+    ## @param frontend.service.sessionAffinity Control where client requests go, to the same pod or round-robin
+    ## Values: ClientIP or None
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/
+    ##
+    sessionAffinity: None
+    ## @param frontend.service.sessionAffinityConfig Additional settings for the sessionAffinity
+    ## sessionAffinityConfig:
+    ##   clientIP:
+    ##     timeoutSeconds: 300
+    ##
+    sessionAffinityConfig: {}
+  ## Network Policies
+  ## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
+  ##
+  networkPolicy:
+    ## @param frontend.networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+    ##
+    enabled: true
+    ## @param frontend.networkPolicy.allowExternal Don't require server label for connections
+    ## The Policy model to apply. When set to false, only pods with the correct
+    ## server label will have network access to the ports server is listening
+    ## on. When true, server will accept connections from any source
+    ## (with the correct destination port).
+    ##
+    allowExternal: true
+    ## @param frontend.networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+    ##
+    allowExternalEgress: false
+    ## @param frontend.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+    ##
+    addExternalClientAccess: true
+    ## @param frontend.networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+    ## e.g:
+    ## extraIngress:
+    ##   - ports:
+    ##       - port: 1234
+    ##     from:
+    ##       - podSelector:
+    ##           - matchLabels:
+    ##               - role: frontend
+    ##       - podSelector:
+    ##           - matchExpressions:
+    ##               - key: role
+    ##                 operator: In
+    ##                 values:
+    ##                   - frontend
+    extraIngress: []
+    ## @param frontend.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+    ## e.g:
+    ## extraEgress:
+    ##   - ports:
+    ##       - port: 1234
+    ##     to:
+    ##       - podSelector:
+    ##           - matchLabels:
+    ##               - role: frontend
+    ##       - podSelector:
+    ##           - matchExpressions:
+    ##               - key: role
+    ##                 operator: In
+    ##                 values:
+    ##                   - frontend
+    ##
+    extraEgress: []
+    ## @param frontend.networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+    ## e.g:
+    ## ingressPodMatchLabels:
+    ##   my-client: "true"
+    #
+    ingressPodMatchLabels: {}
+    ## @param frontend.networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+    ## @param frontend.networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+    ##
+    ingressNSMatchLabels: {}
+    ingressNSPodMatchLabels: {}
+  ## @param frontend.envVars Configure backend container environment variables, see https://github.com/MinBZK/bureaublad/blob/main/frontend/example.env
+  ## @extra backend.envVars.BY_VALUE Example environment variable by setting value directly
+  ## @extra backend.envVars.FROM_CONFIGMAP.configMapKeyRef.name Name of a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra backend.envVars.FROM_CONFIGMAP.configMapKeyRef.key Key within a ConfigMap when configuring env vars from a ConfigMap
+  ## @extra backend.envVars.FROM_SECRET.secretKeyRef.name Name of a Secret when configuring env vars from a Secret
+  ## @extra backend.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
+  ## @skip backend.envVars
+  envVars: ~
+
+
+## @section Traffic Exposure Parameters
+##
+
+## Bureaublad ingress parameters
+## ref: http://kubernetes.io/docs/concepts/services-networking/ingress/
+##
+ingress:
+  ## @param ingress.enabled Enable ingress record generation for backend
+  ##
+  enabled: false
+  ## @param ingress.pathType Ingress path type
+  ##
+  pathType: ImplementationSpecific
+  ## @param ingress.apiVersion Force Ingress API version (automatically detected if not set)
+  ##
+  apiVersion: ""
+  ## @param ingress.hostname Default host for the ingress record
+  ##
+  hostname: bureaublad.local
+  ## @param ingress.ingressClassName IngressClass that will be be used to implement the Ingress (Kubernetes 1.18+)
+  ## This is supported in Kubernetes 1.18+ and required if you have more than one IngressClass marked as the default for your cluster .
+  ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
+  ##
+  ingressClassName: ""
+  ## @param ingress.frontendPath Default path for the ingress record connecting the frontend service
+  ## NOTE: You may need to set this to '/*' in order to use this with ALB ingress controllers
+  ##
+  frontendPath: /
+  ## @param ingress.backendPath Default path for the ingress record connecting the backend service
+  ## NOTE: You may need to set this to '/*' in order to use this with ALB ingress controllers
+  ##
+  backendPath: /api
+  ## @param ingress.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
+  ## Use this parameter to set the required annotations for cert-manager, see
+  ## ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
+  ## e.g:
+  ## annotations:
+  ##   kubernetes.io/ingress.class: nginx
+  ##   cert-manager.io/cluster-issuer: cluster-issuer-name
+  ##
+  annotations: {}
+  ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
+  ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`
+  ## You can:
+  ##   - Use the `ingress.secrets` parameter to create this TLS secret
+  ##   - Rely on cert-manager to create it by setting the corresponding annotations
+  ##   - Rely on Helm to create self-signed certificates by setting `ingress.selfSigned=true`
+  ##
+  tls: false
+  ## @param ingress.selfSigned Create a TLS secret for this ingress record using self-signed certificates generated by Helm
+  ##
+  selfSigned: false
+  ## @param ingress.extraHosts An array with additional hostname(s) to be covered with the ingress record
+  ## e.g:
+  ## extraHosts:
+  ##   - name: bureaublad.local
+  ##     path: /
+  ##
+  extraHosts: []
+  ## @param ingress.extraPaths An array with additional arbitrary paths that may need to be added to the ingress under the main host
+  ## e.g:
+  ## extraPaths:
+  ## - path: /*
+  ##   backend:
+  ##     serviceName: ssl-redirect
+  ##     servicePort: use-annotation
+  ##
+  extraPaths: []
+  ## @param ingress.extraTls TLS configuration for additional hostname(s) to be covered with this ingress record
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+  ## e.g:
+  ## extraTls:
+  ## - hosts:
+  ##     - bureaublad.local
+  ##   secretName: bureaublad.local-tls
+  ##
+  extraTls: []
+  ## @param ingress.secrets Custom TLS certificates as secrets
+  ## NOTE: 'key' and 'certificate' are expected in PEM format
+  ## NOTE: 'name' should line up with a 'secretName' set further up
+  ## If it is not set and you're using cert-manager, this is unneeded, as it will create a secret for you with valid certificates
+  ## If it is not set and you're NOT using cert-manager either, self-signed certificates will be created valid for 365 days
+  ## It is also possible to create and manage the certificates outside of this helm chart
+  ## Please see README.md for more information
+  ## e.g:
+  ## secrets:
+  ##   - name: bureaublad.local-tls
+  ##     key: |-
+  ##       -----BEGIN RSA PRIVATE KEY-----
+  ##       ...
+  ##       -----END RSA PRIVATE KEY-----
+  ##     certificate: |-
+  ##       -----BEGIN CERTIFICATE-----
+  ##       ...
+  ##       -----END CERTIFICATE-----
+  ##
+  secrets: []
+  ## @param ingress.extraRules Additional rules to be covered with this ingress record
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
+  ## e.g:
+  ## extraRules:
+  ## - host: example.local
+  ##     http:
+  ##       path: /
+  ##       backend:
+  ##         service:
+  ##           name: example-svc
+  ##           port:
+  ##             name: http
+  ##
+  extraRules: []
+
+## @section Other Parameters
+##
+
+## ServiceAccount configuration
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+##
+serviceAccount:
+  ## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+  ##
+  create: true
+  ## @param serviceAccount.name The name of the ServiceAccount to use.
+  ## If not set and create is true, a name is generated using the common.names.fullname template
+  ##
+  name: ""
+  ## @param serviceAccount.annotations Additional Service Account annotations (evaluated as a template)
+  ##
+  annotations: {}
+  ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
+  ##
+  automountServiceAccountToken: true
+
+## Prometheus metrics
+##
+metrics:
+  ## @param metrics.enabled Enable the export of Prometheus metrics
+  ##
+  enabled: false
+  ## Prometheus Operator ServiceMonitor configuration
+  ##
+  serviceMonitor:
+    ## @param metrics.serviceMonitor.enabled if `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.enabled` to be `true`)
+    ##
+    enabled: false
+    ## @param metrics.serviceMonitor.namespace Namespace in which Prometheus is running
+    ##
+    namespace: ""
+    ## @param metrics.serviceMonitor.annotations Additional custom annotations for the ServiceMonitor
+    ##
+    annotations: {}
+    ## @param metrics.serviceMonitor.labels Extra labels for the ServiceMonitor
+    ##
+    labels: {}
+    ## @param metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in Prometheus
+    ##
+    jobLabel: ""
+    ## @param metrics.serviceMonitor.honorLabels honorLabels chooses the metric's labels on collisions with target labels
+    ##
+    honorLabels: false
+    ## @param metrics.serviceMonitor.tlsConfig [object] TLS configuration used for scrape endpoints used by Prometheus
+    ##
+    tlsConfig: {}
+    ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped.
+    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+    ## e.g:
+    ## interval: 10s
+    ##
+    interval: ""
+    ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
+    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+    ## e.g:
+    ## scrapeTimeout: 10s
+    ##
+    scrapeTimeout: ""
+    ## @param metrics.serviceMonitor.metricRelabelings Specify additional relabeling of metrics
+    ##
+    metricRelabelings: []
+    ## @param metrics.serviceMonitor.relabelings Specify general relabeling
+    ##
+    relabelings: []
+    ## @param metrics.serviceMonitor.selector Prometheus instance selector labels
+    ## ref: https://github.com/bitnami/charts/tree/main/bitnami/prometheus-operator#prometheus-configuration
+    ## selector:
+    ##   prometheus: my-prometheus
+    ##
+    selector: {}

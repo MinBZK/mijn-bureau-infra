@@ -1,0 +1,10 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: bureaublad
+    chart: charts/bureaublad
+    condition: application.bureaublad.enabled
+    namespace: {{ .Values.application.bureaublad.namespace }}
+    values:
+      - "values.yaml.gotmpl"

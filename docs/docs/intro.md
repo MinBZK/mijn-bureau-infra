@@ -25,12 +25,13 @@ MijnBureau offers a rich set of features focused on collaboration:
 - Self-hosted AI Language Models
 - Integrated Identity Management
 - Video Conferencing
+- AI Assistant
+- Start page with integrations to the different features
 
 ### Planned Features
 
 We are actively expanding the suite with plans to include:
 
-- AI Assistant
 - Discussion Forum
 - Password Manager
 - Email
@@ -56,3 +57,4 @@ MijnBureau currently includes the following key components:
 | Video backend      | Livekit              | [v1.9.3](https://github.com/livekit/livekit/releases/tag/v1.9.3)                  | [documentation](https://livekit.io/)                                                 | Apache-2.0 |
 | Video conferencing | Meet                 | [v0.1.38](https://github.com/suitenumerique/meet/releases/tag/v0.1.38)            | [documentation](https://github.com/suitenumerique/meet/tree/main/docs)               | MIT        |
 | AI Assistent       | Conversations        | [v0.0.5](https://github.com/suitenumerique/conversations/tags/v0.0.5)             | [documentation](https://github.com/suitenumerique/conversations/blob/main/README.md) | MIT        |
+| Bureaublad         | Startpage            | [v0.1.0](https://github.com/MinBZK/bureaublad/releases/tag/v0.1.0)                | [documentation](https://github.com/MinBZK/bureaublad)                                | EUPL-1.2   |

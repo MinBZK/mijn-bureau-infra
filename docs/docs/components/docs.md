@@ -1,4 +1,4 @@
-# docs
+# Docs
 
 MijnBureau supplies an installation of [Docs](https://github.com/suitenumerique/docs). It is a collaborative note solution.
 

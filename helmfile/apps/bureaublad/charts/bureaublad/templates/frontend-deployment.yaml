@@ -1,38 +1,41 @@
 {{- /*
 
-SPDX-License-Identifier: APACHE-2.0
+SPDX-License-Identifier: EUPL-1.2
 */}}
+{{- $envVars := include "bureaublad.common.env" (list . .Values.frontend) -}}
 
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
-  name: {{ template "docs.frontend.fullname" . }}
+  name: {{ template "bureaublad.frontend.fullname" . }}
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-    app.kubernetes.io/component: frontend
+    app.kubernetes.io/component: {{ template "bureaublad.frontend.fullname" . }}
   {{- if or .Values.frontend.deploymentAnnotations .Values.commonAnnotations }}
   {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.frontend.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
+  {{- if not .Values.frontend.autoscaling.hpa.enabled }}
   replicas: {{ .Values.frontend.replicaCount }}
+  {{- end }}
   {{- if .Values.frontend.updateStrategy }}
   strategy: {{- toYaml .Values.frontend.updateStrategy | nindent 4 }}
   {{- end }}
   {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.frontend.podLabels .Values.commonLabels) "context" .) }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
-      app.kubernetes.io/component: frontend
+      app.kubernetes.io/component: {{ template "bureaublad.frontend.fullname" . }}
   template:
     metadata:
       {{- if .Values.frontend.podAnnotations }}
       annotations: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.podAnnotations "context" $) | nindent 8 }}
       {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
-        app.kubernetes.io/component: frontend
+        app.kubernetes.io/component: {{ template "bureaublad.frontend.fullname" . }}
     spec:
-      {{- include "docs.imagePullSecrets" . | nindent 6 }}
-      serviceAccountName: {{ template "docs.serviceAccountName" . }}
+      {{- include "bureaublad.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "bureaublad.serviceAccountName" . }}
       automountServiceAccountToken: {{ .Values.frontend.automountServiceAccountToken }}
       {{- if .Values.frontend.hostAliases }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.hostAliases "context" $) | nindent 8 }}
@@ -41,8 +44,8 @@ spec:
       affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.frontend.affinity "context" $) | nindent 8 }}
       {{- else }}
       affinity:
-        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.frontend.podAffinityPreset "component" "docs" "customLabels" $podLabels "context" $) | nindent 10 }}
-        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.frontend.podAntiAffinityPreset "component" "docs" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.frontend.podAffinityPreset "component" "bureaublad" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.frontend.podAntiAffinityPreset "component" "bureaublad" "customLabels" $podLabels "context" $) | nindent 10 }}
         nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.frontend.nodeAffinityPreset.type "key" .Values.frontend.nodeAffinityPreset.key "values" .Values.frontend.nodeAffinityPreset.values) | nindent 10 }}
       {{- end }}
       {{- if .Values.frontend.nodeSelector }}
@@ -64,21 +67,18 @@ spec:
       topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.topologySpreadConstraints "context" .) | nindent 8 }}
       {{- end }}
       {{- if .Values.frontend.podSecurityContext.enabled }}
-      securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.frontend.podSecurityContext "context" $) | nindent 8 }}
+      securityContext: {{- omit .Values.frontend.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
       {{- if .Values.frontend.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.frontend.terminationGracePeriodSeconds }}
       {{- end }}
       initContainers:
-        {{- if and .Values.defaultInitContainers.volumePermissions.enabled .Values.persistence.enabled }}
-        {{- include "docs.defaultInitContainers.volumePermissions" (dict "context" . "component" "frontend") | nindent 8 }}
-        {{- end }}
         {{- if .Values.frontend.initContainers }}
           {{- include "common.tplvalues.render" (dict "value" .Values.frontend.initContainers "context" $) | nindent 8 }}
         {{- end }}
       containers:
-        - name: {{ template "docs.frontend.fullname" . }}
-          image: {{ template "docs.frontend.image" . }}
+        - name: frontend
+          image: {{ template "bureaublad.frontend.image" . }}
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
           {{- if .Values.frontend.containerSecurityContext.enabled }}
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.frontend.containerSecurityContext "context" $) | nindent 12 }}
@@ -94,16 +94,9 @@ spec:
           args: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.args "context" $) | nindent 12 }}
           {{- end }}
           env:
-            - name: PORT
-              value: {{ .Values.frontend.containerPorts.http | quote }}
-            - name: NEXT_PUBLIC_API_ORIGIN
-              value: {{ include "docs.baseUrl" . | quote }}
-            - name: API_ORIGIN
-              value: {{ .Values.frontend.configuration.apiOrigin | quote }}
-            - name: SW_DEACTIVATED
-              value: {{ .Values.frontend.configuration.serviceWorkerDeactivated | quote }}
-            - name: PUBLISH_AS_MIT
-              value: {{ .Values.frontend.configuration.publishAsMit | quote }}
+            {{- if $envVars }}
+            {{- $envVars | indent 12 }}
+            {{- end }}
             {{- if .Values.frontend.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.frontend.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
