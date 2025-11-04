@@ -1,0 +1,26 @@
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+annotations:
+  category: ProductivityTools
+  licenses: EUPL-1.2
+apiVersion: v2
+appVersion: 0.1.0
+dependencies:
+  - name: common
+    repository: "file://../../../common/charts/common"
+    version: 2.31.1
+description: Bureaublad is a flexible dashboard application that aggregates information from multiple open-source components into a unified interface. Users can access essential tools and data from a single location without needing to switch between different applications.
+home: https://github.com/MinBZK/bureaublad
+keywords:
+  - startpage
+  - dashboard
+  - integration
+  - aggregation
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: bureaublad
+sources:
+  - https://github.com/MinBZK/bureaublad
+version: 0.1.0

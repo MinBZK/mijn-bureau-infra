@@ -1575,7 +1575,7 @@ keycloakConfigCli:
               "frontchannel.logout.session.required": "true",
               "post.logout.redirect.uris": "+"
             }
-         },
+          },
           {
             "clientId": "{{ .Values.authentication.client.docs.client_id }}",
             "name": "Docs",
@@ -1617,7 +1617,50 @@ keycloakConfigCli:
               "display.on.consent.screen": "false",
               "backchannel.logout.revoke.offline.tokens": "false"
             }
-           }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.bureaublad.client_id }}",
+            "name": "bureaublad",
+            "description": "Mijn Bureau bureaublad",
+            "rootUrl": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": {{ .Values.authentication.client.bureaublad.client_secret | quote }},
+            "redirectUris": [
+              "/api/v1/auth/callback"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": true,
+            "serviceAccountsEnabled": false,
+            "publicClient": true,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "1759388679",
+              "backchannel.logout.session.required": "true",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/api/v1/auth/logout",
+              "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.url": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/api/v1/auth/logout",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/*",
+              "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "backchannel.logout.revoke.offline.tokens": "false"
+            }
+          }
         ],
         {{- if eq .Environment.Name "demo" }}
         "users" : [

@@ -80,6 +80,19 @@ autoscaling:
         maxReplicas: 3
         targetCPU: 80
         targetMemory: ""
+    bureaublad:
+      backend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      frontend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
 
   vertical:
     synapse:

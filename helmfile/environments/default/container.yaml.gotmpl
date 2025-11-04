@@ -122,10 +122,20 @@ container:
     registry: "registry-1.docker.io"
     backend:
       repository: "lasuite/impress-backend"
-      tag: "v3.7.0"
+      tag: "v3.8.21"
     frontend:
       repository: "lasuite/impress-frontend"
-      tag: "v3.7.0"
+      tag: "v3.8.21"
     yProvider:
       repository: "lasuite/impress-y-provider"
-      tag: "v3.7.0"
+      tag: "v3.8.21"
+
+  bureaublad:
+    imagePullSecret: ~
+    registry: "ghcr.io"
+    backend:
+      repository: "minbzk/bureaublad-api"
+      tag: "v0.1.0"
+    frontend:
+      repository: "minbzk/bureaublad-frontend"
+      tag: "v0.1.0"

@@ -5,7 +5,7 @@ annotations:
   category: ProductivityTools
   licenses: EUPL-1.2
 apiVersion: v2
-appVersion: 3.7.0
+appVersion: 3.8.21
 description: "Docs is a collaborative text editor designed to address common challenges in knowledge building and sharing."
 icon: https://docs.numerique.gouv.fr/assets/favicon-light.png
 keywords:

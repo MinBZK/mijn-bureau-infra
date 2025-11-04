@@ -157,6 +157,34 @@ data:
       counter=$((counter + 5))
     done
 
+  groupfolders.sh: |-
+    #!/bin/bash
+
+    echo "Waiting for NextCloud to be ready for groupfolders setup..."
+    counter=0
+    while [ "$counter" -lt 60 ]; do
+      if php /var/www/html/occ status | grep -q "installed: true"; then
+        echo "NextCloud is ready, setting up groupfolders app..."
+
+        echo "Installing groupfolders app..."
+        if ! php /var/www/html/occ app:install groupfolders; then
+          echo "WARNING: Failed to install groupfolders app (maybe already present)"
+        else
+          echo "groupfolders app installation completed"
+        fi
+
+        echo "Enabling groupfolders app..."
+        if ! php /var/www/html/occ app:enable groupfolders; then
+          echo "WARNING: Failed to enable groupfolders app"
+        fi
+        echo "groupfolders app enablement completed"
+        break
+      fi
+      echo "Waiting for NextCloud... ($counter/60)"
+      sleep 5
+      counter=$((counter + 5))
+    done
+
   general-settings.sh: |-
     #!/bin/bash
 
