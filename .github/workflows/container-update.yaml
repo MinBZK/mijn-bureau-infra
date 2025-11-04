@@ -28,3 +28,13 @@ jobs:
         run: "updatecli apply --config ./updatecli/updatecli.d --values updatecli/values.yaml"
         env:
           UPDATECLI_GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Install prettier
+        run: npm install -g prettier
+
+      - name: Run formatters
+        run: ./scripts/format.sh
