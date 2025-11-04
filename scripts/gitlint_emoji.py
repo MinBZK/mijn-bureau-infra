@@ -37,7 +37,7 @@ class GitmojiTitle(LineRule):
             violation_msg = 'Title does not match regex "<gitmoji>(<scope>) <subject>"'
 
             # Special case for deps, updatecli forces a : after deps
-            depspattern = r"^({:s})\(deps):\s[a-zA-Z].*$".format("|".join(emojis))
+            depspattern = r"^({:s})\(deps\):\s[a-zA-Z].*$".format("|".join(emojis))
             if not re.search(depspattern, title):
               return [RuleViolation(self.id, violation_msg, title)]
 
