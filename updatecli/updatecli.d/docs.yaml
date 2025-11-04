@@ -96,6 +96,8 @@ targets:
       engine: yamlpath
       file: "helmfile/apps/docs/charts/docs/Chart.yaml"
       key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
     sourceid: docs_latest_version
     scmid: default
 
