@@ -1,0 +1,51 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: "messages"
+    chart: "charts/messages"
+    condition: application.messages.enabled
+    namespace: {{ .Values.application.messages.namespace | quote }}
+    values:
+      - "values-messages.yaml.gotmpl"
+    {{- if and (eq .Environment.Name "demo") ( .Values.application.messages.enabled) }}
+    needs:
+      - {{ .Values.application.messages.namespace }}/messages-redis
+      - {{ .Values.application.messages.namespace }}/messages-postgresql
+      - {{ .Values.application.messages.namespace }}/messages-minio
+      - {{ .Values.application.messages.namespace }}/messages-opensearch
+    {{- end }}
+
+  - name: messages-postgresql
+    chart: ../common/charts/postgresql
+    version: "16.7.18"
+    namespace: {{ .Values.application.messages.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.messages.enabled) | toYaml }}
+    values:
+      - "values-postgresql.yaml.gotmpl"
+
+  - name: messages-redis
+    chart: ../common/charts/redis
+    version: "21.2.6"
+    namespace: {{ .Values.application.messages.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.messages.enabled) | toYaml }}
+    values:
+      - "values-redis.yaml.gotmpl"
+
+  - name: messages-minio
+    chart: ../common/charts/minio
+    version: "17.0.11"
+    namespace: {{ .Values.application.messages.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.messages.enabled) | toYaml }}
+    values:
+      - "values-minio.yaml.gotmpl"
+
+  - name: messages-opensearch
+    chart: ../common/charts/opensearch
+    version: "17.0.11"
+    namespace: {{ .Values.application.messages.namespace }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.messages.enabled) | toYaml }}
+    values:
+      - "values-opensearch.yaml.gotmpl"
+
+

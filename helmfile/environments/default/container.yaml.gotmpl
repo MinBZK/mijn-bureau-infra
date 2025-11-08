@@ -126,6 +126,16 @@ container:
     repository: bitnamilegacy/nginx
     tag: 1.29.1
     imagePullSecret: ~
+  opensearch:
+    registry: docker.io
+    repository: bitnamilegacy/opensearch
+    tag: 3.2.0-debian-12-r0
+    imagePullSecret: ~
+  opensearch_dashboards:
+    registry: docker.io
+    repository: bitnamilegacy/opensearch-dashboards
+    tag: 3.2.0-debian-12-r0
+    imagePullSecret: ~
   docs:
     imagePullSecret: ~
     registry: "registry-1.docker.io"

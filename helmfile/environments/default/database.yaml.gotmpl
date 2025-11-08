@@ -76,3 +76,13 @@ database:
     isInternal: true
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "drive" "database" | sha1sum | quote}}
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "drive" "database_admin" | sha1sum | quote}}
+
+  messages:
+    type: postgresql
+    host: messages-postgresql
+    name: messages
+    user: messages
+    port: 5432
+    isInternal: true
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "messages" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "messages" "database_admin" | sha1sum | quote}}

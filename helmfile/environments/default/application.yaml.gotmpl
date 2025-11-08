@@ -98,3 +98,7 @@ application:
     namespace: ~
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secretkey" | sha1sum | quote }}
     secrettoServerKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secrettoServerKey" | sha1sum | quote }}
+
+  messages:
+    enabled: true
+    namespace: ~

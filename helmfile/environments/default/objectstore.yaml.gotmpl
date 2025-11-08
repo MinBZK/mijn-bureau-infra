@@ -34,3 +34,12 @@ objectstore:
     useSSL: false
     isInternal: true
     rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "drive" | sha1sum | quote }}
+
+  messages:
+    bucket: "messages"
+    username: "admin"
+    endpoint: "messages-minio"
+    port: 9000
+    useSSL: false
+    isInternal: true
+    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "messages" | sha1sum | quote }}
