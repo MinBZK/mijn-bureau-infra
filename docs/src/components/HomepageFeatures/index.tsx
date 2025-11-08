@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import clsx from "clsx";
 import Heading from "@theme/Heading";
 import styles from "./styles.module.css";
+import Translate, { translate } from "@docusaurus/Translate";
 
 type FeatureItem = {
   title: string;
@@ -11,24 +12,44 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: "Autonomy",
+    title: translate({
+      id: "homepage.features.autonomy.title",
+      message: "Autonomy",
+      description: "The title for the autonomy feature",
+    }),
     Svg: require("@site/static/img/code-bracket-square.svg").default,
     description: (
-      <>
+      <Translate id="homepage.features.autonomy.description">
         Run everything on your own hardware and maintain full control over your
         critical data.
-      </>
+      </Translate>
     ),
   },
   {
-    title: "Secure",
+    title: translate({
+      id: "homepage.features.secure.title",
+      message: "Secure",
+      description: "The title for the secure feature",
+    }),
     Svg: require("@site/static/img/cloud.svg").default,
-    description: <>Built securely from the ground up.</>,
+    description: (
+      <Translate id="homepage.features.secure.description">
+        Built securely from the ground up.
+      </Translate>
+    ),
   },
   {
-    title: "Government Ready",
+    title: translate({
+      id: "homepage.features.governmentReady.title",
+      message: "Government Ready",
+      description: "The title for the government ready feature",
+    }),
     Svg: require("@site/static/img/shield-check.svg").default,
-    description: <>Designed to meet government requirements.</>,
+    description: (
+      <Translate id="homepage.features.governmentReady.description">
+        Designed to meet government requirements.
+      </Translate>
+    ),
   },
 ];
 

@@ -36,6 +36,22 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Generate i18n files
+        run: yarn write-translations
+
+      - name: Upload translations to Crowdin
+        run: yarn crowdin:upload
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_API_KEY: ${{ secrets.CROWDIN_API_KEY }}
+
+      - name: Download translations from crowdin
+        run: yarn crowdin:download
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_API_KEY: ${{ secrets.CROWDIN_API_KEY }}
+
       - name: Build website
         run: yarn build
 
@@ -71,6 +87,12 @@ jobs:
       - name: replace baseUrl variables
         run: |
           sed -i 's|baseUrl: "/mijn-bureau-infra/"|baseUrl: "/"|g' docusaurus.config.ts
+
+      - name: Download translations from crowdin
+        run: yarn crowdin:download
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_API_KEY: ${{ secrets.CROWDIN_API_KEY }}
 
       - name: Build website
         run: yarn build

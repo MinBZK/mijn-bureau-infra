@@ -5,6 +5,7 @@ mykey.txt
 
 # Dependencies
 /node_modules
+i18n/
 
 # Production
 /build

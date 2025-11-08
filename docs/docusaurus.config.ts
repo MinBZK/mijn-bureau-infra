@@ -37,12 +37,18 @@ const config: Config = {
   // may want to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: "en",
-    locales: ["en"],
+    locales: ["en", "nl"],
     localeConfigs: {
       en: {
         label: "English",
         direction: "ltr",
         htmlLang: "en-US",
+        calendar: "gregory",
+      },
+      nl: {
+        label: "Nederlands",
+        direction: "ltr",
+        htmlLang: "nl-NL",
         calendar: "gregory",
       },
     },
@@ -121,6 +127,10 @@ const config: Config = {
           to: "/demo",
           label: "Demo",
           position: "left",
+        },
+        {
+          type: "localeDropdown",
+          position: "right",
         },
       ],
     },
