@@ -70,7 +70,6 @@ targets:
     kind: file
     spec:
       files:
-        - "README.md"
         - "docs/docs/intro.md"
       matchpattern: "v([0-9.]+)]\\Q(https://github.com/suitenumerique/meet/releases/tag/v\\E([0-9.]+)"
       replacepattern: '{{ source "meet_latest_version" }}](https://github.com/suitenumerique/meet/releases/tag/{{ source "meet_latest_version" }}'

@@ -82,17 +82,6 @@ targets:
     sourceid: synapse_latest_version
     scmid: default
 
-  update_synapse_readme_version:
-    name: "Update Synapse README.md"
-    kind: file
-    spec:
-      files:
-        - "helmfile/apps/chat/charts/synapse/README.md"
-      matchpattern: "`v([0-9.]+)`"
-      replacepattern: '`{{ source "synapse_latest_version" }}`'
-    sourceid: synapse_latest_version
-    scmid: default
-
   update_synapse_chart:
     name: "Update synapse chart appVersion"
     kind: yaml
@@ -110,7 +99,6 @@ targets:
     kind: file
     spec:
       files:
-        - "README.md"
         - "docs/docs/intro.md"
       matchpattern: "[vV]([0-9.]+)]\\Q(https://github.com/element-hq/element-web/tree/v\\E([0-9.]+)"
       replacepattern: '{{ source "element_latest_version" }}](https://github.com/suitenumerique/docs/releases/tag/{{ source "synapse_latest_version" }}'
@@ -122,7 +110,6 @@ targets:
     kind: file
     spec:
       files:
-        - "README.md"
         - "docs/docs/intro.md"
       matchpattern: "v([0-9.]+)]\\Q(https://github.com/element-hq/synapse/tree/v\\E([0-9.]+)"
       replacepattern: '{{ source "synapse_latest_version" }}](https://github.com/suitenumerique/docs/releases/tag/{{ source "synapse_latest_version" }}'

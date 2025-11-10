@@ -46,10 +46,10 @@ targets:
     kind: yaml
     spec:
       engine: yamlpath
-      file: "helmfile/apps/docs/charts/docs/values.yaml"
+      file: "helmfile/apps/conversations/charts/conversations/values.yaml"
       keys:
-        - "$.backend.image.tag"
-        - "$.image.tag"
+        - "$.conversations.image.tag"
+        - "$.conversations_frontend.image.tag"
     sourceid: conversations_latest_version
     scmid: default
 
@@ -70,7 +70,6 @@ targets:
     kind: file
     spec:
       files:
-        - "README.md"
         - "docs/docs/intro.md"
       matchpattern: "v([0-9.]+)]\\Q(https://github.com/suitenumerique/conversations/releases/tag/v\\E([0-9.]+)"
       replacepattern: '{{ source "conversations_latest_version" }}](https://github.com/suitenumerique/conversations/releases/tag/{{ source "conversations_latest_version" }}'
