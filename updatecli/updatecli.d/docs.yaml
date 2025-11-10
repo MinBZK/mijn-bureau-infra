@@ -30,62 +30,28 @@ sources:
 
 targets:
   update_docs_tag:
-    name: "Update docs backend tag"
+    name: "Update docs container tags"
     kind: yaml
     spec:
       engine: yamlpath
       file: "helmfile/environments/default/container.yaml.gotmpl"
-      key: "$.container.docs.backend.tag"
-    sourceid: docs_latest_version
-    scmid: default
-
-  update_docsfront_tag:
-    name: "Update docs frontend tag"
-    kind: yaml
-    spec:
-      engine: yamlpath
-      file: "helmfile/environments/default/container.yaml.gotmpl"
-      key: "$.container.docs.frontend.tag"
-    sourceid: docs_latest_version
-    scmid: default
-
-  update_docsyprovider_tag:
-    name: "Update docs yProvider tag"
-    kind: yaml
-    spec:
-      engine: yamlpath
-      file: "helmfile/environments/default/container.yaml.gotmpl"
-      key: "$.container.docs.yProvider.tag"
+      keys:
+        - "$.container.docs.backend.tag"
+        - "$.container.docs.frontend.tag"
+        - "$.container.docs.yProvider.tag"
     sourceid: docs_latest_version
     scmid: default
 
   update_values_docs_tag:
-    name: "Update values docs backend tag"
+    name: "Update values docs tags"
     kind: yaml
     spec:
       engine: yamlpath
       file: "helmfile/apps/docs/charts/docs/values.yaml"
-      key: "$.backend.image.tag"
-    sourceid: docs_latest_version
-    scmid: default
-
-  update_values_docsfront_tag:
-    name: "Update values docs frontend tag"
-    kind: yaml
-    spec:
-      engine: yamlpath
-      file: "helmfile/apps/docs/charts/docs/values.yaml"
-      key: "$.frontend.image.tag"
-    sourceid: docs_latest_version
-    scmid: default
-
-  update_values_docsyprovider_tag:
-    name: "Update values docs yProvider tag"
-    kind: yaml
-    spec:
-      engine: yamlpath
-      file: "helmfile/apps/docs/charts/docs/values.yaml"
-      key: "$.yProvider.image.tag"
+      keys:
+        - "$.backend.image.tag"
+        - "$.frontend.image.tag"
+        - "$.yProvider.image.tag"
     sourceid: docs_latest_version
     scmid: default
 

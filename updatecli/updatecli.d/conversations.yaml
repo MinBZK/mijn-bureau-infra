@@ -28,36 +28,53 @@ sources:
         kind: semver
         pattern: ">0.0.0"
 
-  conversationsfront_latest_version:
-    name: "Get latest conversations tag"
-    kind: dockerimage
-    spec:
-      image: "lasuite/conversations-frontend"
-      architecture: amd64
-      tagfilter: "^v?[0-9.]+$"
-      versionfilter:
-        kind: semver
-        pattern: ">0.0.0"
-
 targets:
   update_conversations_tag:
-    name: "Update conversations tag"
+    name: "Update conversations container tag"
     kind: yaml
     spec:
       engine: yamlpath
       file: "helmfile/environments/default/container.yaml.gotmpl"
-      key: "$.container.conversations_backend.tag"
+      keys:
+        - "$.container.conversations_backend.tag"
+        - "$.container.conversations_frontend.tag"
     sourceid: conversations_latest_version
     scmid: default
 
-  update_conversationsfront_tag:
-    name: "Update conversations front tag"
+  update_values_conversations_tag:
+    name: "Update values conversations tags"
     kind: yaml
     spec:
       engine: yamlpath
-      file: "helmfile/environments/default/container.yaml.gotmpl"
-      key: "$.container.conversations_frontend.tag"
-    sourceid: conversationsfront_latest_version
+      file: "helmfile/apps/docs/charts/docs/values.yaml"
+      keys:
+        - "$.backend.image.tag"
+        - "$.image.tag"
+    sourceid: conversations_latest_version
+    scmid: default
+
+  update_chart_appVersion:
+    name: "Update conversations chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/conversations/charts/conversations/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: conversations_latest_version
+    scmid: default
+
+  update_markdowns_version:
+    name: "Update markdown files"
+    kind: file
+    spec:
+      files:
+        - "README.md"
+        - "docs/docs/intro.md"
+      matchpattern: "v([0-9.]+)]\\Q(https://github.com/suitenumerique/conversations/releases/tag/v\\E([0-9.]+)"
+      replacepattern: '{{ source "conversations_latest_version" }}](https://github.com/suitenumerique/conversations/releases/tag/{{ source "conversations_latest_version" }}'
+    sourceid: conversations_latest_version
     scmid: default
 
 actions:

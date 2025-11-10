@@ -28,17 +28,6 @@ sources:
         kind: semver
         pattern: ">0.0.0"
 
-  meetfront_latest_version:
-    name: "Get latest meet frontend tag"
-    kind: dockerimage
-    spec:
-      image: "lasuite/meet-frontend"
-      architecture: amd64
-      tagfilter: "^v?[0-9.]+$"
-      versionfilter:
-        kind: semver
-        pattern: ">0.0.0"
-
 targets:
   update_meet_tag:
     name: "Update meet tag"
@@ -46,18 +35,46 @@ targets:
     spec:
       engine: yamlpath
       file: "helmfile/environments/default/container.yaml.gotmpl"
-      key: "$.container.meet_backend.tag"
+      keys:
+        - "$.container.meet_backend.tag"
+        - "$.container.meet_frontend.tag"
     sourceid: meet_latest_version
     scmid: default
 
-  update_meetfront_tag:
-    name: "Update meet front tag"
+  update_values_meet_tag:
+    name: "Update values meet tags"
     kind: yaml
     spec:
       engine: yamlpath
-      file: "helmfile/environments/default/container.yaml.gotmpl"
-      key: "$.container.meet_frontend.tag"
-    sourceid: meetfront_latest_version
+      file: "helmfile/apps/meet/charts/meet/values.yaml"
+      keys:
+        - "$.meet.image.tag"
+        - "$.meet_backend.image.tag"
+    sourceid: meet_latest_version
+    scmid: default
+
+  update_chart_appVersion:
+    name: "Update meet chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/meet/charts/meet/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: meet_latest_version
+    scmid: default
+
+  update_markdowns_version:
+    name: "Update markdown files"
+    kind: file
+    spec:
+      files:
+        - "README.md"
+        - "docs/docs/intro.md"
+      matchpattern: "v([0-9.]+)]\\Q(https://github.com/suitenumerique/meet/releases/tag/v\\E([0-9.]+)"
+      replacepattern: '{{ source "meet_latest_version" }}](https://github.com/suitenumerique/meet/releases/tag/{{ source "meet_latest_version" }}'
+    sourceid: meet_latest_version
     scmid: default
 
 actions:
