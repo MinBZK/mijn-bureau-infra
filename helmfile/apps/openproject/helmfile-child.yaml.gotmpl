@@ -1,0 +1,15 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+repositories:
+  - name: openproject
+    url: https://charts.openproject.org
+
+releases:
+  - name: openproject
+    chart: openproject/openproject
+    version: "11.3.3"
+    condition: application.openproject.enabled
+    namespace: {{ .Values.application.openproject.namespace }}
+    values:
+      - "values.yaml.gotmpl"

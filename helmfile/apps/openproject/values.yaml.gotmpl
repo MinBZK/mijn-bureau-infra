@@ -1,0 +1,131 @@
+# OpenProject Configuration
+# Production-ready configuration with demo optimizations
+
+global:
+  security:
+    allowInsecureImages: false
+
+  imagePullSecrets:
+    - name: {{ (coalesce .Values.container.openproject.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+
+image:
+  registry: {{ (coalesce .Values.container.openproject.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.openproject.repository | quote }}
+  tag: {{ .Values.container.openproject.tag | quote }}
+
+openproject:
+  https: {{ .Values.openproject.ingress.tls | default true }}
+  admin_user:
+    password: {{ .Values.openproject.admin_user.password | quote }}
+    password_reset: {{ .Values.openproject.admin_user.password_reset | default true }}
+    name: {{ .Values.openproject.admin_user.name | quote }}
+    mail: {{ .Values.openproject.admin_user.mail | quote }}
+  seed_locale: {{ .Values.openproject.seed_locale | default "en" }}
+  useTmpVolumes: {{ .Values.openproject.useTmpVolumes | default false }}
+
+ingress:
+  enabled: true
+  host: {{ .Values.global.hostname.openproject }}.{{ .Values.global.domain }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  tls:
+    enabled: {{ .Values.global.tls.enabled | default true }}
+    secretName: {{ .Values.openproject.ingress.secretName | default "openproject-tls" }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    {{- end }}
+
+# PostgreSQL configuration
+postgresql:
+  bundled: {{ eq .Environment.Name "demo" }}
+  image:
+    registry: "registry-1.docker.io"
+    repository: "bitnamilegacy/postgresql"
+    tag: "17-debian-12"
+  auth:
+    postgresPassword: {{ .Values.secret.openproject.postgresPassword | quote }}
+    username: "openproject"
+    password: {{ .Values.secret.openproject.postgresPassword | quote }}
+    database: "openproject"
+  connection:
+    host: {{ .Values.database.openproject.host }}
+    port: {{ .Values.database.openproject.port }}
+    database: {{ .Values.database.openproject.name }}
+    username: {{ .Values.database.openproject.user }}
+    password: {{ .Values.database.openproject.password }}
+
+# Cache configuration
+# Use memcached for demo, Redis for production
+memcached:
+  bundled: {{ eq .Environment.Name "demo" }}
+  image:
+    repository: bitnami/memcached
+    tag: "latest"
+
+# OIDC configuration
+oidc:
+  enabled: {{ .Values.authentication.oidc | default true }}
+  provider:
+    name: "Keycloak"
+    host: {{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}
+    identifier: {{ .Values.authentication.client.openproject.client_id }}
+    secret: {{ .Values.authentication.client.openproject.client_secret }}
+    authorization_endpoint: "{{ .Values.authentication.oidc.authorization_endpoint }}"
+    token_endpoint: "{{ .Values.authentication.oidc.token_endpoint }}"
+    userinfo_endpoint: "{{ .Values.authentication.oidc.userinfo_endpoint }}"
+    jwks_uri: "{{ .Values.authentication.oidc.jwks_endpoint }}"
+    scope: ["openid", "profile", "email"]
+
+# Init container resources
+appInit:
+  resources:
+    limits:
+      memory: {{ .Values.openproject.appInit.resources.limits.memory | default "2Gi" | quote }}
+    requests:
+      memory: {{ .Values.openproject.appInit.resources.requests.memory | default "1Gi" | quote }}
+
+dbInit:
+  resources:
+    limits:
+      memory: {{ .Values.openproject.dbInit.resources.limits.memory | default "1Gi" | quote }}
+    requests:
+      memory: {{ .Values.openproject.dbInit.resources.requests.memory | default "512Mi" | quote }}
+
+# Persistence configuration
+persistence:
+  # main data volume (used by OpenProject for assets/uploads, etc.)
+  enabled: {{ .Values.openproject.persistence.enabled | default true }}
+  size: {{ .Values.openproject.persistence.size | default "8Gi" | quote }}
+  accessModes:
+    {{- if .Values.openproject.persistence.accessModes }}
+    {{- range .Values.openproject.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+    {{- else }}
+    - "ReadWriteOnce"
+    {{- end }}
+  {{- if .Values.openproject.persistence.storageClass }}
+  storageClass: {{ .Values.openproject.persistence.storageClass | quote }}
+  {{- end }}
+
+  # control the optional separate assets PVC from the upstream chart
+  assets:
+    enabled: {{ ne .Environment.Name "demo" }}
+
+# Security context configuration (optional)
+{{- if and .Values.openproject (hasKey .Values.openproject "securityContext") }}
+securityContext: {{ .Values.openproject.securityContext | toYaml | nindent 2 }}
+{{- end }}
+
+{{- if and .Values.openproject (hasKey .Values.openproject "containerSecurityContext") }}
+containerSecurityContext: {{ .Values.openproject.containerSecurityContext | toYaml | nindent 2 }}
+{{- end }}
+
+# Autoscaling configuration
+{{- if .Values.autoscaling.horizontal.openproject }}
+autoscaling:
+  hpa: {{ .Values.autoscaling.horizontal.openproject | toYaml | nindent 4 }}
+{{- end }}
