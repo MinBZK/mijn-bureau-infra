@@ -46,7 +46,7 @@ database:
     isInternal: true
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "openproject" "database" | sha1sum | quote}}
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "openproject" "database_admin" | sha1sum | quote}}
-    
+
   meet:
     type: postgresql
     host: meet-postgresql

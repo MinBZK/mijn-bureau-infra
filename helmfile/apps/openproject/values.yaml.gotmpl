@@ -8,20 +8,23 @@ global:
   imagePullSecrets:
     - name: {{ (coalesce .Values.container.openproject.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
 
+commonLabels:
+  app.kubernetes.io/part-of: openproject
+
 image:
   registry: {{ (coalesce .Values.container.openproject.registry .Values.container.default.registry) | quote }}
   repository: {{ .Values.container.openproject.repository | quote }}
   tag: {{ .Values.container.openproject.tag | quote }}
 
 openproject:
-  https: {{ .Values.openproject.ingress.tls | default true }}
+  https: {{ .Values.global.tls.enabled | default true }}
   admin_user:
-    password: {{ .Values.openproject.admin_user.password | quote }}
-    password_reset: {{ .Values.openproject.admin_user.password_reset | default true }}
-    name: {{ .Values.openproject.admin_user.name | quote }}
-    mail: {{ .Values.openproject.admin_user.mail | quote }}
-  seed_locale: {{ .Values.openproject.seed_locale | default "en" }}
-  useTmpVolumes: {{ .Values.openproject.useTmpVolumes | default false }}
+    password: {{ .Values.secret.openproject.adminUser.password | quote }}
+    password_reset: {{ .Values.secret.openproject.adminUser.passwordReset | default true }}
+    name: {{ .Values.secret.openproject.adminUser.name | quote }}
+    mail: {{ .Values.secret.openproject.adminUser.mail | quote }}
+  seed_locale: {{ (coalesce .Values.application.openproject.seedLocale .Values.global.defaultLocale) | default "en" | quote }}
+  useTmpVolumes: false
 
 ingress:
   enabled: true
@@ -29,7 +32,8 @@ ingress:
   ingressClassName: {{ .Values.cluster.ingress.className | quote }}
   tls:
     enabled: {{ .Values.global.tls.enabled | default true }}
-    secretName: {{ .Values.openproject.ingress.secretName | default "openproject-tls" }}
+{{/* FIXME how do I access a secret name? */}}
+{{/*    secretName: {{ .Values.openproject.ingress.secretName | default "openproject-tls" }}*/}}
   annotations:
     {{- if .Values.cluster.ingress.annotations }}
     {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
@@ -46,10 +50,10 @@ postgresql:
     repository: "bitnamilegacy/postgresql"
     tag: "17-debian-12"
   auth:
-    postgresPassword: {{ .Values.secret.openproject.postgresPassword | quote }}
-    username: "openproject"
-    password: {{ .Values.secret.openproject.postgresPassword | quote }}
-    database: "openproject"
+    postgresPassword: {{ .Values.database.openproject.adminpassword | quote }}
+    username: {{ .Values.database.openproject.user | quote }}
+    password: {{ .Values.database.openproject.password | quote }}
+    database: {{ .Values.database.openproject.name | quote }}
   connection:
     host: {{ .Values.database.openproject.host }}
     port: {{ .Values.database.openproject.port }}
@@ -60,6 +64,7 @@ postgresql:
 # Cache configuration
 # Use memcached for demo, Redis for production
 memcached:
+  # FIXME we need to add redis, perhaps in all cases
   bundled: {{ eq .Environment.Name "demo" }}
   image:
     repository: bitnami/memcached
@@ -76,56 +81,35 @@ oidc:
     authorization_endpoint: "{{ .Values.authentication.oidc.authorization_endpoint }}"
     token_endpoint: "{{ .Values.authentication.oidc.token_endpoint }}"
     userinfo_endpoint: "{{ .Values.authentication.oidc.userinfo_endpoint }}"
-    jwks_uri: "{{ .Values.authentication.oidc.jwks_endpoint }}"
+    jwks_uri: "{{ .Values.authentication.oidc.jwks_uri }}"
     scope: ["openid", "profile", "email"]
 
 # Init container resources
 appInit:
-  resources:
-    limits:
-      memory: {{ .Values.openproject.appInit.resources.limits.memory | default "2Gi" | quote }}
-    requests:
-      memory: {{ .Values.openproject.appInit.resources.requests.memory | default "1Gi" | quote }}
+  # FIXME presets don't work here
+  resources: {{ .Values.resource.openproject.openproject | toYaml | nindent 4 }}
 
 dbInit:
-  resources:
-    limits:
-      memory: {{ .Values.openproject.dbInit.resources.limits.memory | default "1Gi" | quote }}
-    requests:
-      memory: {{ .Values.openproject.dbInit.resources.requests.memory | default "512Mi" | quote }}
+  resources: {{ .Values.resource.openproject.postgresql | toYaml | nindent 4 }}
 
 # Persistence configuration
 persistence:
   # main data volume (used by OpenProject for assets/uploads, etc.)
-  enabled: {{ .Values.openproject.persistence.enabled | default true }}
-  size: {{ .Values.openproject.persistence.size | default "8Gi" | quote }}
-  accessModes:
-    {{- if .Values.openproject.persistence.accessModes }}
-    {{- range .Values.openproject.persistence.accessModes }}
-    - {{ . | quote }}
-    {{- end }}
-    {{- else }}
-    - "ReadWriteOnce"
-    {{- end }}
-  {{- if .Values.openproject.persistence.storageClass }}
-  storageClass: {{ .Values.openproject.persistence.storageClass | quote }}
-  {{- end }}
+  enabled: {{ not (empty .Values.pvc.openproject.openproject.size) | default true }}
+  size: {{ coalesce .Values.pvc.openproject.openproject.size .Values.pvc.default.size | default "8Gi" | quote }}
+  accessModes: {{ coalesce .Values.pvc.openproject.openproject.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+  storageClass: {{ coalesce .Values.pvc.openproject.openproject.storageClass .Values.pvc.default.storageClass | quote }}
 
   # control the optional separate assets PVC from the upstream chart
+  # FIXME do we always want this?
   assets:
     enabled: {{ ne .Environment.Name "demo" }}
 
 # Security context configuration (optional)
-{{- if and .Values.openproject (hasKey .Values.openproject "securityContext") }}
-securityContext: {{ .Values.openproject.securityContext | toYaml | nindent 2 }}
-{{- end }}
+securityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
 
-{{- if and .Values.openproject (hasKey .Values.openproject "containerSecurityContext") }}
-containerSecurityContext: {{ .Values.openproject.containerSecurityContext | toYaml | nindent 2 }}
-{{- end }}
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
 
 # Autoscaling configuration
-{{- if .Values.autoscaling.horizontal.openproject }}
 autoscaling:
   hpa: {{ .Values.autoscaling.horizontal.openproject | toYaml | nindent 4 }}
-{{- end }}

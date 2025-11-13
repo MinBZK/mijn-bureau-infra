@@ -22,7 +22,16 @@ resource:
       default:
 
   openproject:
+    openproject:
+      limits:
+        memory: "512Mi"
+      requests:
+        memory: "512Mi"
     postgresql:
+      limits:
+        memory: "200Mi"
+      requests:
+        memory: "200Mi"
     redis:
 
   nextcloud:
