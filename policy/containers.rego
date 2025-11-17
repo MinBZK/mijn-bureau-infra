@@ -145,8 +145,13 @@ deny contains msg if {
 
 # Disallow use of default service account
 deny contains msg if {
-  input.kind in {"Deployment", "StatefulSet", "DaemonSet", "Job", "Pod"}
+  input.kind in {"Deployment", "StatefulSet", "DaemonSet", "Job"}
   not input.spec.template.spec.serviceAccountName
+  msg := "A custom service account must be specified (do not use default)"
+}
+deny contains msg if {
+  input.kind in {"Pod"}
+  not input.spec.serviceAccountName
   msg := "A custom service account must be specified (do not use default)"
 }
 
