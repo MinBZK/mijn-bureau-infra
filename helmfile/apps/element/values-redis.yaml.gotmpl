@@ -327,7 +327,7 @@ master:
   ##     cpu: 3
   ##     memory: 1024Mi
   ##
-  resources: {{ .Values.resource.chat.redis | default dict | toYaml | nindent 4 }}
+  resources: {{ .Values.resource.element.redis | default dict | toYaml | nindent 4 }}
   ## Configure Pods Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
   ## @param master.podSecurityContext.enabled Enabled Redis(R) master pods' Security Context

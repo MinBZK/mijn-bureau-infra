@@ -687,7 +687,7 @@ config:
     ##
 
   ## @param config.name Name of the Element Web deployment.
-  name: "chat"
+  name: "element"
   ##
   ## @param config.brand Brand label displayed in the Element Web UI.
   brand: "Element Web Custom"
