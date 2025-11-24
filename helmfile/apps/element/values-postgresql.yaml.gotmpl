@@ -493,7 +493,7 @@ primary:
   ##     cpu: 3
   ##     memory: 1024Mi
   ##
-  resources: {{ .Values.resource.chat.postgresql | default dict | toYaml | nindent 4 }}
+  resources: {{ .Values.resource.element.postgresql | default dict | toYaml | nindent 4 }}
   ## Pod Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   ## @param primary.podSecurityContext.enabled Enable security context

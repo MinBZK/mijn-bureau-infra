@@ -14,7 +14,7 @@
 # Architecture can be monolith for a single node, or replication when using additional worker nodes for scaling.
 # See https://element-hq.github.io/synapse/latest/workers.html
 # TODO replication is not functional, see https://github.com/MinBZK/mijn-bureau-infra/issues/8
-architecture: {{ .Values.application.chat.synapse.architecture | default "monolith" }}
+architecture: {{ .Values.application.element.synapse.architecture | default "monolith" }}
 
 commonLabels:
   app.kubernetes.io/part-of: synapse
@@ -63,7 +63,7 @@ master:
         to:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/instance: chat-redis
+                app.kubernetes.io/instance: element-redis
         {{- end }}
       {{- end }}
       {{- if eq .Values.database.synapse.type "psycopg2" }}
@@ -73,7 +73,7 @@ master:
         to:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/instance: chat-postgresql
+                app.kubernetes.io/instance: element-postgresql
         {{- end }}
       {{- end }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
@@ -106,7 +106,7 @@ worker:
           to:
             - podSelector:
                 matchLabels:
-                  app.kubernetes.io/instance: chat-redis
+                  app.kubernetes.io/instance: element-redis
           {{- end }}
         {{- end }}
         {{- if eq .Values.database.synapse.type "psycopg2" }}
@@ -116,7 +116,7 @@ worker:
           to:
             - podSelector:
                 matchLabels:
-                  app.kubernetes.io/instance: chat-postgresql
+                  app.kubernetes.io/instance: element-postgresql
           {{- end }}
         {{- end }}
     podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 6 }}
@@ -180,9 +180,9 @@ synapse:
       port: {{ .Values.database.synapse.port }}
       {{- end }}
   # Allows registration of standard or admin accounts by anyone who has the shared secret, even if enable_registration is not set.
-  registrationSharedSecret: {{ .Values.application.chat.synapse.registrationSharedSecret | quote }}
+  registrationSharedSecret: {{ .Values.application.element.synapse.registrationSharedSecret | quote }}
   # A secret which is used to calculate HMACs for form values, to stop falsification of values. Must be specified for the User Consent forms to work.
-  formSecret: {{ .Values.application.chat.synapse.formSecret | quote }}
+  formSecret: {{ .Values.application.element.synapse.formSecret | quote }}
   # Disable the warning that is emitted when the trusted_key_servers include "matrix.org".
   suppressKeyServerWarning: true
   # Redis configuration
