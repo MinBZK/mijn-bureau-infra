@@ -29,7 +29,6 @@ global:
     ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
     ##
     omitEmptySeLinuxOptions: false
-
 ## @section Common parameters
 
 ## @param kubeVersion Override Kubernetes version reported by .Capabilities
@@ -70,7 +69,6 @@ diagnosticMode:
     - sleep
   args:
     - infinity
-
 ## @section %%MAIN_CONTAINER%% Parameters
 ##
 
@@ -90,7 +88,7 @@ conversations:
   image:
     registry: docker.io
     repository: lasuite/conversations-backend
-    tag: v0.0.7
+    tag: v0.0.9
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -104,7 +102,6 @@ conversations:
     ##
     pullSecrets: []
     debug: false
-
   secretKey: ""
   languageCode: "en-us"
   CSRFTrustedOrigins: ""
@@ -113,7 +110,6 @@ conversations:
   superuserEmail: "admin@example.com"
   superuserPassword: "admin_password"
   baseUrl: ""
-
   ## @param conversations.replicaCount Number of conversations replicas to deploy
   ##
   replicaCount: 1
@@ -239,7 +235,6 @@ conversations:
       drop: ["ALL"]
     seccompProfile:
       type: "RuntimeDefault"
-
   ## @param conversations.existingConfigmap The name of an existing ConfigMap with your custom configuration for conversations
   ##
   existingConfigmap: ""
@@ -439,7 +434,6 @@ conversations:
       maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
-
 conversations_frontend:
   ## Bitnami %%MAIN_CONTAINER%% image
   ## ref: https://hub.docker.com/r/bitnami/conversations/tags/
@@ -454,7 +448,7 @@ conversations_frontend:
   image:
     registry: docker.io
     repository: lasuite/conversations-frontend
-    tag: v0.0.7
+    tag: v0.0.9
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -593,7 +587,6 @@ conversations_frontend:
       drop: ["ALL"]
     seccompProfile:
       type: "RuntimeDefault"
-
   ## @param conversations.existingConfigmap The name of an existing ConfigMap with your custom configuration for conversations
   ##
   existingConfigmap: ""
@@ -815,8 +808,7 @@ job:
   argsSuperuser:
     - -c
     - |
-        python manage.py createsuperuser --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
-
+      python manage.py createsuperuser --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
   backoffLimit: 20
   ttlSecondsAfterFinished: 3600
   podAnnotations: {}
@@ -827,7 +819,6 @@ job:
     limits:
       memory: 512Mi
       cpu: 200m
-
 ## conversations service parameters
 ##
 service:
@@ -1052,7 +1043,6 @@ ingress:
   ##             name: http
   ##
   extraRules: []
-
 ## @section Persistence Parameters
 ##
 
@@ -1101,9 +1091,7 @@ persistence:
   ##     app: my-app
   ##
   selector: {}
-
 ## @section Default init containers Parameters
-
 defaultInitContainers:
   ## 'volume-permissions' init container
   ## Changes the owner and group of the persistent volume mount(s) point(s) to runAsUser:fsGroup values
@@ -1178,7 +1166,6 @@ defaultInitContainers:
     ##     memory: 1024Mi
     ##
     resources: {}
-
 ## @section Other Parameters
 ##
 
@@ -1199,8 +1186,6 @@ serviceAccount:
   ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
   ##
   automountServiceAccountToken: true
-
-
 ## Redis
 ## @param externalRedis.host Redis hostname
 ## @param externalRedis.port Redis port
@@ -1209,7 +1194,6 @@ externalRedis:
   host: ""
   port: ""
   password: ""
-
 ## Database
 ## @param externalDatabase.type Set to 'sqlite' or 'postgres'
 ## @param externalDatabase.username Username to connect as
@@ -1226,8 +1210,6 @@ externalDatabase:
   port: ""
   database: ""
   logging: false
-
-
 ## OpenID connect authentication setup
 ## @param authentication.issuer OpenID issuer URL
 ## @param authentication.authorization_endpoint OpenID authorization endpoint
@@ -1254,11 +1236,9 @@ authentication:
     display_name: ""
     given_name: ""
     family_name: ""
-
   client:
     client_id: ""
     client_secret: ""
-
 ai:
   model: ""
   endpoint: ""
