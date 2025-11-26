@@ -101,7 +101,7 @@ targets:
       files:
         - "docs/docs/intro.md"
       matchpattern: "[vV]([0-9.]+)]\\Q(https://github.com/element-hq/element-web/tree/v\\E([0-9.]+)"
-      replacepattern: '{{ source "element_latest_version" }}](https://github.com/suitenumerique/docs/releases/tag/{{ source "synapse_latest_version" }}'
+      replacepattern: '{{ source "element_latest_version" }}](https://github.com/element-hq/element-web/tree/v{{ source "synapse_latest_version" }}'
     sourceid: element_latest_version
     scmid: default
 
@@ -112,7 +112,7 @@ targets:
       files:
         - "docs/docs/intro.md"
       matchpattern: "v([0-9.]+)]\\Q(https://github.com/element-hq/synapse/tree/v\\E([0-9.]+)"
-      replacepattern: '{{ source "synapse_latest_version" }}](https://github.com/suitenumerique/docs/releases/tag/{{ source "synapse_latest_version" }}'
+      replacepattern: '{{ source "synapse_latest_version" }}](https://github.com/element-hq/element-web/tree/v{{ source "synapse_latest_version" }}'
     sourceid: synapse_latest_version
     scmid: default
 
