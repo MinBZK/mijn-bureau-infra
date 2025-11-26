@@ -13,8 +13,8 @@ located in the folder `helmfile/environments/default`.
 | `global.matrixDomain`              | The server name of your Matrix instance                      |
 | `global.hostname.element`          | The name of the subdomain for the Element web client         |
 | `global.hostname.synapse`          | The name of the subdomain for the Synapse Matrix home server |
-| `application.chat.enabled`         | Enable Matrix chat for your MijnBureau implementation        |
-| `application.chat.namespace`       | The Kubernetes namespace name                                |
+| `application.element.enabled`      | Enable Matrix chat for your MijnBureau implementation        |
+| `application.element.namespace`    | The Kubernetes namespace name                                |
 | `cache.synapse.*`                  | Connection to the Redis server                               |
 | `authentication.client.synapse.*`  | OpenIDC configuration to connect with Keycloak               |
 | `database.synapse.*`               | Connection to the database                                   |

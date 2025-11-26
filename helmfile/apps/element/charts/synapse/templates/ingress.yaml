@@ -40,20 +40,23 @@ spec:
           {{- range $config.csPaths }}
           - path: {{ . | quote }}
             pathType: {{ $.Values.ingress.pathType }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" $service "servicePort" "listener" "context" $)  | nindent 14 }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" $service "servicePort" "listener" "context" $) | nindent 14 }}
           {{- end }}
           {{- end }}
           {{- end }}
           {{- end }}
-
           - path: /_matrix
             pathType: {{ .Values.ingress.pathType }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" $fullName "servicePort" "http" "context" .)  | nindent 14 }}
-
+            backend: {{- include "common.ingress.backend" (dict "serviceName" $fullName "servicePort" "http" "context" .) | nindent 14 }}
+          {{- if .Values.synapse.serveServerWellknown }}
+          - path: /.well-known
+            pathType: {{ .Values.ingress.pathType }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" $fullName "servicePort" "http" "context" .) | nindent 14 }}
+          {{- end }}
           {{- if .Values.ingress.includeSynapseAdminApis }}
           - path: /_synapse
             pathType: {{ .Values.ingress.pathType }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" $fullName "servicePort" "http" "context" .)  | nindent 14 }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" $fullName "servicePort" "http" "context" .) | nindent 14 }}
           {{- end }}
     {{- end }}
     {{- range .Values.ingress.extraHosts }}

@@ -43,7 +43,7 @@ data:
         "breadcrumbs": {{ .Values.config.setting_defaults.breadcrumbs }}
       },
       "default_theme": "{{ .Values.config.default_theme }}",
-      "brand": "{{ .Values.config.brand }} chat",
+      "brand": "{{ .Values.config.brand }} element",
       "permalink_prefix": "https://{{ .Values.config.name }}.{{ .Values.config.homeserver.domain }}",
       "disable_guests": {{ .Values.config.disable_guests }},
       "force_verification": {{ .Values.config.force_verification }},

@@ -86,7 +86,7 @@ diagnosticMode:
 image:
   registry: docker.io
   repository: vectorim/element-web
-  tag: latest
+  tag: v1.12.4
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
   ##
@@ -687,7 +687,7 @@ config:
     ##
 
   ## @param config.name Name of the Element Web deployment.
-  name: "chat"
+  name: "element"
   ##
   ## @param config.brand Brand label displayed in the Element Web UI.
   brand: "Element Web Custom"

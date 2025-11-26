@@ -1,9 +1,9 @@
-# Default values for matrix-chat element-web.
+# Default values for matrix-element element-web.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 {{- /*
-  $serverName is the name of the server in the Matrix Chat ecosystem
+  $serverName is the name of the server in the Matrix Element ecosystem
   $hostName is the hostname the server is available at
   $clientHostName is the host the client is running on
 */ -}}
@@ -63,7 +63,7 @@ runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 {{- end }}
 
 # CPU and memory requests and limits for the container
-resources: {{ .Values.resource.element | toYaml | nindent 2 }}
+resources: {{ .Values.resource.element.elementweb | toYaml | nindent 2 }}
 
 # Security context settings applied at the pod level, such as user/group ID, filesystem permissions
 podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
@@ -118,10 +118,10 @@ serviceAccount:
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
   enabled: true
-  hostname: {{ .Values.global.hostname.element | default "chat" }}.{{ .Values.global.domain | default "example.com" }}
+  hostname: {{ .Values.global.hostname.element | default "element" }}.{{ .Values.global.domain | default "example.com" }}
   tls: {{ .Values.global.tls.enabled | default true }}
   selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
-  extraTls: {{ .Values.tls.chat | toYaml | nindent 4 }}
+  extraTls: {{ .Values.tls.element | toYaml | nindent 4 }}
   ingressClassName: {{ .Values.cluster.ingress.className | quote }}
   annotations:
     {{- if .Values.cluster.ingress.annotations }}
@@ -140,10 +140,10 @@ ingress:
 config:
   homeserver:
     domain: {{ .Values.global.domain | default "example.com" }}
-    base_url: {{ .Values.global.hostname.synapse | default "matrix-chat" }}.{{ .Values.global.domain | default "example.com" }}
-    server_name: {{ .Values.global.hostname.synapse | default "matrix-chat" }}
-  name: {{ .Values.global.hostname.element | default "chat-chat" }}
-  brand: {{ .Values.global.hostname.synapse | default "matrix-chat" }}
+    base_url: {{ .Values.global.hostname.synapse | default "matrix-element" }}.{{ .Values.global.domain | default "example.com" }}
+    server_name: {{ .Values.global.hostname.synapse | default "matrix-element" }}
+  name: {{ .Values.global.hostname.element | default "element-element" }}
+  brand: {{ .Values.global.hostname.synapse | default "matrix-element" }}
   integrations_ui_url: ""
   integrations_rest_url: ""
   integrations_widgets_urls: []
@@ -160,7 +160,7 @@ config:
   default_federate: true
   room_directory:
     servers:
-      - {{ .Values.global.hostname.synapse | default "matrix-chat" }}.{{ .Values.global.domain | default "example.com" }}
+      - {{ .Values.global.hostname.synapse | default "matrix-element" }}.{{ .Values.global.domain | default "example.com" }}
   setting_defaults:
     breadcrumbs: true
   default_theme: "light"
