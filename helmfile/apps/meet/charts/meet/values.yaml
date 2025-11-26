@@ -90,7 +90,7 @@ meet:
   image:
     registry: docker.io
     repository: lasuite/meet-frontend
-    tag: v0.1.41
+    tag: v0.1.42
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -446,7 +446,7 @@ meet_backend:
   image:
     registry: docker.io
     repository: lasuite/meet-backend
-    tag: v0.1.41
+    tag: v0.1.42
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
