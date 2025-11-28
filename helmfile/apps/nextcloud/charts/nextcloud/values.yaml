@@ -987,3 +987,11 @@ metrics:
 collabora:
   url: ""
   wopi_allowlist: ""
+
+## @section Files Configuration Parameters
+
+## Nextcloud Files app configuration
+## @param files.defaultQuota Default storage quota per user
+## Sets the default quota for new users via occ config:app:set files default_quota
+files:
+  defaultQuota: "10 GB"

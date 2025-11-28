@@ -31,11 +31,11 @@ You can choose any of the two Redis&reg; Helm charts for deploying a Redis&reg; 
 
 The main features of each chart are the following:
 
-| Redis&reg;                                  | Redis&reg; Cluster                                           |
-| ------------------------------------------- | ------------------------------------------------------------ |
-| Supports multiple databases                 | Supports only one database. Better if you have a big dataset |
-| Single write point (single master)          | Multiple write points (multiple masters)                     |
-| ![Redis® Topology](img/redis-topology.png) | ![Redis® Cluster Topology](img/redis-cluster-topology.png)  |
+| Redis&reg;                                 | Redis&reg; Cluster                                           |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| Supports multiple databases                | Supports only one database. Better if you have a big dataset |
+| Single write point (single master)         | Multiple write points (multiple masters)                     |
+| ![Redis® Topology](img/redis-topology.png) | ![Redis® Cluster Topology](img/redis-cluster-topology.png)   |
 
 ## Prerequisites
 
