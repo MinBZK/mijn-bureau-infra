@@ -181,3 +181,7 @@ persistence:
 collabora:
   url: "https://{{ .Values.global.hostname.collabora | default "collabora" }}.{{ .Values.global.domain | default "example.com"  }}"
   wopi_allowlist: {{ index .Values.cluster.networking.podSubnet 0 }}
+
+# Default storage quota per user
+files:
+  defaultQuota: {{ .Values.application.nextcloud.defaultQuota | default "10 GB" | quote }}
