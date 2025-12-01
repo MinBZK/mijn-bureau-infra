@@ -1,0 +1,63 @@
+name: "Update openproject container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "add-openproject"
+      commitmessage:
+        title: Bump openproject version to {{ source "openproject_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  openproject_latest_version:
+    name: "Get latest openproject tag"
+    kind: dockerimage
+    spec:
+      image: "openproject/openproject"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+-slim$"
+      versionfilter:
+        kind: regex/semver
+        pattern: ">0.0.0"
+        regex: "([0-9.]+)-slim"
+    transformers:
+      - trimsuffix: "-slim"
+
+targets:
+  update_openproject_tag:
+    name: "Update openproject container tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      keys:
+        - "$.container.openproject.openproject.tag"
+    sourceid: openproject_latest_version
+    transformers:
+      - addsuffix: "-slim"
+    scmid: default
+
+  update_markdowns_version:
+    name: "Update markdown files"
+    kind: file
+    spec:
+      files:
+        - "docs/docs/intro.md"
+      matchpattern: "v?([0-9.]+)]\\Q(https://github.com/opf/openproject/releases/tag/\\Ev?([0-9.]+)"
+      replacepattern: '{{ source "openproject_latest_version" }}](https://github.com/opf/openproject/releases/tag/v{{ source "openproject_latest_version" }}'
+    sourceid: openproject_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump openproject version to {{ source "openproject_latest_version" }}
