@@ -9,7 +9,7 @@ scms:
       owner: "{{ .github.owner }}"
       repository: "{{ .github.repository }}"
       username: "{{ .github.username }}"
-      branch: "add-openproject"
+      branch: "{{ .github.branch }}"
       commitmessage:
         title: Bump openproject version to {{ source "openproject_latest_version" }}
         hidecredit: true
