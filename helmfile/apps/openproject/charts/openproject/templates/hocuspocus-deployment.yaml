@@ -1,0 +1,83 @@
+{{- if .Values.hocuspocus.enabled }}
+---
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-hocuspocus
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+    openproject/process: hocuspocus
+    app.kubernetes.io/component: hocuspocus
+spec:
+  replicas: 1
+  strategy:
+    {{ .Values.hocuspocus.strategy | toYaml | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "common.labels.matchLabels" (dict "customLabels" .Values.commonLabels "context" $) | nindent 6 }}
+      openproject/process: hocuspocus
+      app.kubernetes.io/component: hocuspocus
+  template:
+    metadata:
+      annotations:
+        {{- range $key, $val := .Values.podAnnotations }}
+        {{ $key }}: {{ $val | quote }}
+        {{- end }}
+        {{- include "openproject.envChecksums" . | nindent 8 }}
+      labels:
+        {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 8 }}
+        openproject/process: hocuspocus
+        app.kubernetes.io/component: hocuspocus
+    spec:
+      {{- include "openproject.imagePullSecrets" . | indent 6 }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{ toYaml . | nindent 8 | trim }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{ toYaml . | nindent 8 | trim }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{ toYaml . | nindent 8 | trim }}
+      {{- end }}
+      {{- include "openproject.podSecurityContext" . | indent 6 }}
+      {{- if .Values.runtimeClassName }}
+      runtimeClassName: {{ .Values.runtimeClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ include "common.names.fullname" . }}
+      volumes:
+        # to do: only define tmp, not app-tmp volume
+        {{- include "openproject.tmpVolumeSpec" . | indent 8 }}
+      containers:
+        - name: "hocuspocus"
+          {{- include "openproject.containerSecurityContext" . | indent 10 }}
+          image: "{{ with .Values.hocuspocus.image }}{{ .registry }}/{{ .repository }}:{{ .tag }}{{ end }}"
+          imagePullPolicy: {{ .Values.hocuspocus.image.imagePullPolicy }}
+          env:
+            - name: ALLOWED_DOMAINS
+              value: {{ join "," .Values.hocuspocus.allowedOpenProjectDomains | quote }}
+          volumeMounts:
+            {{- include "hocuspocus.tmpVolumeMounts" . | indent 12 }}
+            {{- if .Values.egress.tls.rootCA.fileName }}
+            - name: ca-pemstore
+              mountPath: /etc/ssl/certs/custom-ca.pem
+              subPath: {{ .Values.egress.tls.rootCA.fileName }}
+              readOnly: false
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 1234
+              port: {{ .Values.hocuspocus.service.port }}
+              protocol: "TCP"
+          {{- if .Values.resources }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- else if ne (coalesce .Values.cron.resourcesPreset .Values.resourcesPreset) "none" }}
+          resources:
+            {{- include "common.resources.preset" (dict "type" (coalesce .Values.cron.resourcesPreset .Values.resourcesPreset)) | nindent 12 }}
+          {{- end }}
+...
+{{- end }}

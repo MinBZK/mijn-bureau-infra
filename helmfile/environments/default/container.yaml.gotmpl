@@ -83,10 +83,15 @@ container:
     tag: "12-debian-12-r51"
     imagePullSecret: ~
   openproject:
-    registry: "registry-1.docker.io"
-    repository: "openproject/openproject"
-    tag: "16.6.0-slim"
     imagePullSecret: ~
+    registry: "registry-1.docker.io"
+    openproject:
+      repository: "openproject/openproject"
+      tag: "16.6.0-slim"
+    hocuspocus:
+      repository: "openproject/hocuspocus"
+      tag: "main-defdb238"
+
   livekit_server:
     registry: "registry-1.docker.io"
     repository: "livekit/livekit-server"

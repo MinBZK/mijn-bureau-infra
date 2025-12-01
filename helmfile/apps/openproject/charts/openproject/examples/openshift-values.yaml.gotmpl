@@ -1,0 +1,106 @@
+# Example values.yaml.gotmpl for a helmfile setup for OpenProject on an OpenShift cluster with
+# - a default deny network policy in place for all Egress and Ingress traffic (except cluster DNS
+#   and traffic towards the (internal) Kube API and default Ingress).
+# - only two types of SecurityContextConstraints (SCC) allowed: restricted-v2 and nonroot-v2. As
+#   restricted-v2 uses a random user ID and the OpenProject image uses user ID 1000, this requires
+#   adding a role to the service account to select the nonroot-v2 SSC.
+# - the required database, cache and S3 store possibly configured inside or outside of the cluster.
+#
+# Only configuration relevant to these points are shown here.
+
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: false
+  addExternalClientAccess: false
+  extraEgress:
+    # Database connectivity
+    - ports:
+        - port: {{ .Values.database.openproject.port }}
+          protocol: TCP
+      {{- if .Values.database.openproject.isInternal }}
+      to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+              app.kubernetes.io/component: primary
+      {{- end }}
+    # Redis connectivity
+    - ports:
+        - port: {{ .Values.cache.openproject.port }}
+          protocol: TCP
+      {{- if .Values.cache.openproject.isInternal }}
+      to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+              app.kubernetes.io/component: master
+      {{- end }}
+    # MinIO connectivity
+    - ports:
+        - port: {{ .Values.objectstore.openproject.port }}
+          protocol: TCP
+      {{- if .Values.objectstore.openproject.isInternal }}
+      to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: minio
+      {{- end }}
+
+hocuspocus:
+  enabled: true
+  networkPolicy:
+    enabled: true
+    allowExternal: true
+    allowExternalEgress: false
+    addExternalClientAccess: false
+
+openproject:
+  cache:
+    store: "redis"
+
+# PostgreSQL configuration
+postgresql:
+  bundled: false
+  auth:
+    username: {{ .Values.database.openproject.user | quote }}
+    password: {{ .Values.database.openproject.password | quote }}
+    database: {{ .Values.database.openproject.name | quote }}
+  connection:
+    host: {{ .Values.database.openproject.host }}
+    port: {{ .Values.database.openproject.port }}
+
+# Cache configuration
+# Use memcached for demo, Redis for production
+memcached:
+  bundled: false
+
+# Persistence configuration
+persistence:
+  # main data volume (used by OpenProject for assets/uploads, etc.)
+  enabled: false
+
+s3:
+  enabled: true
+  auth:
+    accessKeyId: {{ .Values.objectstore.openproject.username | quote }}
+    secretAccessKey: {{ .Values.objectstore.openproject.rootPassword | quote }}
+  region: ""
+  bucketName: {{ .Values.objectstore.openproject.bucket | quote }}
+  endpoint: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.openproject.useSSL) .Values.objectstore.openproject.endpoint (int .Values.objectstore.openproject.port) }}
+  pathStyle: true
+  signatureVersion: 4
+  useIamProfile: false
+  enableSignatureV4Streaming: true
+  directUploads: false
+
+environment:
+  OPENPROJECT_CACHE__REDIS__URL: {{ printf "redis://default:%s@%s:%d/1" .Values.cache.openproject.password .Values.cache.openproject.host .Values.cache.openproject.port }}
+
+serviceAccount:
+  create: true
+  openshift:
+    securityContextConstraints:
+      roleBinding:
+        enable: true
+        resourceName: "nonroot-v2"

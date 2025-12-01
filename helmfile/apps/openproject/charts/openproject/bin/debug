@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Outputs the generated helm configurations after templating.
+
+yaml_output=/tmp/op-hc-yaml-output.txt
+error_output=/tmp/op-hc-error-output.txt
+section_output=/tmp/op-hc-section-output.yml
+vimrc=/tmp/op-hc-vim-rc
+
+rm $yaml_output $error_output $section_output $vimrc &>/dev/null
+
+helm template --debug "$@" . 1> $yaml_output 2> $error_output
+
+if [ $? -gt 0 ]; then
+  section=`cat $error_output | grep 'Error: YAML parse error on' | cut -d: -f2 | cut -d' ' -f6-`
+
+  if [ -n "$section" ]; then
+    cat $yaml_output | sed -e "0,/\# Source: ${section//\//\\/}/d" | tail -n+2 | sed -e '/---/,$d' > $section_output
+
+    line=`cat $error_output | grep line | head -n1 | perl -nle 'm/line (\d+)/; print $1'`
+
+    if [ -n "$line" ]; then
+      echo "autocmd VimEnter * echo '`cat $error_output | grep line | head -n1`'" > $vimrc
+      vim +$line -u $vimrc $section_output
+    else
+      echo
+      echo "Template error: "
+      echo
+      echo ---
+      cat $section_output
+      cat $error_output
+    fi
+  else
+    echo
+    echo "Template error: "
+    echo
+    echo ---
+    cat $yaml_output
+    cat $error_output
+  fi
+else
+  cat $yaml_output
+
+  echo
+  echo "Syntax ok"
+fi

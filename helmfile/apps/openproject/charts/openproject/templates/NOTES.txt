@@ -1,0 +1,11 @@
+Thank you for installing OpenProject 🎉
+
+{{- if .Values.ingress.enabled }}
+You can access it via http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.host }}{{ .Values.ingress.path }}
+{{- end }}
+
+Summary:
+--------
+OpenProject: {{ .Values.image.tag }}
+PostgreSQL: {{ if .Values.postgresql.bundled }}{{ .Values.postgresql.image.tag }}{{ else }}external{{ end }}
+Memcached: {{ if .Values.memcached.bundled }}{{ .Values.memcached.image.tag }}{{ else }}external{{ end }}

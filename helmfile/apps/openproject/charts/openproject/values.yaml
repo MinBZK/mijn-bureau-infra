@@ -1,0 +1,1285 @@
+# Default values for openproject.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+## Enable development mode.
+##
+## Set this to true if you want are working on the charts locally using
+## local clusters such as minikube or kind.
+##
+## This will set `OPENPROJECT_HTTPS` to `false` and avoid using volumes for
+## tmp folders as (permissions for) these don't work correctly in local clusters.
+develop: false
+
+global:
+  ## Credentials to fetch images from private registry.
+  ##
+  ## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ##
+  ## imagePullSecrets:
+  ##   - myRegistryKeySecretName
+  #
+  imagePullSecrets: []
+## Name to override the release namespace with
+namespaceOverride: ""
+## Add labels to all the deployed resources
+commonLabels: {}
+## Add annotations to all the deployed resources
+commonAnnotations: {}
+
+## Affinity for pod assignment.
+##
+## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+#
+affinity: {}
+
+## @param runtimeClassName Name of the runtime class name
+## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+##
+runtimeClassName: ""
+
+## Cleanup settings.
+#
+cleanup:
+  # Keep Pods/Job logs after successful run.
+  #
+  deletePodsOnSuccess: true
+
+  # Keep Pods/Job logs for the following time in seconds.
+  #
+  deletePodsOnSuccessTimeout: 86400
+
+## Define additional environment variables.
+##
+## You can get a list of all environment variables when executing:
+## "RAILS_ENV=production bundle exec rake setting:available_envs"
+##
+## environment:
+##   OPENPROJECT_ATTACHMENT__MAX__SIZE: 5120
+#
+environment: {}
+
+# Optionally specify an extra list of additional volumes.
+extraVolumes: []
+
+# Optionally specify an extra list of additional volumeMounts.
+extraVolumeMounts: []
+
+
+## Provide a name to substitute for the full names of resources.
+#
+fullnameOverride: ""
+
+##
+# Override the cluster domain name used in templating
+clusterDomain: "cluster.local"
+
+## Define settings for check-db-ready init-container
+#
+dbInit:
+  image:
+    ## Define docker registry address.
+    #
+    registry: "docker.io"
+
+    ## Define repository string.
+    #
+    repository: "postgres"
+
+    # Postgres version to use
+    tag: 16
+
+    ## Define a imagePullPolicy.
+    ##
+    ## Ref.: https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy
+    ##
+    ## "IfNotPresent" => The image is pulled only if it is not already present locally.
+    ## "Always" => Every time the kubelet launches a container, the kubelet queries the container image registry to
+    ##             resolve the name to an image digest. If the kubelet has a container image with that exact digest cached
+    ##             locally, the kubelet uses its cached image; otherwise, the kubelet pulls the image with the resolved
+    ##             digest, and uses that image to launch the container.
+    ## "Never" => The kubelet does not try fetching the image. If the image is somehow already present locally, the
+    ##            kubelet attempts to start the container; otherwise, startup fails
+    #
+    imagePullPolicy: "Always"
+
+  ## Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set (resources is recommended for production).
+  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  ##
+  resourcesPreset: ~
+  resources:
+    limits:
+      memory: "200Mi"
+    requests:
+      memory: "200Mi"
+
+## Define settings for wait-for-db init-container
+# These containers need access to the Rails stack and wait for the database to be ready
+# (i.e., the seeder and migration job to have completed)
+appInit:
+  ## Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set (resources is recommended for production).
+  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  ##
+  resourcesPreset: ~
+  resources:
+    limits:
+      memory: "512Mi"
+    requests:
+      memory: "512Mi"
+
+## Define and create Kubernetes Service.
+##
+## Ref.: https://kubernetes.io/docs/concepts/services-networking/ingress/
+#
+ingress:
+  ## Whether to enable session affinity or not. It is required by ingress.
+  #
+  enabled: true
+
+  ## Define the name of the ingress class.
+  ##
+  ## If left empty, the cluster default is used.
+  ## Set this if you need a specific class, for instance `nginx`.
+  #
+  ingressClassName:
+
+  ## Define custom ingress annotations:
+  ## Use this parameter to set the required annotations for cert-manager, see
+  ## ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
+  ## e.g:
+  ## annotations:
+  ##   nginx.ingress.kubernetes.io/rewrite-target: /
+  ##   kubernetes.io/ingress.class: nginx
+  ##   cert-manager.io/cluster-issuer: cluster-issuer-name
+  ##
+  annotations: {}
+
+  ## Ingress labels
+  #
+  labels: {}
+
+  ## Define the Fully Qualified Domain Name (FQDN) where OpenProject should be reachable.
+  #
+  host: "openproject.example.com"
+
+  ## Define the path for OpenProject on your host.
+  #
+  path: /
+
+  ## Each path in an Ingress is required to have a corresponding path type. Paths that do not include an explicit
+  ## pathType will fail validation. There are three supported path types:
+  ##
+  ## "ImplementationSpecific" => With this path type, matching is up to the IngressClass. Implementations can treat this
+  ##                             as a separate pathType or treat it identically to Prefix or Exact path types.
+  ## "Exact" => Matches the URL path exactly and with case sensitivity.
+  ## "Prefix" => Matches based on a URL path prefix split by /.
+  ##
+  ## Ref.: https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types
+  #
+  pathType: "Prefix"
+
+  ## You can secure an Ingress by specifying a Secret that contains a TLS private key and certificate.
+  ##
+  ## Ref.: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+  #
+  tls:
+    ## Whether to enable tls or not.
+    #
+    enabled: true
+
+    ## The name of the kubernetes secret which contains a TLS private key and certificate.
+    ## Hint: This secret is not created by this chart and must be provided.
+    ##
+    #
+    secretName: ""
+
+    ## TLS configuration for additional hostname(s) to be covered with this ingress record
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
+    ## e.g:
+    ## extraTls:
+    ## - hosts:
+    ##     - openproject.local
+    ##   secretName: openproject.local-tls
+    ##
+    extraTls: []
+
+egress:
+  tls:
+    rootCA:
+      configMap: ""
+      fileName: ""
+
+## Network Policies
+## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
+networkPolicy:
+  enabled: false
+  ## Don't require server label for connections
+  ##
+  allowExternal: true
+  ## Allow the pod to access any range of port and all destinations.
+  ##
+  allowExternalEgress: true
+  ## Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+  ##
+  addExternalClientAccess: true
+  ## Add extra ingress rules to the NetworkPolicy
+  ## e.g:
+  ## extraIngress:
+  ##   - ports:
+  ##       - port: 1234
+  ##     from:
+  ##       - podSelector:
+  ##           - matchLabels:
+  ##               - role: frontend
+  ##       - podSelector:
+  ##           - matchExpressions:
+  ##               - key: role
+  ##                 operator: In
+  ##                 values:
+  ##                   - frontend
+  extraIngress: []
+  ## Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+  ## e.g:
+  ## extraEgress:
+  ##   - ports:
+  ##       - port: 1234
+  ##     to:
+  ##       - podSelector:
+  ##           - matchLabels:
+  ##               - role: frontend
+  ##       - podSelector:
+  ##           - matchExpressions:
+  ##               - key: role
+  ##                 operator: In
+  ##                 values:
+  ##                   - frontend
+  ##
+  extraEgress: []
+  ## Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+  ##
+  ingressPodMatchLabels: {}
+  ## Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+  ## Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+  ##
+  ingressNSMatchLabels: {}
+  ingressNSPodMatchLabels: {}
+
+## Define image setting
+#
+image:
+  ## Define docker registry address.
+  #
+  registry: "docker.io"
+
+  ## Define repository string.
+  #
+  repository: "openproject/openproject"
+
+  ## Define a imagePullPolicy.
+  ##
+  ## Ref.: https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy
+  ##
+  ## "IfNotPresent" => The image is pulled only if it is not already present locally.
+  ## "Always" => Every time the kubelet launches a container, the kubelet queries the container image registry to
+  ##             resolve the name to an image digest. If the kubelet has a container image with that exact digest cached
+  ##             locally, the kubelet uses its cached image; otherwise, the kubelet pulls the image with the resolved
+  ##             digest, and uses that image to launch the container.
+  ## "Never" => The kubelet does not try fetching the image. If the image is somehow already present locally, the
+  ##            kubelet attempts to start the container; otherwise, startup fails
+  #
+  imagePullPolicy: "Always"
+
+  ## Define image tag.
+  ## For the helm chart, use the `-slim` variants as the all-in-one container is not compatible
+  ## with some of the options (non-root execution, password splitting, etc.) and is inefficient for using in helm
+  ## due to embedded a number of services.
+  tag: "16.6.1-slim"
+
+  ## Define image sha256 - mutual exclusive with image tag.
+  ## The sha256 has a higher precedence than
+  # sha256:
+
+## Credentials to fetch images from private registry.
+##
+## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+##
+## imagePullSecrets:
+##   - myRegistryKeySecretName
+#
+imagePullSecrets: []
+
+## Configure memcached settings.
+#
+memcached:
+  ## When set to true, a memcached will be deployed into current namespace, when false you have to provide your own
+  ## memcached instance.
+  #
+  bundled: true
+
+  ## Override image repository to use Bitnami Secure images
+  image:
+    repository: bitnamilegacy/memcached
+    tag: 1.6.24-debian-12-r0
+
+  global:
+    containerSecurityContext:
+      enabled: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - "ALL"
+      seccompProfile:
+        type: "RuntimeDefault"
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+
+  ## @param commonLabels Add labels to all the deployed resources
+  ##
+  commonLabels: {}
+  ## When "bundled" is set to false, you need to define the memcached connection details.
+  #
+  connection:
+    host:
+    port:
+
+## String to partially override release name.
+#
+nameOverride: ""
+
+## Node labels for pod assignment.
+##
+## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+#
+nodeSelector: {}
+
+## Topology spread constraints for pod assignment.
+##
+## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
+#
+topologySpreadConstraints: []
+
+## Node labels for web pod assignment.
+## If not specified, falls back to the global nodeSelector above.
+##
+## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+#
+web:
+  nodeSelector: {}
+  ## Topology spread constraints for web pod assignment.
+  ## If not specified, falls back to the global topologySpreadConstraints above.
+  ##
+  ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
+  #
+  topologySpreadConstraints: []
+
+  ## Define custom web deployment labels:
+  ##
+  labels: {}
+
+  ## Define custom web deployment annotations:
+  ##
+  annotations: {}
+
+## Node labels for worker pod assignment.
+## If not specified, falls back to the global nodeSelector above.
+##
+## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+#
+worker:
+  nodeSelector: {}
+
+  ## Define custom worker deployment labels:
+  ##
+  labels: {}
+
+  ## Define custom worker deployment annotations:
+  ##
+  annotations: {}
+  ## Topology spread constraints for worker pod assignment.
+  ## If not specified, falls back to the global topologySpreadConstraints above.
+  ##
+  ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
+  #
+  topologySpreadConstraints: []
+
+## Node labels for seeder job pod assignment.
+## If not specified, falls back to the global nodeSelector above.
+##
+## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+#
+seeder:
+  nodeSelector: {}
+
+## Deployment strategy
+##
+## Ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+#
+strategy:
+  ## Re-create pod during deployments by default since a writable volume is mounted.
+  ## Should your cluster support WriteMany volumes, you can change this
+  ## to `RollingUpdate`.
+  type: "Recreate"
+  # type: RollingUpdate
+  #   rollingUpdate:
+  #     maxSurge: 30%
+  #     maxUnavailable: 30%
+
+## Cron job running the incoming email [1] task.
+##
+## Ref: https://www.openproject.org/docs/installation-and-operations/configuration/incoming-emails/
+cron:
+  enabled: false
+  ## See documentation referenced above for all variables.
+  environment:
+    IMAP_HOST: ""
+    IMAP_USERNAME: ""
+    IMAP_PASSWORD: ""
+    IMAP_PORT: 993
+
+  ## Define custom cron deployment annotations:
+  ##
+  annotations: {}
+
+  ## To avoid having sensitive credentials in your values.yaml, the preferred way is to
+  ## use an existing secret containing the IMAP credentials.
+  ## Specify the name of this existing secret here.
+  existingSecret:
+  ## In case your secret does not use the default keys in the secret, you can adjust them here.
+  secretKeys:
+    imapUsername: imapUsername
+    imapPassword: imapPassword
+  ## Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set (resources is recommended for production).
+  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  ##
+  resourcesPreset: ~
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+
+# Define the workers to run, their queues, max threads, replicas, strategy, and resources
+workers:
+  default:
+    queues: ""
+    # Set a maxThreads value to override the default of 20
+    # It needs to be an integer greater than 0.
+    maxThreads:
+    replicaCount: 1
+    strategy:
+      type: "Recreate"
+    ## Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set (resources is recommended for production).
+    ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+    ##
+    resourcesPreset: ~
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "4Gi"
+        cpu: "4"
+
+## WebSocket backend for use with real time collaboration features.
+hocuspocus:
+  enabled: false
+  ingress:
+    enabled: true
+    ingressClassName:
+    annotations: {}
+    host: "openproject.example.com"
+    path: /hocuspocus
+    pathType: "Prefix"
+    tls:
+      enabled: true
+      secretName: ""
+
+  ## Network Policies (see the main level networkPolicy above for descriptions)
+  networkPolicy:
+    enabled: false
+    allowExternal: true
+    allowExternalEgress: true
+    addExternalClientAccess: true
+    extraIngress: []
+    extraEgress: []
+    ingressPodMatchLabels: {}
+    ingressNSMatchLabels: {}
+    ingressNSPodMatchLabels: {}
+
+  image:
+    registry: "docker.io"
+    repository: "openproject/hocuspocus"
+    imagePullPolicy: "Always"
+    tag: "main-defdb238"
+
+  strategy:
+    type: "Recreate"
+
+  podAnnotations:
+
+  allowedOpenProjectDomains:
+    - openproject.example.com
+
+  service:
+    port: 1234
+
+  ## Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set (resources is recommended for production).
+  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  ##
+  resourcesPreset: ~
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "2"
+
+## OpenProject related settings.
+##
+## Ref.: https://www.openproject.org/docs/installation-and-operations/configuration/environment/#supported-environment-variables
+#
+openproject:
+  ## Enable https in backend response.
+  #
+  https: true
+
+  ## Define the host, defaults to value of "ingress.host" when ingress is enabled.
+  #
+  host:
+
+  ## Enable HSTS.
+  #
+  hsts: true
+
+  ## Define Cache settings.
+  #
+  cache:
+    store: "memcache"
+
+  extraEnvVarsSecret: ""
+
+  ## Define the language to seed the instance in
+  #
+  seed_locale: "en"
+
+  ##
+  # Let OpenProject run in a subdirectory,
+  # e.g., https://exameple.com/openproject
+  # specify with leading slash, but without trailing slash
+  # e.g., /openproject
+  railsRelativeUrlRoot:
+
+  ## Define admin user details
+  # only applicable on first installation
+  # c.f. https://www.openproject.org/docs/installation-and-operations/configuration/#initial-admin-user-creation
+  admin_user:
+    password: "admin"
+    password_reset: "true"
+    name: "OpenProject Admin"
+    mail: "admin@example.net"
+
+    secret: ""
+
+    ## In case your secret does not use the default key in the secret, you can adjust it here
+    secretKeys:
+      password: ""
+    # Uncomment if you want to lock the user after creation
+    # Relevant for automated deployments that seed LDAP or SSO
+    # locked: true
+
+  ## Define OpenID Connect providers
+  oidc:
+    enabled: false
+    provider: "Keycloak"
+    displayName: "Keycloak"
+    host: ""
+    identifier: ""
+    secret: ""
+    authorizationEndpoint: ""
+    tokenEndpoint: ""
+    userinfoEndpoint: ""
+    endSessionEndpoint: ""
+    scope: "[openid]"
+
+    # Optional attribute mappings from the id token
+    attribute_map: {}
+
+    ## To avoid having sensitive credentials in your values.yaml, the preferred way is to
+    ## use an existing secret containing the OIDC compatible access credentials.
+    ## Specify the name of this existing secret here.
+    existingSecret:
+
+    ## In case your secret does not use the default keys in the secret, you can adjust them here.
+    secretKeys:
+      identifier: "clientId"
+      secret: "clientSecret"
+
+    # Allows usage of sealed-secret for `identifier` and `secret` values.
+    # Special use case for use in setups where heml template `lookup` function is not available.
+    # Ref: https://github.com/argoproj/argo-cd/issues/5202
+    #
+    extraOidcSealedSecret:
+
+  ## Modify PostgreSQL statement timout.
+  ## Increase in case you get errors such as "ERROR: canceling statement due to statement timeout".
+  ##
+  ## Ref.: https://www.openproject.org/docs/installation-and-operations/configuration/environment/#postgresql-statement_timeout
+  #
+  postgresStatementTimeout: 120s
+
+  ## Define custom web/worker deployment annotations:
+  ##
+  annotations: {}
+
+  ## Whether or not to use ephemeral volumes for /app/tmp and /tmp.
+  ## Falls back to a sensible default if undefined.
+  #
+  useTmpVolumes:
+
+  ## Define the tmp storage sizes
+  #
+  tmpVolumesStorage: "5Gi"
+
+  ## Define the class of the tmp storage
+  #
+  tmpVolumesStorageClassName:
+
+  ## Define custom annotations of tmp storage
+  #
+  tmpVolumesAnnotations: {}
+
+  ## Define custom labels of tmp storage
+  #
+  tmpVolumesLabels: {}
+
+## Whether to allocate persistent volume disk for the data directory.
+## In case of node failure, the node data directory will still persist.
+##
+## Ref.: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+#
+persistence:
+  enabled: true
+
+  ## Define the volume access modes:
+  ##
+  ## "ReadWriteOnce" => The volume can be mounted as read-write by a single node. ReadWriteOnce access mode still can
+  ##                    allow multiple pods to access the volume when the pods are running on the same node.
+  ## "ReadOnlyMany" => The volume can be mounted as read-only by many nodes.
+  ## "ReadWriteMany" => The volume can be mounted as read-write by many nodes.
+  ## "ReadWriteOncePod" => The volume can be mounted as read-write by a single Pod. Use ReadWriteOncePod access mode if
+  ##                       you want to ensure that only one pod across whole cluster can read that PVC or write to it.
+  #
+  accessModes:
+    - "ReadWriteMany"
+
+  ## Define custom storage (PVC) annotations:
+  ##
+  annotations: {}
+
+  ## Define the volume size.
+  #
+  size: "1Gi"
+
+  ## Define the class of PV.
+  storageClassName:
+
+## Whether to use an S3-compatible object storage to store OpenProject attachments.
+## If this is enabled, files will NOT be stored in the mounted volume configured in `persistence` above.
+## The volume will not be used at all, so it `persistence.enabled` should be set to `false` in this case.
+##
+## Ref.: https://www.openproject.org/docs/installation-and-operations/configuration/#attachments-storage
+#
+s3:
+  enabled: false
+
+  auth:
+    # Provide the accessKeyId and secret in plain values
+    # We recommend to use the existingSecret option instead
+    accessKeyId:
+    secretAccessKey:
+
+    ## To avoid having sensitive credentials in your values.yaml, the preferred way is to
+    ## use an existing secret containing the S3 compatible access credentials.
+    ## Specify the name of this existing secret here.
+
+    # if using an existing secret, use the following keys for your access key and secret.
+    # OPENPROJECT_FOG_CREDENTIALS_AWS__ACCESS__KEY__ID
+    # OPENPROJECT_FOG_CREDENTIALS_AWS__SECRET__ACCESS__KEY
+
+    # note there are double underscores on these keys
+    existingSecret:
+
+  region:
+  bucketName:
+
+  ## Remove or leave empty to use default AWS S3 endpoint
+  #
+  endpoint:
+  host:
+  port:
+  pathStyle: false
+  signatureVersion: 4
+  useIamProfile: false
+  # Some providers do not properly support signature v4 streaming (e.g. Scaleway)
+  enableSignatureV4Streaming: true
+
+  ## If enabled, upload files directly to S3 from the browser instead of going through OpenProject.
+  ## May not be supported by providers other than AWS S3 itself.
+  ##
+  ## Ref.: https://www.openproject.org/docs/installation-and-operations/configuration/#direct-uploads
+  #
+  directUploads: true
+
+  ## You can always override these options via the environment, for instance:
+  ##
+  ## environment:
+  ##   OPENPROJECT_FOG_CREDENTIALS_REGION: 'us-east-1'
+  ##
+  ## Ref.: https://www.openproject.org/docs/installation-and-operations/configuration/#attachments-storage
+
+## Define custom pod annotations.
+#
+podAnnotations: {}
+
+## Pod Security Context.
+##
+## We use the default value of `1000` for `fsGroup` since that
+## is the app user's group ID and if the user wants to be able to
+## write to `/var/openproject/assets` the mounted folder needs to
+## have a matching gid.
+##
+## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+#
+podSecurityContext:
+  enabled: true
+  fsGroup: 1000
+
+## Container security context using as a default best practice values
+## granting minimum privileges.
+##
+## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+#
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - "ALL"
+  seccompProfile:
+    type: "RuntimeDefault"
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+
+## Configure PostgreSQL settings.
+#
+postgresql:
+  ## When set to true, a postgres server will be deployed into current namespace, when false you have to provide your
+  ## own database instance.
+  #
+  bundled: true
+
+  ## Override image repository to use Bitnami Secure images
+  image:
+    repository: bitnamilegacy/postgresql
+    tag: 15.4.0-debian-11-r45
+  volumePermissions:
+    image:
+      repository: bitnamilegacy/os-shell
+  metrics:
+    image:
+      repository: bitnamilegacy/postgres-exporter
+
+  global:
+    containerSecurityContext:
+      enabled: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - "ALL"
+      seccompProfile:
+        type: "RuntimeDefault"
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+
+  ## @param commonLabels Add labels to all the deployed resources
+  ##
+  commonLabels: {}
+
+  ## When "bundled" is set to false, you need to define the database connection details.
+  #
+  connection:
+    host:
+    port:
+
+  ## Database auth details.
+  #
+  auth:
+    ## To avoid having sensitive credentials in your values.yaml, the preferred way to provide a password
+    ## is to use an existing secret containing the PostgreSQL credentials.
+    ## Specify the name of this existing secret here.
+    ##
+    ## If neither an existing secret nor passwords are defined, a secret is generated automatically.
+    ##
+    ## The postgresql chart will create this secret (the name of which ends with `-postgresql` by default)
+    ## with generated user and admin passwords.
+    ## If you want to see the base64 encoded passwords you can output the secret like this:
+    ##
+    ## ```
+    ## kubectl get secret -n <namespace> openproject-postgresql -o yaml | grep password
+    ## ```
+    #
+    existingSecret: ""
+
+    ## In case your secret does not use the default keys in the secret, you can adjust them here.
+    ##
+    ## secretKeys:
+    ##   adminPasswordKey: "postgres-password"
+    ##   userPasswordKey: "password"
+
+    ## Database username.
+    #
+    username: "openproject"
+
+    ## Database name.
+    #
+    database: "openproject"
+
+    ## If you are not using a Kubernetes secret to store your postgresql credentials,
+    ## you can specify them here if you really must. Please handle with care!
+
+    ## Database password.
+    #
+    password: ""
+
+    ## Database root password.
+    #
+    postgresPassword: ""
+
+  ##
+  # Additional connection options
+  # See https://www.postgresql.org/docs/current/libpq-connect.html for additional details
+  options:
+    # Define a pool size for the Rails connection pool
+    # https://guides.rubyonrails.org/configuring.html#database-pooling
+    pool:
+
+    # Specifies the authentication method that the client requires from the server.
+    requireAuth:
+
+    # This option controls the client's use of channel binding.
+    channelBinding:
+
+    # Maximum time to wait while connecting, in seconds.
+    connectTimeout:
+
+    # This sets the client_encoding configuration parameter for this connection.
+    clientEncoding:
+
+    # Controls whether client-side TCP keepalives are used.
+    keepalives:
+
+    # Controls the number of seconds of inactivity after which TCP should send a keepalive message to the server.
+    keepalivesIdle:
+
+    # Controls the number of seconds after which a TCP keepalive message that is not acknowledged by the server
+    # should be retransmitted.
+    keepalivesInterval:
+
+    # Controls the number of TCP keepalives that can be lost before the client's connection to the server is
+    # considered dead
+    keepalivesCount:
+
+    # This option determines whether the connection should use the replication protocol instead of the normal
+    # protocol.
+    replication:
+
+    # This option determines whether or with what priority a secure GSS TCP/IP connection will be negotiated with the
+    # server.
+    gssencmode:
+
+    # This option determines whether or with what priority a secure SSL TCP/IP connection will be negotiated with the
+    # server.
+    sslmode:
+
+    # If set to 1, data sent over SSL connections will be compressed.
+    sslcompression:
+
+    # This parameter specifies the file name of the client SSL certificate
+    sslcert:
+
+    # This parameter specifies the location for the secret key used for the client certificate.
+    sslkey:
+
+    # This parameter specifies the password for the secret key specified in sslkey
+    sslpassword:
+
+    # This parameter specifies the name of a file containing SSL certificate authority (CA) certificate(s)
+    sslrootcert:
+
+    # This parameter specifies the file name of the SSL server certificate revocation list (CRL).
+    sslcrl:
+
+    # This parameter specifies the minimum SSL/TLS protocol version to allow for the connection
+    sslMinProtocolVersion:
+
+## Configure liveness and readiness probes.
+##
+## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+#
+probes:
+  ## Configure liveness probe.
+  ##
+  ## If the liveness probe fails, the container will be restarted.
+  #
+  liveness:
+    ## Whether to enable liveness probes.
+    #
+    enabled: true
+
+    ## Number of seconds after the container has started before startup, liveness or readiness probes are initiated.
+    ## Defaults to 0 seconds. Minimum value is 0.
+    #
+    initialDelaySeconds: 0
+
+    ## Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1.
+    #
+    timeoutSeconds: 5
+
+    ## How often (in seconds) to perform the probe. Default to 10 seconds. Minimum value is 1.
+    #
+    periodSeconds: 15
+
+    ## When a probe fails, Kubernetes will try failureThreshold times before giving up. Giving up in case of liveness
+    ## probe means restarting the container. In case of readiness probe the Pod will be marked Unready. Defaults to 3.
+    ## Minimum value is 1.
+    #
+    failureThreshold: 3
+
+    ## Minimum consecutive successes for the probe to be considered successful after having failed. Defaults to 1.
+    ## Must be 1 for liveness and startup Probes. Minimum value is 1.
+    #
+    successThreshold: 1
+
+  ## Configure readiness probe.
+  ##
+  ## If the readiness probe failes, no traffic will be routed to the container.
+  #
+  readiness:
+    ## Whether to enable readiness probes.
+    #
+    enabled: true
+
+    ## Number of seconds after the container has started before startup, liveness or readiness probes are initiated.
+    ## Defaults to 0 seconds. Minimum value is 0.
+    #
+    initialDelaySeconds: 0
+
+    ## Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1.
+    #
+    timeoutSeconds: 5
+
+    ## How often (in seconds) to perform the probe. Default to 10 seconds. Minimum value is 1.
+    #
+    periodSeconds: 10
+
+    ## When a probe fails, Kubernetes will try failureThreshold times before giving up. Giving up in case of liveness
+    ## probe means restarting the container. In case of readiness probe the Pod will be marked Unready. Defaults to 3.
+    ## Minimum value is 1.
+    #
+    failureThreshold: 3
+
+    ## Minimum consecutive successes for the probe to be considered successful after having failed. Defaults to 1.
+    ## Must be 1 for liveness and startup Probes. Minimum value is 1.
+    #
+    successThreshold: 1
+
+  ## Configure startup probe.
+  ##
+  ## If the startup probe fails, the container will be restarted. Startup probes are useful for slow starting containers.
+  #
+  startup:
+    ## Whether to enable startup probes.
+    #
+    enabled: true
+
+    ## Number of seconds after the container has started before startup, liveness or readiness probes are initiated.
+    ## Defaults to 0 seconds. Minimum value is 0.
+    #
+    initialDelaySeconds: 60
+
+    ## Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1.
+    #
+    timeoutSeconds: 5
+
+    ## How often (in seconds) to perform the probe. Default to 10 seconds. Minimum value is 1.
+    #
+    periodSeconds: 15
+
+    ## When a probe fails, Kubernetes will try failureThreshold times before giving up. Giving up in case of startup
+    ## probe means restarting the container. Defaults to 3. Minimum value is 1.
+    #
+    failureThreshold: 10
+
+    ## Minimum consecutive successes for the probe to be considered successful after having failed. Defaults to 1.
+    ## Must be 1 for liveness and startup Probes. Minimum value is 1.
+    #
+    successThreshold: 1
+
+## Number of OpenProject web process replicas.
+#
+replicaCount: 1
+
+## Number of OpenProject background worker process replicas.
+#
+backgroundReplicaCount: 1
+
+## Horizontal Pod Autoscaler configuration
+## When enabled, replicaCount is ignored and HPA manages replica count
+#
+autoscaling:
+  ## Whether to enable HPA autoscaling
+  #
+  enabled: false
+
+  ## Minimum number of replicas
+  #
+  minReplicas: 1
+
+  ## Maximum number of replicas
+  #
+  maxReplicas: 10
+
+  ## Target resource utilization for CPU-based scaling
+  ## Uncomment to enable CPU-based scaling
+  #
+  # targetCPUUtilizationPercentage: 70
+
+  ## Target resource utilization for memory-based scaling
+  ## Uncomment to enable memory-based scaling
+  #
+  # targetMemoryUtilizationPercentage: 80
+
+  ## Custom metrics configuration (requires Prometheus Adapter)
+  ## These metrics require prometheus-adapter to be installed in the cluster
+  #
+  customMetrics: []
+    ## Example: Scale when request backlog exceeds 2 requests over 1 minute average
+    #
+    # - type: Pods
+    #   pods:
+    #     metric:
+    #       name: puma_request_backlog_avg_1min
+    #     target:
+    #       type: AverageValue
+    #       averageValue: "2"  # Scale up when backlog > 2 requests
+
+  ## Advanced scaling behavior configuration
+  #
+  behavior:
+    ## Scale down policies
+    #
+    scaleDown:
+      ## How long to wait before scaling down after metrics indicate scale down should happen
+      #
+      stabilizationWindowSeconds: 300
+
+      ## Scaling policies for scale down
+      #
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+
+      ## Select the policy that allows the highest number of pods to be removed
+      #
+      selectPolicy: Min
+
+    ## Scale up policies
+    #
+    scaleUp:
+      ## How long to wait before scaling up after metrics indicate scale up should happen
+      #
+      stabilizationWindowSeconds: 60
+
+      ## Scaling policies for scale up
+      #
+      policies:
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+
+      ## Select the policy that allows the highest number of pods to be added
+      #
+      selectPolicy: Max
+
+## Metrics configuration for Prometheus scraping
+#
+metrics:
+  ## Whether to enable metrics scraping
+  #
+  enabled: false
+
+  ## Metrics endpoint path
+  #
+  path: "/metrics"
+
+  ## Metrics port (added to service)
+  #
+  port: 9394
+
+  ## ServiceMonitor configuration for Prometheus Operator
+  #
+  serviceMonitor:
+    ## Whether to create ServiceMonitor resource
+    #
+    enabled: false
+
+    ## ServiceMonitor namespace
+    ## If not set, uses the same namespace as the chart
+    #
+    namespace: ""
+
+    ## ServiceMonitor labels
+    #
+    labels: {}
+
+    ## ServiceMonitor annotations
+    #
+    annotations: {}
+
+    ## Scrape interval
+    #
+    interval: "5s"
+
+    ## Scrape timeout
+    #
+    scrapeTimeout: "5s"
+
+    ## Honor labels from the scraped metrics
+    #
+    honorLabels: false
+
+## Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set (resources is recommended for production).
+## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+##
+resourcesPreset: ~
+## Configure resource requests and limits.
+##
+## http://kubernetes.io/docs/user-guide/compute-resources/
+#
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "4Gi"
+    cpu: "4"
+
+## Define and create Kubernetes Service.
+##
+## Ref.: https://kubernetes.io/docs/concepts/services-networking/service
+#
+service:
+  ## Whether to enable session affinity or not. It is required by ingress.
+  #
+  enabled: true
+
+  ## Choose the kind of Service:
+  ##
+  ## "ClusterIP" => Exposes the Service on a cluster-internal IP. Choosing this value makes the Service only reachable
+  ##                from within the cluster. This is the default that is used if you don't explicitly specify a type for
+  ##                a Service.
+  ## "NodePort" => Exposes the Service on each Node's IP at a static port (the NodePort). To make the node port
+  ##               available, Kubernetes sets up a cluster IP address, the same as if you had requested a Service of
+  ##               type: ClusterIP.
+  ## "LoadBalancer" => Exposes the Service externally using a cloud provider's load balancer.
+  ##
+  ## Ref.: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  #
+  type: "ClusterIP"
+
+  ## Specify the external IP address for the LoadBalancer service. If your cloud provider supports
+  ## specifying a static IP for the load balancer, you can set it here.
+  ## Example:
+  ## loadBalancerIP: "172.16.0.1"
+  loadBalancerIP: ""
+
+  ## Define the ports of Service.
+  ## You can set the port value to an arbitrary value, it will map the container port by name.
+  ##
+  ## Custom NodePort example:
+  ## ports:
+  ##   http:
+  ##     port: 8080
+  ##     protocol: "TCP"
+  ##     nodePort: "38080"
+  #
+  ports:
+    http:
+      containerPort: 8080
+      port: 8080
+      protocol: "TCP"
+
+  ## Configure session affinity for to hit the same backend for the period specified in `timeoutSeconds`.
+  ##
+  ## Ref.: https://kubernetes.io/docs/reference/networking/virtual-ips/#session-affinity
+  #
+  sessionAffinity:
+    ## Whether to enable session affinity or not.
+    #
+    enabled: false
+    ## The session duration in seconds.
+    #
+    timeoutSeconds: 10800
+
+## Define Service Accounts for Pods.
+##
+## Ref.: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+#
+serviceAccount:
+  ## Whether to create service account.
+  #
+  create: true
+
+  ## Settings to add OpenShift security context constraints role to the service account
+  openshift:
+    securityContextConstraints:
+      roleBinding:
+        enable: false
+        resourceName: "nonroot-v2"
+
+  ## Define custom service account annotations.
+  #
+  annotations: {}
+
+# Options for the seeder job
+seederJob:
+  ## Define custom seeder job annotations.
+  #
+  annotations: {}
+  ## Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set (resources is recommended for production).
+  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  ##
+  resourcesPreset: ~
+  resources:
+    limits:
+      memory: "512Mi"
+    requests:
+      memory: "512Mi"
+
+## Tolerations for pod assignment.
+##
+## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+#
+tolerations: []

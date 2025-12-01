@@ -1,0 +1,186 @@
+---
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-web
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- range $key, $value := .Values.web.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    openproject/process: web
+    app.kubernetes.io/component: web
+  {{- if or .Values.web.annotations .Values.openproject.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list .Values.web.annotations .Values.openproject.annotations .Values.commonAnnotations ) "context" . ) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  strategy:
+    {{ .Values.strategy | toYaml | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "common.labels.matchLabels" (dict "customLabels" .Values.commonLabels "context" $) | nindent 6 }}
+      openproject/process: web
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      annotations:
+        {{- range $key, $val := .Values.podAnnotations }}
+        {{ $key }}: {{ $val | quote }}
+        {{- end }}
+        {{- if .Values.metrics.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: {{ .Values.metrics.path | quote }}
+        prometheus.io/port: {{ .Values.metrics.port | quote }}
+        {{- end }}
+        {{- include "openproject.envChecksums" . | nindent 8 }}
+      labels:
+        {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 8 }}
+        openproject/process: web
+        app.kubernetes.io/component: web
+    spec:
+      {{- include "openproject.imagePullSecrets" . | indent 6 }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{ toYaml . | nindent 8 | trim }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{ toYaml . | nindent 8 | trim }}
+      {{- end }}
+      {{- with (coalesce .Values.web.nodeSelector .Values.nodeSelector) }}
+      nodeSelector:
+        {{ toYaml . | nindent 8 | trim }}
+      {{- end }}
+      {{- with (coalesce .Values.web.topologySpreadConstraints .Values.topologySpreadConstraints) }}
+      topologySpreadConstraints:
+        {{ toYaml . | nindent 8 | trim }}
+      {{- end }}
+      {{- include "openproject.podSecurityContext" . | indent 6 }}
+      {{- if .Values.runtimeClassName }}
+      runtimeClassName: {{ .Values.runtimeClassName | quote }}
+      {{- end }}
+      serviceAccountName: {{ include "common.names.fullname" . }}
+      volumes:
+        {{- include "openproject.tmpVolumeSpec" . | indent 8 }}
+        {{- if .Values.egress.tls.rootCA.fileName }}
+        - name: ca-pemstore
+          configMap:
+            name: "{{- .Values.egress.tls.rootCA.configMap }}"
+        {{- end }}
+        {{- if .Values.persistence.enabled }}
+        - name: "data"
+          persistentVolumeClaim:
+            claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{- else }}{{ include "common.names.fullname" . }}{{- end }}
+        {{- end }}
+        {{- include "openproject.extraVolumes" . | indent 8 }}
+      initContainers:
+        - name: wait-for-db
+          {{- include "openproject.containerSecurityContext" . | indent 10 }}
+          image: {{ include "openproject.image" . }}
+          imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+          envFrom:
+            {{- include "openproject.envFrom" . | nindent 12 }}
+          env:
+            {{- include "openproject.env" . | nindent 12 }}
+          args:
+            - /app/docker/prod/wait-for-db
+          {{- if .Values.appInit.resources }}
+          resources:
+            {{- toYaml .Values.appInit.resources | nindent 12 }}
+          {{- else if ne .Values.appInit.resourcesPreset "none" }}
+          resources:
+            {{- include "common.resources.preset" (dict "type" .Values.appInit.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- include "openproject.tmpVolumeMounts" . | indent 12 }}
+      containers:
+        - name: "openproject"
+          {{- include "openproject.containerSecurityContext" . | indent 10 }}
+          image: {{ include "openproject.image" . }}
+          imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+          envFrom:
+            {{- include "openproject.envFrom" . | nindent 12 }}
+          env:
+            {{- include "openproject.env" . | nindent 12 }}
+          args:
+            - /app/docker/prod/web
+          volumeMounts:
+            {{- include "openproject.tmpVolumeMounts" . | indent 12 }}
+            {{- if .Values.persistence.enabled }}
+            - name: "data"
+              mountPath: "/var/openproject/assets"
+            {{- end }}
+            {{- if .Values.egress.tls.rootCA.fileName }}
+            - name: ca-pemstore
+              mountPath: /etc/ssl/certs/custom-ca.pem
+              subPath: {{ .Values.egress.tls.rootCA.fileName }}
+              readOnly: false
+            {{- end }}
+            {{- include "openproject.extraVolumeMounts" . | indent 12 }}
+          ports:
+            {{- range $key, $value := .Values.service.ports }}
+            - name: {{ $key }}
+              containerPort: {{ $value.containerPort }}
+              protocol: {{ $value.protocol }}
+            {{- end }}
+            {{- if .Values.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
+            {{- end }}
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: "{{ .Values.openproject.railsRelativeUrlRoot | default "" }}/health_checks/default"
+              port: 8080
+              httpHeaders:
+                # required otherwise health check will return 404 because health check is done using the Pod IP, which may cause issues with downstream variants
+                - name: Host
+                  value: localhost
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+            successThreshold: {{ .Values.probes.liveness.successThreshold }}
+          {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: "{{ .Values.openproject.railsRelativeUrlRoot | default "" }}/health_checks/default"
+              port: 8080
+              httpHeaders:
+                # required otherwise health check will return 404 because health check is done using the Pod IP, which may cause issues with downstream variants
+                - name: Host
+                  value: localhost
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+            successThreshold: {{ .Values.probes.readiness.successThreshold }}
+          {{- end }}
+          {{- if .Values.probes.startup.enabled }}
+          startupProbe:
+            httpGet:
+              path: "{{ .Values.openproject.railsRelativeUrlRoot | default "" }}/health_checks/default"
+              port: 8080
+              httpHeaders:
+                # required otherwise health check will return 404 because health check is done using the Pod IP, which may cause issues with downstream variants
+                - name: Host
+                  value: localhost
+            initialDelaySeconds: {{ .Values.probes.startup.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+            successThreshold: {{ .Values.probes.startup.successThreshold }}
+          {{- end }}
+          {{- if .Values.resources }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- else if ne .Values.resourcesPreset "none" }}
+          resources:
+            {{- include "common.resources.preset" (dict "type" .Values.resourcesPreset) | nindent 12 }}
+          {{- end }}

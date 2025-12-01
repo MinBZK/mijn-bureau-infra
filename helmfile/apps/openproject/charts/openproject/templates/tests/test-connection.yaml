@@ -1,0 +1,24 @@
+---
+apiVersion: "v1"
+kind: "Pod"
+metadata:
+  name: "{{ include "common.names.fullname" . }}-test-connection"
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: test-connection
+  annotations:
+    "helm.sh/hook": test
+spec:
+  serviceAccountName: {{ include "common.names.fullname" . }}
+  containers:
+    - name: "wget"
+      image: "busybox"
+      imagePullPolicy: Always
+      command: ['wget']
+      args:
+        - '--no-verbose'
+        - '--tries=1'
+        - '--spider'
+        - '{{ include "common.names.fullname" . }}:{{ .Values.service.ports.http.port }}/health_check'
+  restartPolicy: "Never"
+...

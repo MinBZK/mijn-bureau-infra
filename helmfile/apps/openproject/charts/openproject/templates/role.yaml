@@ -1,0 +1,31 @@
+{{- if .Values.serviceAccount.openshift.securityContextConstraints.roleBinding.enable }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+rules:
+  - apiGroups:
+      - security.openshift.io
+    resourceNames:
+      - {{ .Values.serviceAccount.openshift.securityContextConstraints.roleBinding.resourceName }}
+    resources:
+      - securitycontextconstraints
+    verbs:
+      - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ template "common.names.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "openproject.serviceAccountName" . }}
+    namespace: {{ include "common.names.namespace" . | quote }}
+{{- end }}
