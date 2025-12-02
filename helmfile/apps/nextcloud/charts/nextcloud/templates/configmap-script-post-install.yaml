@@ -57,62 +57,6 @@ data:
     done
     {{- end }}
 
-  drawio.sh: |-
-    #!/bin/bash
-
-    echo "Waiting for NextCloud to be ready for deck setup..."
-    counter=0
-    while [ "$counter" -lt 60 ]; do
-      if php /var/www/html/occ status | grep -q "installed: true"; then
-        echo "NextCloud is ready, setting up drawio app..."
-
-        echo "Installing drawio app..."
-        if ! php /var/www/html/occ app:install drawio; then
-          echo "WARNING: Failed to install drawio app"
-        else
-          echo "drawio app installation completed"
-        fi
-
-        echo "Enabling drawio app..."
-        if ! php /var/www/html/occ app:enable drawio; then
-          echo "WARNING: Failed to enable drawio app"
-        fi
-        echo "drawio app enablement completed"
-        break
-      fi
-      echo "Waiting for NextCloud... ($counter/60)"
-      sleep 5
-      counter=$((counter + 5))
-    done
-
-  deck.sh: |-
-    #!/bin/bash
-
-    echo "Waiting for NextCloud to be ready for deck setup..."
-    counter=0
-    while [ "$counter" -lt 60 ]; do
-      if php /var/www/html/occ status | grep -q "installed: true"; then
-        echo "NextCloud is ready, setting up deck app..."
-
-        echo "Installing deck app..."
-        if ! php /var/www/html/occ app:install deck; then
-          echo "WARNING: Failed to install deck app"
-        else
-          echo "deck app installation completed"
-        fi
-
-        echo "Enabling deck app..."
-        if ! php /var/www/html/occ app:enable deck; then
-          echo "WARNING: Failed to enable deck app"
-        fi
-        echo "deck app enablement completed"
-        break
-      fi
-      echo "Waiting for NextCloud... ($counter/60)"
-      sleep 5
-      counter=$((counter + 5))
-    done
-
   collabora.sh: |-
     #!/bin/bash
 
@@ -150,34 +94,6 @@ data:
             echo "WOPI Allow List configuration completed"
         fi
 
-        break
-      fi
-      echo "Waiting for NextCloud... ($counter/60)"
-      sleep 5
-      counter=$((counter + 5))
-    done
-
-  groupfolders.sh: |-
-    #!/bin/bash
-
-    echo "Waiting for NextCloud to be ready for groupfolders setup..."
-    counter=0
-    while [ "$counter" -lt 60 ]; do
-      if php /var/www/html/occ status | grep -q "installed: true"; then
-        echo "NextCloud is ready, setting up groupfolders app..."
-
-        echo "Installing groupfolders app..."
-        if ! php /var/www/html/occ app:install groupfolders; then
-          echo "WARNING: Failed to install groupfolders app (maybe already present)"
-        else
-          echo "groupfolders app installation completed"
-        fi
-
-        echo "Enabling groupfolders app..."
-        if ! php /var/www/html/occ app:enable groupfolders; then
-          echo "WARNING: Failed to enable groupfolders app"
-        fi
-        echo "groupfolders app enablement completed"
         break
       fi
       echo "Waiting for NextCloud... ($counter/60)"
@@ -225,32 +141,8 @@ data:
     # Set default quota for new users
     php /var/www/html/occ config:app:set files default_quota --value="{{ .Values.files.defaultQuota }}"
 
-  contacts.sh: |-
-    #!/bin/bash
-
-    echo "Waiting for NextCloud to be ready for contacts setup..."
-    counter=0
-    while [ "$counter" -lt 60 ]; do
-      if php /var/www/html/occ status | grep -q "installed: true"; then
-        echo "NextCloud is ready, setting up contacts app..."
-
-        echo "Installing contacts app..."
-        if ! php /var/www/html/occ app:install contacts; then
-          echo "WARNING: Failed to install contacts app (maybe already present)"
-        else
-          echo "contacts app installation completed"
-        fi
-
-        echo "Enabling contacts app..."
-        if ! php /var/www/html/occ app:enable contacts; then
-          echo "WARNING: Failed to enable contacts app"
-        else
-          echo "contacts app enablement completed"
-        fi
-
-        break
-      fi
-      echo "Waiting for NextCloud... ($counter/60)"
-      sleep 5
-      counter=$((counter + 5))
-    done
+  {{- include "nextcloud.addAndEnableApp" (dict "appName" "drawio" "appTitle" "drawio" ) | nindent 2 }}
+  {{- include "nextcloud.addAndEnableApp" (dict "appName" "deck" "appTitle" "deck" ) | nindent 2 }}
+  {{- include "nextcloud.addAndEnableApp" (dict "appName" "groupfolders" "appTitle" "groupfolders" ) | nindent 2 }}
+  {{- include "nextcloud.addAndEnableApp" (dict "appName" "contacts" "appTitle" "contacts" ) | nindent 2 }}
+  {{- include "nextcloud.addAndEnableApp" (dict "appName" "files_accesscontrol" "appTitle" "files access control" ) | nindent 2 }}
