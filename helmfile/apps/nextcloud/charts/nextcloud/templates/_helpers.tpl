@@ -238,3 +238,41 @@ Validate SMTP configuration
     {{- fail "ERROR: When mail.enabled=true and no mail.smtp.existingSecret is provided, mail.smtp.username is required" -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Add and enable apps
+{{ include "nextcloud.addAndEnableApp" (dict "appName" "appName" "appTitle" "app title") -}}
+*/}}
+{{- define "nextcloud.addAndEnableApp" -}}
+{{- if and (hasKey . "appName") (hasKey . "appTitle") -}}
+{{ .appName }}.sh: |-
+  #!/bin/bash
+
+  echo "Waiting for NextCloud to be ready for {{ .appTitle }} setup..."
+  counter=0
+  while [ "$counter" -lt 60 ]; do
+    if php /var/www/html/occ status | grep -q "installed: true"; then
+      echo "NextCloud is ready, setting up {{ .appTitle }} app..."
+
+      echo "Installing {{ .appTitle }} app..."
+      if ! php /var/www/html/occ app:install files_accesscontrol; then
+        echo "WARNING: Failed to install {{ .appTitle }} app (maybe already present)"
+      else
+        echo "{{ .appTitle }} app installation completed"
+      fi
+
+      echo "Enabling {{ .appTitle }} app..."
+      if ! php /var/www/html/occ app:enable files_accesscontrol; then
+        echo "WARNING: Failed to enable {{ .appTitle }} app"
+      else
+        echo "{{ .appTitle }} app enablement completed"
+      fi
+
+      break
+    fi
+    echo "Waiting for NextCloud... ($counter/60)"
+    sleep 5
+    counter=$((counter + 5))
+  done
+{{- end -}}
+{{- end -}}
