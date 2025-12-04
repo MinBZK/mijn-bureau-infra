@@ -293,9 +293,9 @@ type: Opaque
 data:
   password: { { .Values.password | b64enc | quote } }
 
-
 # templates/dpl.yaml
 ---
+
 ---
 env:
   - name: PASSWORD
