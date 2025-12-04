@@ -1,0 +1,57 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: clamav
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  # Ref: https://github.com/Cisco-Talos/clamav/blob/main/etc/clamd.conf.sample
+  clamd.conf: |
+    LogTime yes
+    ExtendedDetectionInfo yes
+    DatabaseDirectory {{ .Values.persistence.mountPath }}
+    LocalSocket /tmp/clamd.sock
+    #TCPAddr 0.0.0.0
+    TCPSocket {{ .Values.clamav.containerPorts.clamav }}
+    StreamMaxLength {{ .Values.clamav.configuration.streamMaxLength }}
+    Foreground yes
+    {{- if .Values.clamav.configuration.debug }}
+    Debug yes
+    LogVerbose yes
+    LeaveTemporaryFiles yes
+    {{- end }}
+
+  # Ref: https://github.com/Cisco-Talos/clamav/blob/main/etc/freshclam.conf.sample
+  freshclam.conf: |
+    DatabaseDirectory {{ .Values.persistence.mountPath }}
+    DatabaseMirror database.clamav.net
+    LogTime yes
+    Foreground yes
+    {{- if .Values.clamav.configuration.debug }}
+    LogVerbose yes
+    Debug yes
+    {{- end }}
+
+  {{- if .Values.clamav.configuration.milter.enabled }}
+  # Ref: https://github.com/Cisco-Talos/clamav/blob/main/etc/clamav-milter.conf.sample
+  clamd-milter.conf: |
+    MilterSocket inet:{{ .Values.clamav.containerPorts.milter }}
+    Foreground yes
+    ClamdSocket unix:/tmp/clamd.sock
+    MaxFileSize {{ .Values.clamav.configuration.milter.maxFileSize }}
+    LogTime yes
+    LogInfected Basic
+    {{- if .Values.clamav.configuration.debug }}
+    LogVerbose yes
+    LogClean Basic
+    {{- end }}
+  {{- end }}

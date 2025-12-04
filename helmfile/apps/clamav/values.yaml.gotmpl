@@ -1,0 +1,41 @@
+global:
+  ## Global Docker image parameters
+  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+  ## @param global.imageRegistry Global Docker Image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: {{(coalesce .Values.container.clamav.registry .Values.container.default.registry) | quote }}
+  imagePullSecrets:
+    - name: {{ (coalesce .Values.container.clamav.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+
+commonLabels:
+  app.kubernetes.io/part-of: clamav
+
+diagnosticMode:
+  enabled: false
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+clamav:
+  image:
+    registry: {{(coalesce .Values.container.clamav.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.clamav.repository | quote }}
+    tag: {{ .Values.container.clamav.tag | quote }}
+
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.clamav | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.clamav | toYaml | nindent 6 }}
+
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+
+persistence:
+  enabled: true
+  storageClass: {{ coalesce .Values.pvc.clamav.storageClass .Values.pvc.default.storageClass | quote }}
+  accessModes: {{ coalesce .Values.pvc.clamav.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+  size: {{ coalesce .Values.pvc.clamav.size .Values.pvc.default.size "8Gi" }}

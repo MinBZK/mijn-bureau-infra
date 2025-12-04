@@ -1,0 +1,25 @@
+#
+# SPDX-License-Identifier: APACHE-2.0
+
+annotations:
+  category: Security
+  licenses: EUPL-1.2
+apiVersion: v2
+appVersion: 1.5.1
+description: "ClamAV is an open source (GPLv2) anti-virus toolkit, designed especially for e-mail scanning on mail gateways. It provides a number of utilities including a flexible and scalable multi-threaded daemon, a command line scanner and advanced tool for automatic database updates."
+icon: https://www.clamav.net/assets/favicon.ico
+keywords:
+  - virus scanner
+  - virus database
+  - security
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: clamav
+sources:
+  - https://github.com/Cisco-Talos/clamav
+dependencies:
+  - name: common
+    repository: "file://../../../common/charts/common"
+    version: 2.31.1
+version: 0.1.0

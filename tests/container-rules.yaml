@@ -94,3 +94,7 @@ container:
   bureaublad:
     imagePullSecret: ~
     registry: ""
+
+  clamav:
+    registry: ""
+    imagePullSecret: ""
