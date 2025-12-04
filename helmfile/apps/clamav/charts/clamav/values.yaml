@@ -437,7 +437,7 @@ clamav:
   ## @param clamav.configuration.streamMaxLength Close the connection when the data size limit is exceeded. The value should match your MTA's limit for a maximum attachment size.
   ## @param clamav.configuration.debug Enable debug messages in libclamav.
   configuration:
-    streamMaxLength: 1000M
+    streamMaxLength: 250M
     debug: false
     ## @param clamav.configuration.milter.enabled Enable milter service
     ## @param clamav.configuration.milter.maxFileSize Messages larger than this value won't be scanned. Must be lower than clamav.configuration.streamMaxLength.
@@ -518,10 +518,10 @@ networkPolicy:
   ## on. When true, server will accept connections from any source
   ## (with the correct destination port).
   ##
-  allowExternal: true
+  allowExternal: false
   ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
   ##
-  allowExternalEgress: true
+  allowExternalEgress: false
   ## @param networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
   ##
   addExternalClientAccess: true

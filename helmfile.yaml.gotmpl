@@ -25,6 +25,8 @@ helmfiles:
       - {{ toYaml .Values | nindent 8 }}
   - path: "helmfile/apps/ollama/helmfile-child.yaml.gotmpl"
     values: *appvalues
+  - path: "helmfile/apps/clamav/helmfile-child.yaml.gotmpl"
+    values: *appvalues
   - path: "helmfile/apps/grist/helmfile-child.yaml.gotmpl"
     values: *appvalues
   - path: "helmfile/apps/meet/helmfile-child.yaml.gotmpl"
@@ -42,6 +44,4 @@ helmfiles:
   - path: "helmfile/apps/docs/helmfile-child.yaml.gotmpl"
     values: *appvalues
   - path: "helmfile/apps/drive/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/clamav/helmfile-child.yaml.gotmpl"
     values: *appvalues

@@ -98,6 +98,18 @@ networkPolicy:
             matchLabels:
               app.kubernetes.io/name: minio
       {{- end }}
+    {{- if .Values.antivirus.host }}
+    # ClamAV connectivity
+    - ports:
+        - port: {{ .Values.antivirus.port }}
+          protocol: TCP
+      {{- if .Values.application.clamav.enabled }}
+      to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: clamav
+      {{- end }}
+    {{- end }}
     # Allow HTTPS for NextCloud app store access
     - ports:
       - port: 443
@@ -177,11 +189,20 @@ persistence:
   accessModes: {{ coalesce .Values.pvc.nextcloud.nextcloud.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
   size: {{ coalesce .Values.pvc.nextcloud.nextcloud.size .Values.pvc.default.size "8Gi" }}
 
+{{- if .Values.application.collabora.enabled }}
 # The is the URL is used to connect Collabora Server with Next Cloud Office App automaticlly
 collabora:
   url: "https://{{ .Values.global.hostname.collabora | default "collabora" }}.{{ .Values.global.domain | default "example.com"  }}"
   wopi_allowlist: {{ index .Values.cluster.networking.podSubnet 0 }}
+{{- end }}
 
 # Default storage quota per user
 files:
   defaultQuota: {{ .Values.application.nextcloud.defaultQuota | default "10 GB" | quote }}
+  antivirus:
+    enabled: {{ not (empty .Values.antivirus.host) }}
+    host: {{ .Values.antivirus.host }}
+    port: {{ .Values.antivirus.port }}
+    maxStreamSize: {{ .Values.antivirus.streamMaxLength }}
+    infectedAction: delete
+    maxFileSize: {{ .Values.antivirus.mailFilter.maxFileSize }}

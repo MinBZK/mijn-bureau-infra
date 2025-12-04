@@ -14,9 +14,6 @@ global:
 commonLabels:
   app.kubernetes.io/part-of: clamav
 
-diagnosticMode:
-  enabled: false
-
 clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
 
 clamav:
@@ -34,8 +31,20 @@ clamav:
 
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
+  configuration:
+    streamMaxLength: {{ int .Values.antivirus.streamMaxLength | quote }}
+    milter:
+      enabled: false
+      maxFileSize: {{ int .Values.antivirus.mailFilter.maxFileSize | quote }}
+
 persistence:
   enabled: true
   storageClass: {{ coalesce .Values.pvc.clamav.storageClass .Values.pvc.default.storageClass | quote }}
   accessModes: {{ coalesce .Values.pvc.clamav.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
   size: {{ coalesce .Values.pvc.clamav.size .Values.pvc.default.size "8Gi" }}
+
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  addExternalClientAccess: true
+  allowExternalEgress: false

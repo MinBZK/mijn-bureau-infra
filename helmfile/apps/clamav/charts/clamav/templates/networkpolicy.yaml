@@ -38,8 +38,8 @@ spec:
     {{- end }}
   ingress:
     - ports:
-        - port: {{ .Values.clamav.containerPorts.http }}
-        - port: {{ .Values.clamav.containerPorts.https }}
+        - port: {{ .Values.clamav.containerPorts.clamav }}
+        - port: {{ .Values.clamav.containerPorts.milter }}
         {{- range .Values.clamav.extraContainerPorts }}
         - port: {{ .containerPort }}
         {{- end }}
