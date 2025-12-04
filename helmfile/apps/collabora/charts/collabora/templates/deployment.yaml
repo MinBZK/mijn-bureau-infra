@@ -27,10 +27,11 @@ spec:
       app.kubernetes.io/component: collabora
   template:
     metadata:
-      {{- if .Values.podAnnotations }}
-      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
+      annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap-coolwsd.yaml") . | sha256sum }}
-      {{- end }}
+        {{- if .Values.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: collabora
     spec:
