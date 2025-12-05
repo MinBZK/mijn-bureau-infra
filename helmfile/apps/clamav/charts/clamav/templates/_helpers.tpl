@@ -11,13 +11,6 @@ Return the proper clamav image name
 {{- end -}}
 
 {{/*
-Return the proper image name (for the init container volume-permissions image)
-*/}}
-{{- define "clamav.volumePermissions.image" -}}
-{{- include "common.images.image" ( dict "imageRoot" .Values.defaultInitContainers.volumePermissions.image "global" .Values.global ) -}}
-{{- end -}}
-
-{{/*
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "clamav.imagePullSecrets" -}}
