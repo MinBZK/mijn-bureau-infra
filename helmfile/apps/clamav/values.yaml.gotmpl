@@ -34,7 +34,7 @@ clamav:
   configuration:
     streamMaxLength: {{ int .Values.antivirus.streamMaxLength | quote }}
     milter:
-      enabled: false
+      enabled: {{ .Values.antivirus.mailFilter.enabled }}
       maxFileSize: {{ int .Values.antivirus.mailFilter.maxFileSize | quote }}
 
 persistence:

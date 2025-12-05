@@ -17,4 +17,4 @@ located in the folder `helmfile/environments/default`.
 | `pvc.clamav.*`                 | Storage configuration           |
 | `resource.clamav.*`            | Resource configuration          |
 
-* NOTE: ClamAV requires 3-4GB memory when reading in a new database (see [documentation](https://docs.clamav.net/manual/Installing/Docker.html)).
+- NOTE: ClamAV requires 3-4GB memory when reading in a new database (see [documentation](https://docs.clamav.net/manual/Installing/Docker.html)).
