@@ -1,0 +1,80 @@
+name: "Update clamav container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump clamav version to {{ source "clamav_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  clamav_latest_version:
+    name: "Get latest clamav tag"
+    kind: dockerimage
+    spec:
+      image: "clamav/clamav"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_clamav_tag:
+    name: "Update clamav tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.clamav.tag"
+    sourceid: clamav_latest_version
+    scmid: default
+
+  update_values_clamav_tag:
+    name: "Update values clamav tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/clamav/charts/clamav/values.yaml"
+      keys:
+        - "$.clamav.image.tag"
+    sourceid: clamav_latest_version
+    scmid: default
+
+  update_chart_appVersion:
+    name: "Update clamav chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/clamav/charts/clamav/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: clamav_latest_version
+    scmid: default
+
+  update_markdowns_version:
+    name: "Update markdown intro file"
+    kind: file
+    spec:
+      files:
+        - "docs/docs/intro.md"
+      matchpattern: "v([0-9.]+)]\\Q(https://github.com/Cisco-Talos/clamav/releases/tag/clamav-\\E([0-9.]+)"
+      replacepattern: 'v{{ source "clamav_latest_version" }}](https://github.com/Cisco-Talos/clamav/releases/tag/clamav-{{ source "clamav_latest_version" }}'
+    sourceid: clamav_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump clamav version to {{ source "clamav_latest_version" }}
