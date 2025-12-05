@@ -1,0 +1,10 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: clamav
+    chart: charts/clamav
+    condition: application.clamav.enabled
+    namespace: {{ .Values.application.clamav.namespace }}
+    values:
+      - "values.yaml.gotmpl"

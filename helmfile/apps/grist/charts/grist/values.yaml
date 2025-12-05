@@ -36,20 +36,20 @@ global:
 ## @param kubeVersion Override Kubernetes version reported by .Capabilities
 ##
 kubeVersion: ""
-##
 ## @param apiVersions Override Kubernetes API versions reported by .Capabilities
+##
 apiVersions: []
-##
 ## @param nameOverride String to partially override common.names.name
+##
 nameOverride: ""
-##
 ## @param fullnameOverride String to fully override common.names.fullname
+##
 fullnameOverride: ""
-##
 ## @param namespaceOverride String to fully override common.names.namespace
-namespaceOverride: ""
 ##
+namespaceOverride: ""
 ## @param commonLabels Labels to add to all deployed objects
+##
 commonLabels: {}
 ## @param commonAnnotations Annotations to add to all deployed objects
 ##
@@ -71,6 +71,7 @@ diagnosticMode:
     - sleep
   args:
     - infinity
+
 ## @section Grist Parameters
 ##
 ## Grist image
