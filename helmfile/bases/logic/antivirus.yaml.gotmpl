@@ -1,0 +1,10 @@
+{{- if .Values.application.clamav.enabled }}
+antivirus:
+  {{- if not .Values.antivirus.host }}
+  host: clamav
+  port: 3310
+  {{- end }}
+  streamMaxLength: 1048576000
+  mailFilter:
+    maxFileSize: 26214400
+{{- end }}

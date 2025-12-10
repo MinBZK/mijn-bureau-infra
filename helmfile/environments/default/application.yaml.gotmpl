@@ -45,6 +45,7 @@ application:
   nextcloud:
     enabled: true
     namespace: ~
+    defaultQuota: "10 GB"
 
   # OpenProject is a web-based project management system
   openproject:
@@ -104,3 +105,8 @@ application:
     namespace: ~
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secretkey" | sha1sum | quote }}
     secrettoServerKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secrettoServerKey" | sha1sum | quote }}
+
+  # Clam AV is a virus toolkit
+  clamav:
+    enabled: true
+    namespace: ~

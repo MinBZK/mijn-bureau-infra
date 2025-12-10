@@ -14,177 +14,6 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 data:
-  oidc.sh: |-
-    #!/bin/bash
-    {{- if .Values.auth.oidc.enabled }}
-    echo "Waiting for NextCloud to be ready for user_oidc setup..."
-    counter=0
-    while [ "$counter" -lt 60 ]; do
-      if php /var/www/html/occ status | grep -q "installed: true"; then
-        echo "NextCloud is ready, setting up user_oidc app..."
-
-        echo "Installing user_oidc app..."
-        if ! php /var/www/html/occ app:install user_oidc; then
-          echo "WARNING: Failed to install user_oidc app"
-        else
-          echo "user_oidc app installation completed"
-        fi
-
-        echo "Enabling user_oidc app..."
-        if ! php /var/www/html/occ app:enable user_oidc; then
-          echo "WARNING: Failed to enable user_oidc app"
-        fi
-        echo "user_oidc app enablement completed"
-
-
-        echo "Configuring OIDC provider..."
-        if ! php /var/www/html/occ user_oidc:provider keycloak \
-          --clientid="{{ .Values.auth.oidc.clientId }}" \
-          --clientsecret="{{ .Values.auth.oidc.clientSecret }}" \
-          --discoveryuri="{{ .Values.auth.oidc.discoveryUri }}"; then
-          echo "WARNING: Failed to configure OIDC provider"
-        else
-          echo "OIDC provider configuration completed"
-          php /var/www/html/occ config:app:set user_oidc provider-1-checkBearer --value=1
-          php /var/www/html/occ config:app:set user_oidc provider-1-bearerProvisioning --value=1
-          php /var/www/html/occ config:app:set user_oidc allow_multiple_user_backends  --value=0
-        fi
-        break
-      fi
-      echo "Waiting for NextCloud... ($counter/60)"
-      sleep 5
-      counter=$((counter + 5))
-    done
-    {{- end }}
-
-  drawio.sh: |-
-    #!/bin/bash
-
-    echo "Waiting for NextCloud to be ready for deck setup..."
-    counter=0
-    while [ "$counter" -lt 60 ]; do
-      if php /var/www/html/occ status | grep -q "installed: true"; then
-        echo "NextCloud is ready, setting up drawio app..."
-
-        echo "Installing drawio app..."
-        if ! php /var/www/html/occ app:install drawio; then
-          echo "WARNING: Failed to install drawio app"
-        else
-          echo "drawio app installation completed"
-        fi
-
-        echo "Enabling drawio app..."
-        if ! php /var/www/html/occ app:enable drawio; then
-          echo "WARNING: Failed to enable drawio app"
-        fi
-        echo "drawio app enablement completed"
-        break
-      fi
-      echo "Waiting for NextCloud... ($counter/60)"
-      sleep 5
-      counter=$((counter + 5))
-    done
-
-  deck.sh: |-
-    #!/bin/bash
-
-    echo "Waiting for NextCloud to be ready for deck setup..."
-    counter=0
-    while [ "$counter" -lt 60 ]; do
-      if php /var/www/html/occ status | grep -q "installed: true"; then
-        echo "NextCloud is ready, setting up deck app..."
-
-        echo "Installing deck app..."
-        if ! php /var/www/html/occ app:install deck; then
-          echo "WARNING: Failed to install deck app"
-        else
-          echo "deck app installation completed"
-        fi
-
-        echo "Enabling deck app..."
-        if ! php /var/www/html/occ app:enable deck; then
-          echo "WARNING: Failed to enable deck app"
-        fi
-        echo "deck app enablement completed"
-        break
-      fi
-      echo "Waiting for NextCloud... ($counter/60)"
-      sleep 5
-      counter=$((counter + 5))
-    done
-
-  collabora.sh: |-
-    #!/bin/bash
-
-    echo "Waiting for NextCloud to be ready for user_oidc setup..."
-    counter=0
-    while [ "$counter" -lt 60 ]; do
-      if php /var/www/html/occ status | grep -q "installed: true"; then
-        echo "NextCloud is ready, setting up user_oidc app..."
-
-        echo "Installing richdocuments app..."
-        if ! php /var/www/html/occ app:install richdocuments; then
-          echo "WARNING: Failed to install richdocuments app (maybe already present)"
-        else
-          echo "richdocuments app installation completed"
-        fi
-
-        echo "Enabling richdocuments app..."
-        if ! php /var/www/html/occ app:enable richdocuments; then
-          echo "WARNING: Failed to enable richdocuments app"
-        else
-          echo "richdocuments app enablement completed"
-        fi
-
-        echo "Configuring WOPI URL for richdocuments..."
-        if ! php /var/www/html/occ config:app:set richdocuments wopi_url --value="{{ .Values.collabora.url }}"; then
-          echo "WARNING: Failed to configure WOPI URL"
-        else
-          echo "WOPI URL configuration completed"
-        fi
-
-        echo "Configuring WOPI Allow List for richdocuments..."
-        if ! php /var/www/html/occ config:app:set richdocuments wopi_allowlist --value="{{ .Values.collabora.wopi_allowlist }}"; then
-            echo "WARNING: Failed to configure WOPI Allow List"
-        else
-            echo "WOPI Allow List configuration completed"
-        fi
-
-        break
-      fi
-      echo "Waiting for NextCloud... ($counter/60)"
-      sleep 5
-      counter=$((counter + 5))
-    done
-
-  groupfolders.sh: |-
-    #!/bin/bash
-
-    echo "Waiting for NextCloud to be ready for groupfolders setup..."
-    counter=0
-    while [ "$counter" -lt 60 ]; do
-      if php /var/www/html/occ status | grep -q "installed: true"; then
-        echo "NextCloud is ready, setting up groupfolders app..."
-
-        echo "Installing groupfolders app..."
-        if ! php /var/www/html/occ app:install groupfolders; then
-          echo "WARNING: Failed to install groupfolders app (maybe already present)"
-        else
-          echo "groupfolders app installation completed"
-        fi
-
-        echo "Enabling groupfolders app..."
-        if ! php /var/www/html/occ app:enable groupfolders; then
-          echo "WARNING: Failed to enable groupfolders app"
-        fi
-        echo "groupfolders app enablement completed"
-        break
-      fi
-      echo "Waiting for NextCloud... ($counter/60)"
-      sleep 5
-      counter=$((counter + 5))
-    done
-
   general-settings.sh: |-
     #!/bin/bash
 
@@ -222,32 +51,81 @@ data:
     php /var/www/html/occ config:system:set maintenance_window_start --type=integer --value=1
     php /var/www/html/occ config:system:set default_phone_region --value=NL
 
-  contacts.sh: |-
-    #!/bin/bash
+    # Set default quota for new users
+    php /var/www/html/occ config:app:set files default_quota --value="{{ .Values.files.defaultQuota }}"
 
-    echo "Waiting for NextCloud to be ready for contacts setup..."
-    counter=0
-    while [ "$counter" -lt 60 ]; do
-      if php /var/www/html/occ status | grep -q "installed: true"; then
-        echo "NextCloud is ready, setting up contacts app..."
-
-        echo "Installing contacts app..."
-        if ! php /var/www/html/occ app:install contacts; then
-          echo "WARNING: Failed to install contacts app (maybe already present)"
+  {{- if .Values.auth.oidc.enabled }}
+  {{- include "nextcloud.addAndEnableAppPreConfig" (dict "appName" "user_oidc" "appTitle" "OIDC Provider" ) | nindent 2 }}
+        echo "Configuring OIDC provider..."
+        if ! php /var/www/html/occ user_oidc:provider keycloak \
+          --clientid="{{ .Values.auth.oidc.clientId }}" \
+          --clientsecret="{{ .Values.auth.oidc.clientSecret }}" \
+          --discoveryuri="{{ .Values.auth.oidc.discoveryUri }}"; then
+          echo "WARNING: Failed to configure OIDC provider"
         else
-          echo "contacts app installation completed"
+          echo "OIDC provider configuration completed"
+          php /var/www/html/occ config:app:set user_oidc provider-1-checkBearer --value=1
+          php /var/www/html/occ config:app:set user_oidc provider-1-bearerProvisioning --value=1
+          php /var/www/html/occ config:app:set user_oidc allow_multiple_user_backends  --value=0
+        fi
+  {{- include "nextcloud.addAndEnableAppPostConfig" . | nindent 2 }}
+  {{- end }}
+
+  {{- if .Values.collabora.url }}
+  {{- include "nextcloud.addAndEnableAppPreConfig" (dict "appName" "richdocuments" "appTitle" "Rich Documents") | nindent 2 }}
+        echo "Configuring WOPI URL for richdocuments..."
+        if ! php /var/www/html/occ config:app:set richdocuments wopi_url --value="{{ .Values.collabora.url }}"; then
+          echo "WARNING: Failed to configure WOPI URL"
+        else
+          echo "WOPI URL configuration completed"
         fi
 
-        echo "Enabling contacts app..."
-        if ! php /var/www/html/occ app:enable contacts; then
-          echo "WARNING: Failed to enable contacts app"
+        echo "Configuring WOPI Allow List for richdocuments..."
+        if ! php /var/www/html/occ config:app:set richdocuments wopi_allowlist --value="{{ .Values.collabora.wopi_allowlist }}"; then
+            echo "WARNING: Failed to configure WOPI Allow List"
         else
-          echo "contacts app enablement completed"
+            echo "WOPI Allow List configuration completed"
         fi
+  {{- include "nextcloud.addAndEnableAppPostConfig" . | nindent 2 }}
+  {{- end }}
 
-        break
-      fi
-      echo "Waiting for NextCloud... ($counter/60)"
-      sleep 5
-      counter=$((counter + 5))
-    done
+  # Ref: https://github.com/nextcloud/all-in-one/blob/main/Containers/nextcloud/entrypoint.sh#L870
+  {{- if .Values.files.antivirus.enabled }}
+  {{- include "nextcloud.addAndEnableAppPreConfig" (dict "appName" "files_antivirus" "appTitle" "Files Antivirus") | nindent 2 }}
+        count=0
+        while [ "$(echo PING | curl -s telnet://{{ .Values.files.antivirus.host }}:{{ .Values.files.antivirus.port }})" != "PONG" ] && [ "$count" -lt 90 ]; do
+            echo "Waiting for ClamAV to become available..."
+            count=$((count+5))
+            sleep 5
+        done
+        if [ "$count" -ge 90 ]; then
+            echo "ClamAV did not start in time!"
+            echo "Skipping initialization and disabling files_antivirus app."
+            php /var/www/html/occ app:disable files_antivirus
+        else
+            if ! [ -d "/var/www/html/custom_apps/files_antivirus" ]; then
+                php /var/www/html/occ app:install files_antivirus
+            elif [ "$(php /var/www/html/occ config:app:get files_antivirus enabled)" != "yes" ]; then
+                php /var/www/html/occ app:enable files_antivirus
+            elif [ "$SKIP_UPDATE" != 1 ]; then
+                php /var/www/html/occ app:update files_antivirus
+            fi
+            php /var/www/html/occ config:app:set files_antivirus av_mode --value="daemon"
+            php /var/www/html/occ config:app:set files_antivirus av_port --value="{{ .Values.files.antivirus.port }}"
+            php /var/www/html/occ config:app:set files_antivirus av_host --value="{{ .Values.files.antivirus.host }}"
+            # av_stream_max_length must be synced with StreamMaxLength inside clamav
+            php /var/www/html/occ config:app:set files_antivirus av_stream_max_length --value="{{ .Values.files.antivirus.maxStreamSize }}"
+            php /var/www/html/occ config:app:set files_antivirus av_max_file_size --value="{{ .Values.files.antivirus.maxFileSize }}"
+            php /var/www/html/occ config:app:set files_antivirus av_infected_action --value="{{ .Values.files.antivirus.infectedAction }}"
+            if [ -n "$CLAMAV_BLOCKLISTED_DIRECTORIES" ]; then
+                php /var/www/html/occ config:app:set files_antivirus av_blocklisted_directories --value="$CLAMAV_BLOCKLISTED_DIRECTORIES"
+            fi
+        fi
+  {{- include "nextcloud.addAndEnableAppPostConfig" . | nindent 2 }}
+  {{- end }}
+
+  {{- include "nextcloud.addAndEnableApp" (dict "appName" "drawio" "appTitle" "drawio") | nindent 2 }}
+  {{- include "nextcloud.addAndEnableApp" (dict "appName" "deck" "appTitle" "deck") | nindent 2 }}
+  {{- include "nextcloud.addAndEnableApp" (dict "appName" "groupfolders" "appTitle" "groupfolders") | nindent 2 }}
+  {{- include "nextcloud.addAndEnableApp" (dict "appName" "contacts" "appTitle" "contacts") | nindent 2 }}
+  {{- include "nextcloud.addAndEnableApp" (dict "appName" "files_accesscontrol" "appTitle" "files access control") | nindent 2 }}

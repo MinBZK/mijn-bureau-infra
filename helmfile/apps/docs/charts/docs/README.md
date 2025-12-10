@@ -166,12 +166,6 @@ Install the [Bitnami Kube Prometheus helm chart](https://github.com/bitnami/char
 
 To back up and restore Helm chart deployments on Kubernetes, you need to back up the persistent volumes from the source deployment and attach them to a new deployment using [Velero](https://velero.io/), a Kubernetes backup/restore tool.
 
-## Persistence
-
-The [Bitnami docs](https://github.com/bitnami/containers/tree/main/bitnami/docs) image stores the docs data and configurations at the `/bitnami` path of the container. Persistent Volume Claims are used to keep the data across deployments.
-
-If you encounter errors when working with persistent volumes, refer to our [troubleshooting guide for persistent volumes](https://docs.bitnami.com/kubernetes/faq/troubleshooting/troubleshooting-persistence-volumes/).
-
 ## Parameters
 
 ### Global parameters
@@ -807,38 +801,16 @@ If you encounter errors when working with persistent volumes, refer to our [trou
 | `metrics.serviceMonitor.relabelings`          | Specify general relabeling                                                                             | `[]`    |
 | `metrics.serviceMonitor.selector`             | Prometheus instance selector labels                                                                    | `{}`    |
 
-See <https://github.com/bitnami/readme-generator-for-helm> to create the table
-
-The above parameters map to the env variables defined in [bitnami/docs](https://github.com/bitnami/containers/tree/main/bitnami/docs). For more information please refer to the [bitnami/docs](https://github.com/bitnami/containers/tree/main/bitnami/docs) image documentation.
-
-Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
-
-```console
-helm install my-release \
-  --set docsUsername=admin \
-  --set docsPassword=password \
-  --set mariadb.auth.rootPassword=secretpassword \
-    oci://REGISTRY_NAME/REPOSITORY_NAME/docs
-```
-
-> Note: You need to substitute the placeholders `REGISTRY_NAME` and `REPOSITORY_NAME` with a reference to your Helm chart registry and repository. For example, in the case of Bitnami, you need to use `REGISTRY_NAME=registry-1.docker.io` and `REPOSITORY_NAME=bitnamicharts`.
-
-The above command sets the docs administrator account username and password to `admin` and `password` respectively. Additionally, it sets the MariaDB `root` user password to `secretpassword`.
-
-> NOTE: Once this chart is deployed, it is not possible to change the application's access credentials, such as usernames or passwords, using Helm. To change these application credentials after deployment, delete any persistent volumes (PVs) used by the chart and re-deploy it, or use the application's built-in administrative tools if available.
+Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.
 
 Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart. For example,
 
 ```console
-helm install my-release -f values.yaml oci://REGISTRY_NAME/REPOSITORY_NAME/docs
+helm install my-release -f values.yaml oci://REGISTRY_NAME/REPOSITORY_NAME/clamAv
 ```
 
 > Note: You need to substitute the placeholders `REGISTRY_NAME` and `REPOSITORY_NAME` with a reference to your Helm chart registry and repository. For example, in the case of Bitnami, you need to use `REGISTRY_NAME=registry-1.docker.io` and `REPOSITORY_NAME=bitnamicharts`.
-> **Tip**: You can use the default [values.yaml](https://github.com/bitnami/charts/blob/main/template/CHART_NAME/values.yaml)
-
-## Troubleshooting
-
-Find more information about how to deal with common errors related to Bitnami's Helm charts in [this troubleshooting guide](https://docs.bitnami.com/general/how-to/troubleshoot-helm-chart-issues).
+> **Tip**: You can use the default [values.yaml](https://github.com/MinBZK/mijn-bureau-infra/blob/main/helmfile/apps/docs/charts/docs/values.yaml)
 
 ## License
 
