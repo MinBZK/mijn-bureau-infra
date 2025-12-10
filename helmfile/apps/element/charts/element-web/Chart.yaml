@@ -5,27 +5,20 @@
 annotations:
   category: ProductivityTools
   licenses: EUPL-1.2
-
 apiVersion: v2
 name: element-web
-
 description: "A Helm chart for deploying Element Web"
-
 type: application
-
 version: 0.1.0
-appVersion: 1.12.4
-
+appVersion: 1.12.6
 keywords:
   - element
   - matrix
   - chat
   - collaboration
-
 maintainers:
   - name: mijn-bureau-infra
     url: "https://minbzk.github.io/mijn-bureau/"
-
 sources:
   - https://github.com/vector-im/element-web
 dependencies:
