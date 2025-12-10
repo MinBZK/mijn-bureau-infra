@@ -1,9 +1,9 @@
 bases:
   - "../../bases/default.yaml.gotmpl"
 
-#repositories:
-#  - name: openproject
-#    url: https://charts.openproject.org
+repositories:
+  - name: openproject
+    url: https://charts.openproject.org
 
 releases:
   - name: openproject-postgresql
@@ -31,9 +31,8 @@ releases:
       - "values-minio.yaml.gotmpl"
 
   - name: openproject
-#    chart: openproject/openproject
-    chart: charts/openproject
-    version: "11.4.2"
+    chart: openproject/openproject
+    version: "11.6.0"
     condition: application.openproject.enabled
     namespace: {{ .Values.application.openproject.namespace }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.openproject.enabled) }}
