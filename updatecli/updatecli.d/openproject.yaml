@@ -31,6 +31,17 @@ sources:
     transformers:
       - trimsuffix: "-slim"
 
+  openproject_chart_latest_version:
+    name: "Get latest openproject chart tag"
+    kind: githubrelease
+    spec:
+      owner: opf
+      repository: helm-charts
+      token: {{ requiredEnv `UPDATECLI_GITHUB_TOKEN` }}
+      tagfilter: "^v?[0-9.]+-slim$"
+    transformers:
+      - trimprefix: "openproject-"
+
 targets:
   update_openproject_tag:
     name: "Update openproject container tags"
@@ -54,6 +65,16 @@ targets:
       matchpattern: "v?([0-9.]+)]\\Q(https://github.com/opf/openproject/releases/tag/\\Ev?([0-9.]+)"
       replacepattern: '{{ source "openproject_latest_version" }}](https://github.com/opf/openproject/releases/tag/v{{ source "openproject_latest_version" }}'
     sourceid: openproject_latest_version
+    scmid: default
+
+  update_chart_version:
+    name: "Update helmfile chart version"
+    kind: file
+    spec:
+      file: "helmfile/apps/openproject/helmfile-child.yaml.gotmpl"
+      matchpattern: "(?m)chart: openproject/openproject(\\s+) version: \"([0-9.]+)\""
+      replacepattern: 'chart: openproject/openproject$1 version: "{{ source "openproject_chart_latest_version" }}"'
+    sourceid: openproject_chart_latest_version
     scmid: default
 
 actions:
