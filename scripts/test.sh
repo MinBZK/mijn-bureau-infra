@@ -108,7 +108,7 @@ run_single_test() {
 
   # Skip deps to avoid registry login race conditions between parallel tests
   # Use --quiet to suppress verbose "wrote file.yaml" output for cleaner test results
-  if ! helmfile -e "$ENVIRONMENT" template --output-dir="${tmpdir}/output" --skip-deps --quiet; then
+  if ! helmfile -e "$ENVIRONMENT" template --output-dir="${tmpdir}/output" --skip-refresh --quiet; then
     printf -- "${RED}FAILED: Error processing environment file: %s${NC}\n" "$abs_env_file"
     printf -- "${RED}Processing environment %s in %s/output${NC}\n" "$ENVIRONMENT" "$tmpdir"
     exit 1
