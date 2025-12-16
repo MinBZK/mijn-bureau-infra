@@ -35,3 +35,5 @@ OpenProject integrates with MijnBureau authentication via:
 - **OIDC Authentication**: Single sign-on using Keycloak
 - **User Provisioning**: Automatic account creation from OIDC provider
 - **Group Mapping**: Synchronization of user groups and permissions
+
+The internal authentication mechanism is bypassed to enable direct Single sign-on. To login with an internal user (for instance the admin user) use the URL: `https://<global.hostname.openproject>.<global.domain>/login/internal`

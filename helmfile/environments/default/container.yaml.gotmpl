@@ -84,14 +84,13 @@ container:
     imagePullSecret: ~
   openproject:
     imagePullSecret: ~
-    registry: "registry-1.docker.io"
+    registry: "ghcr.io"
     openproject:
-      repository: "openproject/openproject"
-      tag: "16.6.0-slim"
+      repository: "minbzk/mijnbureau-openproject"
+      tag: "v0.1.0"
     hocuspocus:
       repository: "openproject/hocuspocus"
       tag: "main-defdb238"
-
   livekit_server:
     registry: "registry-1.docker.io"
     repository: "livekit/livekit-server"

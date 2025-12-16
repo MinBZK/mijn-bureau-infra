@@ -54,6 +54,12 @@ networkPolicy:
             matchLabels:
               app.kubernetes.io/name: minio
       {{- end }}
+    # Keycloak and AI connectivity
+    - ports:
+        - port: 443
+
+strategy:
+  type: "RollingUpdate"
 
 cron:
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
@@ -122,8 +128,8 @@ openproject:
     enabled: true
     provider: "Keycloak"
     displayName: "Keycloak"
-    identifier: {{ .Values.authentication.client.docs.client_id | quote }}
-    secret: {{ .Values.authentication.client.docs.client_secret | quote }}
+    identifier: {{ .Values.authentication.client.openproject.client_id | quote }}
+    secret: {{ .Values.authentication.client.openproject.client_secret | quote }}
     authorizationEndpoint: {{ .Values.authentication.oidc.authorization_endpoint | quote }}
     tokenEndpoint: {{ .Values.authentication.oidc.token_endpoint | quote }}
     userinfoEndpoint:  {{ .Values.authentication.oidc.userinfo_endpoint | quote }}
@@ -228,6 +234,7 @@ environment:
   OPENPROJECT_SMTP__AUTHENTICATION: "login"
   OPENPROJECT_SMTP__USER__NAME: {{ .Values.smtp.username }}
   OPENPROJECT_SMTP__PASSWORD: {{ .Values.smtp.password }}
+  OPENPROJECT_OMNIAUTH__DIRECT__LOGIN__PROVIDER: "Keycloak"
 
 # Security context configuration (optional)
 podSecurityContext: {{ coalesce .Values.security.openproject.podSecurityContext .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
