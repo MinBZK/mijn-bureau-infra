@@ -55,7 +55,7 @@ targets:
     kind: yaml
     spec:
       engine: yamlpath
-      file: "helmfile/apps/chat/charts/element-web/Chart.yaml"
+      file: "helmfile/apps/element/charts/element-web/Chart.yaml"
       key: "$.appVersion"
     transformers:
       - trimprefix: "v"
@@ -77,7 +77,7 @@ targets:
     kind: yaml
     spec:
       engine: yamlpath
-      file: "helmfile/apps/chat/charts/synapse/values.yaml"
+      file: "helmfile/apps/element/charts/synapse/values.yaml"
       key: "$.image.tag"
     sourceid: synapse_latest_version
     scmid: default
@@ -87,7 +87,7 @@ targets:
     kind: yaml
     spec:
       engine: yamlpath
-      file: "helmfile/apps/chat/charts/synapse/Chart.yaml"
+      file: "helmfile/apps/element/charts/synapse/Chart.yaml"
       key: "$.appVersion"
     transformers:
       - trimprefix: "v"
