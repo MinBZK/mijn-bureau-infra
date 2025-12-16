@@ -37,7 +37,7 @@ sources:
     spec:
       owner: opf
       repository: helm-charts
-      token: {{ requiredEnv `UPDATECLI_GITHUB_TOKEN` }}
+      token: { { requiredEnv `UPDATECLI_GITHUB_TOKEN` } }
       tagfilter: "^v?[0-9.]+-slim$"
     transformers:
       - trimprefix: "openproject-"
