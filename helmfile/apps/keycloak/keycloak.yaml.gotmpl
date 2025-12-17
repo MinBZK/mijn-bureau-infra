@@ -443,10 +443,10 @@ keycloakConfigCli:
               "realm_client": "false",
               "client.secret.creation.time": "1759388679",
               "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.openproject }}.{{ .Values.global.domain }}/index.php/apps/user_oidc/backchannel-logout/keycloak",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.openproject }}.{{ .Values.global.domain }}/auth/oidc-keycloak/backchannel-logout",
               "standard.token.exchange.enabled": "false",
               "frontchannel.logout.session.required": "true",
-              "post.logout.redirect.uris": "+"
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.openproject }}.{{ .Values.global.domain }}/*"
             }
           },
           {

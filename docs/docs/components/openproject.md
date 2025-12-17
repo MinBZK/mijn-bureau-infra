@@ -13,7 +13,6 @@ located in the folder `helmfile/environments/default`.
 | `global.hostname.openproject`          | The subdomain name                          |
 | `application.openproject.enabled`      | Enable openproject                          |
 | `application.openproject.namespace`    | The Kubernetes namespace name               |
-| `application.openproject.seedLocale`   | The language to seed the instance in        |
 | `secrets.openproject.*`                | Secrets for openproject                     |
 | `smtp.*`                               | The mail settings for MijnBureau            |
 | `tls.openproject.*`                    | The TLS settings                            |

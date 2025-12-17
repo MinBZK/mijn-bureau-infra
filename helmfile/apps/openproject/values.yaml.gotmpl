@@ -119,7 +119,7 @@ openproject:
     password_reset: true
     name: {{ .Values.secret.openproject.adminUser.name | quote }}
     mail: {{ .Values.secret.openproject.adminUser.mail | quote }}
-  seed_locale: {{ (coalesce .Values.application.openproject.seedLocale .Values.global.defaultLocale) | default "en" | quote }}
+  seed_locale: {{ .Values.global.defaultLocale | default "nl" | quote }}
   useTmpVolumes: true
   cache:
     store: "redis"
