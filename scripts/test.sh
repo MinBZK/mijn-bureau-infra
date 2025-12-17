@@ -106,9 +106,8 @@ run_single_test() {
   rm -f "helmfile/environments/${ENVIRONMENT}/"*.yaml.gotmpl
   cp -f "$abs_env_file" "helmfile/environments/${ENVIRONMENT}/mijnbureau.yaml.gotmpl"
 
-  # Skip deps to avoid registry login race conditions between parallel tests
   # Use --quiet to suppress verbose "wrote file.yaml" output for cleaner test results
-  if ! helmfile -e "$ENVIRONMENT" template --output-dir="${tmpdir}/output" --skip-refresh --quiet; then
+  if ! helmfile -e "$ENVIRONMENT" template --output-dir="${tmpdir}/output" --quiet; then
     printf -- "${RED}FAILED: Error processing environment file: %s${NC}\n" "$abs_env_file"
     printf -- "${RED}Processing environment %s in %s/output${NC}\n" "$ENVIRONMENT" "$tmpdir"
     exit 1
