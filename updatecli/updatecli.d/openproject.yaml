@@ -32,7 +32,7 @@ sources:
     spec:
       owner: opf
       repository: helm-charts
-      token: {{ requiredEnv .github.token }}
+      token: "{{ requiredEnv .github.token }}"
     transformers:
       - trimprefix: "openproject-"
 
