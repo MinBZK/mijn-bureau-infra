@@ -19,17 +19,12 @@ scms:
 sources:
   openproject_latest_version:
     name: "Get latest openproject tag"
-    kind: dockerimage
+    kind: githubrelease
     spec:
-      image: "openproject/openproject"
-      architecture: amd64
-      tagfilter: "^v?[0-9.]+-slim$"
-      versionfilter:
-        kind: regex/semver
-        pattern: ">0.0.0"
-        regex: "([0-9.]+)-slim"
-    transformers:
-      - trimsuffix: "-slim"
+      owner: "MinBZK"
+      repository: "mijn-bureau-opf"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
 
   openproject_chart_latest_version:
     name: "Get latest openproject chart tag"
@@ -37,8 +32,7 @@ sources:
     spec:
       owner: opf
       repository: helm-charts
-      token: { { requiredEnv `UPDATECLI_GITHUB_TOKEN` } }
-      tagfilter: "^v?[0-9.]+-slim$"
+      token: {{ requiredEnv .github.token }}
     transformers:
       - trimprefix: "openproject-"
 
@@ -52,8 +46,6 @@ targets:
       keys:
         - "$.container.openproject.openproject.tag"
     sourceid: openproject_latest_version
-    transformers:
-      - addsuffix: "-slim"
     scmid: default
 
   update_markdowns_version:
@@ -62,8 +54,8 @@ targets:
     spec:
       files:
         - "docs/docs/intro.md"
-      matchpattern: "v?([0-9.]+)]\\Q(https://github.com/opf/openproject/releases/tag/\\Ev?([0-9.]+)"
-      replacepattern: '{{ source "openproject_latest_version" }}](https://github.com/opf/openproject/releases/tag/v{{ source "openproject_latest_version" }}'
+      matchpattern: "v?([0-9.]+)]\\Q(https://github.com/MinBZK/mijn-bureau-opf/releases/tag/\\Ev?([0-9.]+)"
+      replacepattern: '{{ source "openproject_latest_version" }}](https://github.com/MinBZK/mijn-bureau-opf/releases/tag/{{ source "openproject_latest_version" }}'
     sourceid: openproject_latest_version
     scmid: default
 
