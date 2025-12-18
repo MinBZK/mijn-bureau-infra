@@ -44,6 +44,7 @@ MijnBureau already offers a rich set of features, with a strong focus on collabo
 - Team chat
 - Self-hosted AI language models
 - Integrated identity management
+- Project management
 
 We are actively expanding the suite and plan to add even more capabilities, including:
 

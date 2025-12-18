@@ -67,6 +67,10 @@ container:
     registry: ""
     imagePullSecret: ""
 
+  openproject:
+    registry: ""
+    imagePullSecret: ""
+
   docs:
     registry: ""
     imagePullSecret: ""
