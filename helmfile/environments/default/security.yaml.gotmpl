@@ -32,3 +32,21 @@ security:
     podSecurityContext:
       enabled: true
       fsGroup: 1001
+
+  openproject:
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - "ALL"
+      seccompProfile:
+        type: "RuntimeDefault"
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1000

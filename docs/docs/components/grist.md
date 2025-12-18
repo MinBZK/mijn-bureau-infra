@@ -26,4 +26,4 @@ located in the folder `helmfile/environments/default`.
 | `objectstore.grist.*`            | Object configuration                        |
 | `license.grist.*`                | License setup for enterprise features       |
 
-The database, cache and object store are automaticly created when running in demo environment. For production environment you need to supply it.
+The database, cache and object store are automatically created when running in demo environment. For production environment you need to supply it.
