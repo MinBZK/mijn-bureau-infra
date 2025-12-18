@@ -5,7 +5,7 @@ container:
   ollama:
     registry: "docker.io"
     repository: "ollama/ollama"
-    tag: "0.13.0"
+    tag: "0.13.3"
     imagePullSecret: ~
   keycloak:
     registry: "docker.io"
@@ -20,7 +20,7 @@ container:
   grist:
     registry: "registry-1.docker.io"
     repository: "gristlabs/grist"
-    tag: "1.7.7"
+    tag: "1.7.8"
     imagePullSecret: ~
   minio:
     registry: "registry-1.docker.io"
@@ -70,22 +70,31 @@ container:
   collabora:
     registry: "registry-1.docker.io"
     repository: "collabora/code"
-    tag: "25.04.7.2.1"
+    tag: "25.04.7.3.1"
     imagePullSecret: ~
   nextcloud:
     registry: "registry-1.docker.io"
     repository: "library/nextcloud"
-    tag: "32.0.2-apache"
+    tag: "32.0.3-apache"
     imagePullSecret: ~
   osShell:
     registry: "registry-1.docker.io"
     repository: "bitnamilegacy/os-shell"
     tag: "12-debian-12-r51"
     imagePullSecret: ~
+  openproject:
+    imagePullSecret: ~
+    registry: "ghcr.io"
+    openproject:
+      repository: "minbzk/mijnbureau-openproject"
+      tag: "v16.6.3"
+    hocuspocus:
+      repository: "openproject/hocuspocus"
+      tag: "main-defdb238"
   livekit_server:
     registry: "registry-1.docker.io"
     repository: "livekit/livekit-server"
-    tag: "v1.9.4"
+    tag: "v1.9.8"
     imagePullSecret: ~
   kubectl:
     registry: docker.io
@@ -131,13 +140,13 @@ container:
     registry: "registry-1.docker.io"
     backend:
       repository: "lasuite/impress-backend"
-      tag: "v3.10.0"
+      tag: "v4.2.0"
     frontend:
       repository: "lasuite/impress-frontend"
-      tag: "v3.10.0"
+      tag: "v4.2.0"
     yProvider:
       repository: "lasuite/impress-y-provider"
-      tag: "v3.10.0"
+      tag: "v4.2.0"
   bureaublad:
     imagePullSecret: ~
     registry: "ghcr.io"

@@ -1,0 +1,76 @@
+name: "Update openproject container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump openproject version to {{ source "openproject_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  openproject_latest_version:
+    name: "Get latest openproject tag"
+    kind: githubrelease
+    spec:
+      owner: "MinBZK"
+      repository: "mijn-bureau-opf"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+
+  openproject_chart_latest_version:
+    name: "Get latest openproject chart tag"
+    kind: githubrelease
+    spec:
+      owner: opf
+      repository: helm-charts
+      token: "{{ requiredEnv .github.token }}"
+    transformers:
+      - trimprefix: "openproject-"
+
+targets:
+  update_openproject_tag:
+    name: "Update openproject container tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      keys:
+        - "$.container.openproject.openproject.tag"
+    sourceid: openproject_latest_version
+    scmid: default
+
+  update_markdowns_version:
+    name: "Update markdown files"
+    kind: file
+    spec:
+      files:
+        - "docs/docs/intro.md"
+      matchpattern: "v?([0-9.]+)]\\Q(https://github.com/MinBZK/mijn-bureau-opf/releases/tag/\\Ev?([0-9.]+)"
+      replacepattern: '{{ source "openproject_latest_version" }}](https://github.com/MinBZK/mijn-bureau-opf/releases/tag/{{ source "openproject_latest_version" }}'
+    sourceid: openproject_latest_version
+    scmid: default
+
+  update_chart_version:
+    name: "Update helmfile chart version"
+    kind: file
+    spec:
+      file: "helmfile/apps/openproject/helmfile-child.yaml.gotmpl"
+      matchpattern: "(?m)chart: openproject/openproject(\\s+) version: \"([0-9.]+)\""
+      replacepattern: 'chart: openproject/openproject$1 version: "{{ source "openproject_chart_latest_version" }}"'
+    sourceid: openproject_chart_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump openproject version to {{ source "openproject_latest_version" }}
