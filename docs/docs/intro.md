@@ -45,7 +45,7 @@ We are actively expanding the suite with plans to include:
 MijnBureau currently includes the following key components:
 
 | Feature            | Functional Component | Component Version                                                                   | Upstream Documentation                                                               | LICENSE    |
-| ------------------ | -------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------- |
+| ------------------ | -------------------- |-------------------------------------------------------------------------------------| ------------------------------------------------------------------------------------ | ---------- |
 | Identity Provider  | Keycloak             | [26.3.3](https://github.com/keycloak/keycloak/releases/tag/26.3.3)                  | [documentation](https://www.keycloak.org/documentation)                              | Apache-2.0 |
 | Chat               | Element Synapse      | [v1.142.1](https://github.com/element-hq/synapse/tree/v1.142.1)                     | [documentation](https://element-hq.github.io/synapse/latest/)                        | AGPL-3.0   |
 | Chat UI            | Element Web          | [V1.12.4](https://github.com/element-hq/element-web/tree/v1.12.4)                   | [documentation](https://element.io/)                                                 | AGPL-3.0   |
@@ -54,7 +54,7 @@ MijnBureau currently includes the following key components:
 | Spreadsheet        | Grist                | [v1.7.7](https://github.com/gristlabs/grist-core/tree/v1.7.7)                       | [documentation](https://support.getgrist.com/self-managed/)                          | Apache-2.0 |
 | Project Management | OpenProject          | [v16.6.3](https://github.com/MinBZK/mijn-bureau-opf/releases/tag/v16.6.3)           | [documentation](https://www.openproject.org/docs/)                                   | GPL-3.0    |
 | Office             | Collabora            | [v25.04.7.2.1](https://github.com/CollaboraOnline/online/releases/tag/cp-25.04.7-1) | [documentation](https://sdk.collaboraonline.com/docs/installation/index.html)        | MPL-2.0    |
-| Notes              | Docs                 | [v4.1.0](https://github.com/suitenumerique/docs/releases/tag/v4.1.0)              | [documentation](https://github.com/suitenumerique/docs/tree/main/docs/installation)  | MIT        |
+| Notes              | Docs                 | [v4.2.0](https://github.com/suitenumerique/docs/releases/tag/v4.2.0)                | [documentation](https://github.com/suitenumerique/docs/tree/main/docs/installation)  | MIT        |
 | Video backend      | Livekit              | [v1.9.4](https://github.com/livekit/livekit/releases/tag/v1.9.4)                    | [documentation](https://livekit.io/)                                                 | Apache-2.0 |
 | Video conferencing | Meet                 | [v0.1.42](https://github.com/suitenumerique/meet/releases/tag/v0.1.42)              | [documentation](https://github.com/suitenumerique/meet/tree/main/docs)               | MIT        |
 | AI Assistent       | Conversations        | [v0.0.9](https://github.com/suitenumerique/conversations/releases/tag/v0.0.9)       | [documentation](https://github.com/suitenumerique/conversations/blob/main/README.md) | MIT        |
