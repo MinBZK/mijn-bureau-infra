@@ -17,6 +17,15 @@ objectstore:
     isInternal: true
     rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "nextcloud" | sha1sum | quote }}
 
+  openproject:
+    bucket: "openproject"
+    username: "admin"
+    endpoint: "openproject-minio"
+    port: 9000
+    useSSL: false
+    isInternal: true
+    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "openproject" | sha1sum | quote }}
+
   docs:
     bucket: "docs"
     username: "admin"
