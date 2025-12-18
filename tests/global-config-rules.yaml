@@ -5,3 +5,13 @@ application:
 global:
   domain: "test-global-domain.example"
   resourcesPreset: "xlarge"
+
+resource:
+  openproject:
+    openproject:
+    dbInit:
+    appInit:
+    cron:
+    workers:
+    hocuspocus:
+    seederJob:

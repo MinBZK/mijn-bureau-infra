@@ -82,6 +82,15 @@ container:
     repository: "bitnamilegacy/os-shell"
     tag: "12-debian-12-r51"
     imagePullSecret: ~
+  openproject:
+    imagePullSecret: ~
+    registry: "ghcr.io"
+    openproject:
+      repository: "minbzk/mijnbureau-openproject"
+      tag: "v16.6.3"
+    hocuspocus:
+      repository: "openproject/hocuspocus"
+      tag: "main-defdb238"
   livekit_server:
     registry: "registry-1.docker.io"
     repository: "livekit/livekit-server"
