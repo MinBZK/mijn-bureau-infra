@@ -50,6 +50,16 @@ targets:
     sourceid: element_latest_version
     scmid: default
 
+  update_element_values_tag:
+    name: "Update Element values tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/element/charts/element-web/values.yaml"
+      key: "$.image.tag"
+    sourceid: element_latest_version
+    scmid: default
+
   update_element_chart:
     name: "Update Element chart appVersion"
     kind: yaml
@@ -100,8 +110,8 @@ targets:
     spec:
       files:
         - "docs/docs/intro.md"
-      matchpattern: "[vV]([0-9.]+)]\\Q(https://github.com/element-hq/element-web/tree/v\\E([0-9.]+)"
-      replacepattern: '{{ source "element_latest_version" }}](https://github.com/element-hq/element-web/tree/v{{ source "synapse_latest_version" }}'
+      matchpattern: "[vV]([0-9.]+)]\\Q(https://github.com/element-hq/element-web/releases/tag/\\Ev?([0-9.]+)"
+      replacepattern: '{{ source "element_latest_version" }}](https://github.com/element-hq/element-web/releases/tag/{{ source "element_latest_version" }}'
     sourceid: element_latest_version
     scmid: default
 
@@ -111,8 +121,8 @@ targets:
     spec:
       files:
         - "docs/docs/intro.md"
-      matchpattern: "v([0-9.]+)]\\Q(https://github.com/element-hq/synapse/tree/v\\E([0-9.]+)"
-      replacepattern: '{{ source "synapse_latest_version" }}](https://github.com/element-hq/element-web/tree/v{{ source "synapse_latest_version" }}'
+      matchpattern: "v([0-9.]+)]\\Q(https://github.com/element-hq/synapse/releases/tag/\\Ev?([0-9.]+)"
+      replacepattern: '{{ source "synapse_latest_version" }}](https://github.com/element-hq/synapse/releases/tag/{{ source "synapse_latest_version" }}'
     sourceid: synapse_latest_version
     scmid: default
 
