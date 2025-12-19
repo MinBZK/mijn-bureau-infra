@@ -29,7 +29,6 @@ global:
     ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
     ##
     omitEmptySeLinuxOptions: false
-
 ## @section Common parameters
 
 ## @param kubeVersion Override Kubernetes version reported by .Capabilities
@@ -70,7 +69,6 @@ diagnosticMode:
     - sleep
   args:
     - infinity
-
 ## @section %%MAIN_CONTAINER%% Parameters
 ##
 
@@ -90,7 +88,7 @@ meet:
   image:
     registry: docker.io
     repository: lasuite/meet-frontend
-    tag: v0.1.42
+    tag: v1.0.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -229,7 +227,6 @@ meet:
       drop: ["ALL"]
     seccompProfile:
       type: "RuntimeDefault"
-
   ## @param meet.existingConfigmap The name of an existing ConfigMap with your custom configuration for meet
   ##
   existingConfigmap: ""
@@ -429,7 +426,6 @@ meet:
       maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
-
 ## %%MAIN_CONTAINER/POD_DESCRIPTION%%
 ##
 meet_backend:
@@ -446,7 +442,7 @@ meet_backend:
   image:
     registry: docker.io
     repository: lasuite/meet-backend
-    tag: v0.1.42
+    tag: v1.0.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -460,7 +456,6 @@ meet_backend:
     ##
     pullSecrets: []
     debug: false
-
   secretKey: ""
   languageCode: "en-us"
   CSRFTrustedOrigins: ""
@@ -468,9 +463,6 @@ meet_backend:
   AllowedHosts: ""
   superuserEmail: "admin@example.com"
   superuserPassword: "admin_password"
-
-
-
   ## @param meet.replicaCount Number of meet replicas to deploy
   ##
   replicaCount: 1
@@ -595,7 +587,6 @@ meet_backend:
       drop: ["ALL"]
     seccompProfile:
       type: "RuntimeDefault"
-
   ## @param meet.existingConfigmap The name of an existing ConfigMap with your custom configuration for meet
   ##
   existingConfigmap: ""
@@ -795,8 +786,6 @@ meet_backend:
       maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
-
-
 job:
   command:
     - /bin/sh
@@ -816,8 +805,7 @@ job:
   argsSuperuser:
     - -c
     - |
-        python manage.py createsuperuser --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
-
+      python manage.py createsuperuser --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
   backoffLimit: 20
   ttlSecondsAfterFinished: 3600
   podAnnotations: {}
@@ -828,8 +816,6 @@ job:
     limits:
       memory: 512Mi
       cpu: 200m
-
-
 ## meet service parameters
 ##
 service:
@@ -1055,7 +1041,6 @@ ingress:
   ##             name: http
   ##
   extraRules: []
-
 ## @section Persistence Parameters
 ##
 
@@ -1104,9 +1089,7 @@ persistence:
   ##     app: my-app
   ##
   selector: {}
-
 ## @section Default init containers Parameters
-
 defaultInitContainers:
   ## 'volume-permissions' init container
   ## Changes the owner and group of the persistent volume mount(s) point(s) to runAsUser:fsGroup values
@@ -1181,7 +1164,6 @@ defaultInitContainers:
     ##     memory: 1024Mi
     ##
     resources: {}
-
 ## @section Other Parameters
 ##
 
@@ -1203,7 +1185,6 @@ rbac:
   ##       - list
   ##
   rules: []
-
 ## ServiceAccount configuration
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
 ##
@@ -1221,7 +1202,6 @@ serviceAccount:
   ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
   ##
   automountServiceAccountToken: true
-
 ## Prometheus metrics
 ##
 metrics:
@@ -1276,8 +1256,6 @@ metrics:
     ##   prometheus: my-prometheus
     ##
     selector: {}
-
-
 ## Redis
 ## @param externalRedis.host Redis hostname
 ## @param externalRedis.port Redis port
@@ -1286,7 +1264,6 @@ externalRedis:
   host: ""
   port: ""
   password: ""
-
 ## Minio
 ## @param externalMinio.endpoint MinIO endpoint
 ## @param externalMinio.port MinIO port
@@ -1301,7 +1278,6 @@ externalMinio:
   secretKey: ""
   bucket: ""
   useSSL: 0
-
 ## Database
 ## @param externalDatabase.type Set to 'sqlite' or 'postgres'
 ## @param externalDatabase.username Username to connect as
@@ -1318,8 +1294,6 @@ externalDatabase:
   port: ""
   database: ""
   logging: false
-
-
 ## OpenID connect authentication setup
 ## @param authentication.issuer OpenID issuer URL
 ## @param authentication.authorization_endpoint OpenID authorization endpoint
@@ -1346,7 +1320,6 @@ authentication:
     display_name: ""
     given_name: ""
     family_name: ""
-
   client:
     client_id: ""
     client_secret: ""
