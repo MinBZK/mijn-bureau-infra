@@ -32,7 +32,7 @@ releases:
 
   - name: openproject
     chart: openproject/openproject
-    version: "11.6.0"
+    version: "11.6.1"
     condition: application.openproject.enabled
     namespace: {{ .Values.application.openproject.namespace }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.openproject.enabled) }}
