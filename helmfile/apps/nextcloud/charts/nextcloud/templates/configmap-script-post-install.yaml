@@ -47,6 +47,9 @@ data:
     php /var/www/html/occ config:app:set files_downloadlimit download --value=10
     php /var/www/html/occ config:app:set theming name --value=MijnBureau
     php /var/www/html/occ config:app:set theming backgroundMime --value=backgroundColor
+    php /var/www/html/occ config:app:set theming primary_color --value=#3E3A3A
+    php /var/www/html/occ config:app:set theming background_color --value=#F8F7F7
+    php /var/www/html/occ config:app:set theming disable-user-theming --value=yes
 
     php /var/www/html/occ config:system:set maintenance_window_start --type=integer --value=1
     php /var/www/html/occ config:system:set default_phone_region --value=NL
