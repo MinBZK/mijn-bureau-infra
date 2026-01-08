@@ -186,7 +186,7 @@ keycloakConfigCli:
             "consentRequired": false,
             "standardFlowEnabled": true,
             "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": true,
+            "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
             "publicClient": true,
             "frontchannelLogout": true,
@@ -229,7 +229,7 @@ keycloakConfigCli:
             "consentRequired": false,
             "standardFlowEnabled": true,
             "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": true,
+            "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
             "publicClient": true,
             "frontchannelLogout": false,
@@ -267,7 +267,7 @@ keycloakConfigCli:
             "consentRequired": false,
             "standardFlowEnabled": true,
             "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": true,
+            "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
             "publicClient": true,
             "frontchannelLogout": true,
@@ -310,7 +310,7 @@ keycloakConfigCli:
             "consentRequired": false,
             "standardFlowEnabled": true,
             "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": true,
+            "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
             "publicClient": true,
             "frontchannelLogout": true,
@@ -353,7 +353,7 @@ keycloakConfigCli:
             "consentRequired": false,
             "standardFlowEnabled": true,
             "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": true,
+            "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
             "publicClient": true,
             "frontchannelLogout": true,
@@ -396,7 +396,7 @@ keycloakConfigCli:
             "consentRequired": false,
             "standardFlowEnabled": true,
             "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": true,
+            "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
             "publicClient": true,
             "frontchannelLogout": false,
@@ -434,7 +434,7 @@ keycloakConfigCli:
             "consentRequired": false,
             "standardFlowEnabled": true,
             "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": true,
+            "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
             "publicClient": true,
             "frontchannelLogout": false,
@@ -471,7 +471,7 @@ keycloakConfigCli:
             "consentRequired": false,
             "standardFlowEnabled": true,
             "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": true,
+            "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
             "publicClient": true,
             "frontchannelLogout": true,
@@ -514,7 +514,7 @@ keycloakConfigCli:
             "consentRequired": false,
             "standardFlowEnabled": true,
             "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": true,
+            "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
             "publicClient": true,
             "frontchannelLogout": true,
@@ -525,7 +525,7 @@ keycloakConfigCli:
               "client.secret.creation.time": "1759388679",
               "backchannel.logout.session.required": "true",
               "backchannel.logout.url": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/api/v1/auth/logout",
-              "standard.token.exchange.enabled": "false",
+              "standard.token.exchange.enabled": "true",
               "frontchannel.logout.url": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/api/v1/auth/logout",
               "post.logout.redirect.uris": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/*",
               "frontchannel.logout.session.required": "false",
@@ -535,6 +535,104 @@ keycloakConfigCli:
             }
           }
         ],
+        "defaultRoles": ["offline_access", "uma_authorization", "tokenexchange-role"],
+        "roles": {
+          "realm": [
+            {
+              "name": "tokenexchange-role",
+              "description": "Allow bureaublad clients to exchange tokens",
+              "composite": true,
+              "composites": {
+                "client": {
+                  "{{ .Values.authentication.client.docs.client_id }}": ["token-exchange-role"],
+                  "{{ .Values.authentication.client.openproject.client_id }}": ["token-exchange-role"],
+                  "{{ .Values.authentication.client.nextcloud.client_id }}": ["token-exchange-role"],
+                  "{{ .Values.authentication.client.drive.client_id }}": ["token-exchange-role"],
+                  "{{ .Values.authentication.client.conversations.client_id }}": ["token-exchange-role"],
+                  "{{ .Values.authentication.client.meet.client_id }}": ["token-exchange-role"],
+                  "{{ .Values.authentication.client.synapse.client_id }}": ["token-exchange-role"],
+                  "{{ .Values.authentication.client.grist.client_id }}": ["token-exchange-role"]
+                }
+              },
+              "clientRole": false,
+              "attributes": {}
+            }
+          ],
+          "client": {
+            "{{ .Values.authentication.client.grist.client_id }}": [
+              {
+                "name": "token-exchange-role",
+                "description": "",
+                "composite": false,
+                "clientRole": true,
+                "attributes": {}
+              }
+            ],
+            "{{ .Values.authentication.client.synapse.client_id }}": [
+              {
+                "name": "token-exchange-role",
+                "description": "",
+                "composite": false,
+                "clientRole": true,
+                "attributes": {}
+              }
+            ],
+            "{{ .Values.authentication.client.meet.client_id }}": [
+              {
+                "name": "token-exchange-role",
+                "description": "",
+                "composite": false,
+                "clientRole": true,
+                "attributes": {}
+              }
+            ],
+            "{{ .Values.authentication.client.conversations.client_id }}": [
+              {
+                "name": "token-exchange-role",
+                "description": "",
+                "composite": false,
+                "clientRole": true,
+                "attributes": {}
+              }
+            ],
+            "{{ .Values.authentication.client.drive.client_id }}": [
+              {
+                "name": "token-exchange-role",
+                "description": "",
+                "composite": false,
+                "clientRole": true,
+                "attributes": {}
+              }
+            ],
+            "{{ .Values.authentication.client.nextcloud.client_id }}": [
+              {
+                "name": "token-exchange-role",
+                "description": "",
+                "composite": false,
+                "clientRole": true,
+                "attributes": {}
+              }
+            ],
+            "{{ .Values.authentication.client.docs.client_id }}": [
+              {
+                "name": "token-exchange-role",
+                "description": "",
+                "composite": false,
+                "clientRole": true,
+                "attributes": {}
+              }
+            ],
+            "{{ .Values.authentication.client.openproject.client_id }}": [
+              {
+                "name": "token-exchange-role",
+                "description": "",
+                "composite": false,
+                "clientRole": true,
+                "attributes": {}
+              }
+            ]
+          }
+        },
         {{- if eq .Environment.Name "demo" }}
         "users" : [
           {{- $users := .Values.user }}
@@ -561,7 +659,7 @@ keycloakConfigCli:
         "adminEventsEnabled": true,
         "supportedLocales": [
           "en",
-          "nl"
+          "{{ .Values.global.defaultLocale }}"
         ],
         "defaultLocale": "{{ .Values.global.defaultLocale }}"
       }
