@@ -18,7 +18,7 @@ data:
   CONVERSATIONS_BASE_URL: {{ .Values.conversations.baseUrl | quote }}
   LOGIN_REDIRECT_URL: {{ .Values.conversations.baseUrl | quote }}
   LOGIN_REDIRECT_URL_FAILURE: {{ .Values.conversations.baseUrl | quote }}
-  LOGOUT_REDIRECT_UR: {{ .Values.conversations.baseUrl | quote }}
+  LOGOUT_REDIRECT_URL: {{ .Values.conversations.baseUrl | quote }}
   DJANGO_CONFIGURATION: Feature
   DJANGO_SETTINGS_MODULE: conversations.settings
   DJANGO_SECRET_KEY: {{ .Values.conversations.secretKey | quote }}
