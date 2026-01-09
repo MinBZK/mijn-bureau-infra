@@ -70,7 +70,7 @@ collabora:
   server_name: {{ .Values.global.hostname.collabora | default "collabora" }}.{{ .Values.global.domain | default "example.com"  }}
 
   # Extra parameters passed to the Collabora start command; in this case, disables SSL inside the container
-  extra_params: --o:ssl.enable=false --o:ssl.termination=true
+  extra_params: --o:ssl.enable=false --o:ssl.termination=true --o:storage.wopi.alias_groups.mode=groups --o:storage.wopi.alias_groups.group[0].host=https://{{ .Values.global.hostname.nextcloud | default "nextcloud" }}.{{ .Values.global.domain | default "example.com"  }} --o:storage.wopi.alias_groups.group[1].host=https://{{ .Values.global.hostname.drive | default "drive" }}.{{ .Values.global.domain | default "example.com"  }}"
 
   # When true, enables OpenShift-specific initContainer workaround.
   enableInsecureCoolWSD : {{ .Values.application.collabora.enableInsecureCoolWSD  | quote }}
