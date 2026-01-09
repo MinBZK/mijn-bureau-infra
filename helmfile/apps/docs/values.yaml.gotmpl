@@ -180,7 +180,6 @@ backend:
     STORAGES_STATICFILES_BACKEND: "django.contrib.staticfiles.storage.StaticFilesStorage"
     THEME_CUSTOMIZATION_CACHE_TIMEOUT: "86400"
     THEME_CUSTOMIZATION_FILE_PATH: ""
-    TRASHBIN_CUTOFF_DAYS: "30"
     USER_OIDC_ESSENTIAL_CLAIMS: ""
     Y_PROVIDER_API_BASE_URL: "http://docs-y-provider:443/api/"
     Y_PROVIDER_API_KEY: {{ .Values.application.docs.yProvider.key | quote }}
