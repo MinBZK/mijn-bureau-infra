@@ -40,6 +40,22 @@ By default, MijnBureau does not create a Kubernetes namespace if it does not exi
 export MIJNBUREAU_CREATE_NAMESPACES=true
 ```
 
+### Namespace Configuration
+
+By default, each application uses a namespace matching its name (`keycloak`, `nextcloud`, `grist`, etc.). For production deployments or shared clusters, override these in your environment configuration:
+
+```yaml
+# helmfile/environments/production/mijnbureau.yaml.gotmpl
+application:
+  keycloak:
+    namespace: prod-keycloak
+  nextcloud:
+    namespace: prod-nextcloud
+  # ... etc
+```
+
+See the [Namespace Configuration](./example-config.md#namespace-configuration) section for details.
+
 ---
 
 ## Deploy MijnBureau
