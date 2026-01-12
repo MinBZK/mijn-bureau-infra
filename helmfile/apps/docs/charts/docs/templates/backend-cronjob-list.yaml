@@ -42,6 +42,7 @@ items:
               {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list $.Values.backend.podLabels $.Values.commonLabels) "context" .) }}
               labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
                 app.kubernetes.io/component: backend
+                app.kubernetes.io/workload-type: cronjob
             spec:
               {{- include "docs.imagePullSecrets" $ | nindent 14 }}
               serviceAccountName: {{ template "docs.serviceAccountName" $ }}
