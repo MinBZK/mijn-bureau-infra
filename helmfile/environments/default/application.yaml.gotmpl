@@ -2,7 +2,7 @@ application:
   # grist is a modern spreadsheet application
   grist:
     enabled: true
-    namespace: ~
+    namespace: grist
     defaultLocale: ~
     sessionSecret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "grist" "sessionSecret" | sha1sum | quote }}
     sandboxFlavor: ~
@@ -10,7 +10,7 @@ application:
   # this creates a self hosted AI LLM system using Ollama. It can handle small loads.
   ollama:
     enabled: true
-    namespace: ~
+    namespace: ollama
     model: "llama3.2:1b"
     gpu:
       enabled: false
@@ -23,12 +23,12 @@ application:
   # keycloak is an identity and access management solution. If you have your own identity provider please disable this system and configure the OIDC settings in the authentication.yaml file.
   keycloak:
     enabled: true
-    namespace: ~
+    namespace: keycloak
 
   # element is a matrix based chat solution
   element:
     enabled: true
-    namespace: ~
+    namespace: element
     synapse:
       architecture: monolith
       registrationSharedSecret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "synapse" "registrationSharedSecret" | sha1sum | quote }}
@@ -37,25 +37,25 @@ application:
   # Collabora Online is a standalone real-time collaborative document server  that runs in a browser, and integrates with file storage platforms Nextcloud via WOPI or WebSocket APIs.
   collabora:
     enabled: true
-    namespace: ~
+    namespace: collabora
     # required when running on OpenShift clusters with restricted security context constraints.
     enableInsecureCoolWSD: false
 
   # nextcloud is a self hosted file sharing platform
   nextcloud:
     enabled: true
-    namespace: ~
+    namespace: nextcloud
     defaultQuota: "10 GB"
 
   # OpenProject is a web-based project management system
   openproject:
     enabled: true
-    namespace: ~
+    namespace: openproject
 
   # livekit is a video conferencing backend system
   livekit:
     enabled: true
-    namespace: ~
+    namespace: livekit
     loadBalancerIP: ~ # initial ip address for loadbalancer, cronjob will update it every hour
     portRangeStart: 30001 # UDP port range for loadbalancer
     portRangeEnd: 30009
@@ -66,19 +66,19 @@ application:
   # meet is a video conferencing frontend for livekit
   meet:
     enabled: true
-    namespace: ~
+    namespace: meet
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "meet" "secretkey" | sha1sum | quote }}
 
   # conversations is an prototype AI assistant from LaSuite
   conversations:
     enabled: false
-    namespace: ~
+    namespace: conversations
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "conversations" "secretkey" | sha1sum | quote }}
 
   # docs is a note taking and document collaboration system from LaSuite
   docs:
     enabled: true
-    namespace: ~
+    namespace: docs
     backend:
       django:
         secretKey: {{ print ( derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "djangoSecretKey" | sha1sum ) ( derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "djangoSecretKey2" | sha1sum ) | trunc 63 | quote }}
@@ -92,7 +92,7 @@ application:
 
   bureaublad:
     enabled: true
-    namespace: ~
+    namespace: bureaublad
     backend:
       sideBarLinks: '[{"icon":"rvo-icon-home","url":"https://example.com","title":"Example Link","iframe":true}]'
       secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "bureaublad" "secretkey" | sha1sum | quote }}
@@ -101,11 +101,11 @@ application:
   # drive is a document management system from LaSuite
   drive:
     enabled: false
-    namespace: ~
+    namespace: drive
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secretkey" | sha1sum | quote }}
     secrettoServerKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secrettoServerKey" | sha1sum | quote }}
 
   # Clam AV is a virus toolkit
   clamav:
     enabled: true
-    namespace: ~
+    namespace: clamav

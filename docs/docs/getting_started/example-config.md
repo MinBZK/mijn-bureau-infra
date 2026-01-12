@@ -146,17 +146,36 @@ application:
 
 ### Namespace Configuration
 
-Specify the Kubernetes namespace for each application:
+Each application has a default namespace that matches its name. The defaults are:
+
+- keycloak → `keycloak`
+- grist → `grist`
+- ollama → `ollama`
+- nextcloud → `nextcloud`
+- element → `element`
+- collabora → `collabora`
+- livekit → `livekit`
+- meet → `meet`
+- conversations → `conversations`
+- docs → `docs`
+- bureaublad → `bureaublad`
+- drive → `drive`
+- clamav → `clamav`
+- openproject → `openproject`
+
+You can override these per application:
 
 ```yaml
 application:
   keycloak:
     enabled: true
     namespace: mykeycloaknamespace
-  chat:
+  element:
     enabled: true
     namespace: mychatnamespace
 ```
+
+**Note:** For production or shared clusters, always override with environment-specific namespace names to avoid conflicts.
 
 Enable namespace creation if permissions allow:
 
