@@ -28,6 +28,7 @@ backend:
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   pdb:
+    create: {{ .Values.pdb.docs.backend.create }}
     maxUnavailable: 1
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.docs.backend | toYaml | nindent 6 }}
@@ -387,6 +388,7 @@ frontend:
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   pdb:
+    create: {{ .Values.pdb.docs.frontend.create }}
     maxUnavailable: 1
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.docs.frontend | toYaml | nindent 6 }}
@@ -406,6 +408,7 @@ yProvider:
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   pdb:
+    create: {{ .Values.pdb.docs.yProvider.create }}
     maxUnavailable: 1
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.docs.yProvider | toYaml | nindent 6 }}

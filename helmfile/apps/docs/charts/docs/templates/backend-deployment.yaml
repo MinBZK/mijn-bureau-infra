@@ -32,6 +32,7 @@ spec:
       {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: backend
+        app.kubernetes.io/workload-type: deployment
     spec:
       {{- include "docs.imagePullSecrets" . | nindent 6 }}
       serviceAccountName: {{ template "docs.serviceAccountName" . }}
