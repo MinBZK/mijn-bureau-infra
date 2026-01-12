@@ -9,7 +9,9 @@ releases:
   - name: openproject-postgresql
     chart: ../common/charts/postgresql
     version: "16.7.18"
+    {{- if .Values.application.openproject.namespace }}
     namespace: {{ .Values.application.openproject.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.openproject.enabled) | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
@@ -17,7 +19,9 @@ releases:
   - name: openproject-redis
     chart: ../common/charts/redis
     version: "21.2.6"
+    {{- if .Values.application.openproject.namespace }}
     namespace: {{ .Values.application.openproject.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.openproject.enabled) | toYaml }}
     values:
       - "values-redis.yaml.gotmpl"
@@ -25,7 +29,9 @@ releases:
   - name: openproject-minio
     chart: ../common/charts/minio
     version: "17.0.11"
+    {{- if .Values.application.openproject.namespace }}
     namespace: {{ .Values.application.openproject.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.openproject.enabled) | toYaml }}
     values:
       - "values-minio.yaml.gotmpl"
@@ -34,12 +40,14 @@ releases:
     chart: openproject/openproject
     version: "11.6.1"
     condition: application.openproject.enabled
+    {{- if .Values.application.openproject.namespace }}
     namespace: {{ .Values.application.openproject.namespace }}
+    {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.openproject.enabled) }}
     needs:
-      - {{ .Values.application.openproject.namespace }}/openproject-postgresql
-      - {{ .Values.application.openproject.namespace }}/openproject-redis
-      - {{ .Values.application.openproject.namespace }}/openproject-minio
+      - {{ if .Values.application.openproject.namespace }}{{ .Values.application.openproject.namespace }}/{{ end }}openproject-postgresql
+      - {{ if .Values.application.openproject.namespace }}{{ .Values.application.openproject.namespace }}/{{ end }}openproject-redis
+      - {{ if .Values.application.openproject.namespace }}{{ .Values.application.openproject.namespace }}/{{ end }}openproject-minio
     {{- end }}
     values:
       - "values.yaml.gotmpl"

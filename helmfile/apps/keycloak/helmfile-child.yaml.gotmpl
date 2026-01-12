@@ -5,11 +5,13 @@ releases:
   - name: "keycloak-keycloak"
     chart: charts/keycloak
     version: "24.6.7"
+    {{- if .Values.application.keycloak.namespace }}
     namespace: {{ .Values.application.keycloak.namespace }}
+    {{- end }}
     installed: {{ .Values.application.keycloak.enabled }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) }}
     needs:
-      - {{ .Values.application.keycloak.namespace }}/keycloak-postgresql
+      - {{ if .Values.application.keycloak.namespace }}{{ .Values.application.keycloak.namespace }}/{{ end }}keycloak-postgresql
     {{- end }}
     values:
       - keycloak.yaml.gotmpl
@@ -17,7 +19,9 @@ releases:
   - name: "keycloak-postgresql"
     chart: ../common/charts/postgresql
     version: " 16.7.18"
+    {{- if .Values.application.keycloak.namespace }}
     namespace: {{ .Values.application.keycloak.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) | toYaml }}
     values:
       - "postgresql.yaml.gotmpl"

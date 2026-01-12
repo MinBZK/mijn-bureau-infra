@@ -5,7 +5,9 @@ releases:
   - name: element-postgresql
     chart: ../common/charts/postgresql
     version: "16.7.18"
+    {{- if .Values.application.element.namespace }}
     namespace: {{ .Values.application.element.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.element.enabled) | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
@@ -13,7 +15,9 @@ releases:
   - name: element-redis
     chart: ../common/charts/redis
     version: "21.2.6"
+    {{- if .Values.application.element.namespace }}
     namespace: {{ .Values.application.element.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.element.enabled) | toYaml }}
     values:
       - "values-redis.yaml.gotmpl"
@@ -21,18 +25,22 @@ releases:
   - name: "element-web"
     chart: "charts/element-web"
     condition: application.element.enabled
+    {{- if .Values.application.element.namespace }}
     namespace: {{ .Values.application.element.namespace | quote }}
+    {{- end }}
     values:
       - "values-element-web.yaml.gotmpl"
 
   - name: synapse
     chart: charts/synapse
     condition: application.element.enabled
+    {{- if .Values.application.element.namespace }}
     namespace: {{ .Values.application.element.namespace }}
+    {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.element.enabled) }}
     needs:
-      - {{ .Values.application.element.namespace }}/element-postgresql
-      - {{ .Values.application.element.namespace }}/element-redis
+      - {{ if .Values.application.element.namespace }}{{ .Values.application.element.namespace }}/{{ end }}element-postgresql
+      - {{ if .Values.application.element.namespace }}{{ .Values.application.element.namespace }}/{{ end }}element-redis
     {{- end }}
     values:
       - "values-synapse.yaml.gotmpl"

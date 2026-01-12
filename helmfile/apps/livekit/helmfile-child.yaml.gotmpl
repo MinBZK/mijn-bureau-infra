@@ -5,10 +5,12 @@ releases:
   - name: livekit-server
     chart: charts/livekit-server
     condition: application.livekit.enabled
+    {{- if .Values.application.livekit.namespace }}
     namespace: {{ .Values.application.livekit.namespace }}
+    {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.livekit.enabled) }}
     needs:
-      - {{ .Values.application.livekit.namespace }}/livekit-redis
+      - {{ if .Values.application.livekit.namespace }}{{ .Values.application.livekit.namespace }}/{{ end }}livekit-redis
     {{- end }}
     values:
       - "values.yaml.gotmpl"
@@ -16,7 +18,9 @@ releases:
   - name: livekit-redis
     chart: ../common/charts/redis
     version: "21.2.6"
+    {{- if .Values.application.livekit.namespace }}
     namespace: {{ .Values.application.livekit.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.livekit.enabled) | toYaml }}
     values:
       - "values-redis.yaml.gotmpl"

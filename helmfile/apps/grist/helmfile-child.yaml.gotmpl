@@ -5,7 +5,9 @@ releases:
   - name: grist-postgresql
     chart: ../common/charts/postgresql
     version: "16.7.18"
+    {{- if .Values.application.grist.namespace }}
     namespace: {{ .Values.application.grist.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
@@ -13,7 +15,9 @@ releases:
   - name: grist-redis
     chart: ../common/charts/redis
     version: "21.2.6"
+    {{- if .Values.application.grist.namespace }}
     namespace: {{ .Values.application.grist.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) | toYaml }}
     values:
       - "values-redis.yaml.gotmpl"
@@ -21,7 +25,9 @@ releases:
   - name: grist-minio
     chart: ../common/charts/minio
     version: "17.0.11"
+    {{- if .Values.application.grist.namespace }}
     namespace: {{ .Values.application.grist.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) | toYaml }}
     values:
       - "values-minio.yaml.gotmpl"
@@ -29,12 +35,14 @@ releases:
   - name: grist
     chart: charts/grist
     condition: application.grist.enabled
+    {{- if .Values.application.grist.namespace }}
     namespace: {{ .Values.application.grist.namespace }}
+    {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) }}
     needs:
-      - {{ .Values.application.grist.namespace }}/grist-postgresql
-      - {{ .Values.application.grist.namespace }}/grist-redis
-      - {{ .Values.application.grist.namespace }}/grist-minio
+      - {{ if .Values.application.grist.namespace }}{{ .Values.application.grist.namespace }}/{{ end }}grist-postgresql
+      - {{ if .Values.application.grist.namespace }}{{ .Values.application.grist.namespace }}/{{ end }}grist-redis
+      - {{ if .Values.application.grist.namespace }}{{ .Values.application.grist.namespace }}/{{ end }}grist-minio
     {{- end }}
     values:
       - "values.yaml.gotmpl"

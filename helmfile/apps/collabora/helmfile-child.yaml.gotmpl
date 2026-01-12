@@ -5,6 +5,8 @@ releases:
   - name: "collabora-online"
     chart: "charts/collabora"
     condition: application.collabora.enabled
+    {{- if .Values.application.collabora.namespace }}
     namespace: {{ .Values.application.collabora.namespace | quote }}
+    {{- end }}
     values:
       - "values-collabora.yaml.gotmpl"

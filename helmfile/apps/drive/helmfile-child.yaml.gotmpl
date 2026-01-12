@@ -5,7 +5,9 @@ releases:
   - name: drive-postgresql
     chart: ../common/charts/postgresql
     version: "16.7.18"
+    {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
@@ -13,7 +15,9 @@ releases:
   - name: drive-redis
     chart: ../common/charts/redis
     version: "21.2.6"
+    {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) | toYaml }}
     values:
       - "values-redis.yaml.gotmpl"
@@ -21,7 +25,9 @@ releases:
   - name: drive-minio
     chart: ../common/charts/minio
     version: "17.0.11"
+    {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
+    {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) | toYaml }}
     values:
       - "values-minio.yaml.gotmpl"
@@ -29,12 +35,14 @@ releases:
   - name: drive
     chart: charts/drive
     condition: application.drive.enabled
+    {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
+    {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) }}
     needs:
-      - {{ .Values.application.drive.namespace }}/drive-postgresql
-      - {{ .Values.application.drive.namespace }}/drive-redis
-      - {{ .Values.application.drive.namespace }}/drive-minio
+      - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-postgresql
+      - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-redis
+      - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-minio
     {{- end }}
     values:
       - "values.yaml.gotmpl"
@@ -42,9 +50,11 @@ releases:
   - name: drive-nginx
     chart: ../common/charts/nginx
     version: "22.0.0"
+    {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
+    {{- end }}
     installed: {{ and .Values.application.drive.enabled (eq .Values.cluster.ingress.type "haproxy-openshift") | toYaml }}
     needs:
-      - {{ .Values.application.drive.namespace }}/drive
+      - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive
     values:
       - "values-nginx.yaml.gotmpl"
