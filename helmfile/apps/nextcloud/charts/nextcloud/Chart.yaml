@@ -6,7 +6,7 @@ annotations:
   category: ProductivityTools
   licenses: EUPL-1.2
 apiVersion: v2
-appVersion: 32.0.2
+appVersion: 32.0.5
 description: "Nextcloud is a file sharing server that puts the control and security of your own data back into your hands."
 keywords:
   - nextcloud
