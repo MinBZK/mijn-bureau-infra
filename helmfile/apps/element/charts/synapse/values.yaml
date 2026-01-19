@@ -82,7 +82,7 @@ diagnosticMode:
 image:
   registry: docker.io
   repository: matrixdotorg/synapse
-  tag: "v1.144.0"
+  tag: "v1.145.0"
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1260,23 +1260,23 @@ worker:
       ## Worker event streams
       ## See https://matrix-org.github.io/synapse/latest/workers.html#stream-writers
       ##
+    ## The typing event stream
+    # - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
 
-      ## The typing event stream
-      # - "/_matrix/client/(api/v1|r0|v3|unstable)/rooms/.*/typing"
+    ## The to_device event stream
+    # - "/_matrix/client/(r0|v3|unstable)/sendToDevice/"
 
-      ## The to_device event stream
-      # - "/_matrix/client/(r0|v3|unstable)/sendToDevice/"
+    ## The account_data event stream
+    # - "/_matrix/client/(r0|v3|unstable)/.*/tags"
+    # - "/_matrix/client/(r0|v3|unstable)/.*/account_data"
 
-      ## The account_data event stream
-      # - "/_matrix/client/(r0|v3|unstable)/.*/tags"
-      # - "/_matrix/client/(r0|v3|unstable)/.*/account_data"
+    ## The receipts event stream
+    # - "/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt"
+    # - "/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers"
 
-      ## The receipts event stream
-      # - "/_matrix/client/(r0|v3|unstable)/rooms/.*/receipt"
-      # - "/_matrix/client/(r0|v3|unstable)/rooms/.*/read_markers"
+    ## The presence event stream
+    # - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
 
-      ## The presence event stream
-      # - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
     paths:
       ## Federation requests
       - "/_matrix/federation/v1/event/"
@@ -1384,17 +1384,17 @@ worker:
       #  listeners: [client]
       #  csPaths:
       #    - "/_matrix/client/(api/v1|r0|v3|unstable)/user_directory/search$"
+## This worker handles key uploads, and may also stub out presence if that is
+## disabled. If you set extraConfig.use_presence=false then you may want to
+## uncomment the second path.
+##
+#frontend_proxy:
+#  enabled: false
+#  listeners: [client]
+#  csPaths:
+#    - "/_matrix/client/(api/v1|r0|v3|unstable)/keys/upload"
+#  # - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/[^/]+/status"
 
-      ## This worker handles key uploads, and may also stub out presence if that is
-      ## disabled. If you set extraConfig.use_presence=false then you may want to
-      ## uncomment the second path.
-      ##
-      #frontend_proxy:
-      #  enabled: false
-      #  listeners: [client]
-      #  csPaths:
-      #    - "/_matrix/client/(api/v1|r0|v3|unstable)/keys/upload"
-      #  # - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/[^/]+/status"
 ## @section Traffic Exposure Parameters
 ##
 
