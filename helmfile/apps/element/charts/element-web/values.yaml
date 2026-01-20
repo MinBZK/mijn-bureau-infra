@@ -30,7 +30,6 @@ global:
     ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
     ##
     omitEmptySeLinuxOptions: false
-
 ## @section Common parameters
 
 ## @param kubeVersion Override Kubernetes version reported by .Capabilities
@@ -86,7 +85,7 @@ diagnosticMode:
 image:
   registry: docker.io
   repository: vectorim/element-web
-  tag: v1.12.7
+  tag: v1.12.8
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
   ##
@@ -99,15 +98,12 @@ image:
   ##
   pullSecrets: []
   debug: false
-
 ## element-web setup
 ## ref: https://github.com/element-weblabs/element-web-core?tab=readme-ov-file
 ## @param defaultLocale Locale to use as fallback when element-web cannot honour the browser locale
 defaultLocale: ""
-
 ## @param allowAutomaticVersionChecking Whether element-web is allowed to automatically check if a newer element-web version is available. Defaults to "true" on the default element-web and element-web-ee Docker images. Defaults false in element-web-oss and everywhere else.
 allowAutomaticVersionChecking: false
-
 ## @param replicaCount Number of element-web replicas to deploy
 ##
 replicaCount: 1
@@ -225,7 +221,6 @@ containerSecurityContext:
     drop: ["ALL"]
   seccompProfile:
     type: "RuntimeDefault"
-
 ## @param command Override default element-web container command (useful when using custom images)
 ##
 command: []
@@ -332,7 +327,6 @@ extraVolumes: []
 ## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for the element-web containers
 ##
 extraVolumeMounts: []
-
 ## @param initContainers Add additional init containers to the element-web pods
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
 ## e.g:
@@ -369,7 +363,6 @@ autoscaling:
     maxReplicas: 3
     targetCPU: 75
     targetMemory: ""
-
 ## @section Traffic Exposure Parameters
 ##
 
@@ -594,7 +587,6 @@ ingress:
   ##             name: http
   ##
   extraRules: []
-
 ## @section Other Parameters
 ##
 
@@ -615,7 +607,6 @@ serviceAccount:
   ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
   ##
   automountServiceAccountToken: true
-
 ## Prometheus metrics
 ##
 metrics:
@@ -670,9 +661,7 @@ metrics:
     ##   prometheus: my-prometheus
     ##
     selector: {}
-
 ## @section Element Web Config
-
 config:
   ## @extra config.homeserver Configuration for the Matrix homeserver.
   homeserver:
@@ -685,7 +674,6 @@ config:
     ## @param config.homeserver.server_name The server name of the Matrix homeserver.
     server_name: "matrix.example.com"
     ##
-
   ## @param config.name Name of the Element Web deployment.
   name: "element"
   ##

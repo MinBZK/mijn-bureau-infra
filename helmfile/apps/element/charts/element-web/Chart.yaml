@@ -10,7 +10,7 @@ name: element-web
 description: "A Helm chart for deploying Element Web"
 type: application
 version: 0.1.0
-appVersion: 1.12.7
+appVersion: 1.12.8
 keywords:
   - element
   - matrix
