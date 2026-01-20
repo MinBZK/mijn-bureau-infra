@@ -87,7 +87,7 @@ diagnosticMode:
 image:
   registry: registry-1.docker.io
   repository: gristlabs/grist
-  tag: "1.7.7"
+  tag: "1.7.10"
   digest: "sha256:d9d35c82799bfa2e0438bb60385fb0b550465dabde2a6e0ceca8afec1aae3305"
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images

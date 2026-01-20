@@ -6,7 +6,7 @@ annotations:
   category: ProductivityTools
   licenses: EUPL-1.2
 apiVersion: v2
-appVersion: 1.7.7
+appVersion: 1.7.10
 description: "Grist is a modern relational spreadsheet. It combines the flexibility of a spreadsheet with the robustness of a database."
 keywords:
   - grist
