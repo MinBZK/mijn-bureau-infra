@@ -1,0 +1,72 @@
+name: "Update bureaublad container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump bureaublad version to {{ source "bureaublad_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  bureaublad_latest_version:
+    name: "Get latest bureaublad tag"
+    kind: dockerimage
+    spec:
+      image: "ghcr.io/minbzk/bureaublad-api"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_bureaublad_tag:
+    name: "Update bureaublad tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      keys:
+        - "$.container.bureaublad.backend.tag"
+        - "$.container.frontend.backend.tag"
+    sourceid: bureaublad_latest_version
+    scmid: default
+
+  update_values_bureaublad_tag:
+    name: "Update values bureaublad tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/bureaublad/charts/bureaublad/values.yaml"
+      keys:
+        - "$.backend.image.tag"
+        - "$.backend.frontend.tag"
+    sourceid: bureaublad_latest_version
+    scmid: default
+
+  update_chart_appVersion:
+    name: "Update bureaublad chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/bureaublad/charts/bureaublad/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: bureaublad_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump bureaublad version to {{ source "bureaublad_latest_version" }}
