@@ -1,0 +1,83 @@
+name: "Update drive container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump drive version to {{ source "drive_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  drive_latest_version:
+    name: "Get latest drive tag"
+    kind: dockerimage
+    spec:
+      image: "lasuite/drive-backend"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_drive_tag:
+    name: "Update drive container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      keys:
+        - "$.container.drive_backend.tag"
+        - "$.container.drive_frontend.tag"
+    sourceid: drive_latest_version
+    scmid: default
+
+  update_values_drive_tag:
+    name: "Update values drive tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/drive/charts/drive/values.yaml"
+      keys:
+        - "$.drive.image.tag"
+        - "$.drive_frontend.image.tag"
+    sourceid: drive_latest_version
+    scmid: default
+
+  update_chart_appVersion:
+    name: "Update drive chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/drive/charts/drive/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: drive_latest_version
+    scmid: default
+
+  update_markdowns_version:
+    name: "Update markdown files"
+    kind: file
+    spec:
+      files:
+        - "docs/docs/intro.md"
+      matchpattern: "v([0-9.]+)]\\Q(https://github.com/suitenumerique/drive/releases/tag/v\\E([0-9.]+)"
+      replacepattern: '{{ source "drive_latest_version" }}](https://github.com/suitenumerique/drive/releases/tag/{{ source "drive_latest_version" }}'
+    sourceid: drive_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump drive version to {{ source "drive_latest_version" }}
