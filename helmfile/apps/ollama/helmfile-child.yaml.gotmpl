@@ -5,6 +5,8 @@ releases:
   - name: "ollama"
     chart: "./charts/ollama"
     condition: application.ollama.enabled
+    {{- if .Values.application.ollama.namespace }}
     namespace: {{ .Values.application.ollama.namespace }}
+    {{- end }}
     values:
       - "values.yaml.gotmpl"

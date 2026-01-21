@@ -5,6 +5,8 @@ releases:
   - name: clamav
     chart: charts/clamav
     condition: application.clamav.enabled
+    {{- if .Values.application.clamav.namespace }}
     namespace: {{ .Values.application.clamav.namespace }}
+    {{- end }}
     values:
       - "values.yaml.gotmpl"

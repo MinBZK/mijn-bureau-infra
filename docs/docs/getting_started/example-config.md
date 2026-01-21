@@ -146,17 +146,35 @@ application:
 
 ### Namespace Configuration
 
-Specify the Kubernetes namespace for each application:
+By default, MijnBureau uses your **current Kubernetes context namespace** for all applications. This means if you're already logged into a namespace, helmfile will automatically deploy to that namespace without any additional configuration.
+
+To check your current context and namespace:
+
+```bash
+kubectl config get-contexts
+```
+
+The current context is marked with `*` and the namespace column shows where deployments will go.
+
+To set your context namespace:
+
+```bash
+kubectl config set-context --current --namespace=my-namespace
+```
+
+You can also override namespaces per application for more fine-grained control:
 
 ```yaml
 application:
   keycloak:
     enabled: true
-    namespace: mykeycloaknamespace
-  chat:
+    namespace: my-keycloak-namespace
+  element:
     enabled: true
-    namespace: mychatnamespace
+    namespace: my-chat-namespace
 ```
+
+**Tip:** For production or shared clusters, consider using per-app namespaces for better isolation between applications and their dependencies.
 
 Enable namespace creation if permissions allow:
 

@@ -40,6 +40,22 @@ By default, MijnBureau does not create a Kubernetes namespace if it does not exi
 export MIJNBUREAU_CREATE_NAMESPACES=true
 ```
 
+### Namespace Configuration
+
+By default, MijnBureau deploys to your **current Kubernetes context namespace**. Check your current context with:
+
+```bash
+kubectl config get-contexts
+```
+
+The current context is marked with `*`. To change the target namespace:
+
+```bash
+kubectl config set-context --current --namespace=my-namespace
+```
+
+For production deployments or per-app isolation, you can override namespaces in your environment configuration. See the [Namespace Configuration](./example-config.md#namespace-configuration) section for details.
+
 ---
 
 ## Deploy MijnBureau

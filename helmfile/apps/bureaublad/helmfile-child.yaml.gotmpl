@@ -5,6 +5,8 @@ releases:
   - name: bureaublad
     chart: charts/bureaublad
     condition: application.bureaublad.enabled
+    {{- if .Values.application.bureaublad.namespace }}
     namespace: {{ .Values.application.bureaublad.namespace }}
+    {{- end }}
     values:
       - "values.yaml.gotmpl"
