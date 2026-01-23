@@ -154,6 +154,12 @@ spec:
           {{- if .Values.meet_backend.lifecycleHooks }}
           lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.lifecycleHooks "context" $) | nindent 12 }}
           {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
         {{- if .Values.meet_backend.sidecars }}
         {{- include "common.tplvalues.render" ( dict "value" .Values.meet_backend.sidecars "context" $) | nindent 8 }}
         {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
