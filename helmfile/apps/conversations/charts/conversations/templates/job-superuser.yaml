@@ -57,7 +57,7 @@ spec:
           image: {{ template "conversations.image" . }}
           imagePullPolicy: {{ .Values.conversations.image.pullPolicy }}
           {{- if .Values.conversations.containerSecurityContext.enabled }}
-          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.conversations_backend.containerSecurityContext "context" $) | nindent 12 }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.conversations.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
           command: {{- include "common.tplvalues.render" (dict "value" .Values.job.commandSuperuser "context" $) | nindent 10 }}
           args: {{- include "common.tplvalues.render" (dict "value" .Values.job.argsSuperuser "context" $) | nindent 10 }}
