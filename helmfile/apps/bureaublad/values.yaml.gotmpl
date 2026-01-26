@@ -70,22 +70,25 @@ backend:
     OIDC_ISSUER: {{ .Values.authentication.oidc.issuer | quote }}
     OIDC_AUDIENCE: "bureaublad"
     OIDC_USERNAME_CLAIM: {{ .Values.authentication.oidc.claims.username | quote }}
+    OIDC_NAME_CLAIM: {{ .Values.authentication.oidc.claims.display_name | default "name" | quote }}
+    OIDC_EMAIL_CLAIM: {{ .Values.authentication.oidc.claims.email | default "email" | quote }}
     OIDC_SCOPES: "openid email profile"
     OIDC_SIGNATURE_ALGORITM: "RS256"
     OCS_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.nextcloud .Values.global.domain }}
-    CALENDAR_URL: ""
-    TASK_URL: ""
-    DRIVE_URL: ""
+    DRIVE_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.drive .Values.global.domain | quote }}
     MEET_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.meet .Values.global.domain | quote }}
     GRIST_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.grist .Values.global.domain | quote }}
     CONVERSATION_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.conversations .Values.global.domain | quote }}
+    DOCS_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.docs .Values.global.domain | quote }}
+    {{- if .Values.application.element.enabled }}
+    MATRIX_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.element .Values.global.domain | quote }}
+    {{- end }}
     {{- if .Values.ai.llm.endpoint.host }}
     AI_API_KEY: {{ .Values.ai.llm.apiKey | quote }}
-    AI_BASE_URL: {{ printf "http%s://%s:%d/%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.openApiVersion | quote }}
+    AI_URL: {{ printf "http%s://%s:%d/%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.openApiVersion | quote }}
     AI_MODEL: {{ .Values.ai.llm.model | quote }}
     {{- end }}
     THEME_CSS_URL: ""
-    SIDEBAR_LINKS_JSON: '{{ .Values.application.bureaublad.backend.sideBarLinks }}'
     CORS_ALLOW_ORIGINS: '[{{ $baseUrl | quote }}]'
     CORS_ALLOW_CREDENTIALS: false
     CORS_ALLOW_METHODS: '["GET","POST","PUT","DELETE"]'
