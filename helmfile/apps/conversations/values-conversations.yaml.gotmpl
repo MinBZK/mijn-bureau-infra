@@ -25,7 +25,7 @@ conversations:
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
-    hpa: {{ .Values.autoscaling.horizontal.conversations | toYaml | nindent 6 }}
+    hpa: {{ .Values.autoscaling.horizontal.conversations.backend | toYaml | nindent 6 }}
 
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
@@ -50,7 +50,7 @@ conversations_frontend:
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
-    hpa: {{ .Values.autoscaling.horizontal.conversations | toYaml | nindent 6 }}
+    hpa: {{ .Values.autoscaling.horizontal.conversations.frontend | toYaml | nindent 6 }}
 
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 

@@ -25,7 +25,7 @@ meet:
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
-    hpa: {{ .Values.autoscaling.horizontal.meet | toYaml | nindent 6 }}
+    hpa: {{ .Values.autoscaling.horizontal.meet.frontend | toYaml | nindent 6 }}
 
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
@@ -40,7 +40,7 @@ meet_backend:
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
-    hpa: {{ .Values.autoscaling.horizontal.meet | toYaml | nindent 6 }}
+    hpa: {{ .Values.autoscaling.horizontal.meet.backend | toYaml | nindent 6 }}
 
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 

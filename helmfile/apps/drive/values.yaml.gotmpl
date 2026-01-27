@@ -25,7 +25,7 @@ drive:
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
-    hpa: {{ .Values.autoscaling.horizontal.drive | toYaml | nindent 6 }}
+    hpa: {{ .Values.autoscaling.horizontal.drive.backend | toYaml | nindent 6 }}
 
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   secretKey: {{ .Values.application.drive.secretKey | quote }}
@@ -46,6 +46,8 @@ drive:
 
   celery:
     resources: {{ .Values.resource.drive.celery | toYaml | nindent 6 }}
+    autoscaling:
+      hpa: {{ .Values.autoscaling.horizontal.drive.celery | toYaml | nindent 8 }}
 
   celeryBeat:
     resources: {{ .Values.resource.drive.celeryBeat | toYaml | nindent 6 }}
@@ -61,7 +63,7 @@ drive_frontend:
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
-    hpa: {{ .Values.autoscaling.horizontal.drive | toYaml | nindent 6 }}
+    hpa: {{ .Values.autoscaling.horizontal.drive.frontend | toYaml | nindent 6 }}
 
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 

@@ -15,9 +15,8 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  {{- if not .Values.drive.autoscaling.hpa.enabled }}
-  replicas: {{ .Values.drive.replicaCount }}
-  {{- end }}
+  # CeleryBeat is a scheduler - only ONE instance should ever run
+  replicas: 1
   {{- if .Values.drive.updateStrategy }}
   strategy: {{- toYaml .Values.drive.updateStrategy | nindent 4 }}
   {{- end }}

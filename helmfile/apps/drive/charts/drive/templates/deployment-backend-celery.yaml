@@ -15,8 +15,8 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  {{- if not .Values.drive.autoscaling.hpa.enabled }}
-  replicas: {{ .Values.drive.replicaCount }}
+  {{- if not .Values.drive.celery.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.drive.celery.replicaCount | default 1 }}
   {{- end }}
   {{- if .Values.drive.updateStrategy }}
   strategy: {{- toYaml .Values.drive.updateStrategy | nindent 4 }}
