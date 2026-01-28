@@ -3,14 +3,14 @@
 SPDX-License-Identifier: APACHE-2.0
 */}}
 
-{{- if .Values.drive_frontend.autoscaling.hpa.enabled }}
+{{- if .Values.conversations_frontend.autoscaling.hpa.enabled }}
 apiVersion: {{ include "common.capabilities.hpa.apiVersion" ( dict "context" $ ) }}
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "common.names.fullname" . }}-frontend
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-    app.kubernetes.io/component: drive-frontend
+    app.kubernetes.io/component: conversations-frontend
   {{- if .Values.commonAnnotations }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
@@ -19,23 +19,23 @@ spec:
     apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
     kind: Deployment
     name: {{ include "common.names.fullname" . }}-frontend
-  minReplicas: {{ .Values.drive_frontend.autoscaling.hpa.minReplicas }}
-  maxReplicas: {{ .Values.drive_frontend.autoscaling.hpa.maxReplicas }}
+  minReplicas: {{ .Values.conversations_frontend.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.conversations_frontend.autoscaling.hpa.maxReplicas }}
   metrics:
-    {{- if .Values.drive_frontend.autoscaling.hpa.targetMemory }}
+    {{- if .Values.conversations_frontend.autoscaling.hpa.targetMemory }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.drive_frontend.autoscaling.hpa.targetMemory }}
+          averageUtilization: {{ .Values.conversations_frontend.autoscaling.hpa.targetMemory }}
     {{- end }}
-    {{- if .Values.drive_frontend.autoscaling.hpa.targetCPU }}
+    {{- if .Values.conversations_frontend.autoscaling.hpa.targetCPU }}
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.drive_frontend.autoscaling.hpa.targetCPU }}
+          averageUtilization: {{ .Values.conversations_frontend.autoscaling.hpa.targetCPU }}
     {{- end }}
 {{- end }}

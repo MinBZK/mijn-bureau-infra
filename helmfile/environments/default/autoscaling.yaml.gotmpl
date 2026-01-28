@@ -36,7 +36,7 @@ autoscaling:
       targetCPU: 75
       targetMemory: ""
     collabora:
-    # it is disabled. Because after scaling it breaks the collaborative editing and copy/paste.
+      # it is disabled. Because after scaling it breaks the collaborative editing and copy/paste.
       enabled: false
       minReplicas: 1
       maxReplicas: 3
@@ -49,17 +49,31 @@ autoscaling:
       targetCPU: 75
       targetMemory: ""
     meet:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 3
-      targetCPU: 80
-      targetMemory: ""
+      backend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      frontend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
     conversations:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 3
-      targetCPU: 80
-      targetMemory: ""
+      backend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      frontend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
     docs:
       backend:
         enabled: true
@@ -100,11 +114,24 @@ autoscaling:
         targetCPU: 80
         targetMemory: ""
     drive:
-      enabled: true
-      minReplicas: 1
-      maxReplicas: 3
-      targetCPU: 80
-      targetMemory: ""
+      backend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      frontend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      celery:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
     clamav:
       enabled: true
       minReplicas: 1

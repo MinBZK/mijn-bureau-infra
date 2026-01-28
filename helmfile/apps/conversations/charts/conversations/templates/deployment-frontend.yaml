@@ -15,8 +15,8 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  {{- if not .Values.conversations.autoscaling.hpa.enabled }}
-  replicas: {{ .Values.conversations.replicaCount }}
+  {{- if not .Values.conversations_frontend.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.conversations_frontend.replicaCount }}
   {{- end }}
   {{- if .Values.conversations.updateStrategy }}
   strategy: {{- toYaml .Values.conversations.updateStrategy | nindent 4 }}
@@ -82,7 +82,7 @@ spec:
         - name: conversations
           image: {{ template "conversations_frontend.image" . }}
           imagePullPolicy: {{ .Values.conversations.image.pullPolicy }}
-          {{- if .Values.conversations.containerSecurityContext.enabled }}
+          {{- if .Values.conversations_frontend.containerSecurityContext.enabled }}
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.conversations.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
           {{- if .Values.diagnosticMode.enabled }}
