@@ -1,0 +1,54 @@
+{{- if .Values.job.cronJobWopi.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ template "common.names.fullname" . }}-cronjob-wopi
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: drive-cronjob-wopi
+  {{- if .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .Values.job.cronJobWopi.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished | default 100 }}
+      backoffLimit: {{ .Values.job.backoffLimit | default 6 }}
+      template:
+        metadata:
+          labels: {{- include "common.labels.matchLabels" . | nindent 12 }}
+            app.kubernetes.io/component: drive-cronjob-wopi
+          {{- if .Values.job.podAnnotations }}
+          annotations:
+            {{- include "common.tplvalues.render" (dict "value" .Values.job.podAnnotations "context" $) | nindent 12 }}
+          {{- end }}
+        spec:
+          {{- include "drive.imagePullSecrets" . | nindent 10 }}
+          restartPolicy: {{ .Values.job.restartPolicy | default "OnFailure" }}
+          serviceAccountName: {{ template "drive.serviceAccountName" . }}
+          {{- if .Values.drive.nodeSelector }}
+          nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.drive.nodeSelector "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.drive.tolerations }}
+          tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.drive.tolerations "context" .) | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: {{ include "common.names.fullname" . }}-cronjob-wopi
+              envFrom:
+                - configMapRef:
+                    name: {{ template "common.names.fullname" . }}
+              image: {{ template "drive.image" . }}
+              imagePullPolicy: {{ .Values.drive.image.pullPolicy }}
+              {{- if .Values.drive.containerSecurityContext.enabled }}
+              securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.drive.containerSecurityContext "context" $) | nindent 16 }}
+              {{- end }}
+              command: {{- include "common.tplvalues.render" (dict "value" .Values.job.commandWopi "context" $) | nindent 14 }}
+              args: {{- include "common.tplvalues.render" (dict "value" .Values.job.argsWopi "context" $) | nindent 14 }}
+              resources:
+                {{- toYaml .Values.job.resources | nindent 16 }}
+{{- end }}

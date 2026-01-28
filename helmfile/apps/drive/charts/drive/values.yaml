@@ -898,6 +898,9 @@ job:
     - -c
     - |
       python manage.py trigger_wopi_configuration
+  cronJobWopi:
+    enabled: true
+    schedule: "0 0 * * *"
   backoffLimit: 20
   ttlSecondsAfterFinished: 3600
   podAnnotations: {}

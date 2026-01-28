@@ -44,7 +44,7 @@ spec:
             - name: DB_PASSWORD
               value:  {{ .Values.externalDatabase.password | quote }}
             - name: DB_PORT
-              alue: {{ .Values.externalDatabase.port | quote }}
+              value: {{ .Values.externalDatabase.port | quote }}
             - name: DJANGO_CONFIGURATION
               value: Production
             - name: DJANGO_SETTINGS_MODULE

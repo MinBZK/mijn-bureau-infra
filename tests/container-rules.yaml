@@ -102,3 +102,11 @@ container:
   clamav:
     registry: ""
     imagePullSecret: ""
+
+  drive_backend:
+    registry: ""
+    imagePullSecret: ""
+
+  drive_frontend:
+    registry: ""
+    imagePullSecret: ""
