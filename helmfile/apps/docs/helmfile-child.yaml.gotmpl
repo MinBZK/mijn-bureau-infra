@@ -58,3 +58,13 @@ releases:
       - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs
     values:
       - "values-nginx.yaml.gotmpl"
+
+  - name: docs-static
+    chart: ../common/charts/nginx
+    version: "22.0.0"
+    {{- if .Values.application.docs.namespace }}
+    namespace: {{ .Values.application.docs.namespace }}
+    {{- end }}
+    installed: {{ .Values.application.docs.enabled | toYaml }}
+    values:
+      - "values-static-nginx.yaml.gotmpl"

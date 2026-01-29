@@ -9,6 +9,12 @@ is_excluded_deployment(deployment_name) if {
   endswith(deployment_name, "-minio-console")
 }
 
+is_excluded_deployment(deployment_name) if {
+  # Bitnami nginx chart does not support runtimeClassName in its deployment template
+  # See: https://github.com/bitnami/charts/blob/main/bitnami/nginx/templates/deployment.yaml
+  endswith(deployment_name, "-nginx")
+}
+
 # Test that runtimeClassName from cluster config properly propagates to Deployment specs
 deny contains msg if {
   input.kind == "Deployment"
