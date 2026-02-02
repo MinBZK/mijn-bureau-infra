@@ -85,7 +85,7 @@ diagnosticMode:
 image:
   registry: docker.io
   repository: vectorim/element-web
-  tag: v1.12.8
+  tag: v1.12.9
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
   ##
