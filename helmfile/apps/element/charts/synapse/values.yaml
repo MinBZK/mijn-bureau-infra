@@ -82,7 +82,7 @@ diagnosticMode:
 image:
   registry: docker.io
   repository: matrixdotorg/synapse
-  tag: "v1.145.0"
+  tag: "v1.146.0"
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1276,7 +1276,6 @@ worker:
 
     ## The presence event stream
     # - "/_matrix/client/(api/v1|r0|v3|unstable)/presence/"
-
     paths:
       ## Federation requests
       - "/_matrix/federation/v1/event/"
