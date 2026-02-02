@@ -45,3 +45,4 @@ data:
   AI_BASE_URL: {{ .Values.ai.endpoint | quote }}
   AI_API_KEY: {{ .Values.ai.apiKey | quote }}
   AI_MODEL: {{ .Values.ai.model | quote }}
+  FRONTEND_CSS_URL: {{ .Values.conversations_frontend.frontendCssUrl | quote }}

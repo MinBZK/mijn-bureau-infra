@@ -75,6 +75,9 @@ diagnosticMode:
 ## %%MAIN_CONTAINER/POD_DESCRIPTION%%
 ##
 meet:
+  ## @param meet.frontendCssUrl URL to external CSS file for frontend customization
+  ##
+  frontendCssUrl: ""
   ## Bitnami %%MAIN_CONTAINER%% image
   ## ref: https://hub.docker.com/r/bitnami/%%IMAGE_NAME%%/tags/
   ## @param meet.image.registry [default: REGISTRY_NAME] %%MAIN_CONTAINER%% image registry

@@ -35,3 +35,13 @@ releases:
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) | toYaml }}
     values:
       - "values-redis.yaml.gotmpl"
+
+  - name: meet-static
+    chart: ../common/charts/nginx
+    version: "22.0.0"
+    {{- if .Values.application.meet.namespace }}
+    namespace: {{ .Values.application.meet.namespace }}
+    {{- end }}
+    installed: {{ .Values.application.meet.enabled | toYaml }}
+    values:
+      - "values-static-nginx.yaml.gotmpl"

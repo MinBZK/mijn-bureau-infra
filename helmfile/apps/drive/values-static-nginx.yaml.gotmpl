@@ -6,7 +6,7 @@
 ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
 ## Current available global Docker image parameters: imageRegistry, imagePullSecrets and storageClass
 
-{{- $hostname := printf "static-%s.%s" .Values.global.hostname.docs .Values.global.domain }}
+{{- $hostname := printf "static-%s.%s" .Values.global.hostname.drive .Values.global.domain }}
 
 ## @param global.imageRegistry Global Docker image registry
 ## @param global.imagePullSecrets Global Docker registry secret names as an array
@@ -60,7 +60,7 @@ extraDeploy:
   - apiVersion: v1
     kind: ConfigMap
     metadata:
-      name: docs-static-files
+      name: drive-static-files
       namespace: '{{ "{{ .Release.Namespace }}" }}'
       labels:
         app.kubernetes.io/instance: '{{ "{{ .Release.Name }}" }}'
@@ -68,19 +68,21 @@ extraDeploy:
         app.kubernetes.io/name: '{{ "{{ include \"common.names.name\" . }}" }}'
         app.kubernetes.io/version: '{{ "{{ .Chart.AppVersion }}" }}'
         helm.sh/chart: '{{ "{{ include \"common.names.chart\" . }}" }}'
-        app.kubernetes.io/part-of: docs
+        app.kubernetes.io/part-of: drive
         app.kubernetes.io/component: static-nginx
     data:
       iframe-hide.css: |
-        /* Hide logout button - users log out via bureaublad */
-        .--docs--button-logout {
+        /* Hide profile/logout buttons when embedded in iframe */
+        /* TODO: Add actual selectors for LaSuite drive app */
+        .profile-button,
+        .logout-button {
           display: none !important;
         }
 
 ## @param commonLabels Add labels to all the deployed resources
 ##
 commonLabels:
-  app.kubernetes.io/part-of: docs
+  app.kubernetes.io/part-of: drive
   app.kubernetes.io/component: static-nginx
 ## @param commonAnnotations Add annotations to all the deployed resources
 ##
@@ -346,7 +348,7 @@ resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 ##     cpu: 3
 ##     memory: 1024Mi
 ##
-resources: {{ .Values.resource.docs.nginx | default dict | toYaml | nindent 2 }}
+resources: {{ .Values.resource.drive.nginx | default dict | toYaml | nindent 2 }}
 
 ## NGINX containers' lifecycleHooks
 ## ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
@@ -435,7 +437,7 @@ autoscaling:
 extraVolumes:
   - name: static-files
     configMap:
-      name: docs-static-files
+      name: drive-static-files
 
 ## @param extraVolumeMounts Array to add extra mount
 ## Mounts static CSS files to /static directory
