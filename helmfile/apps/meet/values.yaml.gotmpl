@@ -29,6 +29,8 @@ meet:
 
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
+  frontendCssUrl: "https://static-{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/iframe-hide.css"
+
 meet_backend:
   image:
     registry: {{(coalesce .Values.container.meet_backend.registry .Values.container.default.registry) | quote }}

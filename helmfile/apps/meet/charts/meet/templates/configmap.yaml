@@ -49,3 +49,4 @@ data:
   LOGIN_REDIRECT_URL: {{ .Values.ingress.hostname | quote }}
   LOGIN_REDIRECT_URL_FAILURE: {{ .Values.ingress.hostname | quote }}
   LOGOUT_REDIRECT_URL: {{ .Values.ingress.hostname | quote }}
+  FRONTEND_CUSTOM_CSS_URL: {{ .Values.meet.frontendCssUrl | quote }}
