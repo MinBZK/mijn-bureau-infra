@@ -110,3 +110,7 @@ container:
   drive_frontend:
     registry: ""
     imagePullSecret: ""
+
+  nginx:
+    registry: ""
+    imagePullSecret: ""

@@ -435,6 +435,9 @@ conversations:
       targetCPU: 75
       targetMemory: ""
 conversations_frontend:
+  ## @param conversations_frontend.frontendCssUrl URL to external CSS file for frontend customization
+  ##
+  frontendCssUrl: ""
   ## Bitnami %%MAIN_CONTAINER%% image
   ## ref: https://hub.docker.com/r/bitnami/conversations/tags/
   ## @param conversations_frontend.image.registry [default: REGISTRY_NAME] %%MAIN_CONTAINER%% image registry

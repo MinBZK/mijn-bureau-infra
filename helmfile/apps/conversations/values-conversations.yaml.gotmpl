@@ -40,6 +40,7 @@ conversations:
   superuserPassword: {{  .Values.secret.conversations.adminPassword | quote }}
 
 conversations_frontend:
+  frontendCssUrl: "https://static-{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/iframe-hide.css"
   image:
     registry: {{(coalesce .Values.container.conversations_frontend.registry .Values.container.default.registry) | quote }}
     repository: {{ .Values.container.conversations_frontend.repository | quote }}
