@@ -26,6 +26,7 @@ meet:
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.meet.frontend | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.meet.frontend | toYaml | nindent 4 }}
 
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
@@ -41,6 +42,7 @@ meet_backend:
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.meet.backend | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.meet.backend | toYaml | nindent 4 }}
 
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
