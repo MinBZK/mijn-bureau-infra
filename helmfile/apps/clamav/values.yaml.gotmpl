@@ -28,7 +28,7 @@ clamav:
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.clamav | toYaml | nindent 6 }}
-
+  pdb: {{ .Values.pdb.clamav | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
   configuration:

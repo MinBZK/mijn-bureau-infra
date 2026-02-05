@@ -104,6 +104,8 @@ autoscaling:
   targetCPU: {{ .Values.autoscaling.horizontal.keycloak.targetCPU }}
   targetMemory: {{ .Values.autoscaling.horizontal.keycloak.targetMemory }}
 
+pdb: {{ .Values.pdb.keycloak | toYaml | nindent 2 }}
+
 metrics:
   enabled: {{ .Values.metric.enabled | default false  }}
   serviceMonitor:

@@ -29,6 +29,7 @@ livekit:
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.livekit | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.livekit | toYaml | nindent 4 }}
 
   config:
     rtc:

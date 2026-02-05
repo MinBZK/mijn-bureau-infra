@@ -36,6 +36,7 @@ backend:
   {{- end }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.bureaublad.backend | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.bureaublad.backend | toYaml | nindent 4 }}
   networkPolicy:
     extraEgress:
       # External https access
@@ -114,6 +115,7 @@ frontend:
   {{- end }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.bureaublad.frontend | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.bureaublad.frontend | toYaml | nindent 4 }}
   envVars:
     NEXT_PUBLIC_BACKEND_BASE_URL: /api
     NGINX_PORT: 8080
