@@ -56,8 +56,10 @@ image:
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: {{ .Values.container.collabora.tag }}
+  {{- with (coalesce .Values.container.collabora.imagePullSecret .Values.container.default.imagePullSecret) }}
   pullSecrets:
-    - {{ coalesce .Values.container.collabora.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 8 }}
+    - {{ . | quote }}
+  {{- end }}
 
 collabora:
   # Username used for authenticating with the Collabora service (default: "admin" if not provided in secrets)

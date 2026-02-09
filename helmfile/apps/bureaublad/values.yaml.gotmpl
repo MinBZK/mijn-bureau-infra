@@ -5,8 +5,10 @@
 global:
   security:
     allowInsecureImages: true
+  {{- with (coalesce .Values.container.bureaublad.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - name: {{ (coalesce .Values.container.bureaublad.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - name: {{ . | quote }}
+  {{- end }}
 
 commonLabels:
   app.kubernetes.io/part-of: bureaublad

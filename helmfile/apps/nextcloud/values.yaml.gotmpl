@@ -3,8 +3,10 @@ global:
     allowInsecureImages: true
 
   defaultStorageClass: {{ coalesce .Values.pvc.nextcloud.nextcloud.storageClass .Values.pvc.default.storageClass | quote }}
+  {{- with (coalesce .Values.container.nextcloud.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - name: {{ (coalesce .Values.container.nextcloud.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - name: {{ . | quote }}
+  {{- end }}
 
 image:
   registry: {{ (coalesce .Values.container.nextcloud.registry .Values.container.default.registry) | quote }}

@@ -19,8 +19,10 @@ global:
   ## imagePullSecrets:
   ##   - myRegistryKeySecretName
   ##
+  {{- with (coalesce .Values.container.nginx.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - {{ (coalesce .Values.container.nginx.imagePullSecret .Values.container.default.imagePullSecret)  | quote }}
+    - {{ . | quote }}
+  {{- end }}
   ## Security parameters
   ##
   security:
@@ -104,8 +106,10 @@ image:
   ## pullSecrets:
   ##   - myRegistryKeySecretName
   ##
+  {{- with (coalesce .Values.container.nginx.imagePullSecret .Values.container.default.imagePullSecret) }}
   pullSecrets:
-    - {{ (coalesce .Values.container.nginx.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - {{ . | quote }}
+  {{- end }}
   ## Set to true if you would like to see extra information on logs
   ##
   debug: false

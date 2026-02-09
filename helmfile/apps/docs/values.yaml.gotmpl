@@ -8,8 +8,10 @@ global:
   security:
     allowInsecureImages: true
 
+  {{- with (coalesce .Values.container.docs.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - name: {{ (coalesce .Values.container.docs.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - name: {{ . | quote }}
+  {{- end }}
 
 commonLabels:
   app.kubernetes.io/part-of: docs
