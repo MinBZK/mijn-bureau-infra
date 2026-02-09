@@ -91,7 +91,7 @@ application:
       key: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "yProviderKey" | sha1sum | quote }}
 
   bureaublad:
-    enabled: false
+    enabled: true
     namespace: ~
     backend:
       secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "bureaublad" "secretkey" | sha1sum | quote }}
