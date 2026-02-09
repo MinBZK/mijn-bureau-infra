@@ -86,7 +86,7 @@ diagnosticMode:
 image:
   registry: docker.io
   repository: collabora/code
-  tag: v25.04.8.1.1
+  tag: v25.04.8.2.1
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
   ##
