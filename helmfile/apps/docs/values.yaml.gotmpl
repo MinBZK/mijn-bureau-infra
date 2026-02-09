@@ -27,8 +27,7 @@ backend:
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
-  pdb:
-    maxUnavailable: 1
+  pdb: {{ .Values.pdb.docs.backend | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.docs.backend | toYaml | nindent 6 }}
     vpa: {{ .Values.autoscaling.vertical.docs.backend | toYaml | nindent 6 }}
@@ -336,6 +335,7 @@ backend:
     autoscaling:
       hpa: {{ .Values.autoscaling.horizontal.docs.celery | toYaml | nindent 8 }}
       vpa: {{ .Values.autoscaling.vertical.docs.celery | toYaml | nindent 8 }}
+    pdb: {{ .Values.pdb.docs.celery | toYaml | nindent 6 }}
     networkPolicy:
       extraEgress:
         # Database connectivity
@@ -386,8 +386,7 @@ frontend:
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
-  pdb:
-    maxUnavailable: 1
+  pdb: {{ .Values.pdb.docs.frontend | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.docs.frontend | toYaml | nindent 6 }}
     vpa: {{ .Values.autoscaling.vertical.docs.frontend | toYaml | nindent 6 }}
@@ -405,8 +404,7 @@ yProvider:
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
-  pdb:
-    maxUnavailable: 1
+  pdb: {{ .Values.pdb.docs.yProvider | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.docs.yProvider | toYaml | nindent 6 }}
     vpa: {{ .Values.autoscaling.vertical.docs.yProvider | toYaml | nindent 6 }}

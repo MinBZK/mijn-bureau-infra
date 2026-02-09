@@ -24,6 +24,8 @@ auth:
 autoscaling:
   hpa: {{ .Values.autoscaling.horizontal.grist | toYaml | nindent 4 }}
 
+pdb: {{ .Values.pdb.grist | toYaml | nindent 2 }}
+
 ai:
   enabled: true
 {{- if .Values.ai.llm.endpoint.host }}

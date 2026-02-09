@@ -26,7 +26,7 @@ conversations:
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.conversations.backend | toYaml | nindent 6 }}
-
+  pdb: {{ .Values.pdb.conversations.backend | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
   secretKey: {{ .Values.application.conversations.secretKey | quote }}
@@ -52,7 +52,7 @@ conversations_frontend:
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.conversations.frontend | toYaml | nindent 6 }}
-
+  pdb: {{ .Values.pdb.conversations.frontend | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
 ingress:
