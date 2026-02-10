@@ -2,11 +2,25 @@ bases:
   - "../../bases/default.yaml.gotmpl"
 
 releases:
+  - name: bureaublad-redis
+    chart: ../common/charts/redis
+    version: "21.2.6"
+    {{- if .Values.application.bureaublad.namespace }}
+    namespace: {{ .Values.application.bureaublad.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.bureaublad.enabled) | toYaml }}
+    values:
+      - "values-redis.yaml.gotmpl"
+
   - name: bureaublad
     chart: charts/bureaublad
     condition: application.bureaublad.enabled
     {{- if .Values.application.bureaublad.namespace }}
     namespace: {{ .Values.application.bureaublad.namespace }}
+    {{- end }}
+    {{- if and (eq .Environment.Name "demo") (.Values.application.bureaublad.enabled) }}
+    needs:
+      - {{ if .Values.application.bureaublad.namespace }}{{ .Values.application.bureaublad.namespace }}/{{ end }}bureaublad-redis
     {{- end }}
     values:
       - "values.yaml.gotmpl"
