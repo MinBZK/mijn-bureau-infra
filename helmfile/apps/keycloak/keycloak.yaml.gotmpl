@@ -37,8 +37,10 @@ image:
   repository:  {{ .Values.container.keycloak.repository | default "bitnami/keycloak" | quote }}
   tag: {{ .Values.container.keycloak.tag | default "26.2.5-debian-12-r3" | quote }}
   pullPolicy: Always
+  {{- with (coalesce .Values.container.keycloak.imagePullSecret .Values.container.default.imagePullSecret) }}
   pullSecrets:
-    - {{ coalesce .Values.container.keycloak.imagePullSecret .Values.container.default.imagePullSecret | quote }}
+    - {{ . | quote }}
+  {{- end }}
 
 
 auth:
@@ -121,8 +123,10 @@ keycloakConfigCli:
     repository:  {{ .Values.container.keycloak_cli.repository | default "bitnami/keycloak-config-cli" | quote }}
     tag: {{ .Values.container.keycloak_cli.tag | default "6.4.0-debian-12-r8" | quote }}
     pullPolicy: Always
+    {{- with (coalesce .Values.container.keycloak_cli.imagePullSecret .Values.container.default.imagePullSecret) }}
     pullSecrets:
-      - {{ coalesce .Values.container.keycloak_cli.imagePullSecret .Values.container.default.imagePullSecret | quote }}
+      - {{ . | quote }}
+    {{- end }}
   annotations:
     helm.sh/hook-delete-policy: "hook-succeeded,before-hook-creation"
     helm.sh/hook-weight: "5"

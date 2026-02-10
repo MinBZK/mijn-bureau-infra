@@ -4,8 +4,10 @@ image:
   tag: {{ .Values.container.ollama.tag | quote }}
   pullPolicy: "Always"
 
+{{- with .Values.container.default.imagePullSecret }}
 imagePullSecrets:
-  - name: {{ .Values.container.default.imagePullSecret | quote }}
+  - name: {{ . | quote }}
+{{- end }}
 
 # We need to specify the mountPath to point
 # to a directory we have access to as non-root user.

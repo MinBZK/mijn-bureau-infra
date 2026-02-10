@@ -19,8 +19,10 @@ global:
   ## imagePullSecrets:
   ##   - myRegistryKeySecretName
   ##
+  {{- with (coalesce .Values.container.redis.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - name: {{ (coalesce .Values.container.redis.imagePullSecret .Values.container.default.imagePullSecret)  | quote }}
+    - name: {{ . | quote }}
+  {{- end }}
   defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
   ## Security parameters
   ##
@@ -127,8 +129,10 @@ image:
   ## pullSecrets:
   ##   - myRegistryKeySecretName
   ##
+  {{- with (coalesce .Values.container.redis.imagePullSecret .Values.container.default.imagePullSecret) }}
   pullSecrets:
-    - name: {{ (coalesce .Values.container.redis.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - name: {{ . | quote }}
+  {{- end }}
   ## Enable debug mode
   ##
   debug: false
@@ -1770,8 +1774,10 @@ metrics:
     ## pullSecrets:
     ##   - myRegistryKeySecretName
     ##
+    {{- with (coalesce .Values.container.redis_exporter.imagePullSecret .Values.container.default.imagePullSecret) }}
     pullSecrets:
-     - {{ coalesce .Values.container.redis_exporter.imagePullSecret .Values.container.default.imagePullSecret | quote }}
+     - {{ . | quote }}
+    {{- end }}
 
   ## @param metrics.containerPorts.http Metrics HTTP container port
   ##

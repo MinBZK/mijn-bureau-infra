@@ -16,8 +16,10 @@ global:
   ## imagePullSecrets:
   ##   - myRegistryKeySecretName
   ##
+  {{- with (coalesce .Values.container.minio.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - {{ (coalesce .Values.container.minio.imagePullSecret .Values.container.default.imagePullSecret)  | quote }}
+    - {{ . | quote }}
+  {{- end }}
   defaultStorageClass: {{ (coalesce .Values.pvc.openproject.minio.storageClass .Values.pvc.default.storageClass) | quote }}
   ## Security parameters
   ##
@@ -92,8 +94,10 @@ image:
   ## pullSecrets:
   ##   - myRegistryKeySecretName
   ##
+  {{- with (coalesce .Values.container.minio.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - {{ (coalesce .Values.container.minio.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - {{ . | quote }}
+  {{- end }}
   ## Set to true if you would like to see extra information on logs
   ##
   debug: false
@@ -508,8 +512,10 @@ defaultInitContainers:
       ## pullSecrets:
       ##   - myRegistryKeySecretName
       ##
+    {{- with (coalesce .Values.container.minio_shell.imagePullSecret .Values.container.default.imagePullSecret) }}
     imagePullSecrets:
-      - {{ (coalesce .Values.container.minio_shell.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+      - {{ . | quote }}
+    {{- end }}
     ## Configure "volume-permissions" init-container Security Context
     ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
     ## @param defaultInitContainers.volumePermissions.containerSecurityContext.enabled Enabled "volume-permissions" init-containers' Security Context
@@ -966,8 +972,10 @@ console:
     ## pullSecrets:
     ##   - myRegistryKeySecretName
     ##
+    {{- with (coalesce .Values.container.minio_console.imagePullSecret .Values.container.default.imagePullSecret) }}
     imagePullSecrets:
-      - {{ (coalesce .Values.container.minio_console.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+      - {{ . | quote }}
+    {{- end }}
   ## @param console.replicaCount Number of MinIO&reg; Console replicas to deploy
   ##
   replicaCount: 1

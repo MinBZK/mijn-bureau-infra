@@ -4,8 +4,10 @@ global:
   security:
     allowInsecureImages: true
 
+  {{- with (coalesce .Values.container.grist.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - name: {{ (coalesce .Values.container.grist.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - name: {{ . | quote }}
+  {{- end }}
 
 image:
   registry: {{(coalesce .Values.container.grist.registry .Values.container.default.registry) | quote }}

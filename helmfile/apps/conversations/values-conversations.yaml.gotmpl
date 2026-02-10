@@ -5,8 +5,10 @@ global:
   ## @param global.imagePullSecrets Global Docker registry secret names as an array
   ##
   imageRegistry: {{(coalesce .Values.container.conversations_backend.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.conversations_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - name: {{ (coalesce .Values.container.conversations_backend.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - name: {{ . | quote }}
+  {{- end }}
   ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
   ##
   defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}

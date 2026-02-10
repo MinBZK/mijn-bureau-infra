@@ -4,8 +4,10 @@ global:
   security:
     allowInsecureImages: false
 
+  {{- with (coalesce .Values.container.openproject.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - {{ (coalesce .Values.container.openproject.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - {{ . | quote }}
+  {{- end }}
 
 commonLabels:
   app.kubernetes.io/part-of: openproject
