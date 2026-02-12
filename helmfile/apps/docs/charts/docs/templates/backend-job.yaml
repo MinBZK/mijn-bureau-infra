@@ -78,9 +78,6 @@ spec:
             {{- if $envVars }}
             {{- $envVars | indent 12 }}
             {{- end }}
-            {{- if and (eq $config.name "migrate") $.Values.backend.migrateDbCredentials }}
-            {{- include "docs.env.transformDict" $.Values.backend.migrateDbCredentials | indent 12 }}
-            {{- end }}
             {{- if $.Values.backend.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" $.Values.backend.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}

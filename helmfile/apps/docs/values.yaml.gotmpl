@@ -77,6 +77,14 @@ backend:
               matchLabels:
                 app.kubernetes.io/name: ollama
       {{- end }}
+      # Docspec connectivity
+      - ports:
+          - port: 4000
+            protocol: TCP
+        to:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: docs-docspec
       # Allow https egress for keycloak connection and external AI
       - ports:
           - port: 443
@@ -111,7 +119,7 @@ backend:
     CONVERSION_API_CONTENT_FIELD: "content"
     CONVERSION_API_ENDPOINT: "convert"
     CONVERSION_API_SECURE: "false"
-    CONVERSION_API_TIMEOUT: "30"
+    DOCSPEC_API_URL: http://docs-docspec:4000/conversion
     CRISP_WEBSITE_ID: ""
     DOCUMENT_IMAGE_MAX_SIZE: "10485760"
     FRONTEND_CSS_URL: "https://static-{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/iframe-hide.css"
@@ -397,6 +405,21 @@ frontend:
     vpa: {{ .Values.autoscaling.vertical.docs.frontend | toYaml | nindent 6 }}
   configuration:
     publishAsMit: {{ .Values.application.docs.frontend.publishAsMit }}
+
+docspec:
+  image:
+    registry: {{(coalesce .Values.container.docspec.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.docspec.repository | quote }}
+    tag: {{ .Values.container.docspec.tag | quote }}
+  replicaCount: 1
+  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.docs.docspec | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  pdb: {{ .Values.pdb.docs.docspec | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.docs.docspec | toYaml | nindent 6 }}
 
 yProvider:
   image:
