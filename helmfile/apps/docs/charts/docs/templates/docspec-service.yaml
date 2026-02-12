@@ -1,0 +1,54 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "docs.docspec.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: docspec
+  {{- if or .Values.docspec.service.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.docspec.service.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.docspec.service.type }}
+  {{- if and .Values.docspec.service.clusterIP (eq .Values.docspec.service.type "ClusterIP") }}
+  clusterIP: {{ .Values.docspec.service.clusterIP }}
+  {{- end }}
+  {{- if .Values.docspec.service.sessionAffinity }}
+  sessionAffinity: {{ .Values.docspec.service.sessionAffinity }}
+  {{- end }}
+  {{- if .Values.docspec.service.sessionAffinityConfig }}
+  sessionAffinityConfig: {{- include "common.tplvalues.render" (dict "value" .Values.docspec.service.sessionAffinityConfig "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if or (eq .Values.docspec.service.type "LoadBalancer") (eq .Values.docspec.service.type "NodePort") }}
+  externalTrafficPolicy: {{ .Values.docspec.service.externalTrafficPolicy | quote }}
+  {{- end }}
+  {{- if and (eq .Values.docspec.service.type "LoadBalancer") (not (empty .Values.docspec.service.loadBalancerSourceRanges)) }}
+  loadBalancerSourceRanges: {{ .Values.docspec.service.loadBalancerSourceRanges }}
+  {{- end }}
+  {{- if and (eq .Values.docspec.service.type "LoadBalancer") (not (empty .Values.docspec.service.loadBalancerIP)) }}
+  loadBalancerIP: {{ .Values.docspec.service.loadBalancerIP }}
+  {{- end }}
+  ports:
+    - name: http
+      port: {{ .Values.docspec.service.ports.http }}
+      {{- if not (eq .Values.docspec.service.ports.http .Values.docspec.containerPorts.http) }}
+      targetPort: {{ .Values.docspec.containerPorts.http }}
+      {{- end }}
+      protocol: TCP
+      {{- if and (or (eq .Values.docspec.service.type "NodePort") (eq .Values.docspec.service.type "LoadBalancer")) (not (empty .Values.docspec.service.nodePorts.http)) }}
+      nodePort: {{ .Values.docspec.service.nodePorts.http }}
+      {{- else if eq .Values.docspec.service.type "ClusterIP" }}
+      nodePort: null
+      {{- end }}
+    {{- if .Values.docspec.service.extraPorts }}
+    {{- include "common.tplvalues.render" (dict "value" .Values.docspec.service.extraPorts "context" $) | nindent 4 }}
+    {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.docspec.podLabels .Values.commonLabels) "context" .) | fromYaml }}
+  selector: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: docspec
