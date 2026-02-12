@@ -548,6 +548,10 @@ backend:
   ## @extra backend.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
   ## @skip backend.envVars
   envVars: ~
+  ## @param backend.migrateDbCredentials [object] Optional DB credentials override for the migrate job (e.g. to use a superuser).
+  ## When set, these env vars are injected after the common env vars in the migrate job only, overriding DB_USER/DB_PASSWORD.
+  ## @skip backend.migrateDbCredentials
+  migrateDbCredentials: ~
   ## Docs backend job configurations dedicated to run a specific management command, for example after a deployment
   ## @param backend.jobs.ttlSecondsAfterFinished Period to wait before remove jobs
   ## @param backend.jobs.backoffLimit Numbers of jobs retries

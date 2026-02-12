@@ -85,6 +85,9 @@ backend:
           - port: 4444
   jobs:
     releaseSuffix: {{ $releaseId | quote }}
+  migrateDbCredentials:
+    DB_USER: "postgres"
+    DB_PASSWORD: {{ .Values.database.docs.adminpassword | quote }}
   envVars:
     AWS_S3_ENDPOINT_URL: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.docs.useSSL) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port | quote }}
     AWS_S3_ACCESS_KEY_ID: {{ .Values.objectstore.docs.username | quote }}
