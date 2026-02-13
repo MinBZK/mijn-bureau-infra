@@ -5,8 +5,10 @@ global:
   ## @param global.imagePullSecrets Global Docker registry secret names as an array
   ##
   imageRegistry: {{(coalesce .Values.container.clamav.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.clamav.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - name: {{ (coalesce .Values.container.clamav.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - name: {{ . | quote }}
+  {{- end }}
   ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
   ##
   defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
@@ -28,7 +30,7 @@ clamav:
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.clamav | toYaml | nindent 6 }}
-
+  pdb: {{ .Values.pdb.clamav | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
   configuration:

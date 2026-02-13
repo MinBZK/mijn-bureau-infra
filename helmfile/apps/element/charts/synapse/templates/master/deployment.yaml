@@ -181,9 +181,11 @@ spec:
           emptyDir: {}
         - name: data
         {{- $mediaworker := false }}
-        {{- range $worker, $config := .Values.worker }}
-          {{- if eq $worker "media_repository" }}
-            {{- $mediaworker = ($config.enabled | default false) }}
+        {{- if eq .Values.architecture "replication" }}
+          {{- range $worker, $config := .Values.worker }}
+            {{- if eq $worker "media_repository" }}
+              {{- $mediaworker = ($config.enabled | default false) }}
+            {{- end }}
           {{- end }}
         {{- end }}
         {{- if and .Values.persistence.enabled (not $mediaworker) }}

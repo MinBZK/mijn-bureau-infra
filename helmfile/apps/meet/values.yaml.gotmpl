@@ -5,8 +5,10 @@ global:
   ## @param global.imagePullSecrets Global Docker registry secret names as an array
   ##
   imageRegistry: {{(coalesce .Values.container.meet_frontend.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.meet_frontend.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - name: {{ (coalesce .Values.container.meet_frontend.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - name: {{ . | quote }}
+  {{- end }}
   ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
   ##
   defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
@@ -26,6 +28,7 @@ meet:
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.meet.frontend | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.meet.frontend | toYaml | nindent 4 }}
 
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
@@ -43,6 +46,7 @@ meet_backend:
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.meet.backend | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.meet.backend | toYaml | nindent 4 }}
 
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
@@ -63,6 +67,8 @@ ingress:
   ##
   enabled: true
   hostname: {{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
   extraTls: {{ .Values.tls.meet | toYaml | nindent 4 }}
   ingressClassName: {{ .Values.cluster.ingress.className | quote }}
   annotations:

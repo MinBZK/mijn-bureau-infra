@@ -23,7 +23,7 @@ global:
   imagePullSecrets:
     - name: {{ . | quote }}
   {{- end }}
-  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+  defaultStorageClass: ""
   storageClass: ""
   ## Security parameters
   ##
@@ -157,7 +157,7 @@ auth:
   ## @param auth.password Redis(R) password
   ## Defaults to a random 10-character alphanumeric string if not set
   ##
-  password: {{ .Values.cache.drive.password | quote }}
+  password: {{ .Values.cache.bureaublad.password | quote }}
   ## @param auth.existingSecret The name of an existing secret with Redis(R) credentials
   ## NOTE: When it's set, the previous `auth.password` parameter is ignored
   ##
@@ -331,7 +331,7 @@ master:
   ##     cpu: 3
   ##     memory: 1024Mi
   ##
-  resources: {{ .Values.resource.drive.redis | default dict | toYaml | nindent 4 }}
+  resources: {{ .Values.resource.bureaublad.redis | default dict | toYaml | nindent 4 }}
   ## Configure Pods Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
   ## @param master.podSecurityContext.enabled Enabled Redis(R) master pods' Security Context
@@ -518,13 +518,13 @@ master:
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
     ## If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner
     ##
-    storageClass: {{ (coalesce .Values.pvc.drive.redis.storageClass .Values.pvc.default.storageClass) | quote }}
+    storageClass: {{ (coalesce .Values.pvc.bureaublad.redis.storageClass .Values.pvc.default.storageClass) | quote }}
     ## @param master.persistence.accessModes Persistent Volume access modes
     ##
-    accessModes: {{ coalesce .Values.pvc.drive.redis.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
+    accessModes: {{ coalesce .Values.pvc.bureaublad.redis.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
     ## @param master.persistence.size Persistent Volume size
     ##
-    size: {{ coalesce .Values.pvc.drive.redis.size .Values.pvc.default.size "1Gi" }}
+    size: {{ coalesce .Values.pvc.bureaublad.redis.size .Values.pvc.default.size "1Gi" }}
     ## @param master.persistence.annotations Additional custom annotations for the PVC
     ##
     annotations: {}
@@ -568,7 +568,7 @@ master:
     ## @param master.service.ports.redis Redis(R) master service port
     ##
     ports:
-      redis: {{ .Values.cache.drive.port | default 6379 }}
+      redis: {{ .Values.cache.bureaublad.port | default 6379 }}
     ## @param master.service.nodePorts.redis Node port for Redis(R) master
     ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
     ## NOTE: choose port between <30000-32767>
@@ -986,13 +986,13 @@ replica:
     ## If set to "-", storageClassName: "", which disables dynamic provisioning
     ## If undefined (the default) or set to null, no storageClassName spec is set, choosing the default provisioner
     ##
-    storageClass: {{ coalesce .Values.pvc.drive.redis.storageClass .Values.pvc.default.storageClass | quote }}
+    storageClass: {{ coalesce .Values.pvc.bureaublad.redis.storageClass .Values.pvc.default.storageClass | quote }}
     ## @param replica.persistence.accessModes Persistent Volume access modes
     ##
-    accessModes: {{ coalesce .Values.pvc.drive.redis.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
+    accessModes: {{ coalesce .Values.pvc.bureaublad.redis.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
     ## @param replica.persistence.size Persistent Volume size
     ##
-    size: {{ coalesce .Values.pvc.drive.redis.size .Values.pvc.default.size "1Gi" }}
+    size: {{ coalesce .Values.pvc.bureaublad.redis.size .Values.pvc.default.size "1Gi" }}
     ## @param replica.persistence.annotations Additional custom annotations for the PVC
     ##
     annotations: {}
@@ -1032,7 +1032,7 @@ replica:
     ## @param replica.service.ports.redis Redis(R) replicas service port
     ##
     ports:
-      redis: {{ .Values.cache.drive.port | default 6379 }}
+      redis: {{ .Values.cache.bureaublad.port | default 6379 }}
     ## @param replica.service.nodePorts.redis Node port for Redis(R) replicas
     ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
     ## NOTE: choose port between <30000-32767>
@@ -1410,7 +1410,7 @@ sentinel:
     ## @param sentinel.service.ports.sentinel Redis(R) service port for Redis(R) Sentinel
     ##
     ports:
-      redis: {{ .Values.cache.drive.port | default 6379 }}
+      redis: {{ .Values.cache.bureaublad.port | default 6379 }}
       sentinel: 26379
     ## @param sentinel.service.nodePorts.redis Node port for Redis(R)
     ## @param sentinel.service.nodePorts.sentinel Node port for Sentinel
@@ -1494,7 +1494,7 @@ sentinel:
     ## @param sentinel.masterService.ports.redis Redis(R) service port for Redis(R)
     ##
     ports:
-      redis: {{ .Values.cache.drive.port | default 6379 }}
+      redis: {{ .Values.cache.bureaublad.port | default 6379 }}
     ## @param sentinel.masterService.nodePorts.redis Node port for Redis(R)
     ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
     ## NOTE: choose port between <30000-32767>
@@ -1627,22 +1627,12 @@ networkPolicy:
   ##
   extraIngress:
     - ports:
-        - port: {{ .Values.cache.drive.port | default 6379 }}
+        - port: {{ .Values.cache.bureaublad.port | default 6379 }}
           protocol: TCP
       from:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/component: drive-backend
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/component: drive-backend-celery
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/component: drive-backend-celery-beat
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/component: drive-wopi
-
+              app.kubernetes.io/name: bureaublad
   ## @param networkPolicy.extraEgress Add extra egress rules to the NetworkPolicy
   ## e.g:
   ## extraEgress:
@@ -1890,7 +1880,7 @@ metrics:
   ## @param metrics.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if metrics.resources is set (metrics.resources is recommended for production).
   ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
   ##
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: "nano"
   ## @param metrics.resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
   ## Example:
   ## resources:
@@ -2161,7 +2151,7 @@ volumePermissions:
   ## @param volumePermissions.resourcesPreset Set container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if volumePermissions.resources is set (volumePermissions.resources is recommended for production).
   ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
   ##
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: "nano"
   ## @param volumePermissions.resources Set container requests and limits for different resources like CPU or memory (essential for production workloads)
   ## Example:
   ## resources:

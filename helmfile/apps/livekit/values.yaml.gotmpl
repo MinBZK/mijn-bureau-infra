@@ -5,8 +5,10 @@ global:
   ## @param global.imagePullSecrets Global Docker registry secret names as an array
   ##
   imageRegistry: {{(coalesce .Values.container.livekit_server.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.livekit_server.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - name: {{ (coalesce .Values.container.livekit_server.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - name: {{ . | quote }}
+  {{- end }}
   ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
   ##
   defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
@@ -29,6 +31,7 @@ livekit:
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.livekit | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.livekit | toYaml | nindent 4 }}
 
   config:
     rtc:
@@ -69,6 +72,8 @@ ingress:
   ##
   enabled: true
   hostname: {{ .Values.global.hostname.livekit }}.{{ .Values.global.domain }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
   extraTls: {{ .Values.tls.livekit | toYaml | nindent 4 }}
   ingressClassName: {{ .Values.cluster.ingress.className | quote }}
   annotations:

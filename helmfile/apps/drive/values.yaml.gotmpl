@@ -5,8 +5,10 @@ global:
   ## @param global.imagePullSecrets Global Docker registry secret names as an array
   ##
   imageRegistry: {{(coalesce .Values.container.drive_backend.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.drive_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - name: {{ (coalesce .Values.container.drive_backend.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - name: {{ . | quote }}
+  {{- end }}
   ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
   ##
   defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
@@ -26,7 +28,7 @@ drive:
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.drive.backend | toYaml | nindent 6 }}
-
+  pdb: {{ .Values.pdb.drive.backend | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   secretKey: {{ .Values.application.drive.secretKey | quote }}
   CSRFTrustedOrigins: "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
@@ -48,7 +50,7 @@ drive:
     resources: {{ .Values.resource.drive.celery | toYaml | nindent 6 }}
     autoscaling:
       hpa: {{ .Values.autoscaling.horizontal.drive.celery | toYaml | nindent 8 }}
-
+    pdb: {{ .Values.pdb.drive.celery | toYaml | nindent 6 }}
   celeryBeat:
     resources: {{ .Values.resource.drive.celeryBeat | toYaml | nindent 6 }}
 
@@ -64,7 +66,7 @@ drive_frontend:
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.drive.frontend | toYaml | nindent 6 }}
-
+  pdb: {{ .Values.pdb.drive.frontend | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
 
@@ -74,6 +76,8 @@ ingress:
   ##
   enabled: true
   hostname: {{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
   extraTls: {{ .Values.tls.drive | toYaml | nindent 4 }}
   ingressClassName: {{ .Values.cluster.ingress.className | quote }}
   annotations:

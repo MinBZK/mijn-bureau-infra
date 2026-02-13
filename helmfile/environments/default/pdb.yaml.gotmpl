@@ -1,0 +1,84 @@
+pdb:
+  ollama:
+    # Stateless LLM inference service, With minReplicas: 1, brief downtime during node drain is acceptable
+    create: false
+    minAvailable: 1
+    maxUnavailable: 3
+  grist:
+    create: true
+    minAvailable: 1
+  keycloak:
+    create: true
+    minAvailable: 1
+  element:
+    # Matrix/Synapse has complex state synchronization, Only enable PDB if you're running multiple replicas with proper federation
+    create: false
+    minAvailable: 1
+    maxUnavailable: 3
+  livekit:
+    create: true
+    maxUnavailable: 1
+  nextcloud:
+    create: true
+    maxUnavailable: 1
+  collabora:
+    # it is disabled. Because after scaling it breaks the collaborative editing and copy/paste.
+    create: false
+    minAvailable: 1
+    maxUnavailable: 3
+  openproject:
+    # Chart doesn't have PDB template, Would require modifying the upstream chart
+    create: false
+    minAvailable: 1
+    maxUnavailable: 3
+  meet:
+    backend:
+      create: true
+      maxUnavailable: 1
+    frontend:
+      create: true
+      maxUnavailable: 1
+  conversations:
+    backend:
+      create: true
+      maxUnavailable: 1
+    frontend:
+      create: true
+      maxUnavailable: 1
+  docs:
+    backend:
+      create: true
+      maxUnavailable: 1
+    celery:
+      create: true
+      maxUnavailable: 1
+    frontend:
+      create: true
+      maxUnavailable: 1
+    yProvider:
+      # Disabled, see: https://github.com/MinBZK/mijn-bureau-infra/issues/219
+      create: false
+      maxUnavailable: 1
+    docspec:
+      create: true
+      maxUnavailable: 1
+  bureaublad:
+    backend:
+      create: true
+      maxUnavailable: 1
+    frontend:
+      create: true
+      maxUnavailable: 1
+  drive:
+    backend:
+      create: true
+      maxUnavailable: 1
+    frontend:
+      create: true
+      maxUnavailable: 1
+    celery:
+      create: true
+      maxUnavailable: 1
+  clamav:
+    create: true
+    maxUnavailable: 1

@@ -5,7 +5,7 @@ container:
   ollama:
     registry: "docker.io"
     repository: "ollama/ollama"
-    tag: "0.15.4"
+    tag: "0.15.6"
     imagePullSecret: ~
   keycloak:
     registry: "docker.io"
@@ -135,6 +135,11 @@ container:
     repository: bitnamilegacy/nginx
     tag: 1.29.1
     imagePullSecret: ~
+  docspec:
+    imagePullSecret: ~
+    registry: "ghcr.io"
+    repository: "docspecio/api"
+    tag: "2.6.3"
   docs:
     imagePullSecret: ~
     registry: "registry-1.docker.io"
@@ -152,10 +157,10 @@ container:
     registry: "ghcr.io"
     backend:
       repository: "minbzk/bureaublad-api"
-      tag: "v0.5.4"
+      tag: "v0.6.0"
     frontend:
       repository: "minbzk/bureaublad-frontend"
-      tag: "v0.5.4"
+      tag: "v0.6.0"
   clamav:
     registry: "registry-1.docker.io"
     repository: "clamav/clamav"

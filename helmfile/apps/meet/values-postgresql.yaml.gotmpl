@@ -13,8 +13,10 @@ global:
   ## imagePullSecrets:
   ##   - myRegistryKeySecretName
   ##
+  {{- with (coalesce .Values.container.postgres.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - {{ coalesce .Values.container.postgres.imagePullSecret .Values.container.default.imagePullSecret | quote }}
+    - {{ . | quote }}
+  {{- end }}
   ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
   ## @param global.storageClass DEPRECATED: use global.defaultStorageClass instead
   ##
@@ -134,8 +136,10 @@ image:
   ## pullSecrets:
   ##   - myRegistryKeySecretName
   ##
+  {{- with (coalesce .Values.container.postgres.imagePullSecret .Values.container.default.imagePullSecret) }}
   pullSecrets:
-    - {{ coalesce .Values.container.postgres.imagePullSecret .Values.container.default.imagePullSecret | quote }}
+    - {{ . | quote }}
+  {{- end }}
   ## Set to true if you would like to see extra information on logs
   ##
   debug: false
@@ -1733,8 +1737,10 @@ metrics:
     ## pullSecrets:
     ##   - myRegistryKeySecretName
     ##
+    {{- with (coalesce .Values.container.postgres_exporter.imagePullSecret .Values.container.default.imagePullSecret) }}
     pullSecrets:
-     - {{ coalesce .Values.container.postgres_exporter.imagePullSecret .Values.container.default.imagePullSecret | quote }}
+     - {{ . | quote }}
+    {{- end }}
   ## @param metrics.collectors Control enabled collectors
   ## ref: https://github.com/prometheus-community/postgres_exporter#flags
   ## Example:

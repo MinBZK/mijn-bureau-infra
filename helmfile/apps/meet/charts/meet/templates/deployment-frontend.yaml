@@ -151,6 +151,8 @@ spec:
           lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.meet.lifecycleHooks "context" $) | nindent 12 }}
           {{- end }}
           volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           {{- if .Values.meet.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.meet.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
@@ -158,6 +160,8 @@ spec:
         {{- include "common.tplvalues.render" ( dict "value" .Values.meet.sidecars "context" $) | nindent 8 }}
         {{- end }}
       volumes:
+        - name: tmp
+          emptyDir: {}
         {{- if .Values.meet.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.meet.extraVolumes "context" $) | nindent 8 }}
         {{- end }}

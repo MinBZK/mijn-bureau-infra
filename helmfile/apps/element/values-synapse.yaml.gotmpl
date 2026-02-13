@@ -27,8 +27,10 @@ image:
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: {{ .Values.container.synapse.tag }}
+  {{- with (coalesce .Values.container.synapse.imagePullSecret .Values.container.default.imagePullSecret) }}
   pullSecrets:
-    - {{ coalesce .Values.container.synapse.imagePullSecret .Values.container.default.imagePullSecret | quote }}
+    - {{ . | quote }}
+  {{- end }}
 
 persistence:
   size: {{ coalesce .Values.pvc.synapse.synapse.size .Values.pvc.default.size "8Gi" }}
@@ -304,8 +306,10 @@ defaultInitContainers:
       repository: {{ .Values.container.osShell.repository }}
       pullPolicy: Always
       tag: {{ .Values.container.osShell.tag }}
+      {{- with (coalesce .Values.container.osShell.imagePullSecret .Values.container.default.imagePullSecret) }}
       pullSecrets:
-        - {{ coalesce .Values.container.osShell.imagePullSecret .Values.container.default.imagePullSecret | toYaml }}
+        - {{ . | quote }}
+      {{- end }}
 
     containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 6 }}
 

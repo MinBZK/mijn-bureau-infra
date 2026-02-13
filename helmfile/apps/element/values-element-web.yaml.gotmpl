@@ -49,8 +49,10 @@ image:
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: {{ .Values.container.elementweb.tag }}
+  {{- with (coalesce .Values.container.elementweb.imagePullSecret .Values.container.default.imagePullSecret) }}
   pullSecrets:
-    - {{ coalesce .Values.container.elementweb.imagePullSecret .Values.container.default.imagePullSecret | toYaml | nindent 8 }}
+    - {{ . | quote }}
+  {{- end }}
 
 # Default locale setting for the application, used for country codes or language preferences
 defaultLocale: {{ .Values.global.defaultLocale | default "NL" }}

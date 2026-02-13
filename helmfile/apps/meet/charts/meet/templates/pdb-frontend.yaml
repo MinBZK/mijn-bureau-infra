@@ -3,26 +3,26 @@
 SPDX-License-Identifier: APACHE-2.0
 */}}
 
-{{- if .Values.drive_frontend.pdb.create }}
+{{- if .Values.meet.pdb.create }}
 apiVersion: {{ include "common.capabilities.policy.apiVersion" . }}
 kind: PodDisruptionBudget
 metadata:
   name: {{ include "common.names.fullname" . }}-frontend
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-    app.kubernetes.io/component: drive-frontend
+    app.kubernetes.io/component: meet-frontend
   {{- if .Values.commonAnnotations }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  {{- if .Values.drive_frontend.pdb.minAvailable }}
-  minAvailable: {{ .Values.drive_frontend.pdb.minAvailable }}
+  {{- if .Values.meet.pdb.minAvailable }}
+  minAvailable: {{ .Values.meet.pdb.minAvailable }}
   {{- end  }}
-  {{- if or .Values.drive_frontend.pdb.maxUnavailable ( not .Values.drive_frontend.pdb.minAvailable ) }}
-  maxUnavailable: {{ .Values.drive_frontend.pdb.maxUnavailable | default 1 }}
+  {{- if or .Values.meet.pdb.maxUnavailable ( not .Values.meet.pdb.minAvailable ) }}
+  maxUnavailable: {{ .Values.meet.pdb.maxUnavailable | default 1 }}
   {{- end  }}
-  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.drive_frontend.podLabels .Values.commonLabels ) "context" . ) }}
+  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.meet.podLabels .Values.commonLabels ) "context" . ) }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
-      app.kubernetes.io/component: drive-frontend
+      app.kubernetes.io/component: meet-frontend
 {{- end }}

@@ -145,6 +145,8 @@ spec:
           lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.drive_frontend.lifecycleHooks "context" $) | nindent 12 }}
           {{- end }}
           volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           {{- if .Values.drive_frontend.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.drive_frontend.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
@@ -152,6 +154,8 @@ spec:
         {{- include "common.tplvalues.render" ( dict "value" .Values.drive_frontend.sidecars "context" $) | nindent 8 }}
         {{- end }}
       volumes:
+        - name: tmp
+          emptyDir: {}
         {{- if .Values.drive_frontend.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.drive_frontend.extraVolumes "context" $) | nindent 8 }}
         {{- end }}

@@ -1,12 +1,15 @@
 {{- $hostname := printf "%s.%s" .Values.global.hostname.bureaublad .Values.global.domain }}
 {{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
 {{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
+{{- $redisUrl := printf "redis://default:%s@%s:%d/1" .Values.cache.bureaublad.password .Values.cache.bureaublad.host .Values.cache.bureaublad.port -}}
 
 global:
   security:
     allowInsecureImages: true
+  {{- with (coalesce .Values.container.bureaublad.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - name: {{ (coalesce .Values.container.bureaublad.imagePullSecret .Values.container.default.imagePullSecret) | quote }}
+    - name: {{ . | quote }}
+  {{- end }}
 
 commonLabels:
   app.kubernetes.io/part-of: bureaublad
@@ -36,6 +39,7 @@ backend:
   {{- end }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.bureaublad.backend | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.bureaublad.backend | toYaml | nindent 4 }}
   networkPolicy:
     extraEgress:
       # External https access
@@ -94,6 +98,7 @@ backend:
     CORS_ALLOW_METHODS: '["GET","POST","PUT","DELETE"]'
     CORS_ALLOW_HEADERS: '["*"]'
     TRUSTED_HOSTS: '[{{ $hostname | quote }}]'
+    REDIS_URL: {{ $redisUrl | quote }}
 
 frontend:
   image:
@@ -114,6 +119,7 @@ frontend:
   {{- end }}
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.bureaublad.frontend | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.bureaublad.frontend | toYaml | nindent 4 }}
   envVars:
     NEXT_PUBLIC_BACKEND_BASE_URL: /api
     NGINX_PORT: 8080
@@ -137,3 +143,16 @@ ingress:
     {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
+networkPolicy:
+  extraEgress:
+    # Redis connectivity
+    - ports:
+        - port: {{ .Values.cache.bureaublad.port }}
+          protocol: TCP
+      {{- if .Values.cache.bureaublad.isInternal }}
+      to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+              app.kubernetes.io/component: master
+      {{- end }}

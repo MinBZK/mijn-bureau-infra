@@ -25,6 +25,14 @@ Full name for frontend
 {{- end -}}
 
 {{/*
+Full name for docspec
+*/}}
+{{- define "docs.docspec.fullname" -}}
+{{ include "common.names.fullname" . }}-docspec
+{{- end -}}
+
+
+{{/*
 Full name for the yProvider
 */}}
 {{- define "docs.yProvider.fullname" -}}
@@ -43,6 +51,13 @@ Return the proper frontend image name
 */}}
 {{- define "docs.frontend.image" -}}
 {{ include "common.images.image" (dict "imageRoot" .Values.frontend.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
+Return the proper docspec image name
+*/}}
+{{- define "docs.docspec.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.docspec.image "global" .Values.global) }}
 {{- end -}}
 
 {{/*
