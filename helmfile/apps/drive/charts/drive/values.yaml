@@ -88,7 +88,7 @@ drive:
   image:
     registry: docker.io
     repository: lasuite/drive-backend
-    tag: v0.11.1
+    tag: v0.12.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -496,6 +496,7 @@ drive:
     ## Network Policies
     ## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
     ##
+
   ## @param backend.celeryBeat.replicas Amount of celery replicas
   ## @param backend.celeryBeat.command Override the celery container command
   ## @param backend.celeryBeat.args Override the celery container args
@@ -545,7 +546,7 @@ drive_frontend:
   image:
     registry: docker.io
     repository: lasuite/drive-frontend
-    tag: v0.11.1
+    tag: v0.12.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
