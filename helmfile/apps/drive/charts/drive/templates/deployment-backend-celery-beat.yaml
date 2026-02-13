@@ -116,33 +116,24 @@ spec:
           {{- if not .Values.diagnosticMode.enabled }}
           {{- if .Values.drive.customLivenessProbe }}
           livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.drive.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.drive.celeryBeat.probes.liveness }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.drive.celeryBeat.probes.liveness "context" $) | nindent 12 }}
           {{- else if .Values.drive.livenessProbe.enabled }}
           livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.drive.livenessProbe "enabled") "context" $) | nindent 12 }}
-            exec:
-              command:
-              - /bin/sh
-              - -c
-              - celery -A drive.celery_app inspect ping
           {{- end }}
           {{- if .Values.drive.customReadinessProbe }}
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.drive.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.drive.celeryBeat.probes.readiness }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.drive.celeryBeat.probes.readiness "context" $) | nindent 12 }}
           {{- else if .Values.drive.readinessProbe.enabled }}
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.drive.readinessProbe "enabled") "context" $) | nindent 12 }}
-            exec:
-              command:
-              - /bin/sh
-              - -c
-              - celery -A drive.celery_app inspect ping
           {{- end }}
           {{- if .Values.drive.customStartupProbe }}
           startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.drive.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.drive.celeryBeat.probes.startup }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.drive.celeryBeat.probes.startup "context" $) | nindent 12 }}
           {{- else if .Values.drive.startupProbe.enabled }}
           startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.drive.startupProbe "enabled") "context" $) | nindent 12 }}
-            exec:
-              command:
-              - /bin/sh
-              - -c
-              - celery -A drive.celery_app inspect ping
           {{- end }}
           {{- end }}
           {{- if .Values.drive.lifecycleHooks }}
