@@ -117,11 +117,6 @@ const config: Config = {
           position: "left",
           label: "Documentation",
         },
-        {
-          to: "/demo",
-          label: "Demo",
-          position: "left",
-        },
       ],
     },
     colorMode: {
