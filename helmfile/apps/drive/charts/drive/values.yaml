@@ -511,14 +511,24 @@ drive:
     replicas: 1
     command: []
     resources: {}
-    args: ["celery", "-A", "drive.celery_app", "beat", "-l", "INFO"]
+    args: ["celery", "-A", "drive.celery_app", "beat", "-l", "INFO", "--schedule=/tmp/celerybeat-schedule"]
     probes:
       liveness:
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        timeoutSeconds: 2
+        failureThreshold: 3
+        successThreshold: 1
         exec:
-          command: ["/bin/sh", "-c", "celery -A drive.celery_app inspect ping"]
+          command: ["/bin/sh", "-c", "pgrep -f 'celery.*beat'"]
       readiness:
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        timeoutSeconds: 2
+        failureThreshold: 3
+        successThreshold: 1
         exec:
-          command: ["/bin/sh", "-c", "celery -A drive.celery_app inspect ping"]
+          command: ["/bin/sh", "-c", "pgrep -f 'celery.*beat'"]
   secretKey: ""
   languageCode: "en-us"
   CSRFTrustedOrigins: ""
