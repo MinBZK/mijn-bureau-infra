@@ -30,7 +30,6 @@ global:
     ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
     ##
     omitEmptySeLinuxOptions: false
-
 ## @section Common parameters
 
 ## @param kubeVersion Override Kubernetes version reported by .Capabilities
@@ -71,7 +70,6 @@ diagnosticMode:
     - sleep
   args:
     - infinity
-
 ## @section Backend Parameters
 ##
 
@@ -90,7 +88,7 @@ backend:
   image:
     registry: ghcr.io
     repository: minbzk/bureaublad-api
-    tag: v0.1.0
+    tag: v0.6.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -227,7 +225,6 @@ backend:
       drop: ["ALL"]
     seccompProfile:
       type: "RuntimeDefault"
-
   ## @param backend.existingConfigmap The name of an existing ConfigMap with your custom configuration for backend
   ##
   existingConfigmap: ""
@@ -521,7 +518,6 @@ backend:
   ## @extra backend.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
   ## @skip backend.envVars
   envVars: ~
-
 ## @section Frontend Parameters
 ##
 
@@ -677,7 +673,6 @@ frontend:
       drop: ["ALL"]
     seccompProfile:
       type: "RuntimeDefault"
-
   ## @param frontend.existingConfigmap The name of an existing ConfigMap with your custom configuration for frontend
   ##
   existingConfigmap: ""
@@ -989,8 +984,6 @@ frontend:
   ## @extra backend.envVars.FROM_SECRET.secretKeyRef.key Key within a Secret when configuring env vars from a Secret
   ## @skip backend.envVars
   envVars: ~
-
-
 ## @section Traffic Exposure Parameters
 ##
 
@@ -1102,7 +1095,6 @@ ingress:
   ##             name: http
   ##
   extraRules: []
-
 ## @section Other Parameters
 ##
 
@@ -1123,7 +1115,6 @@ serviceAccount:
   ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
   ##
   automountServiceAccountToken: true
-
 ## Prometheus metrics
 ##
 metrics:
