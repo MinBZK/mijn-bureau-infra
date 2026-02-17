@@ -75,9 +75,13 @@ extraDeploy:
     data:
       iframe-hide.css: |
         /* Hide profile/logout buttons when embedded in iframe */
-        /* TODO: Add actual selectors for LaSuite drive app */
         .profile-button,
         .logout-button {
+          display: none !important;
+        }
+
+        /* Hide logo - shown via bureaublad */
+        .drive__header__logo {
           display: none !important;
         }
 
