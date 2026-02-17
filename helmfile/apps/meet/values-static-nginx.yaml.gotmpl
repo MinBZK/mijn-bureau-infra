@@ -79,6 +79,50 @@ extraDeploy:
           display: none !important;
         }
 
+        /* Hide logo - shown via bureaublad */
+        .Header-logo {
+          display: none !important;
+        }
+
+        /* Use Inter font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        *:not(.material-icons):not(.material-icons-outlined):not(.material-symbols-outlined) {
+          font-family: 'Inter', sans-serif !important;
+        }
+
+        /* Override primary/blue colors to Rijksoverheid logoblauw (#154273) */
+        :root, :host {
+          --colors-blue-50: #e8edf4 !important;
+          --colors-blue-100: #d1dbe9 !important;
+          --colors-blue-200: #a3b7d3 !important;
+          --colors-blue-300: #7593bd !important;
+          --colors-blue-400: #476fa7 !important;
+          --colors-blue-500: #305d9c !important;
+          --colors-blue-600: #1d4f8a !important;
+          --colors-blue-700: #154273 !important;
+          --colors-blue-800: #0f3052 !important;
+          --colors-blue-900: #091e31 !important;
+          --colors-blue-950: #05121b !important;
+          --colors-primary: #154273 !important;
+          --colors-primary-hover: #0f3052 !important;
+          --colors-primary-active: #091e31 !important;
+          --colors-primary-subtle: #e8edf4 !important;
+          --colors-primary-subtle-text: #154273 !important;
+          --colors-primary-warm: #7593bd !important;
+          --colors-primary-50: #e8edf4 !important;
+          --colors-primary-100: #d1dbe9 !important;
+          --colors-primary-200: #a3b7d3 !important;
+          --colors-primary-300: #7593bd !important;
+          --colors-primary-400: #476fa7 !important;
+          --colors-primary-500: #305d9c !important;
+          --colors-primary-600: #1d4f8a !important;
+          --colors-primary-700: #154273 !important;
+          --colors-primary-800: #0f3052 !important;
+          --colors-primary-900: #091e31 !important;
+          --colors-primary-950: #05121b !important;
+        }
+
 ## @param commonLabels Add labels to all the deployed resources
 ##
 commonLabels:

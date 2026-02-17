@@ -89,6 +89,51 @@ extraDeploy:
           display: none !important;
         }
 
+        /* Hide logo - shown via bureaublad */
+        [data-testid="header-logo-link"],
+        a[href="/"] svg[aria-label="Assistant Logo"] {
+          display: none !important;
+        }
+
+        /* Push remaining header buttons to the right */
+        .--docs--header-block-right {
+          margin-left: auto !important;
+        }
+
+        /* Use Inter font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        *:not(.material-icons):not(.material-icons-outlined):not(.material-symbols-outlined) {
+          font-family: 'Inter', sans-serif !important;
+        }
+
+        /* Override brand colors to Rijksoverheid logoblauw (#154273) */
+        :root {
+          --c--globals--colors--brand-050: #e8edf4 !important;
+          --c--globals--colors--brand-100: #d1dbe9 !important;
+          --c--globals--colors--brand-150: #bac9de !important;
+          --c--globals--colors--brand-200: #a3b7d3 !important;
+          --c--globals--colors--brand-250: #8ca5c8 !important;
+          --c--globals--colors--brand-300: #7593bd !important;
+          --c--globals--colors--brand-350: #5e81b2 !important;
+          --c--globals--colors--brand-400: #476fa7 !important;
+          --c--globals--colors--brand-450: #305d9c !important;
+          --c--globals--colors--brand-500: #154273 !important;
+          --c--globals--colors--brand-550: #133c68 !important;
+          --c--globals--colors--brand-600: #11365d !important;
+          --c--globals--colors--brand-650: #0f3052 !important;
+          --c--globals--colors--brand-700: #0d2a47 !important;
+          --c--globals--colors--brand-750: #0b243c !important;
+          --c--globals--colors--brand-800: #091e31 !important;
+          --c--globals--colors--brand-850: #071826 !important;
+          --c--globals--colors--brand-900: #05121b !important;
+          --c--globals--colors--brand-950: #030c10 !important;
+          --c--globals--colors--logo-1-light: #154273 !important;
+          --c--globals--colors--logo-2-light: #154273 !important;
+          --c--globals--colors--logo-1-dark: #476fa7 !important;
+          --c--globals--colors--logo-2-dark: #476fa7 !important;
+        }
+
 ## @param commonLabels Add labels to all the deployed resources
 ##
 commonLabels:
