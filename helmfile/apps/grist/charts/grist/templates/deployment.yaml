@@ -128,7 +128,7 @@ spec:
             - name: GRIST_DEFAULT_EMAIL
               value: {{ .Values.adminEmail | quote }}
             - name: REDIS_URL
-              value: "redis://default:{{ .Values.externalRedis.password }}@{{ .Values.externalRedis.host }}:{{ .Values.externalRedis.port }}"
+              value: "redis://{{ .Values.externalRedis.username }}:{{ .Values.externalRedis.password }}@{{ .Values.externalRedis.host }}:{{ .Values.externalRedis.port }}"
             - name: GRIST_DOCS_MINIO_ACCESS_KEY
               value: {{ .Values.externalMinio.accessKey | quote }}
             - name: GRIST_DOCS_MINIO_SECRET_KEY
