@@ -89,7 +89,7 @@ backend:
     {{- end }}
     {{- if .Values.ai.llm.endpoint.host }}
     AI_API_KEY: {{ .Values.ai.llm.apiKey | quote }}
-    AI_URL: {{ printf "http%s://%s:%d/%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.openApiVersion | quote }}
+    AI_URL: {{ printf "http%s://%s:%d/%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.path | quote }}
     AI_MODEL: {{ .Values.ai.llm.model | quote }}
     {{- end }}
     THEME_CSS_URL: ""
