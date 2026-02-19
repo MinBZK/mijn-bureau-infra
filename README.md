@@ -45,15 +45,14 @@ MijnBureau already offers a rich set of features, with a strong focus on collabo
 - Self-hosted AI language models
 - Integrated identity management
 - Project management
+- AI Assistant
+- Video conferencing
+- User Portal
 
 We are actively expanding the suite and plan to add even more capabilities, including:
 
-- AI Assistant
-- Discussion forum
-- Video conferencing
 - Password manager
 - Email
-- User Portal
 - Admin Portal
 
 ## Commit Conventions
