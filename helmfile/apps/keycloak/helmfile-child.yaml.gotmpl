@@ -11,7 +11,7 @@ releases:
     installed: {{ .Values.application.keycloak.enabled }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) }}
     needs:
-      - {{ if .Values.application.keycloak.namespace }}{{ .Values.application.keycloak.namespace }}/{{ end }}keycloak-postgresql
+      - keycloak-postgresql
     {{- end }}
     values:
       - keycloak.yaml.gotmpl
