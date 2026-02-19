@@ -105,7 +105,7 @@ backend:
     {{- if .Values.ai.llm.endpoint.host }}
     AI_ALLOW_REACH_FROM: "authenticated"
     AI_API_KEY: {{ .Values.ai.llm.apiKey | quote }}
-    AI_BASE_URL: {{ printf "http%s://%s:%d/%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.openApiVersion }}
+    AI_BASE_URL: {{ printf "http%s://%s:%d/%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.path }}
     AI_MODEL: {{ .Values.ai.llm.model | quote }}
     {{- end }}
     API_USERS_LIST_LIMIT: "5"
