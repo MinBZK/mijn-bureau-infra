@@ -79,6 +79,11 @@ extraDeploy:
           display: none !important;
         }
 
+        /* Hide logout link in settings dialog */
+        section[role="dialog"] h2 + p + p:has(> span[role="link"]) {
+          display: none !important;
+        }
+
 ## @param commonLabels Add labels to all the deployed resources
 ##
 commonLabels:
