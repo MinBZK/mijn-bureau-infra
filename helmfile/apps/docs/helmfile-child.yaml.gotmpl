@@ -53,7 +53,7 @@ releases:
     {{- if .Values.application.docs.namespace }}
     namespace: {{ .Values.application.docs.namespace }}
     {{- end }}
-    installed: {{ and .Values.application.docs.enabled (eq .Values.cluster.ingress.type "haproxy-openshift") | toYaml }}
+    installed: {{ .Values.application.docs.enabled | toYaml }}
     needs:
       - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs
     values:
