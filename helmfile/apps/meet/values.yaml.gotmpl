@@ -85,9 +85,16 @@ ingress:
     {{- end }}
 
 externalLivekit:
+  {{- if .Values.application.livekit.enabled }}
+  {{- $keyName := .Values.application.livekit.keys | keys | first }}
+  apiKey: {{ coalesce .Values.livekit.meet.apiKey $keyName | quote }}
+  apiSecret: {{ coalesce .Values.livekit.meet.apiSecret (index .Values.application.livekit.keys $keyName) | quote }}
+  apiUrl: {{ coalesce .Values.livekit.meet.apiURL (printf "https://%s.%s" .Values.global.hostname.livekit .Values.global.domain) | quote }}
+  {{- else }}
   apiKey: {{ .Values.livekit.meet.apiKey | quote }}
   apiSecret: {{ .Values.livekit.meet.apiSecret | quote }}
   apiUrl: {{ .Values.livekit.meet.apiURL | quote }}
+  {{- end }}
 
 externalRedis:
   host: {{ .Values.cache.meet.host | quote }}
