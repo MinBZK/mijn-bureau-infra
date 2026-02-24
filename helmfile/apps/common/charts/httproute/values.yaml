@@ -1,0 +1,22 @@
+ingress:
+  hostname: ""
+
+# serviceName and servicePort must point to the Service created by the upstream chart
+# serviceName is also used for app.kubernetes.io/* labels
+serviceName: ""
+servicePort: 80
+
+cluster:
+  # routingMode selects the routing technology.
+  # Allowed values: ingress, gateway-api.
+  routingMode: ingress
+
+  ingress:
+    annotations: {}
+
+  gateway:                # Gateway API config (used when routingMode = gateway-api)
+    name: mijnbureau-gateway
+    namespace: ""         # defaults to same namespace as the route
+
+  tls:
+    selfSigned: false

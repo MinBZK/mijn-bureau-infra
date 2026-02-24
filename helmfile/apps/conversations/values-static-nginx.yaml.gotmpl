@@ -6,7 +6,7 @@
 ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
 ## Current available global Docker image parameters: imageRegistry, imagePullSecrets and storageClass
 
-{{- $hostname := printf "static-%s.%s" .Values.global.hostname.conversations .Values.global.domain }}
+{{- $hostname := printf "%s.%s" (index .Values.global.hostname "conversations-static") .Values.global.domain }}
 
 ## @param global.imageRegistry Global Docker image registry
 ## @param global.imagePullSecrets Global Docker registry secret names as an array

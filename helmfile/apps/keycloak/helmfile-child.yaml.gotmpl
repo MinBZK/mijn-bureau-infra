@@ -14,6 +14,7 @@ releases:
       - {{ if .Values.application.keycloak.namespace }}{{ .Values.application.keycloak.namespace }}/{{ end }}keycloak-postgresql
     {{- end }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - keycloak.yaml.gotmpl
 
   - name: "keycloak-postgresql"

@@ -1,0 +1,25 @@
+{{- /*
+One cert-manager Certificate per hostname.
+Each Certificate triggers an HTTP-01 ACME challenge and provisions a TLS Secret
+that is referenced by the single 'https' listener in gateway.yaml.
+*/}}
+{{- if .Values.certManagerClusterIssuer }}
+{{- range .Values.hostnames }}
+{{- /* Use first 32 chars of sanitized hostname + 8-char hash to guarantee uniqueness
+     while staying within the 63-char Kubernetes name limit (4 + 32 + 1 + 8 = 45). */}}
+{{- $sanitized := printf "%s-%s" (. | replace "." "-" | trunc 32) (. | sha256sum | trunc 8) }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ printf "tls-%s" $sanitized }}
+  namespace: {{ $.Values.namespace | default $.Release.Namespace | quote }}
+spec:
+  secretName: {{ printf "tls-%s" $sanitized }}
+  issuerRef:
+    name: {{ $.Values.certManagerClusterIssuer }}
+    kind: ClusterIssuer
+  dnsNames:
+    - {{ . | quote }}
+{{- end }}
+{{- end }}

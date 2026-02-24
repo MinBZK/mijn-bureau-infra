@@ -1,0 +1,21 @@
+{{- /*
+HTTPRoute that redirects all HTTP traffic to HTTPS.
+Attached to the 'http' listener on port 80 of the Gateway.
+No hostnames filter — matches all hostnames on the listener unconditionally.
+*/}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .Values.name }}-http-redirect
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+spec:
+  parentRefs:
+    - name: {{ .Values.name }}
+      namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+      sectionName: http
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301

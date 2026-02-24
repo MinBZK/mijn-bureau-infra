@@ -1,0 +1,26 @@
+{{- /*
+Passes cluster.routingMode, cluster.ingress.*, cluster.gateway.*, and cluster.tls.*
+values into Helm chart context so templates can reference .Values.cluster.routingMode,
+.Values.cluster.ingress.*, .Values.cluster.gateway.*, .Values.cluster.tls.selfSigned, etc.
+*/}}
+cluster:
+  routingMode: {{ .Values.cluster.routingMode | default "ingress" | quote }}
+  ingress:
+    type: {{ .Values.cluster.ingress.type | default "nginx" | quote }}
+    className: {{ .Values.cluster.ingress.className | default "" | quote }}
+    {{- with .Values.cluster.ingress.annotations }}
+    annotations: {{ . | toYaml | nindent 6 }}
+    {{- end }}
+  {{- with .Values.cluster.gateway }}
+  gateway:
+    name: {{ .name | default "" | quote }}
+    namespace: {{ .namespace | default "" | quote }}
+    className: {{ .className | default "" | quote }}
+    certManagerClusterIssuer: {{ .certManagerClusterIssuer | default "" | quote }}
+    allowedRoutesNamespacesFrom: {{ .allowedRoutesNamespacesFrom | default "All" | quote }}
+    {{- with .annotations }}
+    annotations: {{ . | toYaml | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  tls:
+    selfSigned: {{ ((.Values.global.tls | default dict).selfSigned | default false) }}

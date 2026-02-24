@@ -14,6 +14,7 @@ releases:
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-postgresql
     {{- end }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"
 
   - name: meet-postgresql
@@ -44,4 +45,5 @@ releases:
     {{- end }}
     installed: {{ .Values.application.meet.enabled | toYaml }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-static-nginx.yaml.gotmpl"

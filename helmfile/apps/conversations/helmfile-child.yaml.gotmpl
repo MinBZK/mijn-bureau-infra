@@ -9,6 +9,7 @@ releases:
     namespace: {{ .Values.application.conversations.namespace | quote }}
     {{- end }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-conversations.yaml.gotmpl"
     {{- if and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) }}
     needs:
@@ -44,4 +45,5 @@ releases:
     {{- end }}
     installed: {{ .Values.application.conversations.enabled | toYaml }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-static-nginx.yaml.gotmpl"

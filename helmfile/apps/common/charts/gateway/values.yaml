@@ -1,0 +1,29 @@
+# Gateway API Gateway resource values
+
+# Name of the Gateway resource
+name: mijnbureau-gateway
+
+# gatewayClassName — must match your installed Gateway API controller
+# e.g. nginx, cilium, envoy-gateway, istio, etc.
+gatewayClassName: ""
+
+# Namespace where the Gateway resource is deployed
+# Defaults to the release namespace
+namespace: ""
+
+# Annotations to add to the Gateway resource
+annotations: {}
+
+# List of hostnames that this gateway serves (used for TLS listener certificateRefs)
+# Each entry becomes a separate TLS listener hostname
+hostnames: []
+
+# cert-manager cluster issuer name for TLS certificate provisioning
+# When set, Certificate resources are created for each hostname using this issuer.
+certManagerClusterIssuer: ""
+
+# allowedRoutes.namespaces.from for both HTTP and HTTPS listeners.
+# "All"      — HTTPRoutes in any namespace may attach (default; required when apps use per-app namespaces)
+# "Selector" — HTTPRoutes in namespaces matching a label selector may attach (recommended for shared clusters)
+# "Same"     — only HTTPRoutes in the same namespace as the Gateway may attach (only viable if all apps share one namespace)
+allowedRoutesNamespacesFrom: All

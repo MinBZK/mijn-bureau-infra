@@ -1,0 +1,33 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if eq .Values.cluster.routingMode "gateway-api" }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.serviceName }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: {{ .Values.serviceName }}
+    app.kubernetes.io/part-of: {{ .Values.serviceName }}
+  {{- include "common.httproute.annotations" . | nindent 2 }}
+spec:
+  parentRefs:
+    {{- include "common.httproute.parentRef" .Values.cluster.gateway | nindent 4 }}
+  hostnames:
+    - {{ .Values.ingress.hostname | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        {{- include "common.httproute.hstsFilter" . | nindent 8 }}
+      backendRefs:
+        - name: {{ .Values.serviceName }}
+          port: {{ .Values.servicePort }}
+{{- end }}

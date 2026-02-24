@@ -19,10 +19,12 @@ helmfiles:
 ---
 
 helmfiles:
-  - path: "helmfile/apps/keycloak/helmfile-child.yaml.gotmpl"
+  - path: "helmfile/apps/common/helmfile-gateway.yaml.gotmpl"
     values: &appvalues
       - "helmfile/environments/default/*.yaml*"
       - {{ toYaml .Values | nindent 8 }}
+  - path: "helmfile/apps/keycloak/helmfile-child.yaml.gotmpl"
+    values: *appvalues
   - path: "helmfile/apps/ollama/helmfile-child.yaml.gotmpl"
     values: *appvalues
   - path: "helmfile/apps/clamav/helmfile-child.yaml.gotmpl"

@@ -1,0 +1,12 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: gateway
+    chart: ../common/charts/gateway
+    installed: {{ eq .Values.cluster.routingMode "gateway-api" | toYaml }}
+    {{- if .Values.cluster.gateway.namespace }}
+    namespace: {{ .Values.cluster.gateway.namespace | quote }}
+    {{- end }}
+    values:
+      - "values-gateway.yaml.gotmpl"

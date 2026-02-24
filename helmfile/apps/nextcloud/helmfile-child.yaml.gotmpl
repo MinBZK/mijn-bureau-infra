@@ -30,6 +30,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-minio.yaml.gotmpl"
 
   - name: nextcloud
@@ -45,4 +46,5 @@ releases:
       - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-minio
     {{- end }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"

@@ -3,7 +3,7 @@
 SPDX-License-Identifier: EUPL-1.2
 */}}
 
-{{- if .Values.ingress.enabled }}
+{{- if eq .Values.cluster.routingMode "ingress" }}
 apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:

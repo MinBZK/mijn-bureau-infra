@@ -1,0 +1,31 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if eq .Values.cluster.routingMode "gateway-api" }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: grist
+    app.kubernetes.io/part-of: grist
+  {{- include "common.httproute.annotations" . | nindent 2 }}
+spec:
+  parentRefs:
+    {{- include "common.httproute.parentRef" .Values.cluster.gateway | nindent 4 }}
+  hostnames:
+    - {{ .Values.ingress.hostname | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        {{- include "common.httproute.hstsFilter" . | nindent 8 }}
+      backendRefs:
+        - name: {{ template "common.names.fullname" . }}
+          port: {{ .Values.service.ports.http }}
+{{- end }}

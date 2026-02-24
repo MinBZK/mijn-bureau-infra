@@ -30,6 +30,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") (.Values.application.docs.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-minio.yaml.gotmpl"
 
   - name: docs
@@ -45,6 +46,7 @@ releases:
       - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs-minio
     {{- end }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"
 
   - name: docs-nginx
@@ -57,6 +59,7 @@ releases:
     needs:
       - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-nginx.yaml.gotmpl"
 
   - name: docs-static
@@ -67,4 +70,5 @@ releases:
     {{- end }}
     installed: {{ .Values.application.docs.enabled | toYaml }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-static-nginx.yaml.gotmpl"

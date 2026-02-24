@@ -14,3 +14,4 @@ deny contains msg if {
   input.metadata.annotations["cert-manager.io/cluster-issuer"] != "test-cert-issuer"
   msg := "cluster.certificate.issuer value not propagated correctly to Ingress annotations"
 }
+

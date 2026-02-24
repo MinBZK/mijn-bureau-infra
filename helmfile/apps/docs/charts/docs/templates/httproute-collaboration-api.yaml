@@ -1,0 +1,32 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if eq .Values.cluster.routingMode "gateway-api" }}
+{{- if .Values.ingressCollaborationApi.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ template "docs.yProvider.fullname" . }}-api
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: y-provider
+  {{- include "common.httproute.annotations" . | nindent 2 }}
+spec:
+  parentRefs:
+    {{- include "common.httproute.parentRef" .Values.cluster.gateway | nindent 4 }}
+  hostnames:
+    - {{ .Values.ingressCollaborationApi.hostname | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: {{ .Values.ingressCollaborationApi.path | default "/collaboration/api/" | quote }}
+      filters:
+        {{- include "common.httproute.hstsFilter" . | nindent 8 }}
+      backendRefs:
+        - name: {{ include "docs.yProvider.fullname" . }}
+          port: {{ .Values.yProvider.service.ports.http }}
+{{- end }}
+{{- end }}
