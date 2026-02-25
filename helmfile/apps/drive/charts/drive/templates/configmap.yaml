@@ -53,3 +53,5 @@ data:
   WOPI_COLLABORA_DISCOVERY_URL: {{ .Values.drive.collaborDiscoveryUrl | quote }}
   MEDIA_BASE_URL: "{{ .Values.drive.baseUrl }}"
   FRONTEND_FEEDBACK_BUTTON_SHOW: "false"
+  FRONTEND_SILENT_LOGIN_ENABLED: "true"
+  
