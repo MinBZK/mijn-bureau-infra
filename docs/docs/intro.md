@@ -45,10 +45,10 @@ We are actively expanding the suite with plans to include:
 MijnBureau currently includes the following key components:
 
 | Feature            | Functional Component | Component Version                                                                   | Upstream Documentation                                                               | LICENSE    |
-| ------------------ | -------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------- |
+| ------------------ | -------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------- | --- |
 | Identity Provider  | Keycloak             | [26.3.3](https://github.com/keycloak/keycloak/releases/tag/26.3.3)                  | [documentation](https://www.keycloak.org/documentation)                              | Apache-2.0 |
 | Chat               | Element Synapse      | [v1.147.1](https://github.com/element-hq/synapse/releases/tag/v1.147.1)             | [documentation](https://element-hq.github.io/synapse/latest/)                        | AGPL-3.0   |
-| Chat UI            | Element Web          | [v1.12.10](https://github.com/element-hq/element-web/releases/tag/v1.12.10)           | [documentation](https://element.io/)                                                 | AGPL-3.0   |
+| Chat UI            | Element Web          | [v1.12.10](https://github.com/element-hq/element-web/releases/tag/v1.12.10)         | [documentation](https://element.io/)                                                 | AGPL-3.0   |
 | File sharing       | Nextcloud            | [v32.0.6](https://github.com/nextcloud/server/tree/v32.0.6)                         | [documentation](https://nextcloud.com/)                                              | AGPL-3.0   |
 | AI LLM             | Ollama               | [v0.17.0](https://github.com/ollama/ollama/tree/v0.17.0)                            | [documentation](https://ollama.com/)                                                 | MIT        |
 | Spreadsheet        | Grist                | [v1.7.10](https://github.com/gristlabs/grist-core/tree/v1.7.10)                     | [documentation](https://support.getgrist.com/self-managed/)                          | Apache-2.0 |
