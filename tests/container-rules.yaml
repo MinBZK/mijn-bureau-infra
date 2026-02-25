@@ -71,6 +71,10 @@ container:
     registry: ""
     imagePullSecret: ""
 
+  docspec:
+    registry: ""
+    imagePullSecret: ""
+
   docs:
     registry: ""
     imagePullSecret: ""

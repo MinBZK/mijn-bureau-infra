@@ -147,6 +147,9 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: logo-volume
+              mountPath: /usr/share/nginx/html/assets/logo_beta.svg
+              subPath: logo_beta.svg
           {{- if .Values.drive_frontend.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.drive_frontend.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
@@ -156,6 +159,9 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
+        - name: logo-volume
+          configMap:
+            name: drive-logo
         {{- if .Values.drive_frontend.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.drive_frontend.extraVolumes "context" $) | nindent 8 }}
         {{- end }}

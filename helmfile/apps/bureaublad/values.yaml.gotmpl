@@ -78,18 +78,30 @@ backend:
     OIDC_EMAIL_CLAIM: {{ .Values.authentication.oidc.claims.email | default "email" | quote }}
     OIDC_SCOPES: "openid email profile"
     OIDC_SIGNATURE_ALGORITM: "RS256"
+    {{- if .Values.application.nextcloud.enabled }}
     OCS_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.nextcloud .Values.global.domain }}
+    {{- end }}
+    {{- if .Values.application.drive.enabled }}
     DRIVE_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.drive .Values.global.domain | quote }}
+    {{- end }}
+    {{- if .Values.application.meet.enabled }}
     MEET_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.meet .Values.global.domain | quote }}
+    {{- end }}
+    {{- if .Values.application.grist.enabled }}
     GRIST_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.grist .Values.global.domain | quote }}
+    {{- end }}
+    {{- if .Values.application.conversations.enabled }}
     CONVERSATION_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.conversations .Values.global.domain | quote }}
+    {{- end }}
+    {{- if .Values.application.docs.enabled }}
     DOCS_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.docs .Values.global.domain | quote }}
+    {{- end }}
     {{- if .Values.application.element.enabled }}
     MATRIX_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.element .Values.global.domain | quote }}
     {{- end }}
     {{- if .Values.ai.llm.endpoint.host }}
     AI_API_KEY: {{ .Values.ai.llm.apiKey | quote }}
-    AI_URL: {{ printf "http%s://%s:%d/%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.openApiVersion | quote }}
+    AI_URL: {{ printf "http%s://%s:%d/%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.path | quote }}
     AI_MODEL: {{ .Values.ai.llm.model | quote }}
     {{- end }}
     THEME_CSS_URL: ""

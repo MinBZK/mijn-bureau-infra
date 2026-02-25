@@ -31,7 +31,7 @@ pdb: {{ .Values.pdb.grist | toYaml | nindent 2 }}
 ai:
   enabled: true
 {{- if .Values.ai.llm.endpoint.host }}
-  endpoint: {{ printf "http%s://%s:%d/%s/chat/completions" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.openApiVersion | quote }}
+  endpoint: {{ printf "http%s://%s:%d/%s/chat/completions" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.path | quote }}
 {{- end }}
 {{- if .Values.ai.llm.model }}
   model: {{ .Values.ai.llm.model | quote }}
