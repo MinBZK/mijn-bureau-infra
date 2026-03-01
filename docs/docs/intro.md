@@ -45,7 +45,7 @@ We are actively expanding the suite with plans to include:
 MijnBureau currently includes the following key components:
 
 | Feature            | Functional Component | Component Version                                                                   | Upstream Documentation                                                               | LICENSE    |
-| ------------------ | -------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------- | --- |
+| ------------------ | -------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------- |
 | Identity Provider  | Keycloak             | [26.3.3](https://github.com/keycloak/keycloak/releases/tag/26.3.3)                  | [documentation](https://www.keycloak.org/documentation)                              | Apache-2.0 |
 | Chat               | Element Synapse      | [v1.147.1](https://github.com/element-hq/synapse/releases/tag/v1.147.1)             | [documentation](https://element-hq.github.io/synapse/latest/)                        | AGPL-3.0   |
 | Chat UI            | Element Web          | [v1.12.10](https://github.com/element-hq/element-web/releases/tag/v1.12.10)         | [documentation](https://element.io/)                                                 | AGPL-3.0   |
@@ -57,7 +57,7 @@ MijnBureau currently includes the following key components:
 | Office             | Collabora            | [v25.04.9.1.1](https://github.com/CollaboraOnline/online/releases/tag/cp-25.04.9-1) | [documentation](https://sdk.collaboraonline.com/docs/installation/index.html)        | MPL-2.0    |
 | Video backend      | Livekit              | [v1.9.11](https://github.com/livekit/livekit/releases/tag/v1.9.11)                  | [documentation](https://livekit.io/)                                                 | Apache-2.0 |
 | AI Assistent       | Conversations        | [v0.0.13](https://github.com/suitenumerique/conversations/releases/tag/v0.0.13)     | [documentation](https://github.com/suitenumerique/conversations/blob/main/README.md) | MIT        |
-| Video conferencing | Meet                 | [v1.8.0](https://github.com/suitenumerique/meet/releases/tag/v1.8.0)                | [documentation](https://github.com/suitenumerique/meet/tree/main/docs)               | MIT        |     |
+| Video conferencing | Meet                 | [v1.8.0](https://github.com/suitenumerique/meet/releases/tag/v1.8.0)                | [documentation](https://github.com/suitenumerique/meet/tree/main/docs)               | MIT        |
 | Bureaublad         | Startpage            | [v0.5.4](https://github.com/MinBZK/bureaublad/releases/tag/v0.5.4)                  | [documentation](https://github.com/MinBZK/bureaublad)                                | EUPL-1.2   |
 | File sharing       | Drive                | [v0.13.0](https://github.com/suitenumerique/drive/releases/tag/v0.13.0)             | [documentation](https://github.com/suitenumerique/drive/blob/main/README.md)         | MIT        |
 | Antivirus Toolkit  | ClamAV               | [v1.5.1](https://github.com/Cisco-Talos/clamav/releases/tag/clamav-1.5.1)           | [documentation](https://docs.clamav.net/)                                            | GPLv2      |
