@@ -157,6 +157,9 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: llm-config
+              mountPath: /configuration/llm
+              readOnly: true
           {{- if .Values.conversations.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.conversations.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
@@ -166,6 +169,9 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
+        - name: llm-config
+          configMap:
+            name: {{ template "common.names.fullname" . }}-llm-config
         {{- if .Values.conversations.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.conversations.extraVolumes "context" $) | nindent 8 }}
         {{- end }}
