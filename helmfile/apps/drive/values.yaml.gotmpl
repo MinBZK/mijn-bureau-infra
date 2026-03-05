@@ -40,6 +40,7 @@ drive:
   serverToServerKey: {{ .Values.application.drive.secrettoServerKey | quote }}
   baseUrl: "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
   externalMinioAPI: "https://{{ .Values.global.hostname.drive }}-minio.{{ .Values.global.domain }}"
+  frontendCssUrl: "https://static-{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/iframe-hide.css"
 
   {{ if .Values.application.collabora.enabled }}
   wopiClients: "collabora"

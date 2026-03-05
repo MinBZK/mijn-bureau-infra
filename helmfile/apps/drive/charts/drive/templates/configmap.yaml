@@ -54,4 +54,5 @@ data:
   MEDIA_BASE_URL: "{{ .Values.drive.baseUrl }}"
   FRONTEND_FEEDBACK_BUTTON_SHOW: "false"
   FRONTEND_SILENT_LOGIN_ENABLED: "true"
+  FRONTEND_CSS_URL: {{ .Values.drive.frontendCssUrl | quote }}
   
