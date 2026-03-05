@@ -1,0 +1,7 @@
+ingress:
+  enabled: {{ .Values.application.openproject.enabled | toYaml }}
+  hostname: {{ printf "%s.%s" .Values.global.hostname.openproject .Values.global.domain | quote }}
+
+# The upstream openproject/openproject chart names its Service after the Helm release name.
+serviceName: "openproject"
+servicePort: 8080

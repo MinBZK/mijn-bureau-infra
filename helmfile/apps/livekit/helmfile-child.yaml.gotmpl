@@ -13,6 +13,7 @@ releases:
       - {{ if .Values.application.livekit.namespace }}{{ .Values.application.livekit.namespace }}/{{ end }}livekit-redis
     {{- end }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"
 
   - name: livekit-redis

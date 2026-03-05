@@ -30,6 +30,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-minio.yaml.gotmpl"
 
   - name: grist
@@ -45,4 +46,5 @@ releases:
       - {{ if .Values.application.grist.namespace }}{{ .Values.application.grist.namespace }}/{{ end }}grist-minio
     {{- end }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"

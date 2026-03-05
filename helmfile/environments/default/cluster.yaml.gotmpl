@@ -8,13 +8,27 @@ cluster:
     serviceSubnet:
       - "10.96.0.0/12"
 
-  ingress:
-    # allowed types are nginx, haproxy-openshift, or none. If you want support for other ingress controllers, please create a PR
-    # nginx: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/
-    # haproxy-openshift: https://docs.redhat.com/en/documentation/openshift_container_platform/4.14/html/networking/configuring-routes
-    type: nginx
+  # routingMode selects the routing technology.
+  # Allowed values: ingress, gateway-api, none.
+  # For ingress mode, set cluster.ingress.type to nginx or haproxy-openshift
+  routingMode: ingress
+
+  ingress:                # ingress config (used when routingMode = ingress)
+    type: nginx           # nginx or haproxy-openshift
     className: ~
+    # Annotations applied to every Ingress resource.
     annotations: ~
 
+  gateway:                # Gateway API config (used when routingMode = gateway-api)
+    name: mijnbureau-gateway
+    namespace: ~   # defaults to same namespace as the route
+    className: ~   # gatewayClassName for the Gateway resource
+    certManagerClusterIssuer: ~
+    # allowedRoutesNamespacesFrom controls which namespaces may attach HTTPRoutes to the Gateway.
+    # Defaults to "All" because MijnBureau supports per-app namespaces.
+    # For shared/production clusters consider "Selector" with an appropriate namespace label.
+    allowedRoutesNamespacesFrom: ~
+    # Annotations applied to every HTTPRoute resource.
+    annotations: ~
   # Runtime class name for sandbox technology such as gvisor or kata
   runtimeClassName: ""

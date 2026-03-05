@@ -23,4 +23,5 @@ releases:
       - {{ if .Values.application.bureaublad.namespace }}{{ .Values.application.bureaublad.namespace }}/{{ end }}bureaublad-redis
     {{- end }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"

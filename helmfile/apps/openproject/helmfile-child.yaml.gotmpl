@@ -34,6 +34,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.openproject.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-minio.yaml.gotmpl"
 
   - name: openproject
@@ -50,4 +51,17 @@ releases:
       - {{ if .Values.application.openproject.namespace }}{{ .Values.application.openproject.namespace }}/{{ end }}openproject-minio
     {{- end }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"
+
+  - name: openproject-httproute
+    chart: ../common/charts/httproute
+    installed: {{ and .Values.application.openproject.enabled (eq .Values.cluster.routingMode "gateway-api") | toYaml }}
+    {{- if .Values.application.openproject.namespace }}
+    namespace: {{ .Values.application.openproject.namespace }}
+    {{- end }}
+    needs:
+      - {{ if .Values.application.openproject.namespace }}{{ .Values.application.openproject.namespace }}/{{ end }}openproject
+    values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values-httproute.yaml.gotmpl"

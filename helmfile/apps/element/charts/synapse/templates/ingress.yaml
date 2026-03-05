@@ -6,7 +6,7 @@ FIXME not all ingresses process regular expressions (OpenShift routes for intsta
 FIXME only csPaths are handled below, path property must also be processed.
 */}}
 
-{{- if .Values.ingress.enabled }}
+{{- if eq .Values.cluster.routingMode "ingress" }}
 {{- $fullName := include "common.names.fullname" . }}
 apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress

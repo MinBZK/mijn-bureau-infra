@@ -1,0 +1,36 @@
+{{- /*
+Gateway API Gateway resource.
+Provides HTTP→HTTPS redirect on port 80 and TLS termination on port 443.
+*/}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ .Values.name }}
+  namespace: {{ .Values.namespace | default .Release.Namespace | quote }}
+  {{- if .Values.annotations }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ .Values.gatewayClassName | quote }}
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: {{ .Values.allowedRoutesNamespacesFrom }}
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          {{- range .Values.hostnames }}
+          {{- $sanitized := printf "%s-%s" (. | replace "." "-" | trunc 32) (. | sha256sum | trunc 8) }}
+          - name: {{ printf "tls-%s" $sanitized }}
+            kind: Secret
+          {{- end }}
+      allowedRoutes:
+        namespaces:
+          from: {{ .Values.allowedRoutesNamespacesFrom }}

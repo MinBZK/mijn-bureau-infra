@@ -1,0 +1,17 @@
+name: {{ .Values.cluster.gateway.name | default "mijnbureau-gateway" | quote }}
+namespace: {{ .Values.cluster.gateway.namespace | default "" | quote }}
+gatewayClassName: {{ .Values.cluster.gateway.className | default "" | quote }}
+allowedRoutesNamespacesFrom: {{ .Values.cluster.gateway.allowedRoutesNamespacesFrom | default "All" | quote }}
+
+{{- $issuer := .Values.cluster.gateway.certManagerClusterIssuer | default "" }}
+{{- if $issuer }}
+certManagerClusterIssuer: {{ $issuer | quote }}
+{{- end }}
+
+hostnames:
+{{- range $key := .Values.global.hostname | keys | sortAlpha }}
+{{- $subdomain := index $.Values.global.hostname $key }}
+{{- if $subdomain }}
+  - {{ printf "%s.%s" $subdomain $.Values.global.domain | quote }}
+{{- end }}
+{{- end }}

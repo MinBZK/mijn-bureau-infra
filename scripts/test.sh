@@ -83,7 +83,6 @@ trap cleanup EXIT INT TERM
 # Run a single test in an isolated environment
 run_single_test() {
   local env_file="$1"
-  local skip_deps="$1"
   local test_name
   local log_file
   local abs_env_file
@@ -107,12 +106,8 @@ run_single_test() {
   rm -f "helmfile/environments/${ENVIRONMENT}/"*.yaml.gotmpl
   cp -f "$abs_env_file" "helmfile/environments/${ENVIRONMENT}/mijnbureau.yaml.gotmpl"
 
-  if [ "$skip_deps" = true ]; then
-    skip_deps_param="--skip-deps"
-  fi
-
   # Use --quiet to suppress verbose "wrote file.yaml" output for cleaner test results
-  if ! helmfile -e "$ENVIRONMENT" template --output-dir="${tmpdir}/output" "$skip_deps_param" --quiet; then
+  if ! helmfile -e "$ENVIRONMENT" template --output-dir="${tmpdir}/output" --skip-deps --quiet; then
     printf -- "${RED}FAILED: Error processing environment file: %s${NC}\n" "$abs_env_file"
     printf -- "${RED}Processing environment %s in %s/output${NC}\n" "$ENVIRONMENT" "$tmpdir"
     exit 1
@@ -152,20 +147,19 @@ run_single_test() {
   rm -rf "$tmpdir"
 }
 
+# Pre-build chart dependencies once so all parallel tests can use --skip-deps
+printf -- "🔧 Building chart dependencies...\n"
+helmfile -e "$ENVIRONMENT" deps
+
 # Start all test processes in parallel
 printf -- "🔄 Initializing test suites...\n"
-first_run_done=false
 for env_file in tests/*.yaml; do
   if [ -f "$env_file" ]; then
     printf -- "   ✓ %s\n" "$(basename "$env_file" .yaml)"
-    run_single_test "$env_file" "$first_run_done" &
+    run_single_test "$env_file" &
     pid=$!
     pids+=("$pid")
     test_names[$pid]=$(basename "$env_file" .yaml)
-    if [ "$first_run_done" = false ]; then
-      wait $pid
-      first_run_done=true
-    fi
   fi
 done
 

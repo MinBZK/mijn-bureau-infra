@@ -3,6 +3,7 @@
 SPDX-License-Identifier: APACHE-2.0
 */}}
 
+{{- if eq .Values.cluster.routingMode "ingress" }}
 {{- if .Values.ingressCollaborationWS.enabled }}
 apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
@@ -53,4 +54,5 @@ spec:
     {{- include "common.tplvalues.render" (dict "value" .Values.ingressCollaborationWS.extraTls "context" $) | nindent 4 }}
     {{- end }}
   {{- end }}
+{{- end }}
 {{- end }}

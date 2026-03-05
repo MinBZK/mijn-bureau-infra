@@ -29,7 +29,6 @@ data:
   {{- if .Values.proxyHeaders }}
   KC_PROXY_HEADERS: {{ .Values.proxyHeaders | quote }}
   {{- end }}
-  {{- if .Values.ingress.enabled }}
   KC_HOSTNAME_STRICT: {{ ternary "true" "false" .Values.hostnameStrict | quote }}
 {{- if .Values.ingress.hostname }}
   {{- $path := tpl .Values.ingress.path . }}
@@ -38,7 +37,6 @@ data:
   {{- end }}
   KC_HOSTNAME: {{ printf "%s://%s%s" (ternary "https" "http" (or .Values.ingress.tls (not (empty .Values.proxyHeaders)))) (tpl .Values.ingress.hostname .) $path | quote }}
   {{- end }}
-{{- end }}
   KC_METRICS_ENABLED: {{ ternary "true" "false" .Values.metrics.enabled | quote }}
   KC_DB_URL: {{ printf "jdbc:postgresql://%s:%d/%s?currentSchema=%s%s" (include "keycloak.database.host" .) (include "keycloak.database.port" . | int) (include "keycloak.database.name" .) (include "keycloak.database.schema" .) (include "keycloak.database.extraParams" .) | quote }}
   KC_DB_SCHEMA: {{ include "keycloak.database.schema" . | quote }}

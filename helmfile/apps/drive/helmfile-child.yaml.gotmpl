@@ -30,6 +30,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-minio.yaml.gotmpl"
 
   - name: drive
@@ -45,6 +46,7 @@ releases:
       - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-minio
     {{- end }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"
 
   - name: drive-nginx
@@ -57,6 +59,7 @@ releases:
     needs:
       - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-nginx.yaml.gotmpl"
 
   - name: drive-static
@@ -67,4 +70,5 @@ releases:
     {{- end }}
     installed: {{ .Values.application.drive.enabled | toYaml }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-static-nginx.yaml.gotmpl"

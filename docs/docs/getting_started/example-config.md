@@ -195,9 +195,38 @@ cluster:
     serviceSubnet:
       - "10.96.0.0/12"
 
-  ingress:
-    type: nginx
+  # Routing mode — selects how ingress traffic reaches the applications.
+  # Allowed values: ingress (default), gateway-api, none
+  routingMode: ingress
+
+  ingress: # used when routingMode = ingress
+    type: nginx # nginx or haproxy-openshift
     className: ~
+    annotations: ~
+```
+
+### Gateway API Configuration
+
+If your cluster runs a [Gateway API](https://gateway-api.sigs.k8s.io/) controller, you can use `gateway-api` as the routing mode instead. MijnBureau will then deploy a shared `Gateway` resource and create `HTTPRoute` objects for all applications rather than `Ingress` objects.
+
+```yaml
+cluster:
+  routingMode: gateway-api
+
+  gateway:
+    # Name of the shared Gateway resource (default: mijnbureau-gateway)
+    name: mijnbureau-gateway
+    # Namespace for the Gateway resource — defaults to the release namespace
+    namespace: ~
+    # Must match the installed Gateway API controller (e.g. nginx, cilium, envoy-gateway, istio)
+    className: nginx
+    # cert-manager ClusterIssuer used to provision TLS certificates
+    certManagerClusterIssuer: letsencrypt-prod
+    # Which namespaces may attach HTTPRoutes to the Gateway.
+    # "All" is required when apps run in per-app namespaces (the default).
+    # For shared/production clusters consider "Selector" with an appropriate label.
+    allowedRoutesNamespacesFrom: All
+    # Annotations applied to the Gateway resource
     annotations: ~
 ```
 
@@ -281,7 +310,9 @@ ai:
 
 ## TLS Setup
 
-Specify TLS settings for ingress:
+### Ingress mode
+
+Specify TLS settings per application:
 
 ```yaml
 tls:
@@ -290,7 +321,7 @@ tls:
         - keycloak.mijnbureau.internal
 ```
 
-Add cert-manager annotations if needed:
+Add cert-manager annotations to provision certificates automatically:
 
 ```yaml
 cluster:
@@ -298,6 +329,14 @@ cluster:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
 ```
+
+### Gateway API mode
+
+In Gateway API mode, certificates are provisioned centrally via the `cluster.gateway.certManagerClusterIssuer` setting. No per-application TLS configuration or annotations are needed — the shared `Gateway` resource handles TLS termination for all applications.
+
+:::note
+cert-manager requires additional configuration to support Gateway API. See the [cert-manager Gateway API docs](https://cert-manager.io/docs/usage/gateway/) for details.
+:::
 
 ## Customizing Containers
 

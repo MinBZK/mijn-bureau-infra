@@ -626,7 +626,7 @@ ingress:
   ingressClassName: {{ .Values.cluster.ingress.className | quote }}
   ## @param ingress.hostname Default host for the ingress resource
   ##
-  hostname: {{ .Values.global.hostname.drive }}-minio.{{ .Values.global.domain }}
+  hostname: {{ index .Values.global.hostname "drive-minio" }}.{{ .Values.global.domain }}
   ## @param ingress.path The Path to MinIO&reg;. You may need to set this to '/*' in order to use this with ALB ingress controllers.
   ##
   path: /
@@ -1331,7 +1331,7 @@ console:
     ingressClassName: {{ .Values.cluster.ingress.className | quote }}
     ## @param console.ingress.hostname Default host for the ingress resource
     ##
-    hostname: {{ .Values.global.hostname.drive }}-minio.{{ .Values.global.domain }}
+    hostname: {{ index .Values.global.hostname "drive-minio" }}.{{ .Values.global.domain }}
     ## @param console.ingress.path The Path to MinIO&reg; Console. You may need to set this to '/*' in order to use this with ALB ingress controllers.
     ##
     path: /

@@ -29,6 +29,7 @@ releases:
     namespace: {{ .Values.application.element.namespace | quote }}
     {{- end }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-element-web.yaml.gotmpl"
 
   - name: synapse
@@ -43,4 +44,5 @@ releases:
       - {{ if .Values.application.element.namespace }}{{ .Values.application.element.namespace }}/{{ end }}element-redis
     {{- end }}
     values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-synapse.yaml.gotmpl"

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: gateway
+description: Kubernetes Gateway API Gateway resource for mijn-bureau
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
