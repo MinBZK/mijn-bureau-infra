@@ -88,7 +88,7 @@ backend:
   image:
     registry: docker.io
     repository: lasuite/impress-backend
-    tag: "v4.5.0"
+    tag: "v4.6.0"
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1029,7 +1029,7 @@ frontend:
   image:
     registry: docker.io
     repository: lasuite/impress-frontend
-    tag: v4.5.0
+    tag: v4.6.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1488,7 +1488,6 @@ frontend:
     serviceWorkerDeactivated: false
     ## @param frontend.configuration.publishAsMit Removes packages whose licences are incompatible with the MIT licence (xl-docx-exporter: GPL, xl-pdf-exporter: GPL, xl-multi-column: GPL)
     publishAsMit: true
-
 ## docspec
 ##
 docspec:
@@ -1956,8 +1955,6 @@ docspec:
     ##     timeoutSeconds: 300
     ##
     sessionAffinityConfig: {}
-
-
 ## @section Docs y-provider Parameters
 ##
 yProvider:
@@ -1973,7 +1970,7 @@ yProvider:
   image:
     registry: docker.io
     repository: lasuite/impress-y-provider
-    tag: v4.5.0
+    tag: v4.6.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
