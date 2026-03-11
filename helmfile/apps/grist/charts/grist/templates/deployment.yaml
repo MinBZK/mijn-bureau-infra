@@ -225,6 +225,10 @@ spec:
               value: {{ .Values.auth.oidcIdpIgnoreEmailVerified | quote }}
               {{- end }}
             {{- end }}
+            {{- if .Values.customCss.enabled }}
+            - name: APP_STATIC_INCLUDE_CUSTOM_CSS
+              value: "true"
+            {{- end }}
             {{- if .Values.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
@@ -283,6 +287,12 @@ spec:
               subPath: tmp-dir
             - name: grist-data
               mountPath: /persist
+            {{- if .Values.customCss.enabled }}
+            - name: custom-css
+              mountPath: {{ .Values.customCss.mountPath }}
+              subPath: custom.css
+              readOnly: true
+            {{- end }}
           {{- if .Values.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
@@ -298,6 +308,11 @@ spec:
             claimName: {{ include  "grist.pvcName" . }}
         {{- else }}
           emptyDir: {}
+        {{- end }}
+        {{- if .Values.customCss.enabled }}
+        - name: custom-css
+          configMap:
+            name: {{ include "grist.customCss.fullname" . }}
         {{- end }}
         {{- if .Values.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
