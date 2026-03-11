@@ -205,6 +205,15 @@ ai:
   model: ""
   longerContextModel: ""
 
+## Custom CSS styling
+## @param customCss.enabled Enable custom CSS styling for Grist
+## @param customCss.fileContent Content of the custom CSS file
+## @param customCss.mountPath Path where the custom CSS file will be mounted
+customCss:
+  enabled: false
+  fileContent: ""
+  mountPath: /grist/static/custom.css
+
 ## @param replicaCount Number of Grist replicas to deploy
 ##
 replicaCount: 1

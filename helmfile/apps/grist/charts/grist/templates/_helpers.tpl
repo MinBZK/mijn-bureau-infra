@@ -134,6 +134,13 @@ Validate values of Grist - External MinIO Configuration
 {{- end -}}
 
 {{/*
+Return the full name for the custom CSS ConfigMap
+*/}}
+{{- define "grist.customCss.fullname" -}}
+{{ include "common.names.fullname" . }}-custom-css
+{{- end -}}
+
+{{/*
 Optional: Validate values of Grist - OIDC Configuration
 */}}
 {{- define "grist.validateValues.oidc" -}}
