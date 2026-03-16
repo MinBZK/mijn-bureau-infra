@@ -82,7 +82,7 @@ diagnosticMode:
 image:
   registry: docker.io
   repository: matrixdotorg/synapse
-  tag: "v1.148.0"
+  tag: "v1.149.1"
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
