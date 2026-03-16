@@ -30,7 +30,6 @@ global:
     ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
     ##
     omitEmptySeLinuxOptions: false
-
 ## @section Common parameters
 
 ## @param kubeVersion Override Kubernetes version reported by .Capabilities
@@ -71,10 +70,8 @@ diagnosticMode:
     - sleep
   args:
     - infinity
-
 ## @section ClamAv Parameters
 ##
-
 clamav:
   ## Bitnami ClamAv image
   ## @param clamav.image.registry ClamAv image registry
@@ -88,7 +85,7 @@ clamav:
   image:
     registry: docker.io
     repository: clamav/clamav
-    tag: 1.5.1
+    tag: 1.5.2
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -228,7 +225,6 @@ clamav:
       drop: ["ALL"]
     seccompProfile:
       type: "RuntimeDefault"
-
   ## @param clamav.existingConfigmap The name of an existing ConfigMap with your custom configuration for ClamAv
   ##
   existingConfigmap: ""
@@ -431,7 +427,6 @@ clamav:
       maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
-
   ## @section ClamAV Configuration
   ## ref: https://github.com/Cisco-Talos/clamav/blob/main/etc/clamd.conf.sample
   ## @param clamav.configuration.streamMaxLength Close the connection when the data size limit is exceeded. The value should match your MTA's limit for a maximum attachment size.
@@ -444,7 +439,6 @@ clamav:
     milter:
       enabled: false
       maxFileSize: 25M
-
 ## @section Traffic Exposure Parameters
 ##
 
@@ -569,7 +563,6 @@ networkPolicy:
   ##
   ingressNSMatchLabels: {}
   ingressNSPodMatchLabels: {}
-
 ## @section Persistence Parameters
 ##
 
@@ -618,7 +611,6 @@ persistence:
   ##     app: my-app
   ##
   selector: {}
-
 ## @section Other Parameters
 ##
 
