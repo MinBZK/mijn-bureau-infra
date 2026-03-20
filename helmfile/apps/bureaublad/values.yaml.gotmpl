@@ -1,7 +1,7 @@
 {{- $hostname := printf "%s.%s" .Values.global.hostname.bureaublad .Values.global.domain }}
 {{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
 {{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
-{{- $redisUrl := printf "redis://%s:%s@%s:%d/1" (.Values.cache.bureaublad.username | default "default") .Values.cache.bureaublad.password .Values.cache.bureaublad.host .Values.cache.bureaublad.port -}}
+{{- $redisUrl := printf "redis://%s:%s@%s:%d/1" (dig "username" "default" .Values.cache.bureaublad) .Values.cache.bureaublad.password .Values.cache.bureaublad.host .Values.cache.bureaublad.port -}}
 
 global:
   security:
