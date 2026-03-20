@@ -94,7 +94,7 @@ backend:
   jobs:
     releaseSuffix: {{ $releaseId | quote }}
   migrateDbCredentials:
-    DB_USER: "postgres"
+    DB_USER: {{ .Values.database.docs.adminuser | default "postgres" | quote }}
     DB_PASSWORD: {{ .Values.database.docs.adminpassword | quote }}
   envVars:
     AWS_S3_ENDPOINT_URL: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.docs.useSSL) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port | quote }}
