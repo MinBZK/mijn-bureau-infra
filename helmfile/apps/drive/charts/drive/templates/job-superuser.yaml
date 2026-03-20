@@ -52,9 +52,9 @@ spec:
             - name: DJANGO_SECRET_KEY
               value: {{ .Values.drive.secretKey | quote }}
             - name: REDIS_URL
-              value: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
+              value: "redis://{{ .Values.externalRedis.username }}:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
             - name: CELERY_BROKER_URL
-              value: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
+              value: "redis://{{ .Values.externalRedis.username }}:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
           envFrom:
             - secretRef:
                 name: {{ template "common.names.fullname" . }}

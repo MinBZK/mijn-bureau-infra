@@ -32,7 +32,7 @@ data:
   DB_USER: {{ .Values.externalDatabase.username | quote }}
   DB_PASSWORD: {{ .Values.externalDatabase.password | quote }}
   DB_PORT: {{ .Values.externalDatabase.port | quote }}
-  REDIS_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
+  REDIS_URL: "redis://{{ .Values.externalRedis.username }}:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
   OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
   OIDC_RP_CLIENT_SECRET: {{ .Values.authentication.client.client_secret | quote }}
   OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.jwks_uri | quote }}
@@ -47,7 +47,7 @@ data:
   AWS_S3_SECRET_ACCESS_KEY: {{ .Values.externalMinio.secretKey | quote }}
   AWS_STORAGE_BUCKET_NAME: {{ .Values.externalMinio.bucket | quote }}
   AWS_S3_SIGNATURE_VERSION: "s3v4"
-  CELERY_BROKER_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
+  CELERY_BROKER_URL: "redis://{{ .Values.externalRedis.username }}:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
   WOPI_CLIENTS: {{ .Values.drive.wopiClients | quote }}
   WOPI_SRC_BASE_URL: https://{{.Values.ingress.hostname}}
   WOPI_COLLABORA_DISCOVERY_URL: {{ .Values.drive.collaborDiscoveryUrl | quote }}

@@ -32,7 +32,7 @@ data:
   DB_USER: {{ .Values.externalDatabase.username | quote }}
   DB_PASSWORD: {{ .Values.externalDatabase.password | quote }}
   DB_PORT: {{ .Values.externalDatabase.port | quote }}
-  REDIS_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/1"
+  REDIS_URL: "redis://{{ .Values.externalRedis.username }}:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/1"
   OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
   OIDC_RP_CLIENT_SECRET: {{ .Values.authentication.client.client_secret | quote }}
   OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.jwks_uri | quote }}

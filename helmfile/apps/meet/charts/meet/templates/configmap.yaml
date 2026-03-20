@@ -27,7 +27,7 @@ data:
   DB_USER: {{ .Values.externalDatabase.username | quote }}
   DB_PASSWORD: {{ .Values.externalDatabase.password | quote }}
   DB_PORT: {{ .Values.externalDatabase.port | quote }}
-  REDIS_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/1"
+  REDIS_URL: "redis://{{ .Values.externalRedis.username }}:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/1"
   OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
   OIDC_RP_CLIENT_SECRET: {{ .Values.authentication.client.client_secret | quote }}
   OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.jwks_uri | quote }}
@@ -43,7 +43,7 @@ data:
   RESOURCE_DEFAULT_ACCESS_LEVEL: "restricted"
   ALLOW_UNREGISTERED_ROOMS: "false"
   RECORDING_ENABLE: "false"
-  CELERY_BROKER_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
+  CELERY_BROKER_URL: "redis://{{ .Values.externalRedis.username }}:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
   LIVEKIT_FORCE_WSS_PROTOCOL: "true"
   LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND: "true"
   LOGIN_REDIRECT_URL: {{ .Values.ingress.hostname | quote }}

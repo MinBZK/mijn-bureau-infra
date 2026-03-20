@@ -127,6 +127,8 @@ externalRedis:
   host: ""
   port: ""
   password: ""
+  ## @param externalRedis.username Redis ACL username (defaults to "default")
+  username: "default"
 
 ## Minio
 ## @param externalMinio.endpoint MinIO endpoint

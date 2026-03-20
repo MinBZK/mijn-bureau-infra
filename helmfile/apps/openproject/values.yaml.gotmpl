@@ -226,7 +226,7 @@ s3:
   directUploads: false
 
 environment:
-  OPENPROJECT_CACHE__REDIS__URL: {{ printf "redis://default:%s@%s:%d/1" .Values.cache.openproject.password .Values.cache.openproject.host .Values.cache.openproject.port }}
+  OPENPROJECT_CACHE__REDIS__URL: {{ printf "redis://%s:%s@%s:%d/1" (.Values.cache.openproject.username | default "default") .Values.cache.openproject.password .Values.cache.openproject.host .Values.cache.openproject.port }}
   OPENPROJECT_EMAIL__DELIVERY__METHOD: "smtp"
   OPENPROJECT_SMTP__ADDRESS: {{ .Values.smtp.host }}
   OPENPROJECT_SMTP__PORT: {{ .Values.smtp.port }}

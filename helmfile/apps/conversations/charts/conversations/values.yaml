@@ -1197,6 +1197,8 @@ externalRedis:
   host: ""
   port: ""
   password: ""
+  ## @param externalRedis.username Redis ACL username (defaults to "default")
+  username: "default"
 ## Database
 ## @param externalDatabase.type Set to 'sqlite' or 'postgres'
 ## @param externalDatabase.username Username to connect as
