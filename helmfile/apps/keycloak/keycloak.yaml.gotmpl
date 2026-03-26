@@ -80,6 +80,10 @@ ingress:
     {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+
   tls: {{ .Values.global.tls.enabled | default true }}
   selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
   extraTls: {{ .Values.tls.keycloak | toYaml | nindent 4 }}

@@ -155,6 +155,10 @@ ingress:
     {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+
 networkPolicy:
   extraEgress:
     # Redis connectivity
