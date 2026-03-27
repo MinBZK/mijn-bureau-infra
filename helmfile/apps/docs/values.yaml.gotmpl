@@ -182,7 +182,7 @@ backend:
     OIDC_RP_SCOPES: "openid email"
     OIDC_STORE_ID_TOKEN: "true"
     OIDC_USE_NONCE: "true"
-    OIDC_USERINFO_FULLNAME_FIELDS: {{ .Values.authentication.oidc.claims.given_name | quote }}
+    OIDC_USERINFO_FULLNAME_FIELDS: "{{ .Values.authentication.oidc.claims.given_name }},{{ .Values.authentication.oidc.claims.family_name }}"
     OIDC_USERINFO_SHORTNAME_FIELD: {{ .Values.authentication.oidc.claims.display_name | quote }}
     PYTHONPATH: "/app"
     REDIS_URL: {{ $redisUrl | quote }}
