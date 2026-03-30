@@ -39,7 +39,7 @@ releases:
 
   - name: openproject
     chart: openproject/openproject
-    version: "11.6.1"
+    version: "13.4.3"
     condition: application.openproject.enabled
     {{- if .Values.application.openproject.namespace }}
     namespace: {{ .Values.application.openproject.namespace }}
