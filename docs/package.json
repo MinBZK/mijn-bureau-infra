@@ -28,8 +28,8 @@
     "@docusaurus/module-type-aliases": "3.9.2",
     "@docusaurus/tsconfig": "3.9.2",
     "@docusaurus/types": "3.9.2",
-    "typescript": "~5.9.3",
-    "wrangler": "^4.69.0"
+    "typescript": "~6.0.2",
+    "wrangler": "^4.79.0"
   },
   "browserslist": {
     "production": [
