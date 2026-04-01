@@ -55,7 +55,7 @@ releases:
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}
-    installed: {{ and .Values.application.drive.enabled (eq .Values.cluster.ingress.type "haproxy-openshift") | toYaml }}
+    installed: {{ and .Values.application.drive.enabled (or (eq .Values.cluster.ingress.type "haproxy-openshift") (eq .Values.cluster.ingress.type "traefik")) | toYaml }}
     needs:
       - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive
     values:
@@ -68,7 +68,7 @@ releases:
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}
-    installed: {{ .Values.application.drive.enabled | toYaml }}
+    installed: {{ and .Values.application.drive.enabled (or (eq .Values.cluster.ingress.type "haproxy-openshift") (eq .Values.cluster.ingress.type "traefik")) | toYaml }}
     values:
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-static-nginx.yaml.gotmpl"

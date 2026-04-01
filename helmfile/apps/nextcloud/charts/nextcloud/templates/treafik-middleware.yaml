@@ -1,0 +1,15 @@
+{{- if eq .Values.cluster.ingress.type "traefik" }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: hsts-header
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: nextcloud
+
+spec:
+  headers:
+    stsSeconds: 31536000
+    stsPreload: true
+    stsIncludeSubdomains: true
+{{- end }}

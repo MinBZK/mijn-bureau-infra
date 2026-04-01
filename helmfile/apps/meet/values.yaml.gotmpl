@@ -83,7 +83,9 @@ ingress:
     {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
-
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
 externalLivekit:
   {{- if .Values.application.livekit.enabled }}
   {{- $keyName := .Values.application.livekit.keys | keys | first }}

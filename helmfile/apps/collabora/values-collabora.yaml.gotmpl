@@ -134,6 +134,12 @@ ingress:
       balance url_param WOPISrc check_post
       hash-type consistent
     {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-hsts-header@kubernetescrd,{{ .Release.Namespace }}-collabora-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/service.serverstransport: {{ .Release.Namespace }}-collabora-transport@kubernetescrd
+    traefik.ingress.kubernetes.io/service.sticky.cookie: "true"
+    traefik.ingress.kubernetes.io/service.sticky.cookie.name: "COLLABORA_STICKY"
+    {{- end }}
 
 
   # Host definitions for the ingress resource

@@ -16,11 +16,11 @@ MijnBureau has minimal prerequisites, requiring only a Kubernetes cluster and so
 - AMD64 platform.
 - A LoadBalancer.
 - A routing solution — one of:
-  - **Ingress controller** (default): Nginx or HAProxy (OpenShift).
+  - **Ingress controller**: Nginx, Traefik or HAProxy (OpenShift).
   - **Gateway API controller**: any [conformant Gateway API](https://gateway-api.sigs.k8s.io/) implementation (e.g. Nginx Gateway Fabric, Cilium, Envoy Gateway, Istio).
 
-> Ingress is the primary and default routing option. Gateway API support is available as an alternative for clusters that already run a Gateway API controller.
-> Note: For ingress mode, currently only the Nginx and HAProxy controllers are supported. Additional controllers can be added if needed.
+> Ingress with Traefik is the primary and default routing option. Gateway API support is available as an alternative for clusters that already run a Gateway API controller.
+> Note: For ingress mode, currently only the Nginx, Traefik and HAProxy controllers are supported. Additional controllers can be added if needed.
 
 ### Kubernetes Resources
 

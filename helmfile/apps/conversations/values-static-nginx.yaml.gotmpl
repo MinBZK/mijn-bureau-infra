@@ -775,6 +775,9 @@ ingress:
     {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
     {{- if and (hasKey .Values.cluster "certificate") (hasKey .Values.cluster.certificate "issuerRef") }}
     {{- if eq .Values.cluster.certificate.issuerRef.kind "ClusterIssuer" }}
     cert-manager.io/cluster-issuer: {{ .Values.cluster.certificate.issuerRef.name }}
