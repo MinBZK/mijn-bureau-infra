@@ -91,8 +91,13 @@ networkPolicy:
       to:
         - podSelector:
             matchLabels:
+              {{- if eq (.Values.database.grist.provider | default "bitnami") "cnpg" }}
+              cnpg.io/cluster: grist-cnpg-cluster
+              role: primary
+              {{- else }}
               app.kubernetes.io/name: postgresql
               app.kubernetes.io/component: primary
+              {{- end }}
       {{- end }}
     # Redis connectivity
     - ports:

@@ -8,9 +8,29 @@ releases:
     {{- if .Values.application.grist.namespace }}
     namespace: {{ .Values.application.grist.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) (ne (.Values.database.grist.provider | default "bitnami") "cnpg") | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
+
+  - name: grist-cnpg-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.grist.namespace }}
+    namespace: {{ .Values.application.grist.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) (eq (.Values.database.grist.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: grist-cnpg-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.grist.namespace }}
+    namespace: {{ .Values.application.grist.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) (eq (.Values.database.grist.provider | default "bitnami") "cnpg") | toYaml }}
+    needs:
+      - {{ if .Values.application.grist.namespace }}{{ .Values.application.grist.namespace }}/{{ end }}grist-cnpg-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
 
   - name: grist-redis
     chart: ../common/charts/redis
@@ -41,7 +61,11 @@ releases:
     {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.grist.enabled) }}
     needs:
+      {{- if eq (.Values.database.grist.provider | default "bitnami") "cnpg" }}
+      - {{ if .Values.application.grist.namespace }}{{ .Values.application.grist.namespace }}/{{ end }}grist-cnpg-cluster
+      {{- else }}
       - {{ if .Values.application.grist.namespace }}{{ .Values.application.grist.namespace }}/{{ end }}grist-postgresql
+      {{- end }}
       - {{ if .Values.application.grist.namespace }}{{ .Values.application.grist.namespace }}/{{ end }}grist-redis
       - {{ if .Values.application.grist.namespace }}{{ .Values.application.grist.namespace }}/{{ end }}grist-minio
     {{- end }}
