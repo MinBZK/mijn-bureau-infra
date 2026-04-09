@@ -12,9 +12,29 @@ releases:
     {{- if .Values.application.openproject.namespace }}
     namespace: {{ .Values.application.openproject.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.openproject.enabled) | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.openproject.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
+
+  - name: openproject-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.openproject.namespace }}
+    namespace: {{ .Values.application.openproject.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.openproject.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: openproject-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.openproject.namespace }}
+    namespace: {{ .Values.application.openproject.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.openproject.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    needs:
+      - {{ if .Values.application.openproject.namespace }}{{ .Values.application.openproject.namespace }}/{{ end }}openproject-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
 
   - name: openproject-redis
     chart: ../common/charts/redis
@@ -46,7 +66,11 @@ releases:
     {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.openproject.enabled) }}
     needs:
+      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+      - {{ if .Values.application.openproject.namespace }}{{ .Values.application.openproject.namespace }}/{{ end }}openproject-cluster
+      {{- else }}
       - {{ if .Values.application.openproject.namespace }}{{ .Values.application.openproject.namespace }}/{{ end }}openproject-postgresql
+      {{- end }}
       - {{ if .Values.application.openproject.namespace }}{{ .Values.application.openproject.namespace }}/{{ end }}openproject-redis
       - {{ if .Values.application.openproject.namespace }}{{ .Values.application.openproject.namespace }}/{{ end }}openproject-minio
     {{- end }}

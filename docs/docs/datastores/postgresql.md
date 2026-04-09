@@ -54,16 +54,15 @@ Several vendors provide managed PostgreSQL services, simplifying deployment and 
 
 MijnBureau apps can optionally use CloudNativePG `Cluster` resources for their PostgreSQL databases instead of the default Bitnami PostgreSQL subchart. The CNPG operator must be installed by a cluster administrator first.
 
-To switch an app (e.g., Grist) to CNPG, set the `provider` and `host` in your environment values (e.g., `helmfile/environments/production/mijnbureau.yaml.gotmpl`):
+To switch all apps to CNPG, set the global `provider` in your environment values (e.g., `helmfile/environments/production/mijnbureau.yaml.gotmpl`):
 
 ```yaml
 database:
-  grist:
+  default:
     provider: cnpg
-    host: grist-cnpg-cluster-rw
 ```
 
-The `host` must be set to `<app>-cnpg-cluster-rw` — CNPG automatically creates a `<cluster-name>-rw` service that points to the primary instance.
+This single setting switches all applications from the Bitnami PostgreSQL subchart to CNPG `Cluster` resources. Both providers expose the database under the same service name (`<app>-cluster-rw`), so no manual host override is needed when switching providers.
 
 ## Integrating PostgreSQL with MijnBureau
 

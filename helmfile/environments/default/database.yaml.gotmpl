@@ -1,8 +1,10 @@
 database:
+  default:
+    provider: bitnami
+
   grist:
     type: postgresql
-    provider: bitnami
-    host: grist-postgresql
+    host: grist-cluster-rw
     name: grist
     user: grist
     port: 5432
@@ -12,7 +14,7 @@ database:
 
   keycloak:
     name: keycloak
-    host: keycloak-postgresql
+    host: keycloak-cluster-rw
     port: 5432
     user: keycloak
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "database" | sha1sum | quote}}
@@ -21,7 +23,7 @@ database:
   synapse:
     type: psycopg2
     name: synapse
-    host: element-postgresql
+    host: element-cluster-rw
     port: 5432
     isInternal: true
     user: synapse
@@ -30,7 +32,7 @@ database:
 
   nextcloud:
     type: postgresql
-    host: nextcloud-postgresql
+    host: nextcloud-cluster-rw
     name: nextcloud
     user: nextcloud
     port: 5432
@@ -40,7 +42,7 @@ database:
 
   openproject:
     type: postgresql
-    host: openproject-postgresql
+    host: openproject-cluster-rw
     name: openproject
     user: openproject
     port: 5432
@@ -50,7 +52,7 @@ database:
 
   meet:
     type: postgresql
-    host: meet-postgresql
+    host: meet-cluster-rw
     name: meet
     user: meet
     port: 5432
@@ -60,7 +62,7 @@ database:
 
   conversations:
     type: postgresql
-    host: conversations-postgresql
+    host: conversations-cluster-rw
     name: conversations
     user: conversations
     port: 5432
@@ -71,7 +73,7 @@ database:
   docs:
     engine: django.db.backends.postgresql_psycopg2
     name: docs
-    host: docs-postgresql
+    host: docs-cluster-rw
     port: 5432
     isInternal: true
     user: docs
@@ -80,7 +82,7 @@ database:
 
   drive:
     type: postgresql
-    host: drive-postgresql
+    host: drive-cluster-rw
     name: drive
     user: drive
     port: 5432

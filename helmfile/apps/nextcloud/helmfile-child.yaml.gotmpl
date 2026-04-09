@@ -8,9 +8,29 @@ releases:
     {{- if .Values.application.nextcloud.namespace }}
     namespace: {{ .Values.application.nextcloud.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
+
+  - name: nextcloud-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.nextcloud.namespace }}
+    namespace: {{ .Values.application.nextcloud.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: nextcloud-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.nextcloud.namespace }}
+    namespace: {{ .Values.application.nextcloud.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    needs:
+      - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
 
   - name: nextcloud-redis
     chart: ../common/charts/redis
@@ -41,7 +61,11 @@ releases:
     {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) }}
     needs:
+      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+      - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-cluster
+      {{- else }}
       - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-postgresql
+      {{- end }}
       - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-redis
       - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-minio
     {{- end }}

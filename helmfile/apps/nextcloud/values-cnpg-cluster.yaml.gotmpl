@@ -1,4 +1,4 @@
-fullnameOverride: grist-cluster
+fullnameOverride: nextcloud-cluster
 
 type: postgresql
 
@@ -12,7 +12,7 @@ cluster:
   instances: 1
 
   enableSuperuserAccess: true
-  superuserSecret: grist-cluster-superuser
+  superuserSecret: nextcloud-cluster-superuser
 
   {{- with (coalesce .Values.container.cnpg_postgres.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
@@ -20,8 +20,8 @@ cluster:
   {{- end }}
 
   storage:
-    size: {{ coalesce .Values.pvc.grist.postgresql.size .Values.pvc.default.size "8Gi" }}
-    {{- with (coalesce .Values.pvc.grist.postgresql.storageClass .Values.pvc.default.storageClass) }}
+    size: {{ coalesce .Values.pvc.nextcloud.postgresql.size .Values.pvc.default.size "8Gi" }}
+    {{- with (coalesce .Values.pvc.nextcloud.postgresql.storageClass .Values.pvc.default.storageClass) }}
     storageClass: {{ . }}
     {{- end }}
 
@@ -31,10 +31,10 @@ cluster:
       enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
 
   initdb:
-    database: {{ .Values.database.grist.name }}
-    owner: {{ .Values.database.grist.user }}
+    database: {{ .Values.database.nextcloud.name }}
+    owner: {{ .Values.database.nextcloud.user }}
     secret:
-      name: grist-cluster-app
+      name: nextcloud-cluster-app
 
 backups:
   enabled: false
