@@ -66,6 +66,17 @@ cronjob:
     repository: {{ .Values.container.kubectl.repository | quote }}
     tag: {{ .Values.container.kubectl.tag | quote }}
 
+  {{- if ne .Values.global.resourcesPreset "none" }}
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+  {{- end }}
+
+
 
 ingress:
   ## @param ingress.enabled Enable ingress record generation for livekit_server

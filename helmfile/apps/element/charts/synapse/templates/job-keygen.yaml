@@ -70,8 +70,10 @@ spec:
                 --generate-keys
 
               /tmp/kubectl create secret generic synapse-signing-key --from-file=/synapse/keys/synapse_signing_key
+          {{- if .Values.job.resources }}
           resources:
             {{- toYaml .Values.job.resources | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - mountPath: /synapse/config
               name: synapse

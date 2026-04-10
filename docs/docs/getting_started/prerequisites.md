@@ -30,6 +30,8 @@ MijnBureau simplifies resource setup with a global size parameter that adjusts r
 
 | Size        | Environment | CPU Requested | CPU Limits  | Memory Requested | Memory Limits |
 | ----------- | ----------- | ------------- | ----------- | ---------------- | ------------- |
+| **none**    | Demo        | 0.0 cores     | 0.0 cores   | 0.0 GiB          | 0.0 GiB       |
+|             | Production  | 0.0 cores     | 0.0 cores   | 0.0 GiB          | 0.0 GiB       |
 | **nano**    | Demo        | 4.7 cores     | 7.2 cores   | 7.5 GiB          | 12.3 GiB      |
 |             | Production  | 2.4 cores     | 3.8 cores   | 4.6 GiB          | 7.9 GiB       |
 | **micro**   | Demo        | 11.1 cores    | 16.9 cores  | 13.0 GiB         | 20.6 GiB      |
@@ -45,7 +47,7 @@ MijnBureau simplifies resource setup with a global size parameter that adjusts r
 | **2xlarge** | Demo        | 43.4 cores    | 258.8 cores | 134.1 GiB        | 532.5 GiB     |
 |             | Production  | 20.4 cores    | 120.8 cores | 63.5 GiB         | 250.0 GiB     |
 
-nano and micro size will give issues with some of the workloads. You can resolve this by defining resources for these workloads in the resources.yaml
+nano and micro size will give issues with some of the workloads. You can resolve this by defining resources for these workloads in the resources.yaml. None will not set any resources and will share the available resources among all applications.
 
 ## 🛠️ Tools
 

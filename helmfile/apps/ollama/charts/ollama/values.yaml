@@ -207,7 +207,9 @@ ingress:
 
 # Configure resource requests and limits
 # ref: http://kubernetes.io/docs/user-guide/compute-resources/
+resourcesPreset: "nano"
 resources:
+
   # -- Pod requests
   requests: {}
     # Memory request

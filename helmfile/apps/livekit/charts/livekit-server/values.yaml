@@ -501,13 +501,7 @@ cronjob:
   failedJobsHistoryLimit: 1
   ttlSecondsAfterFinished: 3600
   podAnnotations: {}
-  resources:
-    requests:
-      memory: 64Mi
-      cpu: 100m
-    limits:
-      memory: 128Mi
-      cpu: 200m
+  resources: {}
 
 ## livekit_server service parameters
 ##
