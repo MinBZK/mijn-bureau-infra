@@ -14,10 +14,11 @@ MijnBureau has minimal prerequisites, requiring only a Kubernetes cluster and so
 
 - A [CNCF certified](https://www.cncf.io/training/certification/software-conformance/) Kubernetes or [Haven](https://haven.commonground.nl/) compliant Kubernetes.
 - AMD64 platform.
-- A LoadBalancer.
+- A LoadBalancer (or more)
 - A routing solution — one of:
   - **Ingress controller**: Nginx, Traefik or HAProxy (OpenShift).
   - **Gateway API controller**: any [conformant Gateway API](https://gateway-api.sigs.k8s.io/) implementation (e.g. Nginx Gateway Fabric, Cilium, Envoy Gateway, Istio).
+- Access to DNS
 
 > Ingress with Traefik is the primary and default routing option. Gateway API support is available as an alternative for clusters that already run a Gateway API controller.
 > Note: For ingress mode, currently only the Nginx, Traefik and HAProxy controllers are supported. Additional controllers can be added if needed.
@@ -67,4 +68,4 @@ If you plan to store secrets like credentials, we recommend using an encryption 
 
 ## 🌐 Domain Configuration
 
-MijnBureau is primarily a browser-based suite. You will need a domain or subdomain you control to make the tool accessible to users.
+MijnBureau is a browser-based suite that requires a domain or subdomain (e.g., `mijnbureau.example.com`) that you control to make the application accessible to users. For detailed DNS configuration guidance, see the [DNS documentation](../dns.md).
