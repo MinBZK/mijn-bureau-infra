@@ -11,7 +11,11 @@ releases:
     installed: {{ .Values.application.keycloak.enabled }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) }}
     needs:
+      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+      - {{ if .Values.application.keycloak.namespace }}{{ .Values.application.keycloak.namespace }}/{{ end }}keycloak-cluster
+      {{- else }}
       - {{ if .Values.application.keycloak.namespace }}{{ .Values.application.keycloak.namespace }}/{{ end }}keycloak-postgresql
+      {{- end }}
     {{- end }}
     values:
       - "../common/values-cluster-ingress.yaml.gotmpl"
@@ -23,6 +27,26 @@ releases:
     {{- if .Values.application.keycloak.namespace }}
     namespace: {{ .Values.application.keycloak.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
       - "postgresql.yaml.gotmpl"
+
+  - name: keycloak-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.keycloak.namespace }}
+    namespace: {{ .Values.application.keycloak.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: keycloak-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.keycloak.namespace }}
+    namespace: {{ .Values.application.keycloak.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    needs:
+      - {{ if .Values.application.keycloak.namespace }}{{ .Values.application.keycloak.namespace }}/{{ end }}keycloak-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"

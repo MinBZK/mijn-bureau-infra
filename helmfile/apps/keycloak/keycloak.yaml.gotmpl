@@ -678,7 +678,7 @@ postgresql:
   enabled: false
 
 externalDatabase:
-  host: {{ .StateValues.database.keycloak.host | quote }}
+  host: {{ .Values.database.keycloak.host | quote }}
   port: {{ .StateValues.database.keycloak.port | quote }}
   user: {{ .StateValues.database.keycloak.user | quote }}
   database: {{ .StateValues.database.keycloak.name | quote }}

@@ -1,0 +1,16 @@
+apiVersion: v2
+description: Deploys and manages a CloudNativePG cluster and its associated resources.
+home: https://cloudnative-pg.io
+icon: https://raw.githubusercontent.com/cloudnative-pg/artwork/main/cloudnativepg-logo.svg
+keywords:
+- postgresql
+- postgres
+- database
+maintainers:
+- email: itay+cloudnativepg-charts+github.com@grudev.com
+  name: itay-grudev
+name: cluster
+sources:
+- https://github.com/cloudnative-pg/charts
+type: application
+version: 0.6.0

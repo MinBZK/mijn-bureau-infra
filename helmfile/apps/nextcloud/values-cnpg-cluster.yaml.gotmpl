@@ -1,0 +1,40 @@
+fullnameOverride: nextcloud-cluster
+
+type: postgresql
+
+version:
+  postgresql: "17"
+
+mode: standalone
+
+cluster:
+  imageName: {{ printf "%s/%s:%s" .Values.container.cnpg_postgres.registry .Values.container.cnpg_postgres.repository .Values.container.cnpg_postgres.tag }}
+  instances: 1
+
+  enableSuperuserAccess: true
+  superuserSecret: nextcloud-cluster-superuser
+
+  {{- with (coalesce .Values.container.cnpg_postgres.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - name: {{ . | quote }}
+  {{- end }}
+
+  storage:
+    size: {{ coalesce .Values.pvc.nextcloud.postgresql.size .Values.pvc.default.size "8Gi" }}
+    {{- with (coalesce .Values.pvc.nextcloud.postgresql.storageClass .Values.pvc.default.storageClass) }}
+    storageClass: {{ . }}
+    {{- end }}
+
+  monitoring:
+    enabled: {{ .Values.metric.enabled | default false }}
+    podMonitor:
+      enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
+
+  initdb:
+    database: {{ .Values.database.nextcloud.name }}
+    owner: {{ .Values.database.nextcloud.user }}
+    secret:
+      name: nextcloud-cluster-app
+
+backups:
+  enabled: false
