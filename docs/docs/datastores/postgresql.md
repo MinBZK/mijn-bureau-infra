@@ -50,6 +50,20 @@ spec:
 
 Several vendors provide managed PostgreSQL services, simplifying deployment and maintenance by handling the underlying infrastructure. Research vendors in your region or consult your organization to identify commonly used providers.
 
+## Using CloudNativePG with MijnBureau Apps
+
+MijnBureau apps can optionally use CloudNativePG `Cluster` resources for their PostgreSQL databases instead of the default Bitnami PostgreSQL subchart. The CNPG operator must be installed by a cluster administrator first.
+
+To switch all apps to CNPG, set the global `provider` in your environment values (e.g., `helmfile/environments/production/mijnbureau.yaml.gotmpl`):
+
+```yaml
+database:
+  default:
+    provider: cnpg
+```
+
+This single setting switches all applications from the Bitnami PostgreSQL subchart to CNPG `Cluster` resources. Both providers expose the database under the same service name (`<app>-cluster-rw`), so no manual host override is needed when switching providers.
+
 ## Integrating PostgreSQL with MijnBureau
 
 Once you have one or more databases available, you can configure MijnBureau to use an external database. The default configuration for each application is located in `helmfile/environments/default/database.yaml.gotmpl`.

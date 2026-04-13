@@ -8,9 +8,29 @@ releases:
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
+
+  - name: drive-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.drive.namespace }}
+    namespace: {{ .Values.application.drive.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: drive-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.drive.namespace }}
+    namespace: {{ .Values.application.drive.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    needs:
+      - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
 
   - name: drive-redis
     chart: ../common/charts/redis
@@ -41,7 +61,11 @@ releases:
     {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) }}
     needs:
+      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+      - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-cluster
+      {{- else }}
       - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-postgresql
+      {{- end }}
       - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-redis
       - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-minio
     {{- end }}

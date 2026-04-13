@@ -8,9 +8,29 @@ releases:
     {{- if .Values.application.element.namespace }}
     namespace: {{ .Values.application.element.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.element.enabled) | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.element.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
+
+  - name: element-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.element.namespace }}
+    namespace: {{ .Values.application.element.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.element.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: element-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.element.namespace }}
+    namespace: {{ .Values.application.element.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.element.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    needs:
+      - {{ if .Values.application.element.namespace }}{{ .Values.application.element.namespace }}/{{ end }}element-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
 
   - name: element-redis
     chart: ../common/charts/redis
@@ -40,7 +60,11 @@ releases:
     {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.element.enabled) }}
     needs:
+      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+      - {{ if .Values.application.element.namespace }}{{ .Values.application.element.namespace }}/{{ end }}element-cluster
+      {{- else }}
       - {{ if .Values.application.element.namespace }}{{ .Values.application.element.namespace }}/{{ end }}element-postgresql
+      {{- end }}
       - {{ if .Values.application.element.namespace }}{{ .Values.application.element.namespace }}/{{ end }}element-redis
     {{- end }}
     values:

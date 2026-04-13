@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cnpg-cluster-credentials
+description: Credential secrets for CloudNativePG Cluster resources
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
