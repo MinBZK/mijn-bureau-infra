@@ -16,7 +16,7 @@ Set the size of your installation using the `resourcesPreset` setting:
 
 ```yaml
 global:
-  # Allowed values: "nano", "micro", "small", "medium", "large", "xlarge", "2xlarge"
+  # Allowed values: "none", "nano", "micro", "small", "medium", "large", "xlarge", "2xlarge"
   resourcesPreset: "small"
 ```
 

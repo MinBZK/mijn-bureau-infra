@@ -327,3 +327,13 @@ job:
       repository: {{ .Values.container.kubectl.repository }}
       tag: {{ .Values.container.kubectl.tag }}
       pullPolicy: Always
+
+  {{- if ne .Values.global.resourcesPreset "none" }}
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+  {{- end }}

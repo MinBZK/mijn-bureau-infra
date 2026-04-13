@@ -56,17 +56,10 @@ autoscaling:
   targetCPUUtilizationPercentage: {{ .Values.autoscaling.horizontal.ollama.targetCPU | quote }}
   targetMemoryUtilizationPercentage: {{ .Values.autoscaling.horizontal.ollama.targetMemory | quote }}
 
-
+resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
 resources:
   {{- if .Values.resource.ollama }}
   {{- toYaml .Values.resource.ollama | nindent 2 }}
-  {{- else }}
-  limits:
-    memory: "4Gi"
-    cpu:  "750m"
-  requests:
-    memory: "2Gi"
-    cpu: "400m"
   {{- end }}
 
 persistentVolume:

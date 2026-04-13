@@ -130,3 +130,14 @@ authentication:
   client:
     client_id: {{ .Values.authentication.client.meet.client_id | quote }}
     client_secret: {{ .Values.authentication.client.meet.client_secret | quote }}
+
+{{- if ne .Values.global.resourcesPreset "none" }}
+job:
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+{{- end }}

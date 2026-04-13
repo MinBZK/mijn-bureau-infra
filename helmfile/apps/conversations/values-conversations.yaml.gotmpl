@@ -127,3 +127,14 @@ ai:
   model: {{ $aiModel | quote }}
   endpoint: {{ printf "http%s://%s:%d/%s" (ternary "s" "" $aiIsSsl) $aiHost $aiPort $aiPath | quote }}
   apiKey: {{ .Values.ai.llm.apiKey | default "" | quote }}
+
+{{- if ne .Values.global.resourcesPreset "none" }}
+job:
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+{{- end }}
