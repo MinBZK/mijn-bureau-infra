@@ -199,6 +199,13 @@ spec:
                   name: {{ include "nextcloud.database.secretName" . }}
                   key: {{ include "nextcloud.database.secretPasswordKey" . }}
             {{- end }}
+            {{- if .Values.metrics.enabled }}
+            - name: SERVERINFO_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "nextcloud.metrics.secretName" . }}
+                  key: {{ .Values.metrics.auth.secretKey | quote }}
+            {{- end }}
             {{- if .Values.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}

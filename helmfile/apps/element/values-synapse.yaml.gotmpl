@@ -7,6 +7,10 @@
   $hostName is the hostname the server is available at
   $clientHostName is the host the client is running on
 */ -}}
+{{- /* Single source of truth for Synapse's Prometheus metrics port.
+       Drives both the chart's master.metrics.containerPort override (below)
+       and the network-policy ingress rule. */ -}}
+{{- $metricsPort := 9090 -}}
 {{- $serverName := .Values.global.matrixDomain | default (printf "%s.%s" .Values.global.hostname.synapse .Values.global.domain) -}}
 {{- $hostName := printf "%s.%s" .Values.global.hostname.synapse .Values.global.domain -}}
 {{- $clientHostName := printf "%s.%s" .Values.global.hostname.element .Values.global.domain -}}
@@ -54,6 +58,18 @@ master:
       - ports:
           - port: 8448
             protocol: TCP
+      {{- if .Values.metric.enabled }}
+      # Allow Prometheus to scrape metrics. Port is pinned to the chart's
+      # master.containerPorts.metrics (charts/synapse/values.yaml); change
+      # both together.
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: {{ .Values.metric.namespace }}
+        ports:
+          - port: {{ $metricsPort }}
+            protocol: TCP
+      {{- end }}
     extraEgress:
       # Allow https egress for keycloak connection
       - ports:
@@ -80,6 +96,17 @@ master:
       {{- end }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  # Pin metrics container port so the chart's containerPort, the metrics
+  # Service, and the network-policy ingress rule above cannot drift apart.
+  containerPorts:
+    metrics: {{ $metricsPort }}
+  metrics:
+    enabled: {{ .Values.metric.enabled | default false }}
+    service:
+      ports:
+        metrics: {{ $metricsPort }}
+    serviceMonitor:
+      enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
 
 # TODO replication is not functional, see https://github.com/MinBZK/mijn-bureau-infra/issues/8
 worker:

@@ -1,6 +1,12 @@
 metric:
   enabled: false
 
+  # Namespace where the cluster's Prometheus installation lives. Used by
+  # per-app NetworkPolicy ingress rules so only the Prometheus server is
+  # allowed to scrape metrics endpoints. Override in an env-specific values
+  # file if Prometheus isn't deployed to "monitoring".
+  namespace: "monitoring"
+
   # if you enable these options you need to make sure you have the https://prometheus-operator.dev/ installed
   serviceMonitor:
     enabled: false

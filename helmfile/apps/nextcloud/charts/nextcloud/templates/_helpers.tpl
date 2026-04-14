@@ -14,7 +14,25 @@ Return the proper Nextcloud image name
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "nextcloud.imagePullSecrets" -}}
-{{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image ) "context" $) -}}
+{{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image .Values.metrics.image ) "context" $) -}}
+{{- end -}}
+
+{{/*
+Return the proper Nextcloud metrics exporter image name
+*/}}
+{{- define "nextcloud.metrics.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.metrics.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
+Return the name of the Secret holding the Nextcloud serverinfo metrics token.
+*/}}
+{{- define "nextcloud.metrics.secretName" -}}
+{{- if .Values.metrics.auth.existingSecret -}}
+{{- tpl .Values.metrics.auth.existingSecret $ -}}
+{{- else -}}
+{{- printf "%s-metrics-token" (include "common.names.fullname" .) -}}
+{{- end -}}
 {{- end -}}
 
 {{/*
