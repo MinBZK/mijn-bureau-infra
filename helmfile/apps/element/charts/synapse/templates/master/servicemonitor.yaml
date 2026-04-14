@@ -20,6 +20,7 @@ spec:
   jobLabel: {{ .Values.master.metrics.serviceMonitor.jobLabel | quote }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: metrics
       {{- if .Values.master.metrics.serviceMonitor.selector }}
       {{- include "common.tplvalues.render" (dict "value" .Values.master.metrics.serviceMonitor.selector "context" $) | nindent 6 }}
       {{- end }}

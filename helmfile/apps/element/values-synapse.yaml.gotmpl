@@ -54,6 +54,16 @@ master:
       - ports:
           - port: 8448
             protocol: TCP
+      {{- if .Values.metric.enabled }}
+      # Allow Prometheus to scrape metrics
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: monitoring
+        ports:
+          - port: 9090
+            protocol: TCP
+      {{- end }}
     extraEgress:
       # Allow https egress for keycloak connection
       - ports:
@@ -80,6 +90,10 @@ master:
       {{- end }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  metrics:
+    enabled: {{ .Values.metric.enabled | default false }}
+    serviceMonitor:
+      enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
 
 # TODO replication is not functional, see https://github.com/MinBZK/mijn-bureau-infra/issues/8
 worker:

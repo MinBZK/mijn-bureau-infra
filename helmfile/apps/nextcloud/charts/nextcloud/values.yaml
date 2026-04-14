@@ -931,6 +931,19 @@ metrics:
   ## @param metrics.enabled Enable the export of Prometheus metrics
   ##
   enabled: false
+  ## Metrics service parameters
+  ##
+  service:
+    ## @param metrics.service.ports.metrics Metrics service port
+    ##
+    ports:
+      metrics: 8080
+    ## @param metrics.service.annotations Annotations for the metrics service
+    ##
+    annotations: {}
+    ## @param metrics.service.extraPorts Extra ports for the metrics service
+    ##
+    extraPorts: []
   ## Prometheus Operator ServiceMonitor configuration
   ##
   serviceMonitor:

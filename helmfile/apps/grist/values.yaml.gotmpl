@@ -79,6 +79,16 @@ networkPolicy:
    - ports:
        - port: 8484
          protocol: TCP
+   {{- if .Values.metric.enabled }}
+   # Allow Prometheus to scrape metrics
+   - from:
+       - namespaceSelector:
+           matchLabels:
+             kubernetes.io/metadata.name: monitoring
+     ports:
+       - port: 9090
+         protocol: TCP
+   {{- end }}
 
   # Specific egress rules for required services only
   extraEgress:
@@ -331,3 +341,8 @@ customCss:
       --grist-control-border
       --grist-toast-bg
     */
+
+metrics:
+  enabled: {{ .Values.metric.enabled | default false }}
+  serviceMonitor:
+    enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}

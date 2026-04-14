@@ -221,6 +221,9 @@ replicaCount: 1
 ##
 containerPorts:
   http: 8484
+  ## @param containerPorts.metrics Grist Prometheus metrics container port (requires GRIST_PROMCLIENT_PORT)
+  ##
+  metrics: 9090
 ## Configure extra options for Grist containers' liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
 ## @param livenessProbe.enabled Enable livenessProbe on Grist containers
@@ -795,6 +798,19 @@ metrics:
   ## @param metrics.enabled Enable the export of Prometheus metrics
   ##
   enabled: false
+  ## Metrics service parameters
+  ##
+  service:
+    ## @param metrics.service.ports.metrics Metrics service port
+    ##
+    ports:
+      metrics: 9090
+    ## @param metrics.service.annotations Annotations for the metrics service
+    ##
+    annotations: {}
+    ## @param metrics.service.extraPorts Extra ports for the metrics service
+    ##
+    extraPorts: []
   ## Prometheus Operator ServiceMonitor configuration
   ##
   serviceMonitor:

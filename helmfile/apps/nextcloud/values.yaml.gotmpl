@@ -61,6 +61,16 @@ networkPolicy:
    - ports:
        - port: 8080
          protocol: TCP
+   {{- if .Values.metric.enabled }}
+   # Allow Prometheus to scrape metrics
+   - from:
+       - namespaceSelector:
+           matchLabels:
+             kubernetes.io/metadata.name: monitoring
+     ports:
+       - port: 8080
+         protocol: TCP
+   {{- end }}
 
   # Specific egress rules for required services only
   extraEgress:
@@ -217,3 +227,8 @@ files:
     maxStreamSize: {{ .Values.antivirus.streamMaxLength }}
     infectedAction: delete
     maxFileSize: {{ .Values.antivirus.mailFilter.maxFileSize }}
+
+metrics:
+  enabled: {{ .Values.metric.enabled | default false }}
+  serviceMonitor:
+    enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
