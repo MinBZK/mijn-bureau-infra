@@ -111,8 +111,10 @@ extraDeploy:
           text-indent: 0;
         }
 
-        /* Hide attach file button (matches by material icon name, locale-independent) */
-        button.c__button--neutral--tertiary.c__button--nano.c__button--with-icon--left:has(.material-symbols-outlined) {
+        /* Hide attach file and research web buttons */
+        button[aria-label="Add attach file"],
+        button[aria-label="Ajouter attach file"],
+        .research-web-button {
           display: none !important;
         }
 
