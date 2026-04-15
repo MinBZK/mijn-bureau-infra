@@ -587,12 +587,28 @@ master:
     ## @param master.metrics.enabled Enable the export of Prometheus metrics
     ##
     enabled: false
+    ## Metrics service parameters
+    ##
+    service:
+      ## @param master.metrics.service.ports.metrics Metrics service port
+      ##
+      ports:
+        metrics: 9090
+      ## @param master.metrics.service.annotations Annotations for the metrics service
+      ##
+      annotations: {}
+      ## @param master.metrics.service.extraPorts Extra ports for the metrics service
+      ##
+      extraPorts: []
     ## Prometheus Operator ServiceMonitor configuration
     ##
     serviceMonitor:
       ## @param master.metrics.serviceMonitor.enabled if `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.enabled` to be `true`)
       ##
       enabled: false
+      ## @param master.metrics.serviceMonitor.path HTTP path Prometheus scrapes for metrics. Synapse serves metrics at /_synapse/metrics, not /metrics.
+      ##
+      path: "/_synapse/metrics"
       ## @param master.metrics.serviceMonitor.namespace Namespace in which Prometheus is running
       ##
       namespace: ""

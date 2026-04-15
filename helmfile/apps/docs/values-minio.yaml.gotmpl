@@ -775,6 +775,15 @@ networkPolicy:
         - podSelector:
             matchLabels:
               app.kubernetes.io/instance: docs-nginx
+    {{- if .Values.metric.enabled }}
+    - ports:
+        - port: {{ .Values.objectstore.docs.port }}
+          protocol: TCP
+      from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+    {{- end }}
   ## @param networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy
   ## e.g:
   ## extraEgress:
