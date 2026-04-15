@@ -606,6 +606,9 @@ master:
       ## @param master.metrics.serviceMonitor.enabled if `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.enabled` to be `true`)
       ##
       enabled: false
+      ## @param master.metrics.serviceMonitor.path HTTP path Prometheus scrapes for metrics. Synapse serves metrics at /_synapse/metrics, not /metrics.
+      ##
+      path: "/_synapse/metrics"
       ## @param master.metrics.serviceMonitor.namespace Namespace in which Prometheus is running
       ##
       namespace: ""

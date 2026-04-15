@@ -26,7 +26,7 @@ spec:
       {{- end }}
   endpoints:
     - port: tcp-metrics
-      path: "/metrics"
+      path: {{ .Values.master.metrics.serviceMonitor.path | default "/_synapse/metrics" | quote }}
       {{- if .Values.master.metrics.serviceMonitor.tlsConfig }}
       scheme: https
       tlsConfig: {{- include "common.tplvalues.render" ( dict "value" .Values.master.metrics.serviceMonitor.tlsConfig "context" $) | nindent 8 }}
