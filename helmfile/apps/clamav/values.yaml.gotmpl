@@ -43,7 +43,7 @@ persistence:
   enabled: true
   storageClass: {{ coalesce .Values.pvc.clamav.storageClass .Values.pvc.default.storageClass | quote }}
   accessModes: {{ coalesce .Values.pvc.clamav.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
-  size: {{ coalesce .Values.pvc.clamav.size .Values.pvc.default.size "8Gi" }}
+  size: {{ coalesce .Values.pvc.clamav.size .Values.pvc.default.size "2Gi" }}
 
 networkPolicy:
   enabled: true
