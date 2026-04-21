@@ -1,0 +1,7 @@
+version: 1.0.0
+dependencies:
+- name: openproject
+  repository: https://charts.openproject.org
+  version: 11.6.1
+digest: sha256:890e1a026d54513de8163e071f3092ea74895d27bf747e63bd0ca7d29c764128
+generated: '2026-04-20T10:04:25.414674303Z'

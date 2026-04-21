@@ -25,12 +25,7 @@ clamav:
     tag: {{ .Values.container.clamav.tag | quote }}
 
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
-  # ClamAV requires 3GiB+ RAM to load the virus signature database
-  # (see https://docs.clamav.net/#recommended-system-requirements).
-  # Default resources are set here because the shared resourcesPreset
-  # tiers (nano..large) don't match ClamAV's minimum. This will be
-  # revisited when we introduce per-app resource presets.
-  resources: {{ .Values.resource.clamav | default (dict "requests" (dict "cpu" "1" "memory" "3Gi") "limits" (dict "cpu" "2" "memory" "4Gi")) | toYaml | nindent 4 }}
+  resources: {{ .Values.resource.clamav | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
