@@ -9,3 +9,8 @@ pvc:
     accessModes:
       - ReadWriteOnce
       - ReadOnlyMany
+  # ClamAV has an explicit pvc.clamav.size set in pvc.yaml.gotmpl,
+  # which takes priority over pvc.default.size in the coalesce chain.
+  # Override it here to match the test's expected value.
+  clamav:
+    size: "42Gi"
