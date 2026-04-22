@@ -925,12 +925,238 @@ serviceAccount:
   ##
   automountServiceAccountToken: true
 
-## Prometheus metrics
+## @section Metrics Parameters
+##
+## Prometheus metrics for Nextcloud.
+##
+## Nextcloud does not expose a native Prometheus endpoint. Metrics are produced
+## by `xperimental/nextcloud-exporter`, which queries the `serverinfo` OCS API
+## and re-exposes OpenMetrics. The exporter runs as its OWN Deployment (not a
+## sidecar) because `serverinfo` returns cluster-wide scalars; one exporter
+## replica therefore gives a single authoritative time series regardless of
+## Nextcloud HPA replica count, and scrape cost is bounded.
+##
+## Operators: import Grafana dashboard ID 11033 for the exporter's metrics.
+## ref: https://grafana.com/grafana/dashboards/11033
 ##
 metrics:
-  ## @param metrics.enabled Enable the export of Prometheus metrics
+  ## @param metrics.enabled Deploy the Nextcloud Prometheus exporter
   ##
   enabled: false
+  ## Nextcloud exporter image
+  ## ref: https://github.com/xperimental/nextcloud-exporter
+  ## @param metrics.image.registry Nextcloud exporter image registry
+  ## @param metrics.image.repository Nextcloud exporter image repository
+  ## @param metrics.image.tag Nextcloud exporter image tag (immutable tags are recommended)
+  ## @param metrics.image.digest Nextcloud exporter image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag
+  ## @param metrics.image.pullPolicy Nextcloud exporter image pull policy
+  ## @param metrics.image.pullSecrets Specify image pull secrets
+  ##
+  image:
+    registry: docker.io
+    repository: xperimental/nextcloud-exporter
+    tag: "0.9.1"
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  ## @param metrics.replicaCount Number of exporter replicas (should be 1 — serverinfo is cluster-wide)
+  ##
+  replicaCount: 1
+  ## @param metrics.timeout HTTP timeout for the serverinfo call (serverinfo can take 30-50s)
+  ##
+  timeout: "45s"
+  ## @param metrics.enableInfoApps Include the `info.apps` section of serverinfo in scrapes (slow; leave off unless you need per-app metrics)
+  ##
+  enableInfoApps: false
+  ## @param metrics.enableInfoUpdate Include the `info.update` section of serverinfo in scrapes (slow; Nextcloud upgrades are manual)
+  ##
+  enableInfoUpdate: false
+  ## Authentication for the serverinfo endpoint
+  ## A random 64-char alphanumeric token is auto-generated and stored in a Secret
+  ## (kept across upgrades via `common.secrets.passwords.manage`). The token
+  ## is provisioned into Nextcloud by the post-install script
+  ## (`occ config:app:set serverinfo token`).
+  ##
+  auth:
+    ## @param metrics.auth.existingSecret Name of an existing Secret holding the serverinfo token. If empty, a Secret is created.
+    ##
+    existingSecret: ""
+    ## @param metrics.auth.secretKey Key inside the Secret that holds the serverinfo token
+    ##
+    secretKey: "token"
+  ## @param metrics.extraEnvVars Extra env vars for the exporter container
+  ##
+  extraEnvVars: []
+  ## @param metrics.containerPorts.metrics Exporter HTTP port
+  ##
+  containerPorts:
+    metrics: 9205
+  ## Exporter pod security context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+  ## @param metrics.podSecurityContext.enabled Enable exporter pod-level securityContext
+  ## @param metrics.podSecurityContext.fsGroup Group ID for the exporter pod's volumes
+  ## @param metrics.podSecurityContext.runAsUser UID the exporter pod should run as
+  ## @param metrics.podSecurityContext.runAsGroup GID the exporter pod should run as
+  ## @param metrics.podSecurityContext.runAsNonRoot Require the exporter pod to run as non-root
+  ## @param metrics.podSecurityContext.seccompProfile.type Exporter pod seccomp profile
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## Exporter container security context
+  ## @param metrics.containerSecurityContext.enabled Enable exporter container-level securityContext
+  ## @param metrics.containerSecurityContext.runAsUser Exporter container UID
+  ## @param metrics.containerSecurityContext.runAsGroup Exporter container GID
+  ## @param metrics.containerSecurityContext.runAsNonRoot Require exporter container runAsNonRoot
+  ## @param metrics.containerSecurityContext.privileged Run exporter container privileged
+  ## @param metrics.containerSecurityContext.readOnlyRootFilesystem Exporter container read-only root filesystem
+  ## @param metrics.containerSecurityContext.allowPrivilegeEscalation Allow privilege escalation in exporter container
+  ## @param metrics.containerSecurityContext.capabilities.drop Capabilities to drop from the exporter container
+  ## @param metrics.containerSecurityContext.seccompProfile.type Exporter container seccomp profile
+  ##
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    privileged: false
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## Exporter probes
+  ## @param metrics.livenessProbe.enabled Enable livenessProbe on the exporter container
+  ## @param metrics.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+  ## @param metrics.livenessProbe.periodSeconds Period seconds for livenessProbe
+  ## @param metrics.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+  ## @param metrics.livenessProbe.failureThreshold Failure threshold for livenessProbe
+  ## @param metrics.livenessProbe.successThreshold Success threshold for livenessProbe
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  ## @param metrics.readinessProbe.enabled Enable readinessProbe on the exporter container
+  ## @param metrics.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+  ## @param metrics.readinessProbe.periodSeconds Period seconds for readinessProbe
+  ## @param metrics.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+  ## @param metrics.readinessProbe.failureThreshold Failure threshold for readinessProbe
+  ## @param metrics.readinessProbe.successThreshold Success threshold for readinessProbe
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    timeoutSeconds: 50
+    failureThreshold: 6
+    successThreshold: 1
+  ## @param metrics.startupProbe.enabled Enable startupProbe on the exporter container
+  ## @param metrics.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+  ## @param metrics.startupProbe.periodSeconds Period seconds for startupProbe
+  ## @param metrics.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+  ## @param metrics.startupProbe.failureThreshold Failure threshold for startupProbe
+  ## @param metrics.startupProbe.successThreshold Success threshold for startupProbe
+  ##
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+  ## @param metrics.customLivenessProbe Custom livenessProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  ## @param metrics.customReadinessProbe Custom readinessProbe that overrides the default one
+  ##
+  customReadinessProbe: {}
+  ## @param metrics.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customStartupProbe: {}
+  ## @param metrics.resourcesPreset Exporter container resources preset. Ignored if metrics.resources is set.
+  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  ##
+  resourcesPreset: "nano"
+  ## @param metrics.resources Exporter container resources
+  ##
+  resources: {}
+  ## @param metrics.podLabels Extra labels for the exporter pod
+  ##
+  podLabels: {}
+  ## @param metrics.podAnnotations Extra annotations for the exporter pod
+  ##
+  podAnnotations: {}
+  ## @param metrics.deploymentAnnotations Extra annotations for the exporter Deployment
+  ##
+  deploymentAnnotations: {}
+  ## @param metrics.affinity Affinity rules for exporter pod assignment
+  ##
+  affinity: {}
+  ## @param metrics.nodeSelector Node labels for exporter pod assignment
+  ##
+  nodeSelector: {}
+  ## @param metrics.tolerations Tolerations for exporter pod assignment
+  ##
+  tolerations: []
+  ## @param metrics.priorityClassName priorityClassName for the exporter pod
+  ##
+  priorityClassName: ""
+  ## @param metrics.schedulerName Scheduler name for the exporter pod
+  ##
+  schedulerName: ""
+  ## @param metrics.topologySpreadConstraints Topology spread constraints for the exporter pod
+  ##
+  topologySpreadConstraints: []
+  ## @param metrics.podAffinityPreset Exporter pod affinity preset. Allowed values: soft, hard
+  ##
+  podAffinityPreset: ""
+  ## @param metrics.podAntiAffinityPreset Exporter pod anti-affinity preset. Allowed values: soft, hard
+  ##
+  podAntiAffinityPreset: soft
+  ## @param metrics.nodeAffinityPreset.type Exporter node affinity preset type. Allowed values: soft, hard
+  ## @param metrics.nodeAffinityPreset.key Exporter node label key to match
+  ## @param metrics.nodeAffinityPreset.values Exporter node label values to match
+  ##
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  ## Metrics service parameters
+  ##
+  service:
+    ## @param metrics.service.ports.metrics Metrics service port
+    ##
+    ports:
+      metrics: 9205
+    ## @param metrics.service.annotations Annotations for the metrics service
+    ##
+    annotations: {}
+  ## NetworkPolicy dedicated to the exporter pod
+  ## Allows monitoring namespace to scrape, and exporter to reach Nextcloud.
+  ##
+  networkPolicy:
+    ## @param metrics.networkPolicy.enabled Create a NetworkPolicy for the exporter pod
+    ##
+    enabled: true
+    ## @param metrics.networkPolicy.monitoringNamespace Name of the namespace hosting the Prometheus installation permitted to scrape this exporter. Override this (or pipe `metric.namespace` through from helmfile values) if Prometheus runs elsewhere.
+    ##
+    monitoringNamespace: "monitoring"
+    ## @param metrics.networkPolicy.extraIngress Additional ingress rules for the exporter pod
+    ##
+    extraIngress: []
+    ## @param metrics.networkPolicy.extraEgress Additional egress rules for the exporter pod
+    ##
+    extraEgress: []
   ## Prometheus Operator ServiceMonitor configuration
   ##
   serviceMonitor:
@@ -956,17 +1182,13 @@ metrics:
     ##
     tlsConfig: {}
     ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped.
-    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
-    ## e.g:
-    ## interval: 10s
+    ## Defaults to 90s because the serverinfo endpoint is expensive (30-50s). Lowering this risks overlapping scrapes and added DB load.
     ##
-    interval: ""
-    ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended
-    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
-    ## e.g:
-    ## scrapeTimeout: 10s
+    interval: "90s"
+    ## @param metrics.serviceMonitor.scrapeTimeout Timeout after which the scrape is ended.
+    ## Must be >= metrics.timeout so slow serverinfo responses are not dropped.
     ##
-    scrapeTimeout: ""
+    scrapeTimeout: "50s"
     ## @param metrics.serviceMonitor.metricRelabelings Specify additional relabeling of metrics
     ##
     metricRelabelings: []

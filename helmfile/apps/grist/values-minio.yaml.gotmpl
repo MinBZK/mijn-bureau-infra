@@ -771,6 +771,15 @@ networkPolicy:
         - podSelector:
             matchLabels:
               app.kubernetes.io/part-of: minio
+    {{- if .Values.metric.enabled }}
+    - ports:
+        - port: {{ .Values.objectstore.grist.port }}
+          protocol: TCP
+      from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.metric.namespace }}
+    {{- end }}
   ## @param networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy
   ## e.g:
   ## extraEgress:

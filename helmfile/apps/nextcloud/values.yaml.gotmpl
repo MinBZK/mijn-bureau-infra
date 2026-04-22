@@ -61,6 +61,18 @@ networkPolicy:
    - ports:
        - port: 8080
          protocol: TCP
+   {{- if .Values.metric.enabled }}
+   # Allow the in-namespace metrics exporter pod to reach Nextcloud's
+   # serverinfo endpoint. Prometheus itself scrapes the exporter pod, not
+   # Nextcloud — see the dedicated metrics NetworkPolicy.
+   - from:
+       - podSelector:
+           matchLabels:
+             app.kubernetes.io/component: metrics
+     ports:
+       - port: 8080
+         protocol: TCP
+   {{- end }}
 
   # Specific egress rules for required services only
   extraEgress:
@@ -217,3 +229,10 @@ files:
     maxStreamSize: {{ .Values.antivirus.streamMaxLength }}
     infectedAction: delete
     maxFileSize: {{ .Values.antivirus.mailFilter.maxFileSize }}
+
+metrics:
+  enabled: {{ .Values.metric.enabled | default false }}
+  networkPolicy:
+    monitoringNamespace: {{ .Values.metric.namespace | quote }}
+  serviceMonitor:
+    enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}

@@ -686,6 +686,15 @@ primary:
           - podSelector:
               matchLabels:
                 app.kubernetes.io/name: docs
+      {{- if .Values.metric.enabled }}
+      - ports:
+          - port: 9187
+            protocol: TCP
+        from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: {{ .Values.metric.namespace }}
+      {{- end }}
     ## @param primary.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy
     ## e.g:
     ## extraEgress:

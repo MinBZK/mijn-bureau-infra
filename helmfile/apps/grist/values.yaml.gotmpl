@@ -1,3 +1,7 @@
+{{- /* Single source of truth for Grist's Prometheus metrics port.
+       Drives both the chart's containerPorts.metrics override (below) and
+       the network-policy ingress rule. */ -}}
+{{- $metricsPort := 9090 -}}
 global:
   defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
 
@@ -79,6 +83,17 @@ networkPolicy:
    - ports:
        - port: 8484
          protocol: TCP
+   {{- if .Values.metric.enabled }}
+   # Allow Prometheus to scrape metrics. Port is pinned to the chart's
+   # containerPorts.metrics (charts/grist/values.yaml); change both together.
+   - from:
+       - namespaceSelector:
+           matchLabels:
+             kubernetes.io/metadata.name: {{ .Values.metric.namespace }}
+     ports:
+       - port: {{ $metricsPort }}
+         protocol: TCP
+   {{- end }}
 
   # Specific egress rules for required services only
   extraEgress:
@@ -331,3 +346,14 @@ customCss:
       --grist-control-border
       --grist-toast-bg
     */
+
+metrics:
+  enabled: {{ .Values.metric.enabled | default false }}
+  serviceMonitor:
+    enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
+
+# Pin metrics port so the chart's containerPort and the network-policy
+# ingress rule above cannot drift apart (helmfile values.yaml.gotmpl has
+# no access to the chart's default).
+containerPorts:
+  metrics: {{ $metricsPort }}
