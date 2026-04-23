@@ -141,7 +141,9 @@ pvc:
 
   clamav:
     storageClass: ~
-    size: ~
+    # ClamAV recommends 5 GiB minimum disk space for virus signature databases.
+    # See: https://docs.clamav.net/#recommended-system-requirements
+    size: "5Gi"
     accessModes: []
 
   bureaublad:

@@ -113,7 +113,7 @@ spec:
           {{- if .Values.clamav.resources }}
           resources: {{- toYaml .Values.clamav.resources | nindent 12 }}
           {{- else if ne .Values.clamav.resourcesPreset "none" }}
-          resources: {{- include "common.resources.preset" (dict "type" .Values.clamav.resourcesPreset) | nindent 12 }}
+          resources: {{- include "clamav.resources.preset" (dict "type" .Values.clamav.resourcesPreset) | nindent 12 }}
           {{- end }}
           ports:
             - name: clamav
