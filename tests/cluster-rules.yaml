@@ -4,6 +4,33 @@ application:
 
 global:
   domain: "mijnbureau.nl"
+  resourcesPresetPerApp:
+    collabora: "small"
+    elementweb: "nano"
+    keycloak: "small"
+    ollama: "small"
+    synapse: "small"
+    grist: "small"
+    livekit: "small"
+    nextcloud: "small"
+    meet:
+      backend: "small"
+      frontend: "small"
+    docs:
+      backend: "small"
+      frontend: "small"
+      celery: "small"
+      yProvider: "small"
+      docspec: "small"
+    drive:
+      backend: "small"
+      frontend: "small"
+    conversations:
+      backend: "small"
+      frontend: "small"
+    bureaublad:
+      backend: "small"
+      frontend: "small"
 
 cluster:
   ingress:

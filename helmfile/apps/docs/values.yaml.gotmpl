@@ -24,7 +24,7 @@ backend:
     repository: {{ .Values.container.docs.backend.repository | quote }}
     tag: {{ .Values.container.docs.backend.tag | quote }}
   replicaCount: 1
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.docs.backend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.docs.backend | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
@@ -345,7 +345,7 @@ backend:
       enabled: false
     readinessProbe:
       enabled: false
-    resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+    resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.docs.celery .Values.global.resourcesPreset | quote }}
     resources: {{ .Values.resource.docs.celery | toYaml | nindent 6 }}
     podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 6 }}
     containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 6 }}
@@ -404,7 +404,7 @@ frontend:
     repository: {{ .Values.container.docs.frontend.repository | quote }}
     tag: {{ .Values.container.docs.frontend.tag | quote }}
   replicaCount: 1
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.docs.frontend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.docs.backend | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
@@ -422,7 +422,7 @@ docspec:
     repository: {{ .Values.container.docspec.repository | quote }}
     tag: {{ .Values.container.docspec.tag | quote }}
   replicaCount: 1
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.docs.docspec .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.docs.docspec | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
@@ -437,7 +437,7 @@ yProvider:
     repository: {{ .Values.container.docs.yProvider.repository | quote }}
     tag: {{ .Values.container.docs.yProvider.tag | quote }}
   replicaCount: 1
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.docs.yProvider .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.docs.backend | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
