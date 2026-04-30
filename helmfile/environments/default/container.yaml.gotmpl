@@ -5,7 +5,7 @@ container:
   ollama:
     registry: "docker.io"
     repository: "ollama/ollama"
-    tag: "0.19.0"
+    tag: "0.21.2"
     imagePullSecret: ~
   keycloak:
     registry: "docker.io"
@@ -20,7 +20,7 @@ container:
   grist:
     registry: "registry-1.docker.io"
     repository: "gristlabs/grist"
-    tag: "1.7.11"
+    tag: "1.7.12"
     imagePullSecret: ~
   minio:
     registry: "registry-1.docker.io"
@@ -60,12 +60,12 @@ container:
   elementweb:
     registry: "registry-1.docker.io"
     repository: "vectorim/element-web"
-    tag: "v1.12.12"
+    tag: "v1.12.15"
     imagePullSecret: ~
   synapse:
     registry: "registry-1.docker.io"
     repository: "matrixdotorg/synapse"
-    tag: "v1.149.1"
+    tag: "v1.151.0"
     imagePullSecret: ~
   collabora:
     registry: "registry-1.docker.io"
@@ -75,7 +75,7 @@ container:
   nextcloud:
     registry: "registry-1.docker.io"
     repository: "library/nextcloud"
-    tag: "33.0.0-apache"
+    tag: "33.0.2-apache"
     imagePullSecret: ~
   osShell:
     registry: "registry-1.docker.io"
@@ -94,7 +94,7 @@ container:
   livekit_server:
     registry: "registry-1.docker.io"
     repository: "livekit/livekit-server"
-    tag: "v1.9.12"
+    tag: "v1.11"
     imagePullSecret: ~
   kubectl:
     registry: docker.io
@@ -104,31 +104,31 @@ container:
   meet_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/meet-backend"
-    tag: "v1.12.0"
+    tag: "v1.14.0"
     imagePullSecret: ~
   meet_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/meet-frontend"
-    tag: "v1.12.0"
+    tag: "v1.14.0"
     imagePullSecret: ~
   conversations_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/conversations-backend"
-    tag: "v0.0.14"
+    tag: "v0.0.15"
     imagePullSecret: ~
   conversations_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/conversations-frontend"
-    tag: "v0.0.14"
+    tag: "v0.0.15"
   drive_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/drive-backend"
-    tag: "v0.15.0"
+    tag: "v0.17.0"
     imagePullSecret: ~
   drive_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/drive-frontend"
-    tag: "v0.15.0"
+    tag: "v0.17.0"
     imagePullSecret: ~
   nginx:
     registry: docker.io
@@ -145,13 +145,13 @@ container:
     registry: "registry-1.docker.io"
     backend:
       repository: "lasuite/impress-backend"
-      tag: "v4.8.5"
+      tag: "v4.8.6"
     frontend:
       repository: "lasuite/impress-frontend"
-      tag: "v4.8.5"
+      tag: "v4.8.6"
     yProvider:
       repository: "lasuite/impress-y-provider"
-      tag: "v4.8.5"
+      tag: "v4.8.6"
   bureaublad:
     imagePullSecret: ~
     registry: "ghcr.io"
