@@ -83,6 +83,9 @@ spec:
           {{- end }}
           image: {{ template "nextcloud.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
           command:
             - /bin/bash
             - -ec

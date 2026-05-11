@@ -14,3 +14,12 @@ pvc:
   # Override it here to match the test's expected value.
   clamav:
     size: "42Gi"
+  # Nextcloud also has explicit per-PVC sizes set in pvc.yaml.gotmpl
+  # (config volume, postgres, MinIO). Override each to match the test.
+  nextcloud:
+    nextcloud:
+      size: "42Gi"
+    postgresql:
+      size: "42Gi"
+    minio:
+      size: "42Gi"

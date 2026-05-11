@@ -49,11 +49,18 @@ data:
   OBJECTSTORE_S3_HOST: {{ .Values.externalMinio.endpoint | quote }}
   OBJECTSTORE_S3_PORT: {{ .Values.externalMinio.port | quote }}
   OBJECTSTORE_S3_BUCKET: {{ .Values.externalMinio.bucket | quote }}
+  OBJECTSTORE_S3_REGION: {{ .Values.externalMinio.region | quote }}
   OBJECTSTORE_S3_SSL: {{ .Values.externalMinio.useSSL | quote }}
   OBJECTSTORE_S3_USEPATH_STYLE: {{ .Values.externalMinio.pathStyle | default "true" | quote }}
   OBJECTSTORE_S3_LEGACYAUTH: {{ .Values.externalMinio.legacyAuth | quote }}
   OBJECTSTORE_S3_AUTOCREATE: {{ .Values.externalMinio.autocreate | quote }}
   OBJECTSTORE_S3_SSE_C_KEY: {{ .Values.externalMinio.sseKey | quote }}
+  {{/*
+  PHP runtime limits — consumed by the upstream image's
+  /usr/local/etc/php/conf.d/nextcloud.ini at PHP SAPI startup.
+  */}}
+  PHP_UPLOAD_LIMIT: {{ .Values.phpUploadLimit | quote }}
+  PHP_MEMORY_LIMIT: {{ .Values.phpMemoryLimit | quote }}
   {{/*
   Database configuration
   */}}
