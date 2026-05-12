@@ -27,6 +27,7 @@ Presets are defined in `helmfile/apps/common/charts/common/templates/_resources.
 
 | Preset    | CPU Request | CPU Limit | RAM Request | RAM Limit |
 | --------- | ----------- | --------- | ----------- | --------- |
+| `none`    | ----        | ----      | ----        | ----      |
 | `nano`    | 100m        | 150m      | 128Mi       | 192Mi     |
 | `micro`   | 250m        | 375m      | 256Mi       | 384Mi     |
 | `small`   | 500m        | 750m      | 512Mi       | 768Mi     |
@@ -36,6 +37,10 @@ Presets are defined in `helmfile/apps/common/charts/common/templates/_resources.
 | `2xlarge` | 1.0         | 6.0       | 3072Mi      | 12288Mi   |
 
 All presets include ephemeral storage: 50Mi request / 2Gi limit.
+
+### The `none` option
+
+In addition to the named presets above, `none` is accepted as a special value. It is not a real preset — it is a sentinel that tells the deployment templates to skip rendering the `resources:` block entirely. The container is then created with no CPU/memory requests and no limits. Use this when you intentionally want an app to run without resource constraints
 
 ## Global Configuration
 
