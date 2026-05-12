@@ -817,7 +817,7 @@ primary:
     accessModes: {{ coalesce .Values.pvc.nextcloud.postgresql.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
     ## @param primary.persistence.size PVC Storage Request for PostgreSQL volume
     ##
-    size: {{ coalesce .Values.pvc.nextcloud.postgresql.size .Values.pvc.default.size "8Gi" }}
+    size: {{ coalesce .Values.pvc.nextcloud.postgresql.size .Values.pvc.default.size }}
     ## @param primary.persistence.annotations Annotations for the PVC
     ##
     annotations: {}

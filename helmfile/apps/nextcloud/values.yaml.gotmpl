@@ -31,6 +31,7 @@ ingress:
     {{- end }}
     {{- if eq .Values.cluster.ingress.type "nginx" }}
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: {{ .Values.application.nextcloud.uploadLimit | quote }}
     nginx.ingress.kubernetes.io/configuration-snippet: |
       add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
     {{- end }}
@@ -195,8 +196,11 @@ externalMinio:
   username: {{ .Values.objectstore.nextcloud.username | quote }}
   password: {{ .Values.objectstore.nextcloud.rootPassword | quote }}
   bucket: {{ .Values.objectstore.nextcloud.bucket | quote }}
+  region: {{ .Values.objectstore.nextcloud.region | quote }}
   useSSL: {{ .Values.objectstore.nextcloud.useSSL | quote }}
   pathStyle: true
+
+phpUploadLimit: {{ .Values.application.nextcloud.uploadLimit | quote }}
 
 externalDatabase:
   database: {{ .Values.database.nextcloud.name | quote }}
@@ -210,7 +214,7 @@ persistence:
   enabled: true
   storageClass: {{ coalesce .Values.pvc.nextcloud.nextcloud.storageClass .Values.pvc.default.storageClass | quote }}
   accessModes: {{ coalesce .Values.pvc.nextcloud.nextcloud.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
-  size: {{ coalesce .Values.pvc.nextcloud.nextcloud.size .Values.pvc.default.size "8Gi" }}
+  size: {{ coalesce .Values.pvc.nextcloud.nextcloud.size .Values.pvc.default.size }}
 
 {{- if .Values.application.collabora.enabled }}
 # The is the URL is used to connect Collabora Server with Next Cloud Office App automaticlly

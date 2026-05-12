@@ -46,6 +46,13 @@ application:
     enabled: true
     namespace: ~
     defaultQuota: "10 GB"
+    # Maximum file upload size. Applied at both the nginx-ingress
+    # (`proxy-body-size` annotation) and PHP (`PHP_UPLOAD_LIMIT` env
+    # var, which sets upload_max_filesize & post_max_size). The upstream
+    # image's Apache `LimitRequestBody` is 1 GiB; raising uploadLimit
+    # above 1G also requires bumping `APACHE_BODY_LIMIT` (not currently
+    # exposed).
+    uploadLimit: "512M"
 
   # OpenProject is a web-based project management system
   openproject:
