@@ -25,7 +25,7 @@ livekit:
     repository: {{ .Values.container.livekit_server.repository | quote }}
     tag: {{ .Values.container.livekit_server.tag | quote }}
 
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.livekit .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.livekit.livekit | default dict | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}

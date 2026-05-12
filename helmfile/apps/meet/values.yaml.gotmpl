@@ -22,7 +22,7 @@ meet:
     repository: {{ .Values.container.meet_frontend.repository | quote }}
     tag: {{ .Values.container.meet_frontend.tag | quote }}
 
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.meet.frontend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.meet.meetBackend | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
@@ -40,7 +40,7 @@ meet_backend:
     repository: {{ .Values.container.meet_backend.repository | quote }}
     tag: {{ .Values.container.meet_backend.tag | quote }}
 
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.meet.backend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.meet.meetFrontend | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}

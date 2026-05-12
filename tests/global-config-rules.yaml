@@ -5,6 +5,33 @@ application:
 global:
   domain: "test-global-domain.example"
   resourcesPreset: "xlarge"
+  resourcesPresetPerApp:
+    collabora: "xlarge"
+    elementweb: "xlarge"
+    keycloak: "xlarge"
+    ollama: "xlarge"
+    synapse: "xlarge"
+    grist: "xlarge"
+    livekit: "xlarge"
+    nextcloud: "xlarge"
+    meet:
+      backend: "xlarge"
+      frontend: "xlarge"
+    docs:
+      backend: "xlarge"
+      frontend: "xlarge"
+      celery: "xlarge"
+      yProvider: "xlarge"
+      docspec: "xlarge"
+    drive:
+      backend: "xlarge"
+      frontend: "xlarge"
+    conversations:
+      backend: "xlarge"
+      frontend: "xlarge"
+    bureaublad:
+      backend: "xlarge"
+      frontend: "xlarge"
 
 resource:
   openproject:

@@ -22,7 +22,7 @@ drive:
     repository: {{ .Values.container.drive_backend.repository | quote }}
     tag: {{ .Values.container.drive_backend.tag | quote }}
 
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.drive.backend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.drive.driveBackend | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
@@ -65,7 +65,7 @@ drive_frontend:
     repository: {{ .Values.container.drive_frontend.repository | quote }}
     tag: {{ .Values.container.drive_frontend.tag | quote }}
 
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.drive.frontend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.drive.driveFrontend | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}

@@ -41,7 +41,7 @@ ingress:
     {{- if eq .Values.cluster.ingress.type "traefik" }}
     traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
     {{- end }}
-resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.nextcloud .Values.global.resourcesPreset | quote }}
 
 {{- if .Values.cluster.runtimeClassName }}
 runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
