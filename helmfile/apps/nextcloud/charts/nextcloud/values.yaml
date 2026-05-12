@@ -203,6 +203,7 @@ externalRedis:
 ## @param externalMinio.username MinIO access key (username)
 ## @param externalMinio.password MinIO secret key (password)
 ## @param externalMinio.bucket MinIO bucket name
+## @param externalMinio.region MinIO/S3 region. Required by AWS-SDK-for-PHP for SigV4 signing; emitted as `OBJECTSTORE_S3_REGION`. Empty string falls back to upstream `s3.config.php` default of `''`.
 ## @param externalMinio.useSSL If set to `true` will use SSL.
 ## @param externalMinio.pathStyle If set to `true` will use path-style URLs (required for MinIO)
 ## @param externalMinio.legacyAuth If set to `true` will use legacy authentication.
@@ -218,6 +219,7 @@ externalMinio:
   username: ""
   password: ""
   bucket: ""
+  region: ""
   useSSL: true
   pathStyle: true
   legacyAuth: false
@@ -288,6 +290,17 @@ extraConfigs: {}
 ## @param phpConfigs PHP configuration files as key-value pairs (filename: content)
 ##
 phpConfigs: {}
+
+## PHP runtime limits passed as env vars to the upstream Nextcloud Apache image.
+## The image's entrypoint writes them into /usr/local/etc/php/conf.d/nextcloud.ini
+## as `upload_max_filesize` / `post_max_size` / `memory_limit`.
+## NOTE: Apache's `LimitRequestBody` is governed by `APACHE_BODY_LIMIT` (1 GiB
+## default). To raise uploads above 1 GiB, also set APACHE_BODY_LIMIT.
+## @param phpUploadLimit Sets PHP_UPLOAD_LIMIT env var (post_max_size & upload_max_filesize).
+## @param phpMemoryLimit Sets PHP_MEMORY_LIMIT env var.
+##
+phpUploadLimit: "512M"
+phpMemoryLimit: "512M"
 
 ## Nextcloud set-the-security-context-for-a-pod
 ## @param replicaCount Number of Nextcloud replicas to deploy

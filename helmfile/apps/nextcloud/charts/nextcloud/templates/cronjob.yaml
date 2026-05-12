@@ -35,6 +35,9 @@ spec:
           {{- if .Values.tolerations }}
           tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" .) | nindent 12 }}
           {{- end }}
+          {{- if .Values.podSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
           initContainers:
             {{- if .Values.initContainers }}
               {{- include "common.tplvalues.render" (dict "value" .Values.initContainers "context" $) | nindent 8 }}
@@ -42,6 +45,9 @@ spec:
             - name: "nextcloud-php-provisioning"
               image: {{ template "nextcloud.image" . }}
               imagePullPolicy: {{ .Values.image.pullPolicy }}
+              {{- if .Values.containerSecurityContext.enabled }}
+              securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 16 }}
+              {{- end }}
               command:
                 - /bin/bash
                 - -ec
