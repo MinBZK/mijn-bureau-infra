@@ -73,6 +73,51 @@ extraDeploy:
         app.kubernetes.io/part-of: meet
         app.kubernetes.io/component: static-nginx
     data:
+      bureaublad-button.js: |
+        (function () {
+          if (window.self !== window.top) return;
+          var BUREAUBLAD_URL = 'https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}';
+          function mount() {
+            if (document.getElementById('mb-home-button')) return;
+            var a = document.createElement('a');
+            a.id = 'mb-home-button';
+            a.href = BUREAUBLAD_URL;
+            a.title = 'Terug naar Mijn Bureau';
+            a.setAttribute('aria-label', 'Terug naar Mijn Bureau');
+            a.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+            Object.assign(a.style, {
+              position: 'fixed',
+              bottom: '18px',
+              left: '18px',
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'var(--colors-primary, #154273)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textDecoration: 'none',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+              zIndex: '2147483647',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+            });
+            a.addEventListener('mouseenter', function () {
+              a.style.transform = 'scale(1.08)';
+              a.style.boxShadow = '0 6px 16px rgba(0,0,0,0.24)';
+            });
+            a.addEventListener('mouseleave', function () {
+              a.style.transform = 'scale(1)';
+              a.style.boxShadow = '0 4px 12px rgba(0,0,0,0.18)';
+            });
+            document.body.appendChild(a);
+          }
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', mount);
+          } else {
+            mount();
+          }
+        })();
       iframe-hide.css: |
         /* Hide user menu button - users log out via bureaublad */
         nav button:first-child {

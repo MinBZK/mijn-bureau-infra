@@ -34,6 +34,48 @@ meet:
 
   frontendCssUrl: "https://static-{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/iframe-hide.css"
 
+  initContainers:
+    - name: inject-bureaublad-button
+      image: {{ printf "%s/%s:%s" (coalesce .Values.container.meet_frontend.registry .Values.container.default.registry) .Values.container.meet_frontend.repository .Values.container.meet_frontend.tag | quote }}
+      imagePullPolicy: IfNotPresent
+      command:
+        - /bin/sh
+        - -c
+        - |
+          set -eu
+          cp -r /usr/share/nginx/html/. /work/
+          find /work -type f -name '*.html' | while IFS= read -r f; do
+            awk '{
+              i = index($0, "</body>")
+              if (i > 0) {
+                printf "%s<script>", substr($0, 1, i - 1)
+                while ((getline line < "/injection/bureaublad-button.js") > 0) print line
+                close("/injection/bureaublad-button.js")
+                printf "</script>%s\n", substr($0, i)
+              } else {
+                print
+              }
+            }' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+          done
+      volumeMounts:
+        - name: app-patched
+          mountPath: /work
+        - name: bureaublad-button-js
+          mountPath: /injection
+          readOnly: true
+  extraVolumes:
+    - name: app-patched
+      emptyDir: {}
+    - name: bureaublad-button-js
+      configMap:
+        name: meet-static-files
+        items:
+          - key: bureaublad-button.js
+            path: bureaublad-button.js
+  extraVolumeMounts:
+    - name: app-patched
+      mountPath: /usr/share/nginx/html
+
 meet_backend:
   image:
     registry: {{(coalesce .Values.container.meet_backend.registry .Values.container.default.registry) | quote }}

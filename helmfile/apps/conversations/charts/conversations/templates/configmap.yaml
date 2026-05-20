@@ -49,4 +49,5 @@ data:
   LLM_DEFAULT_MODEL_HRID: default-model
   LLM_SUMMARIZATION_MODEL_HRID: "None"
   FRONTEND_CSS_URL: {{ .Values.conversations_frontend.frontendCssUrl | quote }}
+  FRONTEND_JS_URL: {{ .Values.conversations_frontend.frontendJsUrl | quote }}
   FRONTEND_HOMEPAGE_FEATURE_ENABLED: "false"

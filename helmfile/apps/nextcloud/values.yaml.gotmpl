@@ -240,3 +240,135 @@ metrics:
     monitoringNamespace: {{ .Values.metric.namespace | quote }}
   serviceMonitor:
     enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
+
+# Mount a minimal Nextcloud app at /var/www/html/custom_apps/bureaublad_button/
+# that adds a floating "back to bureaublad" button. Enabled via occ in the
+# post-install script.
+extraVolumes:
+  - name: bureaublad-button-app
+    configMap:
+      name: nextcloud-bureaublad-button-app
+      defaultMode: 0644
+
+extraVolumeMounts:
+  - name: bureaublad-button-app
+    mountPath: /var/www/html/custom_apps/bureaublad_button/appinfo/info.xml
+    subPath: info.xml
+    readOnly: true
+  - name: bureaublad-button-app
+    mountPath: /var/www/html/custom_apps/bureaublad_button/lib/AppInfo/Application.php
+    subPath: Application.php
+    readOnly: true
+  - name: bureaublad-button-app
+    mountPath: /var/www/html/custom_apps/bureaublad_button/js/script.js
+    subPath: script.js
+    readOnly: true
+
+extraDeploy:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: nextcloud-bureaublad-button-app
+      namespace: '{{ "{{ .Release.Namespace }}" }}'
+      labels:
+        app.kubernetes.io/part-of: nextcloud
+        app.kubernetes.io/component: bureaublad-button
+    data:
+      info.xml: |
+        <?xml version="1.0"?>
+        <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+          <id>bureaublad_button</id>
+          <name>Bureaublad Button</name>
+          <summary>Floating button to return to Mijn Bureau</summary>
+          <description>Adds a fixed-position button that navigates back to the bureaublad portal.</description>
+          <version>1.0.0</version>
+          <licence>EUPL-1.2</licence>
+          <author>Mijn Bureau</author>
+          <namespace>BureaubladButton</namespace>
+          <category>customization</category>
+          <dependencies>
+            <nextcloud min-version="28" max-version="33"/>
+          </dependencies>
+        </info>
+      Application.php: |
+        <?php
+        declare(strict_types=1);
+
+        namespace OCA\BureaubladButton\AppInfo;
+
+        use OCP\AppFramework\App;
+        use OCP\AppFramework\Bootstrap\IBootContext;
+        use OCP\AppFramework\Bootstrap\IBootstrap;
+        use OCP\AppFramework\Bootstrap\IRegistrationContext;
+        use OCP\Util;
+
+        class Application extends App implements IBootstrap {
+            public const APP_ID = 'bureaublad_button';
+
+            public function __construct() {
+                parent::__construct(self::APP_ID);
+            }
+
+            public function register(IRegistrationContext $context): void {
+            }
+
+            public function boot(IBootContext $context): void {
+                Util::addScript(self::APP_ID, 'script');
+            }
+        }
+      script.js: |
+        (function () {
+          if (window.self !== window.top) return;
+          var BUREAUBLAD_URL = 'https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}';
+          function injectStyles() {
+            if (document.getElementById('mb-home-button-styles')) return;
+            var s = document.createElement('style');
+            s.id = 'mb-home-button-styles';
+            // Above 1024px Nextcloud's bottom-left navigation occupies the
+            // corner, so lift the button above it. Below that breakpoint the
+            // nav collapses and 18px is fine.
+            s.textContent = '#mb-home-button { bottom: 18px; } @media (min-width: 1024px) { #mb-home-button { bottom: 150px; } }';
+            document.head.appendChild(s);
+          }
+          function mount() {
+            if (document.getElementById('mb-home-button')) return;
+            injectStyles();
+            var a = document.createElement('a');
+            a.id = 'mb-home-button';
+            a.href = BUREAUBLAD_URL;
+            a.title = 'Terug naar Mijn Bureau';
+            a.setAttribute('aria-label', 'Terug naar Mijn Bureau');
+            a.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+            Object.assign(a.style, {
+              position: 'fixed',
+              left: '18px',
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'var(--color-primary, #154273)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textDecoration: 'none',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+              zIndex: '2147483647',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+            });
+            a.addEventListener('mouseenter', function () {
+              a.style.transform = 'scale(1.08)';
+              a.style.boxShadow = '0 6px 16px rgba(0,0,0,0.24)';
+            });
+            a.addEventListener('mouseleave', function () {
+              a.style.transform = 'scale(1)';
+              a.style.boxShadow = '0 4px 12px rgba(0,0,0,0.18)';
+            });
+            document.body.appendChild(a);
+          }
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', mount);
+          } else {
+            mount();
+          }
+        })();

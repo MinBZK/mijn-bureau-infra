@@ -41,6 +41,7 @@ drive:
   baseUrl: "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
   externalMinioAPI: "https://{{ .Values.global.hostname.drive }}-minio.{{ .Values.global.domain }}"
   frontendCssUrl: "https://static-{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/iframe-hide.css"
+  frontendJsUrl: "https://static-{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/bureaublad-button.js"
 
   {{ if .Values.application.collabora.enabled }}
   wopiClients: "collabora"
