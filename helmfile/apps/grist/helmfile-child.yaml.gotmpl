@@ -72,3 +72,14 @@ releases:
     values:
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"
+
+  - name: grist-static
+    chart: ../common/charts/nginx
+    version: "22.0.0"
+    {{- if .Values.application.grist.namespace }}
+    namespace: {{ .Values.application.grist.namespace }}
+    {{- end }}
+    installed: {{ .Values.application.grist.enabled | toYaml }}
+    values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values-static-nginx.yaml.gotmpl"
