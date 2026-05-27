@@ -269,8 +269,11 @@ extraDeploy:
     kind: ConfigMap
     metadata:
       name: nextcloud-bureaublad-button-app
-      namespace: '{{ "{{ .Release.Namespace }}" }}'
       labels:
+        app.kubernetes.io/name: nextcloud
+        app.kubernetes.io/instance: nextcloud
+        app.kubernetes.io/version: '{{ "{{ .Chart.AppVersion }}" }}'
+        app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: nextcloud
         app.kubernetes.io/component: bureaublad-button
     data:
