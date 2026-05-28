@@ -104,6 +104,10 @@ extraDeploy:
       name: element-web-bureaublad-button
       namespace: '{{ "{{ .Release.Namespace }}" }}'
       labels:
+        app.kubernetes.io/name: element-web
+        app.kubernetes.io/instance: element-web
+        app.kubernetes.io/version: '{{ "{{ .Chart.AppVersion }}" }}'
+        app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/part-of: element
         app.kubernetes.io/component: bureaublad-button
     data:

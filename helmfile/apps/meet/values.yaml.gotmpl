@@ -48,7 +48,7 @@ meet:
   initContainers:
     - name: inject-bureaublad-button
       image: {{ printf "%s/%s:%s" (coalesce .Values.container.meet_frontend.registry .Values.container.default.registry) .Values.container.meet_frontend.repository .Values.container.meet_frontend.tag | quote }}
-      imagePullPolicy: IfNotPresent
+      imagePullPolicy: Always
       resources:
         requests:
           cpu: {{ $cpuReq | quote }}
