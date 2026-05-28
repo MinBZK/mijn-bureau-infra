@@ -89,3 +89,13 @@ database:
     isInternal: true
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "drive" "database" | sha1sum | quote}}
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "drive" "database_admin" | sha1sum | quote}}
+
+  vaultwarden:
+    type: postgresql
+    host: vaultwarden-cluster-rw
+    name: vaultwarden
+    user: vaultwarden
+    port: 5432
+    isInternal: true
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "vaultwarden" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "vaultwarden" "database_admin" | sha1sum | quote}}

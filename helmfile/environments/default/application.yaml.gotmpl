@@ -115,3 +115,9 @@ application:
   clamav:
     enabled: true
     namespace: ~
+
+  # vaultwarden is a self hosted password manager
+  vaultwarden:
+    enabled: true
+    namespace: ~
+    adminToken: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "vaultwarden" "adminToken" | sha1sum | quote }}

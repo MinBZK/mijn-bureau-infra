@@ -1,0 +1,53 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: vaultwarden-postgresql
+    chart: ../common/charts/postgresql
+    version: "16.7.18"
+    {{- if .Values.application.vaultwarden.namespace }}
+    namespace: {{ .Values.application.vaultwarden.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.vaultwarden.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-postgresql.yaml.gotmpl"
+
+  - name: vaultwarden-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.vaultwarden.namespace }}
+    namespace: {{ .Values.application.vaultwarden.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.vaultwarden.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: vaultwarden-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.vaultwarden.namespace }}
+    namespace: {{ .Values.application.vaultwarden.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.vaultwarden.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    needs:
+      - {{ if .Values.application.vaultwarden.namespace }}{{ .Values.application.vaultwarden.namespace }}/{{ end }}vaultwarden-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
+
+  - name: vaultwarden
+    chart: charts/vaultwarden
+    condition: application.vaultwarden.enabled
+    {{- if .Values.application.vaultwarden.namespace }}
+    namespace: {{ .Values.application.vaultwarden.namespace }}
+    {{- end }}
+    {{- if and (eq .Environment.Name "demo") ( .Values.application.vaultwarden.enabled) }}
+    needs:
+      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+      - {{ if .Values.application.vaultwarden.namespace }}{{ .Values.application.vaultwarden.namespace }}/{{ end }}vaultwarden-cluster
+      {{- else }}
+      - {{ if .Values.application.vaultwarden.namespace }}{{ .Values.application.vaultwarden.namespace }}/{{ end }}vaultwarden-postgresql
+      {{- end }}
+      - {{ if .Values.application.vaultwarden.namespace }}{{ .Values.application.vaultwarden.namespace }}/{{ end }}vaultwarden-redis
+      - {{ if .Values.application.vaultwarden.namespace }}{{ .Values.application.vaultwarden.namespace }}/{{ end }}vaultwarden-minio
+    {{- end }}
+    values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values.yaml.gotmpl"

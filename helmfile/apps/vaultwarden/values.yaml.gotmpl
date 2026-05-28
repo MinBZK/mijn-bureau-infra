@@ -1,0 +1,153 @@
+{{- /* Single source of truth for Vaultwarden's Prometheus metrics port.
+       Drives both the chart's containerPorts.metrics override (below) and
+       the network-policy ingress rule. */ -}}
+{{- $metricsPort := 9090 -}}
+global:
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+
+  security:
+    allowInsecureImages: true
+
+  {{- with (coalesce .Values.container.vaultwarden.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - name: {{ . | quote }}
+  {{- end }}
+
+image:
+  registry: {{(coalesce .Values.container.vaultwarden.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.vaultwarden.repository | quote }}
+  tag: {{ .Values.container.vaultwarden.tag | quote }}
+
+auth:
+  enabled: true
+  oidcIdpIssuer: {{ .Values.authentication.oidc.issuer | quote }}
+  oidcIdpClientId: {{ .Values.authentication.client.vaultwarden.client_id | quote }}
+  oidcIdpClientSecret: {{ .Values.authentication.client.vaultwarden.client_secret | quote }}
+  oidcSpHost: "https://{{ .Values.global.hostname.vaultwarden }}.{{ .Values.global.domain }}"
+  oidcSpProfileNameAttr: {{ .Values.authentication.oidc.claims.display_name }}
+  oidcSpProfileEmailAttr: {{ .Values.authentication.oidc.claims.email }}
+
+autoscaling:
+  hpa: {{ .Values.autoscaling.horizontal.vaultwarden | toYaml | nindent 4 }}
+
+pdb: {{ .Values.pdb.vaultwarden | toYaml | nindent 2 }}
+
+ai:
+  enabled: true
+{{- if .Values.ai.llm.endpoint.host }}
+  endpoint: {{ printf "http%s://%s:%d/%s/chat/completions" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.path | quote }}
+{{- end }}
+{{- if .Values.ai.llm.model }}
+  model: {{ .Values.ai.llm.model | quote }}
+{{- end }}
+{{- if .Values.ai.llm.apiKey }}
+  apiKey: {{ .Values.ai.llm.apiKey | quote }}
+{{- end }}
+
+ingress:
+  enabled: true
+  hostname: {{ .Values.global.hostname.vaultwarden }}.{{ .Values.global.domain }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.vaultwarden | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.vaultwarden .Values.global.resourcesPreset | quote }}
+
+resources: {{ .Values.resource.vaultwarden.vaultwarden | default dict | toYaml | nindent 2 }}
+
+networkPolicy:
+  enabled: true
+  # Restrict external access - only allow specific ingress sources
+  allowExternal: false
+  # Restrict external egress - only allow specific destinations
+  allowExternalEgress: true
+
+
+  extraIngress:
+   # Allow traffic from ingress controller namespace
+   - ports:
+       - port: 8484
+         protocol: TCP
+   {{- if .Values.metric.enabled }}
+   # Allow Prometheus to scrape metrics. Port is pinned to the chart's
+   # containerPorts.metrics (charts/vaultwarden/values.yaml); change both together.
+   - from:
+       - namespaceSelector:
+           matchLabels:
+             kubernetes.io/metadata.name: {{ .Values.metric.namespace }}
+     ports:
+       - port: {{ $metricsPort }}
+         protocol: TCP
+   {{- end }}
+
+  # Specific egress rules for required services only
+  extraEgress:
+    # Openid connect connectivity
+    # PostgreSQL connectivity
+    - ports:
+      - port: 5432
+        protocol: TCP
+      {{- if .Values.database.vaultwarden.isInternal }}
+      to:
+        - podSelector:
+            matchLabels:
+              {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+              cnpg.io/cluster: vaultwarden-cluster
+              role: primary
+              {{- else }}
+              app.kubernetes.io/name: postgresql
+              app.kubernetes.io/component: primary
+              {{- end }}
+      {{- end }}
+
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
+
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
+
+defaultLocale: {{ .Values.global.defaultLocale | quote }}
+
+{{- if .Values.cluster.runtimeClassName }}
+runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+{{- end }}
+
+
+externalDatabase:
+  database: {{ .Values.database.vaultwarden.name | quote }}
+  username: {{ .Values.database.vaultwarden.user | quote }}
+  host: {{ .Values.database.vaultwarden.host | quote }}
+  password: {{ .Values.database.vaultwarden.password | quote }}
+  port: {{ .Values.database.vaultwarden.port | quote }}
+  type: {{ if eq .Values.database.vaultwarden.type "postgresql" }}"postgres"{{ else }}{{ .Values.database.vaultwarden.type | quote }}{{ end }}
+  logging: true
+
+persistence:
+  enabled: false
+  storageClass: {{ coalesce .Values.pvc.vaultwarden.vaultwarden.storageClass .Values.pvc.default.storageClass | quote }}
+  accessModes: {{ coalesce .Values.pvc.vaultwarden.vaultwarden.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+  size: {{ coalesce .Values.pvc.vaultwarden.vaultwarden.size .Values.pvc.default.size "8Gi" }}
+
+metrics:
+  enabled: {{ .Values.metric.enabled | default false }}
+  serviceMonitor:
+    enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
+
+# Pin metrics port so the chart's containerPort and the network-policy
+# ingress rule above cannot drift apart (helmfile values.yaml.gotmpl has
+# no access to the chart's default).
+containerPorts:
+  metrics: {{ $metricsPort }}
