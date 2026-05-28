@@ -59,7 +59,7 @@ podSecurityContext:
 containerSecurityContext:
   {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
 
-resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.keycloak .Values.global.resourcesPreset | quote }}
 
 resources: {{ .Values.resource.keycloak.keycloak | default dict | toYaml | nindent 2 }}
 
@@ -134,7 +134,7 @@ keycloakConfigCli:
   annotations:
     helm.sh/hook-delete-policy: "hook-succeeded,before-hook-creation"
     helm.sh/hook-weight: "5"
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.keycloak .Values.global.resourcesPreset | quote }}
 
   resources: {{ .Values.resource.keycloak.keycloak | default dict | toYaml | nindent 4 }}
   containerSecurityContext:
@@ -198,7 +198,7 @@ keycloakConfigCli:
             "implicitFlowEnabled": false,
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
-            "publicClient": true,
+            "publicClient": false,
             "frontchannelLogout": true,
             "protocol": "openid-connect",
             "attributes": {
@@ -241,7 +241,7 @@ keycloakConfigCli:
             "implicitFlowEnabled": false,
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
-            "publicClient": true,
+            "publicClient": false,
             "frontchannelLogout": false,
             "protocol": "openid-connect",
             "attributes": {
@@ -279,7 +279,7 @@ keycloakConfigCli:
             "implicitFlowEnabled": false,
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
-            "publicClient": true,
+            "publicClient": false,
             "frontchannelLogout": true,
             "protocol": "openid-connect",
             "attributes": {
@@ -322,7 +322,7 @@ keycloakConfigCli:
             "implicitFlowEnabled": false,
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
-            "publicClient": true,
+            "publicClient": false,
             "frontchannelLogout": true,
             "protocol": "openid-connect",
             "attributes": {
@@ -365,7 +365,7 @@ keycloakConfigCli:
             "implicitFlowEnabled": false,
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
-            "publicClient": true,
+            "publicClient": false,
             "frontchannelLogout": true,
             "protocol": "openid-connect",
             "attributes": {
@@ -408,7 +408,7 @@ keycloakConfigCli:
             "implicitFlowEnabled": false,
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
-            "publicClient": true,
+            "publicClient": false,
             "frontchannelLogout": false,
             "protocol": "openid-connect",
             "attributes": {
@@ -446,7 +446,7 @@ keycloakConfigCli:
             "implicitFlowEnabled": false,
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
-            "publicClient": true,
+            "publicClient": false,
             "frontchannelLogout": false,
             "protocol": "openid-connect",
             "attributes": {
@@ -483,7 +483,7 @@ keycloakConfigCli:
             "implicitFlowEnabled": false,
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
-            "publicClient": true,
+            "publicClient": false,
             "frontchannelLogout": true,
             "protocol": "openid-connect",
             "attributes": {
@@ -526,7 +526,7 @@ keycloakConfigCli:
             "implicitFlowEnabled": false,
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
-            "publicClient": true,
+            "publicClient": false,
             "frontchannelLogout": true,
             "protocol": "openid-connect",
             "attributes": {
@@ -688,4 +688,4 @@ externalDatabase:
 defaultInitContainers:
   prepareWriteDirs:
     containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 6 }}
-    resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+    resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.keycloak .Values.global.resourcesPreset | quote }}

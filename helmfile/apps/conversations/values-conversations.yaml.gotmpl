@@ -22,7 +22,7 @@ conversations:
     repository: {{ .Values.container.conversations_backend.repository | quote }}
     tag: {{ .Values.container.conversations_backend.tag | quote }}
 
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.conversations.backend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.conversations.conversationsBackend | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
@@ -49,7 +49,7 @@ conversations_frontend:
     repository: {{ .Values.container.conversations_frontend.repository | quote }}
     tag: {{ .Values.container.conversations_frontend.tag | quote }}
 
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.conversations.frontend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.conversations.conversationsFrontend | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}

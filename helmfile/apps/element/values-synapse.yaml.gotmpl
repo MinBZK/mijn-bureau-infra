@@ -42,7 +42,7 @@ persistence:
   accessModes: {{ coalesce .Values.pvc.synapse.synapse.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
 
 master:
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.synapse .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.synapse.master | toYaml | nindent 4 }}
 {{- if .Values.cluster.runtimeClassName }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
@@ -111,7 +111,7 @@ master:
 # TODO replication is not functional, see https://github.com/MinBZK/mijn-bureau-infra/issues/8
 worker:
   default:
-    resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+    resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.synapse .Values.global.resourcesPreset | quote }}
     resources: {{ .Values.resource.synapse.worker.default | toYaml | nindent 6 }}
     autoscaling:
       vpa: {{ .Values.autoscaling.vertical.synapse.worker.default | toYaml | nindent 8 }}
@@ -342,7 +342,7 @@ defaultInitContainers:
 
     containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 6 }}
 
-    resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+    resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.synapse .Values.global.resourcesPreset | quote }}
 
     resources: {}
 

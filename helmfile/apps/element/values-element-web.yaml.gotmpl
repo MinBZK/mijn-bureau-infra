@@ -58,7 +58,7 @@ image:
 defaultLocale: {{ .Values.global.defaultLocale | default "NL" }}
 
 # Predefined resource configuration level like 'micro', 'small', etc.
-resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.elementweb .Values.global.resourcesPreset | quote }}
 
 {{- if .Values.cluster.runtimeClassName }}
 runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}

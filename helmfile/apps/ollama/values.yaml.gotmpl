@@ -56,7 +56,7 @@ autoscaling:
   targetCPUUtilizationPercentage: {{ .Values.autoscaling.horizontal.ollama.targetCPU | quote }}
   targetMemoryUtilizationPercentage: {{ .Values.autoscaling.horizontal.ollama.targetMemory | quote }}
 
-resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.ollama .Values.global.resourcesPreset | quote }}
 resources:
   {{- if .Values.resource.ollama }}
   {{- toYaml .Values.resource.ollama | nindent 2 }}
