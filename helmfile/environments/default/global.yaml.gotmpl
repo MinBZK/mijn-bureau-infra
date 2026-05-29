@@ -8,8 +8,38 @@ global:
   matrixDomain: ""
 
   # resourcePreset sets the default resources for all applications
-  # allowed values "nano" "micro" "small" "medium" "large" "xlarge" "2xlarge"
+  # allowed values "none","nano" "micro" "small" "medium" "large" "xlarge" "2xlarge"
   resourcesPreset: "small"
+
+  # per-app resource presets override the global default above
+  # if not set, the app falls back to global.resourcesPreset
+  resourcesPresetPerApp:
+    collabora: "small"
+    elementweb: "nano"
+    keycloak: "small"
+    ollama: "small"
+    synapse: "large"
+    grist: "small"
+    livekit: "medium"
+    meet:
+      backend: "micro"
+      frontend: "nano"
+    nextcloud: "medium"
+    docs:
+      backend: "micro"
+      frontend: "nano"
+      celery: "micro"
+      yProvider: "micro"
+      docspec: "micro"
+    drive:
+      backend: "micro"
+      frontend: "nano"
+    conversations:
+      backend: "micro"
+      frontend: "nano"
+    bureaublad:
+      backend: "micro"
+      frontend: "nano"
 
   # specify the subdomain for each component. this name will be combined with the base domain specified in the `domain` variable above
   hostname:

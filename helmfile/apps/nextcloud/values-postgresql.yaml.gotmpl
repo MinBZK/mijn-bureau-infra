@@ -74,7 +74,7 @@ kubeVersion: ""
 nameOverride: ""
 ## @param fullnameOverride String to fully override common.names.fullname template
 ##
-fullnameOverride: ""
+fullnameOverride: "nextcloud-cluster-rw"
 ## @param namespaceOverride String to fully override common.names.namespace
 ##
 namespaceOverride: ""
@@ -685,6 +685,15 @@ primary:
           - podSelector:
               matchLabels:
                 app.kubernetes.io/name: nextcloud
+      {{- if .Values.metric.enabled }}
+      - ports:
+          - port: 9187
+            protocol: TCP
+        from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: {{ .Values.metric.namespace }}
+      {{- end }}
     ## @param primary.networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy
     ## e.g:
     ## extraEgress:
@@ -808,7 +817,7 @@ primary:
     accessModes: {{ coalesce .Values.pvc.nextcloud.postgresql.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
     ## @param primary.persistence.size PVC Storage Request for PostgreSQL volume
     ##
-    size: {{ coalesce .Values.pvc.nextcloud.postgresql.size .Values.pvc.default.size "8Gi" }}
+    size: {{ coalesce .Values.pvc.nextcloud.postgresql.size .Values.pvc.default.size }}
     ## @param primary.persistence.annotations Annotations for the PVC
     ##
     annotations: {}

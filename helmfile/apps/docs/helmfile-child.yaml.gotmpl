@@ -8,9 +8,29 @@ releases:
     {{- if .Values.application.docs.namespace }}
     namespace: {{ .Values.application.docs.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") (.Values.application.docs.enabled) | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.docs.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
+
+  - name: docs-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.docs.namespace }}
+    namespace: {{ .Values.application.docs.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.docs.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: docs-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.docs.namespace }}
+    namespace: {{ .Values.application.docs.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.docs.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    needs:
+      - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
 
   - name: docs-redis
     chart: ../common/charts/redis
@@ -41,7 +61,11 @@ releases:
     {{- end }}
     {{- if and (eq .Environment.Name "demo") (.Values.application.docs.enabled) }}
     needs:
+      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+      - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs-cluster
+      {{- else }}
       - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs-postgresql
+      {{- end }}
       - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs-redis
       - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs-minio
     {{- end }}

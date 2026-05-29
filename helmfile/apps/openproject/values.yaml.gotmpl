@@ -32,8 +32,13 @@ networkPolicy:
       to:
         - podSelector:
             matchLabels:
+              {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+              cnpg.io/cluster: openproject-cluster
+              role: primary
+              {{- else }}
               app.kubernetes.io/name: postgresql
               app.kubernetes.io/component: primary
+              {{- end }}
       {{- end }}
     # Redis connectivity
     - ports:
@@ -96,6 +101,10 @@ hocuspocus:
       {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
       haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
       {{- end }}
+      {{- if eq .Values.cluster.ingress.type "traefik" }}
+      traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+      {{- end }}
+
     host: {{ $hostname }}
     path: /hocuspocus
     pathType: "Prefix"
@@ -166,7 +175,9 @@ ingress:
     {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
-
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
 # PostgreSQL configuration
 postgresql:
   bundled: false

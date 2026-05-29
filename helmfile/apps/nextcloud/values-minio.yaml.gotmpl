@@ -760,6 +760,15 @@ networkPolicy:
         - podSelector:
             matchLabels:
               app.kubernetes.io/part-of: minio
+    {{- if .Values.metric.enabled }}
+    - ports:
+        - port: {{ .Values.objectstore.nextcloud.port }}
+          protocol: TCP
+      from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.metric.namespace }}
+    {{- end }}
   ## @param networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy
   ## e.g:
   ## extraEgress:
@@ -813,7 +822,7 @@ persistence:
   accessModes: {{ coalesce .Values.pvc.nextcloud.minio.accessModes .Values.pvc.default.accessModes | toYaml | nindent 6 }}
   ## @param persistence.size PVC Storage Request for MinIO&reg; data volume
   ##
-  size: {{ coalesce .Values.pvc.nextcloud.minio.size .Values.pvc.default.size "8Gi" | toYaml | nindent 6 }}
+  size: {{ coalesce .Values.pvc.nextcloud.minio.size .Values.pvc.default.size | toYaml | nindent 6 }}
   ## @param persistence.annotations Annotations for the PVC
   ##
   annotations: {}
@@ -1336,6 +1345,9 @@ console:
       {{- end }}
       {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
       haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+      {{- end }}
+      {{- if eq .Values.cluster.ingress.type "traefik" }}
+      traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
       {{- end }}
     ## @param console.ingress.tls Enable TLS configuration for the hostname defined at `ingress.hostname` parameter
     ## TLS certificates will be retrieved from a TLS secret with name: `

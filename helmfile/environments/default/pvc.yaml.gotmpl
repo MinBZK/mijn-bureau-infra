@@ -54,17 +54,22 @@ pvc:
       accessModes: []
 
   nextcloud:
+    # Nextcloud config + custom apps + theme assets. Primary user data lives
+    # in MinIO (object storage), so this PVC stays modest.
     nextcloud:
       storageClass: ~
-      size: ~
+      size: "8Gi"
       accessModes: []
+    # Database holds metadata, file index, share state — grows with users not files.
     postgresql:
       storageClass: ~
-      size: ~
+      size: "10Gi"
       accessModes: []
+    # MinIO is where actual user files land. Size for production scale; demo
+    # environments can override smaller in helmfile/environments/demo/.
     minio:
       storageClass: ~
-      size: ~
+      size: "50Gi"
       accessModes: []
     redis:
       storageClass: ~
@@ -141,7 +146,9 @@ pvc:
 
   clamav:
     storageClass: ~
-    size: ~
+    # ClamAV recommends 5 GiB minimum disk space for virus signature databases.
+    # See: https://docs.clamav.net/#recommended-system-requirements
+    size: "5Gi"
     accessModes: []
 
   bureaublad:

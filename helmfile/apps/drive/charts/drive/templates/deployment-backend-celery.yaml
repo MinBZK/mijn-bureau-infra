@@ -87,6 +87,9 @@ spec:
           args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
           {{- else if .Values.drive.celery.args }}
           args: {{- include "common.tplvalues.render" (dict "value" .Values.drive.celery.args "context" $) | nindent 12 }}
+            {{- if and .Values.drive.celery.configuration.concurrency.max .Values.drive.celery.configuration.concurrency.min }}
+            - {{ printf "--autoscale=%d,%d" ( int .Values.drive.celery.configuration.concurrency.max ) ( int .Values.drive.celery.configuration.concurrency.min ) }}
+            {{- end }}
           {{- end }}
           env:
             {{- if .Values.drive.extraEnvVars }}

@@ -14,7 +14,25 @@ Return the proper Nextcloud image name
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "nextcloud.imagePullSecrets" -}}
-{{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image ) "context" $) -}}
+{{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image .Values.metrics.image ) "context" $) -}}
+{{- end -}}
+
+{{/*
+Return the proper Nextcloud metrics exporter image name
+*/}}
+{{- define "nextcloud.metrics.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.metrics.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
+Return the name of the Secret holding the Nextcloud serverinfo metrics token.
+*/}}
+{{- define "nextcloud.metrics.secretName" -}}
+{{- if .Values.metrics.auth.existingSecret -}}
+{{- tpl .Values.metrics.auth.existingSecret $ -}}
+{{- else -}}
+{{- printf "%s-metrics-token" (include "common.names.fullname" .) -}}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -222,6 +240,7 @@ Compile all warnings into a single message.
 {{- define "nextcloud.validateValues" -}}
 {{- $messages := list -}}
 {{- $messages := append $messages (include "nextcloud.validateValues.SMTPAuth" .) -}}
+{{- $messages := append $messages (include "nextcloud.validateValues.PHPLimits" .) -}}
 {{- $messages := without $messages "" -}}
 {{- $message := join "\n" $messages -}}
 
@@ -236,6 +255,51 @@ Validate SMTP configuration
 {{- define "nextcloud.validateValues.SMTPAuth" -}}
 {{- if and .Values.mail.enabled (not .Values.mail.smtp.existingSecret) (not .Values.mail.smtp.username) -}}
     {{- fail "ERROR: When mail.enabled=true and no mail.smtp.existingSecret is provided, mail.smtp.username is required" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Convert a PHP memory-size string (e.g. "512M", "1G", "2048K", "1024")
+to bytes as an integer string. PHP suffixes are case-insensitive and
+binary (1K = 1024); leading/trailing whitespace is tolerated.
+A plain integer with no suffix is treated as bytes (matches PHP).
+"-1" (unlimited) maps to math.MaxInt64 so it always compares as the
+largest possible value. Any other input — including Kubernetes-style
+binary suffixes (Ki/Mi/Gi/Ti), the T suffix, internal whitespace, or
+junk — fails the render with a clear error rather than being silently
+misparsed as bytes.
+*/}}
+{{- define "nextcloud.phpLimitToBytes" -}}
+{{- $s := . | toString | upper | trim -}}
+{{- if eq $s "-1" -}}9223372036854775807
+{{- else -}}
+    {{- if not (regexMatch "^[0-9]+[KMG]?$" $s) -}}
+        {{- fail (printf "ERROR: %q is not a valid PHP memory-size value. Expected an integer with optional suffix K, M, or G (PHP-style, binary). Kubernetes-style suffixes (Ki/Mi/Gi) are not accepted by PHP." .) -}}
+    {{- end -}}
+    {{- $num := regexFind "^[0-9]+" $s | atoi -}}
+    {{- $suffix := regexReplaceAll "^[0-9]+" $s "" -}}
+    {{- if eq $suffix "K" -}}{{ mul $num 1024 }}
+    {{- else if eq $suffix "M" -}}{{ mul $num 1048576 }}
+    {{- else if eq $suffix "G" -}}{{ mul $num 1073741824 }}
+    {{- else -}}{{ $num }}
+    {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Validate that phpMemoryLimit >= phpUploadLimit.
+PHP cannot reliably process file uploads when memory_limit is smaller
+than upload_max_filesize / post_max_size; Nextcloud preview generation,
+server-side encryption, and DAV chunked operations need extra headroom
+on top of that.
+*/}}
+{{- define "nextcloud.validateValues.PHPLimits" -}}
+{{- if and .Values.phpMemoryLimit .Values.phpUploadLimit -}}
+    {{- $memBytes := include "nextcloud.phpLimitToBytes" .Values.phpMemoryLimit | int64 -}}
+    {{- $uploadBytes := include "nextcloud.phpLimitToBytes" .Values.phpUploadLimit | int64 -}}
+    {{- if lt $memBytes $uploadBytes -}}
+        {{- fail (printf "ERROR: phpMemoryLimit (%s) must be >= phpUploadLimit (%s) — PHP cannot process uploads larger than memory_limit." .Values.phpMemoryLimit .Values.phpUploadLimit) -}}
+    {{- end -}}
 {{- end -}}
 {{- end -}}
 

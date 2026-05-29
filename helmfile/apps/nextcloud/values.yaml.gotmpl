@@ -31,14 +31,17 @@ ingress:
     {{- end }}
     {{- if eq .Values.cluster.ingress.type "nginx" }}
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: {{ .Values.application.nextcloud.uploadLimit | quote }}
     nginx.ingress.kubernetes.io/configuration-snippet: |
       add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
     {{- end }}
     {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
-
-resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.nextcloud .Values.global.resourcesPreset | quote }}
 
 {{- if .Values.cluster.runtimeClassName }}
 runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
@@ -59,6 +62,18 @@ networkPolicy:
    - ports:
        - port: 8080
          protocol: TCP
+   {{- if .Values.metric.enabled }}
+   # Allow the in-namespace metrics exporter pod to reach Nextcloud's
+   # serverinfo endpoint. Prometheus itself scrapes the exporter pod, not
+   # Nextcloud — see the dedicated metrics NetworkPolicy.
+   - from:
+       - podSelector:
+           matchLabels:
+             app.kubernetes.io/component: metrics
+     ports:
+       - port: 8080
+         protocol: TCP
+   {{- end }}
 
   # Specific egress rules for required services only
   extraEgress:
@@ -78,8 +93,13 @@ networkPolicy:
       to:
         - podSelector:
             matchLabels:
+              {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+              cnpg.io/cluster: nextcloud-cluster
+              role: primary
+              {{- else }}
               app.kubernetes.io/name: postgresql
               app.kubernetes.io/component: primary
+              {{- end }}
       {{- end }}
     # Redis connectivity
     - ports:
@@ -176,8 +196,11 @@ externalMinio:
   username: {{ .Values.objectstore.nextcloud.username | quote }}
   password: {{ .Values.objectstore.nextcloud.rootPassword | quote }}
   bucket: {{ .Values.objectstore.nextcloud.bucket | quote }}
+  region: {{ .Values.objectstore.nextcloud.region | quote }}
   useSSL: {{ .Values.objectstore.nextcloud.useSSL | quote }}
   pathStyle: true
+
+phpUploadLimit: {{ .Values.application.nextcloud.uploadLimit | quote }}
 
 externalDatabase:
   database: {{ .Values.database.nextcloud.name | quote }}
@@ -191,7 +214,7 @@ persistence:
   enabled: true
   storageClass: {{ coalesce .Values.pvc.nextcloud.nextcloud.storageClass .Values.pvc.default.storageClass | quote }}
   accessModes: {{ coalesce .Values.pvc.nextcloud.nextcloud.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
-  size: {{ coalesce .Values.pvc.nextcloud.nextcloud.size .Values.pvc.default.size "8Gi" }}
+  size: {{ coalesce .Values.pvc.nextcloud.nextcloud.size .Values.pvc.default.size }}
 
 {{- if .Values.application.collabora.enabled }}
 # The is the URL is used to connect Collabora Server with Next Cloud Office App automaticlly
@@ -210,3 +233,10 @@ files:
     maxStreamSize: {{ .Values.antivirus.streamMaxLength }}
     infectedAction: delete
     maxFileSize: {{ .Values.antivirus.mailFilter.maxFileSize }}
+
+metrics:
+  enabled: {{ .Values.metric.enabled | default false }}
+  networkPolicy:
+    monitoringNamespace: {{ .Values.metric.namespace | quote }}
+  serviceMonitor:
+    enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}

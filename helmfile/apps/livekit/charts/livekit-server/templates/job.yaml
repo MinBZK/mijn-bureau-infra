@@ -46,5 +46,7 @@ spec:
           {{- end }}
           command: {{- include "common.tplvalues.render" (dict "value" .Values.cronjob.command "context" $) | nindent 10 }}
           args: {{- include "common.tplvalues.render" (dict "value" .Values.cronjob.args "context" $) | nindent 10 }}
+          {{- if .Values.cronjob.resources }}
           resources:
             {{- toYaml .Values.cronjob.resources | nindent 12 }}
+          {{- end }}

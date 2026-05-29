@@ -83,6 +83,9 @@ spec:
           {{- end }}
           image: {{ template "nextcloud.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
           command:
             - /bin/bash
             - -ec
@@ -198,6 +201,13 @@ spec:
                 secretKeyRef:
                   name: {{ include "nextcloud.database.secretName" . }}
                   key: {{ include "nextcloud.database.secretPasswordKey" . }}
+            {{- end }}
+            {{- if .Values.metrics.enabled }}
+            - name: SERVERINFO_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "nextcloud.metrics.secretName" . }}
+                  key: {{ .Values.metrics.auth.secretKey | quote }}
             {{- end }}
             {{- if .Values.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}

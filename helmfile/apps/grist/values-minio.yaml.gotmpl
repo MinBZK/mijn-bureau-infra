@@ -654,6 +654,9 @@ ingress:
     {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
   ## @param ingress.tls Enable TLS configuration for the hostname defined at `ingress.hostname` parameter
   ## TLS certificates will be retrieved from a TLS secret with name:
   ## You can:
@@ -768,6 +771,15 @@ networkPolicy:
         - podSelector:
             matchLabels:
               app.kubernetes.io/part-of: minio
+    {{- if .Values.metric.enabled }}
+    - ports:
+        - port: {{ .Values.objectstore.grist.port }}
+          protocol: TCP
+      from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.metric.namespace }}
+    {{- end }}
   ## @param networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy
   ## e.g:
   ## extraEgress:
@@ -1345,6 +1357,9 @@ console:
       {{- end }}
       {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
       haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+      {{- end }}
+      {{- if eq .Values.cluster.ingress.type "traefik" }}
+      traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
       {{- end }}
     ## @param console.ingress.tls Enable TLS configuration for the hostname defined at `ingress.hostname` parameter
     ## TLS certificates will be retrieved from a TLS secret with name: `

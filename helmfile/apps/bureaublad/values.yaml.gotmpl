@@ -32,7 +32,7 @@ backend:
     - "*"
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.bureaublad.backend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.bureaublad.backend | default dict | toYaml | nindent 4 }}
   {{- if .Values.cluster.runtimeClassName }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
@@ -124,7 +124,7 @@ frontend:
       mountPath: /var/cache/nginx
     - name: empty-dir
       mountPath: /var/run
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.bureaublad.frontend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.bureaublad.frontend | default dict | toYaml | nindent 4 }}
   {{- if .Values.cluster.runtimeClassName }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
@@ -155,6 +155,10 @@ ingress:
     {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+
 networkPolicy:
   extraEgress:
     # Redis connectivity

@@ -91,7 +91,7 @@ livekit:
   image:
     registry: docker.io
     repository: livekit/livekit-server
-    tag: v1.9.11
+    tag: v1.12.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -501,13 +501,7 @@ cronjob:
   failedJobsHistoryLimit: 1
   ttlSecondsAfterFinished: 3600
   podAnnotations: {}
-  resources:
-    requests:
-      memory: 64Mi
-      cpu: 100m
-    limits:
-      memory: 128Mi
-      cpu: 200m
+  resources: {}
 
 ## livekit_server service parameters
 ##

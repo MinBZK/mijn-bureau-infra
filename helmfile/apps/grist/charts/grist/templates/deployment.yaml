@@ -229,6 +229,10 @@ spec:
             - name: APP_STATIC_INCLUDE_CUSTOM_CSS
               value: "true"
             {{- end }}
+            {{- if .Values.metrics.enabled }}
+            - name: GRIST_PROMCLIENT_PORT
+              value: {{ .Values.containerPorts.metrics | quote }}
+            {{- end }}
             {{- if .Values.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
@@ -249,6 +253,10 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.containerPorts.http }}
+            {{- if .Values.metrics.enabled }}
+            - name: tcp-metrics
+              containerPort: {{ .Values.containerPorts.metrics }}
+            {{- end }}
           {{- if not .Values.diagnosticMode.enabled }}
           {{- if .Values.customLivenessProbe }}
           livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.customLivenessProbe "context" $) | nindent 12 }}

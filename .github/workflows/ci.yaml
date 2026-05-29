@@ -222,9 +222,9 @@ jobs:
 
       - name: Run kubeconform against rendered manifests
         run: |
-          kubeconform -strict -summary /tmp/manifest/production/
-          kubeconform -strict -summary /tmp/manifest/demo/
-          kubeconform -strict -summary /tmp/manifest/default/
+          kubeconform -strict -summary -schema-location default -schema-location https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json /tmp/manifest/production/
+          kubeconform -strict -summary -schema-location default -schema-location https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json /tmp/manifest/demo/
+          kubeconform -strict -summary -schema-location default -schema-location https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json /tmp/manifest/default/
 
   diff:
     runs-on: ubuntu-latest

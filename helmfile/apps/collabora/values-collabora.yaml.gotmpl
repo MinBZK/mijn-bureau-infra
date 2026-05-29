@@ -134,6 +134,12 @@ ingress:
       balance url_param WOPISrc check_post
       hash-type consistent
     {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-hsts-header@kubernetescrd,{{ .Release.Namespace }}-collabora-redirect@kubernetescrd
+    traefik.ingress.kubernetes.io/service.serverstransport: {{ .Release.Namespace }}-collabora-transport@kubernetescrd
+    traefik.ingress.kubernetes.io/service.sticky.cookie: "true"
+    traefik.ingress.kubernetes.io/service.sticky.cookie.name: "COLLABORA_STICKY"
+    {{- end }}
 
 
   # Host definitions for the ingress resource
@@ -145,7 +151,7 @@ ingress:
           pathType: ImplementationSpecific
 
 # Predefined resource configuration level like 'micro', 'small', etc.
-resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.collabora .Values.global.resourcesPreset | quote }}
 
 # CPU and memory requests and limits for the container
 resources: {{ .Values.resource.collabora | toYaml | nindent 2 }}

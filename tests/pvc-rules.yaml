@@ -2,6 +2,35 @@ application:
   ollama:
     enabled: false
 
+global:
+  resourcesPresetPerApp:
+    collabora: "small"
+    elementweb: "nano"
+    keycloak: "small"
+    ollama: "small"
+    synapse: "small"
+    grist: "small"
+    livekit: "small"
+    nextcloud: "small"
+    meet:
+      backend: "small"
+      frontend: "small"
+    docs:
+      backend: "small"
+      frontend: "small"
+      celery: "small"
+      yProvider: "small"
+      docspec: "small"
+    drive:
+      backend: "small"
+      frontend: "small"
+    conversations:
+      backend: "small"
+      frontend: "small"
+    bureaublad:
+      backend: "small"
+      frontend: "small"
+
 pvc:
   default:
     storageClass: "test-propagation-storage"
@@ -9,3 +38,17 @@ pvc:
     accessModes:
       - ReadWriteOnce
       - ReadOnlyMany
+  # ClamAV has an explicit pvc.clamav.size set in pvc.yaml.gotmpl,
+  # which takes priority over pvc.default.size in the coalesce chain.
+  # Override it here to match the test's expected value.
+  clamav:
+    size: "42Gi"
+  # Nextcloud also has explicit per-PVC sizes set in pvc.yaml.gotmpl
+  # (config volume, postgres, MinIO). Override each to match the test.
+  nextcloud:
+    nextcloud:
+      size: "42Gi"
+    postgresql:
+      size: "42Gi"
+    minio:
+      size: "42Gi"

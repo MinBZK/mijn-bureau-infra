@@ -5,7 +5,7 @@ container:
   ollama:
     registry: "docker.io"
     repository: "ollama/ollama"
-    tag: "0.17.7"
+    tag: "0.24.0"
     imagePullSecret: ~
   keycloak:
     registry: "docker.io"
@@ -20,7 +20,7 @@ container:
   grist:
     registry: "registry-1.docker.io"
     repository: "gristlabs/grist"
-    tag: "1.7.11"
+    tag: "1.7.13"
     imagePullSecret: ~
   minio:
     registry: "registry-1.docker.io"
@@ -60,22 +60,22 @@ container:
   elementweb:
     registry: "registry-1.docker.io"
     repository: "vectorim/element-web"
-    tag: "v1.12.11"
+    tag: "v1.12.18"
     imagePullSecret: ~
   synapse:
     registry: "registry-1.docker.io"
     repository: "matrixdotorg/synapse"
-    tag: "v1.148.0"
+    tag: "v1.153.0"
     imagePullSecret: ~
   collabora:
     registry: "registry-1.docker.io"
     repository: "collabora/code"
-    tag: "25.04.9.2.1"
+    tag: "25.04.9.4.1"
     imagePullSecret: ~
   nextcloud:
     registry: "registry-1.docker.io"
     repository: "library/nextcloud"
-    tag: "33.0.0-apache"
+    tag: "33.0.3-apache"
     imagePullSecret: ~
   osShell:
     registry: "registry-1.docker.io"
@@ -94,7 +94,7 @@ container:
   livekit_server:
     registry: "registry-1.docker.io"
     repository: "livekit/livekit-server"
-    tag: "v1.9.11"
+    tag: "v1.12.0"
     imagePullSecret: ~
   kubectl:
     registry: docker.io
@@ -104,31 +104,31 @@ container:
   meet_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/meet-backend"
-    tag: "v1.10.0"
+    tag: "v1.16.0"
     imagePullSecret: ~
   meet_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/meet-frontend"
-    tag: "v1.10.0"
+    tag: "v1.16.0"
     imagePullSecret: ~
   conversations_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/conversations-backend"
-    tag: "v0.0.13"
+    tag: "v0.0.16"
     imagePullSecret: ~
   conversations_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/conversations-frontend"
-    tag: "v0.0.13"
+    tag: "v0.0.16"
   drive_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/drive-backend"
-    tag: "v0.14.0"
+    tag: "v0.18.0"
     imagePullSecret: ~
   drive_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/drive-frontend"
-    tag: "v0.14.0"
+    tag: "v0.18.0"
     imagePullSecret: ~
   nginx:
     registry: docker.io
@@ -145,24 +145,29 @@ container:
     registry: "registry-1.docker.io"
     backend:
       repository: "lasuite/impress-backend"
-      tag: "v4.6.0"
+      tag: "v5.1.0"
     frontend:
       repository: "lasuite/impress-frontend"
-      tag: "v4.6.0"
+      tag: "v5.1.0"
     yProvider:
       repository: "lasuite/impress-y-provider"
-      tag: "v4.6.0"
+      tag: "v5.1.0"
   bureaublad:
     imagePullSecret: ~
     registry: "ghcr.io"
     backend:
       repository: "minbzk/bureaublad-api"
-      tag: "v0.8.1"
+      tag: "v0.9.3"
     frontend:
       repository: "minbzk/bureaublad-frontend"
       tag: "v0.6.1"
   clamav:
     registry: "registry-1.docker.io"
     repository: "clamav/clamav"
-    tag: "1.5.1"
+    tag: "1.5.2"
+    imagePullSecret: ~
+  cnpg_postgres:
+    registry: "ghcr.io"
+    repository: "cloudnative-pg/postgresql"
+    tag: "17.9-standard-bookworm"
     imagePullSecret: ~

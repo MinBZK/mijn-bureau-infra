@@ -10,11 +10,11 @@ cluster:
 
   # routingMode selects the routing technology.
   # Allowed values: ingress, gateway-api, none.
-  # For ingress mode, set cluster.ingress.type to nginx or haproxy-openshift
+  # For ingress mode, set cluster.ingress.type to nginx or haproxy-openshift, traefik
   routingMode: ingress
 
   ingress:                # ingress config (used when routingMode = ingress)
-    type: nginx           # nginx or haproxy-openshift
+    type: nginx         # nginx or haproxy-openshift, traefik
     className: ~
     # Annotations applied to every Ingress resource.
     annotations: ~

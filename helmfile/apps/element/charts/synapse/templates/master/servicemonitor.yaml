@@ -20,12 +20,13 @@ spec:
   jobLabel: {{ .Values.master.metrics.serviceMonitor.jobLabel | quote }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: metrics
       {{- if .Values.master.metrics.serviceMonitor.selector }}
       {{- include "common.tplvalues.render" (dict "value" .Values.master.metrics.serviceMonitor.selector "context" $) | nindent 6 }}
       {{- end }}
   endpoints:
     - port: tcp-metrics
-      path: "/metrics"
+      path: {{ .Values.master.metrics.serviceMonitor.path | default "/_synapse/metrics" | quote }}
       {{- if .Values.master.metrics.serviceMonitor.tlsConfig }}
       scheme: https
       tlsConfig: {{- include "common.tplvalues.render" ( dict "value" .Values.master.metrics.serviceMonitor.tlsConfig "context" $) | nindent 8 }}

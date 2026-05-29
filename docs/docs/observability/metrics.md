@@ -21,3 +21,15 @@ podMonitor:
 ```
 
 For more details about these monitors, refer to the Prometheus Operator documentation.
+
+## Prometheus namespace
+
+Per-app `NetworkPolicy` ingress rules grant scrape access only to pods in the namespace hosting your Prometheus installation. The default is `monitoring`; override this if you installed `kube-prometheus-stack` (or any other Prometheus) elsewhere:
+
+```yaml
+metric:
+  enabled: true
+  namespace: observability # defaults to "monitoring"
+```
+
+Setting this updates every app's `NetworkPolicy` ingress rules and the Nextcloud exporter's dedicated policy in one place.

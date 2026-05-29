@@ -18,7 +18,7 @@ maintainers:
 name: nextcloud
 sources:
   - https://github.com/nextcloud
-version: 0.1.0
+version: 0.2.0
 dependencies:
   - name: common
     repository: "file://../../../common/charts/common"

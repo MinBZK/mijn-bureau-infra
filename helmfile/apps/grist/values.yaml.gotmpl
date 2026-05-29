@@ -1,3 +1,7 @@
+{{- /* Single source of truth for Grist's Prometheus metrics port.
+       Drives both the chart's containerPorts.metrics override (below) and
+       the network-policy ingress rule. */ -}}
+{{- $metricsPort := 9090 -}}
 global:
   defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
 
@@ -59,8 +63,10 @@ ingress:
     {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
-
-resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.grist .Values.global.resourcesPreset | quote }}
 
 resources: {{ .Values.resource.grist.grist | default dict | toYaml | nindent 2 }}
 
@@ -77,6 +83,17 @@ networkPolicy:
    - ports:
        - port: 8484
          protocol: TCP
+   {{- if .Values.metric.enabled }}
+   # Allow Prometheus to scrape metrics. Port is pinned to the chart's
+   # containerPorts.metrics (charts/grist/values.yaml); change both together.
+   - from:
+       - namespaceSelector:
+           matchLabels:
+             kubernetes.io/metadata.name: {{ .Values.metric.namespace }}
+     ports:
+       - port: {{ $metricsPort }}
+         protocol: TCP
+   {{- end }}
 
   # Specific egress rules for required services only
   extraEgress:
@@ -89,8 +106,13 @@ networkPolicy:
       to:
         - podSelector:
             matchLabels:
+              {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+              cnpg.io/cluster: grist-cluster
+              role: primary
+              {{- else }}
               app.kubernetes.io/name: postgresql
               app.kubernetes.io/component: primary
+              {{- end }}
       {{- end }}
     # Redis connectivity
     - ports:
@@ -325,3 +347,14 @@ customCss:
       --grist-control-border
       --grist-toast-bg
     */
+
+metrics:
+  enabled: {{ .Values.metric.enabled | default false }}
+  serviceMonitor:
+    enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
+
+# Pin metrics port so the chart's containerPort and the network-policy
+# ingress rule above cannot drift apart (helmfile values.yaml.gotmpl has
+# no access to the chart's default).
+containerPorts:
+  metrics: {{ $metricsPort }}

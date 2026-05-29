@@ -57,6 +57,36 @@ data:
     # Set default quota for new users
     php /var/www/html/occ config:app:set files default_quota --value="{{ .Values.files.defaultQuota }}"
 
+    {{- if .Values.metrics.enabled }}
+
+    # Wire up the serverinfo app so the Prometheus exporter can authenticate.
+    # The token is generated/kept by the metrics Secret; SERVERINFO_TOKEN is
+    # injected into the main container via env.
+    php /var/www/html/occ app:enable serverinfo || true
+    php /var/www/html/occ config:app:set serverinfo token --value="$SERVERINFO_TOKEN"
+    # phpinfo payload on the serverinfo endpoint is both slow and a minor info
+    # disclosure surface — disable it for scrape use.
+    php /var/www/html/occ config:app:set serverinfo phpinfo --value=""
+
+    # Register the exporter's in-cluster Host header in trusted_domains.
+    # Nextcloud returns HTTP 400 for any request whose Host isn't trusted, so
+    # without this the exporter would receive "unexpected status code: 400" on
+    # every scrape. Idempotent: only appends values not already present.
+    register_trusted_domain() {
+      local host="$1"
+      if php /var/www/html/occ config:system:get trusted_domains 2>/dev/null | grep -Fxq "$host"; then
+        return 0
+      fi
+      local idx=0
+      while php /var/www/html/occ config:system:get trusted_domains "$idx" >/dev/null 2>&1; do
+        idx=$((idx + 1))
+      done
+      php /var/www/html/occ config:system:set trusted_domains "$idx" --value="$host"
+    }
+    register_trusted_domain "{{ include "common.names.fullname" . }}"
+    register_trusted_domain "{{ include "common.names.fullname" . }}:{{ .Values.service.ports.http }}"
+    {{- end }}
+
   {{- if .Values.auth.oidc.enabled }}
   {{- include "nextcloud.addAndEnableAppPreConfig" (dict "appName" "user_oidc" "appTitle" "OIDC Provider" ) | nindent 2 }}
         echo "Configuring OIDC provider..."

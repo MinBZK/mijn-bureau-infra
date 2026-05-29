@@ -82,7 +82,7 @@ diagnosticMode:
 image:
   registry: docker.io
   repository: matrixdotorg/synapse
-  tag: "v1.148.0"
+  tag: "v1.153.0"
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -587,12 +587,28 @@ master:
     ## @param master.metrics.enabled Enable the export of Prometheus metrics
     ##
     enabled: false
+    ## Metrics service parameters
+    ##
+    service:
+      ## @param master.metrics.service.ports.metrics Metrics service port
+      ##
+      ports:
+        metrics: 9090
+      ## @param master.metrics.service.annotations Annotations for the metrics service
+      ##
+      annotations: {}
+      ## @param master.metrics.service.extraPorts Extra ports for the metrics service
+      ##
+      extraPorts: []
     ## Prometheus Operator ServiceMonitor configuration
     ##
     serviceMonitor:
       ## @param master.metrics.serviceMonitor.enabled if `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.enabled` to be `true`)
       ##
       enabled: false
+      ## @param master.metrics.serviceMonitor.path HTTP path Prometheus scrapes for metrics. Synapse serves metrics at /_synapse/metrics, not /metrics.
+      ##
+      path: "/_synapse/metrics"
       ## @param master.metrics.serviceMonitor.namespace Namespace in which Prometheus is running
       ##
       namespace: ""
@@ -1894,10 +1910,10 @@ job:
   backoffLimit: 20
   ttlSecondsAfterFinished: 3600
   podAnnotations: {}
-  resources:
-    requests:
-      memory: 256Mi
-      cpu: 100m
-    limits:
-      memory: 512Mi
-      cpu: 200m
+  resources: {}
+  # requests:
+  #   memory: 256Mi
+  #   cpu: 100m
+  # limits:
+  #   memory: 512Mi
+  #   cpu: 200m

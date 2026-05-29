@@ -61,8 +61,10 @@ spec:
           {{- end }}
           command: {{- include "common.tplvalues.render" (dict "value" .Values.job.commandSuperuser "context" $) | nindent 10 }}
           args: {{- include "common.tplvalues.render" (dict "value" .Values.job.argsSuperuser "context" $) | nindent 10 }}
+          {{- if .Values.job.resources }}
           resources:
             {{- toYaml .Values.job.resources | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - name: tmp
               mountPath: /tmp

@@ -10,8 +10,12 @@ releases:
     {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) }}
     needs:
-      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-redis
+      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-cluster
+      {{- else }}
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-postgresql
+      {{- end }}
+      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-redis
     {{- end }}
     values:
       - "../common/values-cluster-ingress.yaml.gotmpl"
@@ -23,9 +27,29 @@ releases:
     {{- if .Values.application.meet.namespace }}
     namespace: {{ .Values.application.meet.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
+
+  - name: meet-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.meet.namespace }}
+    namespace: {{ .Values.application.meet.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: meet-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.meet.namespace }}
+    namespace: {{ .Values.application.meet.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    needs:
+      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
 
   - name: meet-redis
     chart: ../common/charts/redis

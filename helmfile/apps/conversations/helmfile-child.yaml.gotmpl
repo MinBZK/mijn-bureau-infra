@@ -14,7 +14,11 @@ releases:
     {{- if and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) }}
     needs:
       - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-redis
+      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+      - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-cluster
+      {{- else }}
       - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-postgresql
+      {{- end }}
     {{- end }}
 
   - name: conversations-postgresql
@@ -23,9 +27,29 @@ releases:
     {{- if .Values.application.conversations.namespace }}
     namespace: {{ .Values.application.conversations.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
       - "values-postgresql.yaml.gotmpl"
+
+  - name: conversations-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.conversations.namespace }}
+    namespace: {{ .Values.application.conversations.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: conversations-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.conversations.namespace }}
+    namespace: {{ .Values.application.conversations.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    needs:
+      - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
 
   - name: conversations-redis
     chart: ../common/charts/redis

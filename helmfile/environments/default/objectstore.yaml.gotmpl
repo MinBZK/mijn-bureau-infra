@@ -8,12 +8,15 @@ objectstore:
     isInternal: true
     rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "grist" | sha1sum | quote }}
 
+  # Region matches the nextcloud/helm community chart default. Required by
+  # AWS-SDK-for-PHP for SigV4 signing — empty regions cause flaky behavior.
   nextcloud:
     bucket: "nextcloud"
     username: "admin"
     endpoint: "nextcloud-minio"
     port: 9000
     useSSL: false
+    region: "eu-west-1"
     isInternal: true
     rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "nextcloud" | sha1sum | quote }}
 

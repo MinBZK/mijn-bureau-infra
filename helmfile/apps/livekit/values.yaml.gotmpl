@@ -25,7 +25,7 @@ livekit:
     repository: {{ .Values.container.livekit_server.repository | quote }}
     tag: {{ .Values.container.livekit_server.tag | quote }}
 
-  resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.livekit .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.livekit.livekit | default dict | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
@@ -66,6 +66,17 @@ cronjob:
     repository: {{ .Values.container.kubectl.repository | quote }}
     tag: {{ .Values.container.kubectl.tag | quote }}
 
+  {{- if ne .Values.global.resourcesPreset "none" }}
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+  {{- end }}
+
+
 
 ingress:
   ## @param ingress.enabled Enable ingress record generation for livekit_server
@@ -88,7 +99,9 @@ ingress:
     {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
-
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
 
 networkPolicy:
   enabled: true
