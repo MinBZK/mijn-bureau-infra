@@ -193,6 +193,13 @@ persistence:
   accessModes: {{ coalesce .Values.pvc.grist.grist.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
   size: {{ coalesce .Values.pvc.grist.grist.size .Values.pvc.default.size "8Gi" }}
 
+# Grist emits `<script src="..." crossorigin="anonymous">` for this URL on every
+# page. Served by the grist-static nginx release, which sets the matching CORS
+# header.
+extraEnvVars:
+  - name: GRIST_INCLUDE_CUSTOM_SCRIPT_URL
+    value: 'https://{{ index .Values.global.hostname "grist-static" }}.{{ .Values.global.domain }}/bureaublad-button.js'
+
 customCss:
   enabled: true
   fileContent: |

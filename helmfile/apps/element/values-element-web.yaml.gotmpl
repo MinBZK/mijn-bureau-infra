@@ -93,15 +93,140 @@ networkPolicy:
        - port: 8080
          protocol: TCP
 
+# Bureaublad return button: an initContainer reads the image's index.html,
+# injects a same-origin `<script src="/bureaublad-button.js">` tag before
+# `</body>`, and writes the result to an emptyDir that's mounted back over
+# the original. The JS itself is mounted from a ConfigMap into /app/.
+extraDeploy:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: element-web-bureaublad-button
+      namespace: '{{ "{{ .Release.Namespace }}" }}'
+      labels:
+        app.kubernetes.io/name: element-web
+        app.kubernetes.io/instance: element-web
+        app.kubernetes.io/version: '{{ "{{ .Chart.AppVersion }}" }}'
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: element
+        app.kubernetes.io/component: bureaublad-button
+    data:
+      bureaublad-button.js: |
+        (function () {
+          if (window.self !== window.top) return;
+          var BUREAUBLAD_URL = 'https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}';
+          // Selectors that indicate an active Element call (legacy 1:1, modern
+          // call view, group calls, picture-in-picture floater, and Element
+          // Call iframes). The button hides while any of these are present.
+          var CALL_SELECTORS = '.mx_LegacyCallView, .mx_CallView, .mx_GroupCallView, .mx_PipContainer, [class*="ElementCall"]';
+          function syncVisibility() {
+            var btn = document.getElementById('mb-home-button');
+            if (!btn) return;
+            btn.style.display = document.querySelector(CALL_SELECTORS) ? 'none' : 'flex';
+          }
+          function mount() {
+            if (document.getElementById('mb-home-button')) return;
+            var a = document.createElement('a');
+            a.id = 'mb-home-button';
+            a.href = BUREAUBLAD_URL;
+            a.title = 'Terug naar Mijn Bureau';
+            a.setAttribute('aria-label', 'Terug naar Mijn Bureau');
+            a.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+            Object.assign(a.style, {
+              position: 'fixed',
+              bottom: '100px',
+              left: '10px',
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'var(--cpd-color-bg-accent-rest, #154273)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textDecoration: 'none',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+              zIndex: '2147483647',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+            });
+            a.addEventListener('mouseenter', function () {
+              a.style.transform = 'scale(1.08)';
+              a.style.boxShadow = '0 6px 16px rgba(0,0,0,0.24)';
+            });
+            a.addEventListener('mouseleave', function () {
+              a.style.transform = 'scale(1)';
+              a.style.boxShadow = '0 4px 12px rgba(0,0,0,0.18)';
+            });
+            document.body.appendChild(a);
+            syncVisibility();
+            var observer = new MutationObserver(syncVisibility);
+            observer.observe(document.body, { childList: true, subtree: true });
+          }
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', mount);
+          } else {
+            mount();
+          }
+        })();
+
+# Init containers don't inherit resourcesPreset from the chart, so we mirror
+# Bitnami's common.resources.preset values and select by .Values.global.resourcesPreset.
+# Keep in sync with helmfile/apps/common/charts/common/templates/_resources.tpl.
+{{ $preset := .Values.global.resourcesPreset | default "small" }}
+{{ $cpuReq := "500m" }}{{ $memReq := "512Mi" }}{{ $cpuLim := "750m" }}{{ $memLim := "768Mi" }}
+{{ if eq $preset "nano"    }}{{ $cpuReq = "100m" }}{{ $memReq = "128Mi"  }}{{ $cpuLim = "150m" }}{{ $memLim = "192Mi"   }}{{ end }}
+{{ if eq $preset "micro"   }}{{ $cpuReq = "250m" }}{{ $memReq = "256Mi"  }}{{ $cpuLim = "375m" }}{{ $memLim = "384Mi"   }}{{ end }}
+{{ if eq $preset "medium"  }}{{ $cpuReq = "500m" }}{{ $memReq = "1024Mi" }}{{ $cpuLim = "750m" }}{{ $memLim = "1536Mi"  }}{{ end }}
+{{ if eq $preset "large"   }}{{ $cpuReq = "1.0"  }}{{ $memReq = "2048Mi" }}{{ $cpuLim = "1.5"  }}{{ $memLim = "3072Mi"  }}{{ end }}
+{{ if eq $preset "xlarge"  }}{{ $cpuReq = "1.0"  }}{{ $memReq = "3072Mi" }}{{ $cpuLim = "3.0"  }}{{ $memLim = "6144Mi"  }}{{ end }}
+{{ if eq $preset "2xlarge" }}{{ $cpuReq = "1.0"  }}{{ $memReq = "3072Mi" }}{{ $cpuLim = "6.0"  }}{{ $memLim = "12288Mi" }}{{ end }}
+
+initContainers:
+  - name: inject-bureaublad-button
+    image: "{{ coalesce .Values.container.elementweb.registry .Values.container.default.registry }}/{{ .Values.container.elementweb.repository }}:{{ .Values.container.elementweb.tag }}"
+    imagePullPolicy: Always
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        SNIPPET='<script src="/bureaublad-button.js"></script></body>'
+        sed "s|</body>|${SNIPPET}|" /app/index.html > /modified/index.html
+    resources:
+      requests:
+        cpu: {{ $cpuReq | quote }}
+        memory: {{ $memReq | quote }}
+        ephemeral-storage: "50Mi"
+      limits:
+        cpu: {{ $cpuLim | quote }}
+        memory: {{ $memLim | quote }}
+        ephemeral-storage: "2Gi"
+    volumeMounts:
+      - name: modified-html
+        mountPath: /modified
+
 # extraVolumes Additional volumes to be mounted into the pod
 extraVolumes:
   - name: nginx-conf
     emptyDir: {}
+  - name: modified-html
+    emptyDir: {}
+  - name: bureaublad-button-js
+    configMap:
+      name: element-web-bureaublad-button
 
 # extraVolumeMounts Mount paths for the extra volumes defined above
 extraVolumeMounts:
   - name: nginx-conf
     mountPath: /etc/nginx/conf.d
+  - name: modified-html
+    mountPath: /app/index.html
+    subPath: index.html
+    readOnly: true
+  - name: bureaublad-button-js
+    mountPath: /app/bureaublad-button.js
+    subPath: bureaublad-button.js
+    readOnly: true
 
 # livenessProbe.enabled Enable Kubernetes liveness probe
 livenessProbe:

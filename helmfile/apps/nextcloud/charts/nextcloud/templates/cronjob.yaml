@@ -179,7 +179,7 @@ spec:
                   mountPath: /etc/apache2/sites-available/000-default.conf
                   subPath: 000-default.conf
               {{- if .Values.extraVolumeMounts }}
-              {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
+              {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 16 }}
               {{- end }}
           volumes:
             - name: empty-dir
@@ -203,5 +203,5 @@ spec:
               configMap:
                 name: {{ printf "%s-apache-config" (include "common.names.fullname" .)  }}
             {{- if .Values.extraVolumes }}
-            {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 12 }}
             {{- end }}

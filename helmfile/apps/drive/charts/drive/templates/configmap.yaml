@@ -55,4 +55,5 @@ data:
   FRONTEND_FEEDBACK_BUTTON_SHOW: "false"
   FRONTEND_SILENT_LOGIN_ENABLED: "true"
   FRONTEND_CSS_URL: {{ .Values.drive.frontendCssUrl | quote }}
+  FRONTEND_JS_URL: {{ .Values.drive.frontendJsUrl | quote }}
   

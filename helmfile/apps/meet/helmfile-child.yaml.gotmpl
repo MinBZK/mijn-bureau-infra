@@ -8,14 +8,21 @@ releases:
     {{- if .Values.application.meet.namespace }}
     namespace: {{ .Values.application.meet.namespace }}
     {{- end }}
-    {{- if and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) }}
+    {{- if .Values.application.meet.enabled }}
     needs:
+      # meet-static creates the `meet-static-files` ConfigMap that meet's
+      # inject-bureaublad-button initContainer mounts. Without this needs,
+      # a fresh install applies meet first and its frontend pod hangs in
+      # ContainerCreating until meet-static catches up.
+      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-static
+      {{- if eq .Environment.Name "demo" }}
       {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-cluster
       {{- else }}
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-postgresql
       {{- end }}
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-redis
+      {{- end }}
     {{- end }}
     values:
       - "../common/values-cluster-ingress.yaml.gotmpl"
