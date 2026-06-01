@@ -1,0 +1,27 @@
+## @param commonLabels Labels added to every dashboard resource so they can be selected as `part-of: observability`.
+##
+commonLabels:
+  app.kubernetes.io/part-of: observability
+
+## @param clusterDomain Kubernetes cluster domain name, threaded through from the cluster environment values.
+##
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+## @section Dashboard parameters
+
+dashboard:
+  ## @param dashboard.instanceSelector Label selector matching the target Grafana CR(s). Threaded from metric.grafanaDashboards.instanceSelector.
+  ##
+  instanceSelector: {{ .Values.metric.grafanaDashboards.instanceSelector | toYaml | nindent 4 }}
+  ## @param dashboard.folder Grafana folder under which the dashboards appear. Threaded from metric.grafanaDashboards.folder.
+  ##
+  folder: {{ .Values.metric.grafanaDashboards.folder | quote }}
+  ## @param dashboard.resyncPeriod How often the grafana-operator re-applies the dashboard JSON. Threaded from metric.grafanaDashboards.resyncPeriod.
+  ##
+  resyncPeriod: {{ .Values.metric.grafanaDashboards.resyncPeriod | quote }}
+  ## @param dashboard.allowCrossNamespaceImport Allow the GrafanaDashboard CR to match a Grafana CR in a different namespace. Threaded from metric.grafanaDashboards.allowCrossNamespaceImport.
+  ##
+  allowCrossNamespaceImport: {{ .Values.metric.grafanaDashboards.allowCrossNamespaceImport }}
+  ## @param dashboard.datasources Map dashboard JSON `__inputs` entries to actual Grafana datasource names. Threaded from metric.grafanaDashboards.datasources.
+  ##
+  datasources: {{ .Values.metric.grafanaDashboards.datasources | toYaml | nindent 4 }}

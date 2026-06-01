@@ -1,0 +1,10 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: observability
+    chart: charts/observability
+    condition: metric.grafanaDashboards.enabled
+    namespace: {{ .Values.metric.namespace | quote }}
+    values:
+      - "values.yaml.gotmpl"

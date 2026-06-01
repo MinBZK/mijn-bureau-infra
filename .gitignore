@@ -31,6 +31,12 @@ debug.log
 /helmfile/environments/demo/demo.yaml.gotmpl
 /output/
 
+# Local environment overrides
+/helmfile/environments/local/
+
+# Local-only observability bootstrap helper (grafana-operator + Prometheus on kind)
+/scripts/observability-local.sh
+
 CLAUDE.md
 
 # ignore certificates

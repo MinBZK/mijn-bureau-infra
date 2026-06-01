@@ -1,0 +1,37 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+
+Iterates over every *.json under dashboards/ and emits one GrafanaDashboard CR
+per file. The grafana-operator picks them up via instanceSelector and pushes
+them into the matching Grafana instance.
+*/}}
+{{- range $path, $_ := .Files.Glob "dashboards/*.json" }}
+{{- $slug := $path | base | trimSuffix ".json" -}}
+{{- $ctx := dict "context" $ "slug" $slug }}
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: {{ include "observability.dashboardName" $ctx }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: dashboard
+  {{- if $.Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $.Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $.Values.dashboard.resyncPeriod }}
+  resyncPeriod: {{ $.Values.dashboard.resyncPeriod | quote }}
+  {{- end }}
+  allowCrossNamespaceImport: {{ $.Values.dashboard.allowCrossNamespaceImport }}
+  instanceSelector: {{- include "common.tplvalues.render" ( dict "value" $.Values.dashboard.instanceSelector "context" $ ) | nindent 4 }}
+  {{- if $.Values.dashboard.folder }}
+  folder: {{ $.Values.dashboard.folder | quote }}
+  {{- end }}
+  {{- if $.Values.dashboard.datasources }}
+  datasources: {{- include "common.tplvalues.render" ( dict "value" $.Values.dashboard.datasources "context" $ ) | nindent 4 }}
+  {{- end }}
+  json: |
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
