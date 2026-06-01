@@ -51,6 +51,9 @@ data:
     php /var/www/html/occ config:app:set theming background_color --value=#F8F7F7
     php /var/www/html/occ config:app:set theming disable-user-theming --value=yes
 
+    # Enable the bureaublad button app (files are mounted from a ConfigMap at custom_apps/bureaublad_button)
+    php /var/www/html/occ app:enable bureaublad_button || echo "WARNING: Failed to enable bureaublad_button"
+
     php /var/www/html/occ config:system:set maintenance_window_start --type=integer --value=1
     php /var/www/html/occ config:system:set default_phone_region --value=NL
 

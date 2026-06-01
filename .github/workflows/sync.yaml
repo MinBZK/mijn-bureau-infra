@@ -1,0 +1,38 @@
+name: sync
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * *" # Every Day at 05:00 UTC
+
+jobs:
+  sync-forgejo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Mirror to Forgejo
+        env:
+          FORGEJO_DEPLOY_KEY: ${{ secrets.FORGEJO_DEPLOY_KEY }}
+          FORGEJO_REPO_SSH_URL: ${{ secrets.FORGEJO_REPO_SSH_URL }}
+        run: |
+          mydir=$(mktemp -d)
+          printf '%s\n' "$FORGEJO_DEPLOY_KEY" > "$mydir/forgejo_deploy_key"
+          chmod 600 "$mydir/forgejo_deploy_key"
+
+          export GIT_SSH_COMMAND="ssh -i $mydir/forgejo_deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=no"
+
+          git remote add forgejo "$FORGEJO_REPO_SSH_URL"
+          git push forgejo main
+          rm -rf "$mydir"

@@ -1,0 +1,431 @@
+#
+# SPDX-License-Identifier: APACHE-2.0
+
+## @section Global parameters
+
+{{- $hostname := printf "%s.%s" (index .Values.global.hostname "grist-static") .Values.global.domain }}
+
+global:
+  imageRegistry: {{ (coalesce .Values.container.nginx.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.nginx.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+  security:
+    allowInsecureImages: true
+  compatibility:
+    openshift:
+      adaptSecurityContext: auto
+
+## @section Common parameters
+
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+kubeVersion: ""
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+## @param extraDeploy Extra objects to deploy (value evaluated as a template)
+## ConfigMap containing the bureaublad-button JS served by this nginx instance.
+## Grist loads it via GRIST_INCLUDE_CUSTOM_SCRIPT_URL with `crossorigin="anonymous"`,
+## which requires the response to carry an Access-Control-Allow-Origin header.
+##
+extraDeploy:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: grist-static-files
+      namespace: '{{ "{{ .Release.Namespace }}" }}'
+      labels:
+        app.kubernetes.io/instance: '{{ "{{ .Release.Name }}" }}'
+        app.kubernetes.io/managed-by: '{{ "{{ .Release.Service }}" }}'
+        app.kubernetes.io/name: '{{ "{{ include \"common.names.name\" . }}" }}'
+        app.kubernetes.io/version: '{{ "{{ .Chart.AppVersion }}" }}'
+        helm.sh/chart: '{{ "{{ include \"common.names.chart\" . }}" }}'
+        app.kubernetes.io/part-of: grist
+        app.kubernetes.io/component: static-nginx
+    data:
+      bureaublad-button.js: |
+        (function () {
+          if (window.self !== window.top) return;
+          var BUREAUBLAD_URL = 'https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}';
+          function mount() {
+            if (document.getElementById('mb-home-button')) return;
+            var a = document.createElement('a');
+            a.id = 'mb-home-button';
+            a.href = BUREAUBLAD_URL;
+            a.title = 'Terug naar Mijn Bureau';
+            a.setAttribute('aria-label', 'Terug naar Mijn Bureau');
+            a.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+            Object.assign(a.style, {
+              position: 'fixed',
+              bottom: '18px',
+              left: '18px',
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'var(--grist-theme-bg-emphasis, #154273)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textDecoration: 'none',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+              zIndex: '2147483647',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+            });
+            a.addEventListener('mouseenter', function () {
+              a.style.transform = 'scale(1.08)';
+              a.style.boxShadow = '0 6px 16px rgba(0,0,0,0.24)';
+            });
+            a.addEventListener('mouseleave', function () {
+              a.style.transform = 'scale(1)';
+              a.style.boxShadow = '0 4px 12px rgba(0,0,0,0.18)';
+            });
+            document.body.appendChild(a);
+          }
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', mount);
+          } else {
+            mount();
+          }
+        })();
+
+commonLabels:
+  app.kubernetes.io/part-of: grist
+  app.kubernetes.io/component: static-nginx
+commonAnnotations: {}
+
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section NGINX parameters
+
+image:
+  registry: {{ (coalesce .Values.container.nginx.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.nginx.repository | default "bitnami/nginx" | quote }}
+  tag: {{ .Values.container.nginx.tag | default "1.29.1-debian-12-r0" | quote }}
+  digest: ""
+  pullPolicy: Always
+  {{- with (coalesce .Values.container.nginx.imagePullSecret .Values.container.default.imagePullSecret) }}
+  pullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+  debug: false
+
+enableDefaultInitContainers: true
+automountServiceAccountToken: false
+hostAliases: []
+command: []
+args: []
+extraEnvVars: []
+extraEnvVarsCM: ""
+extraEnvVarsSecret: ""
+
+## @section NGINX deployment parameters
+
+replicaCount: 1
+revisionHistoryLimit: 10
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate: {}
+
+podLabels: {}
+podAnnotations: {}
+podAffinityPreset: ""
+podAntiAffinityPreset: soft
+nodeAffinityPreset:
+  type: ""
+  key: ""
+  values: []
+affinity: {}
+hostNetwork: false
+hostIPC: false
+dnsPolicy: ""
+dnsConfig: {}
+nodeSelector: {}
+tolerations: []
+priorityClassName: ""
+schedulerName: ""
+terminationGracePeriodSeconds: ""
+topologySpreadConstraints: []
+
+tls:
+  enabled: false
+  autoGenerated: true
+  existingSecret: ""
+  certFilename: tls.crt
+  certKeyFilename: tls.key
+  certCAFilename: ca.crt
+  cert: ""
+  key: ""
+  ca: ""
+
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
+
+containerPorts:
+  http: 8080
+  https: 8443
+extraContainerPorts: []
+
+resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
+resources: {{ .Values.resource.grist.nginx | default dict | toYaml | nindent 2 }}
+
+lifecycleHooks: {}
+
+startupProbe:
+  enabled: false
+  initialDelaySeconds: 30
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 6
+  successThreshold: 1
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 6
+  successThreshold: 1
+readinessProbe:
+  enabled: true
+  path: /health
+  initialDelaySeconds: 5
+  timeoutSeconds: 3
+  periodSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+customStartupProbe: {}
+customLivenessProbe: {}
+customReadinessProbe: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: ""
+  maxReplicas: ""
+  targetCPU: ""
+  targetMemory: ""
+
+## Mount the ConfigMap with the button JS to /static (served as the document root).
+##
+extraVolumes:
+  - name: static-files
+    configMap:
+      name: grist-static-files
+
+extraVolumeMounts:
+  - name: static-files
+    mountPath: /static
+    readOnly: true
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+sidecars: []
+sidecarSingleProcessNamespace: false
+initContainers: []
+
+pdb:
+  create: true
+  minAvailable: ""
+  maxUnavailable: ""
+
+cloneStaticSiteFromGit:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: bitnami/git
+    tag: 2.51.0-debian-12-r0
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  repository: ""
+  branch: ""
+  interval: 60
+  gitClone:
+    command: []
+    args: []
+  gitSync:
+    command: []
+    args: []
+    resourcesPreset: "nano"
+    resources: {}
+  extraEnvVars: []
+  extraEnvVarsSecret: ""
+  extraVolumeMounts: []
+
+## NGINX server block — serves /static and exposes /health for probes.
+## Access-Control-Allow-Origin is required: Grist loads the script with
+## `crossorigin="anonymous"`, which makes the browser do a CORS check.
+##
+serverBlock: |-
+  server {
+    listen 8080;
+    server_tokens off;
+
+    location /health {
+      return 200 'ok';
+      add_header Content-Type text/plain;
+    }
+
+    location / {
+      root /static;
+      add_header Cache-Control "public, max-age=3600";
+      add_header Access-Control-Allow-Origin "*";
+      add_header X-Content-Type-Options "nosniff";
+      add_header X-Frame-Options "DENY";
+    }
+  }
+
+streamServerBlock: ""
+existingServerBlockConfigmap: ""
+existingStreamServerBlockConfigmap: ""
+
+contextIncludes:
+  main: ""
+  events: ""
+  http: ""
+
+existingContextMainConfigmaps: []
+existingContextEventsConfigmaps: []
+existingContextHttpConfigmaps: []
+staticSiteConfigmap: ""
+staticSitePVC: ""
+
+## @section Traffic Exposure parameters
+
+service:
+  type: ClusterIP
+  ports:
+    http: 80
+    https: 443
+  nodePorts:
+    http: ""
+    https: ""
+  targetPort:
+    http: http
+    https: https
+  clusterIP: ""
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  loadBalancerClass: ""
+  extraPorts: []
+  sessionAffinity: None
+  sessionAffinityConfig: {}
+  annotations: {}
+  externalTrafficPolicy: Cluster
+
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: false
+  extraIngress: []
+  extraEgress: []
+  ingressNSMatchLabels: {}
+  ingressNSPodMatchLabels: {}
+
+ingress:
+  enabled: true
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  pathType: Prefix
+  apiVersion: ""
+  hostname: {{ $hostname }}
+  path: /
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+    {{- if and (hasKey .Values.cluster "certificate") (hasKey .Values.cluster.certificate "issuerRef") }}
+    {{- if eq .Values.cluster.certificate.issuerRef.kind "ClusterIssuer" }}
+    cert-manager.io/cluster-issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- else if eq .Values.cluster.certificate.issuerRef.kind "Issuer" }}
+    cert-manager.io/issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- end }}
+    {{- end }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  tlsWwwPrefix: false
+  extraHosts: []
+  extraPaths: []
+  extraTls: []
+  secrets: []
+  extraRules: []
+
+healthIngress:
+  enabled: false
+  selfSigned: false
+  pathType: ImplementationSpecific
+  hostname: example.local
+  path: /
+  annotations: {}
+  tls: false
+  extraHosts: []
+  extraPaths: []
+  extraTls: []
+  secrets: []
+  ingressClassName: ""
+  extraRules: []
+
+## @section Metrics parameters
+
+metrics:
+  enabled: {{ .Values.metric.enabled | default false }}
+  image:
+    registry: docker.io
+    repository: bitnami/nginx-exporter
+    tag: 1.4.2-debian-12-r9
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  port: ""
+  extraArgs: []
+  containerPorts:
+    metrics: 9113
+  podAnnotations: {}
+  securityContext:
+    enabled: false
+    seLinuxOptions: {}
+    runAsUser: 1001
+  service:
+    port: 9113
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: ""
+  resourcesPreset: "nano"
+  resources: {}
+  serviceMonitor:
+    enabled: false
+    namespace: ""
+    tlsConfig: {}
+    jobLabel: ""
+    interval: ""
+    scrapeTimeout: ""
+    selector: {}
+    labels: {}
+    relabelings: []
+    metricRelabelings: []
+    honorLabels: false
+  prometheusRule:
+    enabled: false
+    namespace: ""
+    additionalLabels: {}
+    rules: []

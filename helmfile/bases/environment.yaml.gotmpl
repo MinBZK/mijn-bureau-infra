@@ -5,6 +5,11 @@ environments:
       - "helmfile/environments/demo/*.yaml.gotmpl"
     # secrets:
     #   - "helmfile/environments/{{ .Environment.Name }}/*.secrets.yaml"
+  local:
+    values:
+      - "helmfile/environments/local/*.yaml.gotmpl"
+    # secrets:
+    #   - "helmfile/environments/{{ .Environment.Name }}/*.secrets.yaml"
   production:
     values:
       - "helmfile/environments/production/*.yaml.gotmpl"
