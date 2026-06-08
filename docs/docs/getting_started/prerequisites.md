@@ -25,7 +25,7 @@ MijnBureau has minimal prerequisites, requiring only a Kubernetes cluster and so
 
 ### Kubernetes Resources
 
-MijnBureau simplifies resource setup with a global size parameter that adjusts resource usage for all components. Below is the expected resource usage based on the size parameter only. For precise calculations, use the `./script/predicted_resources.py` script.
+MijnBureau simplifies resource setup with a global size parameter that adjusts resource usage for all components. Below is the expected resource usage based on the size parameter only. For precise calculations, use the `./scripts/predicted_resources.py` script.
 
 #### Resource Usage by Size
 
