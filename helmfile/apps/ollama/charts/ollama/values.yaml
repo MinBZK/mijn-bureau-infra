@@ -29,7 +29,7 @@ image:
   pullPolicy: Always
 
   # -- Docker image tag, overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "0.30.6"
 
 # -- Docker registry secret names as an array
 imagePullSecrets: []
