@@ -23,31 +23,33 @@ helmfiles:
     values: &appvalues
       - "helmfile/environments/default/*.yaml*"
       - {{ toYaml .Values | nindent 8 }}
-  - path: "helmfile/apps/keycloak/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/ollama/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/clamav/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/grist/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/meet/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/element/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/collabora/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/nextcloud/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/openproject/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/livekit/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/conversations/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/docs/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/drive/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/bureaublad/helmfile-child.yaml.gotmpl"
+  # - path: "helmfile/apps/keycloak/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/ollama/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/clamav/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/grist/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/meet/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/element/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/collabora/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/nextcloud/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/openproject/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/livekit/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/conversations/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/docs/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/drive/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  # - path: "helmfile/apps/bureaublad/helmfile-child.yaml.gotmpl"
+  #   values: *appvalues
+  - path: "helmfile/apps/messages/helmfile-child.yaml.gotmpl"
     values: *appvalues
