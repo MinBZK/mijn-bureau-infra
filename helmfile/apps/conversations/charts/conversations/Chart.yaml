@@ -5,7 +5,7 @@ annotations:
   category: fileshare
   licenses: Apache-2.0
 apiVersion: v2
-appVersion: 0.0.16
+appVersion: 0.0.17
 dependencies:
   - name: common
     repository: "file://../../../common/charts/common"
