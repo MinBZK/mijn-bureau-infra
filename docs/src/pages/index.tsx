@@ -13,30 +13,22 @@ import styles from "./index.module.css";
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   return (
-    <header className={clsx("hero hero--primary", styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className="hero__title">
+    <header className={styles.heroBanner}>
+      <div className={clsx("container", styles.heroInner)}>
+        <div className={styles.heroBadge}>Open source · Self-hosted · Government-ready</div>
+        <Heading as="h1" className={styles.heroTitle}>
           {siteConfig.title}
         </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <div
-          className={styles.buttons}
-          style={{
-            display: "flex",
-            gap: "1rem",
-            justifyContent: "center",
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
+        <p className={styles.heroTagline}>{siteConfig.tagline}</p>
+        <div className={styles.heroButtons}>
           <Link
-            className="button button--secondary button--lg"
+            className={clsx("button button--lg", styles.btnPrimary)}
             to="/docs/intro"
           >
             Get Started ⚡
           </Link>
           <Link
-            className="button button--secondary button--outline button--lg"
+            className={clsx("button button--lg", styles.btnOutline)}
             href="mailto:mijnbureau@rijksoverheid.nl"
           >
             Contact Us

@@ -1,11 +1,71 @@
 .features {
+  padding: 2.5rem 0;
+  background: var(--ifm-background-color);
+  border-bottom: 1px solid var(--rvo-color-grijs-200);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 1.4rem;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--rvo-color-grijs-200);
+  border-radius: 14px;
+  transition: box-shadow 160ms, border-color 160ms;
+}
+
+.card:hover {
+  border-color: var(--rvo-color-hemelblauw-450);
+  box-shadow: 0 8px 24px rgba(0, 123, 199, 0.1);
+}
+
+.iconWrap {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--rvo-color-hemelblauw-150);
   display: flex;
   align-items: center;
-  padding: 2rem 0;
-  width: 100%;
+  justify-content: center;
 }
 
 .featureSvg {
-  height: 200px;
-  width: 200px;
+  width: 26px;
+  height: 26px;
+  color: var(--ifm-color-primary);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cardTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ifm-color-content);
+}
+
+.cardDesc {
+  font-size: 0.88rem;
+  color: var(--ifm-color-content-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 996px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
 }
