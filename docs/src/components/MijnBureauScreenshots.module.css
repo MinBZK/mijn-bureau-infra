@@ -1,15 +1,40 @@
 /* ── Section wrapper ─────────────────────────────────────────── */
 .section {
+  position: relative;
   padding: 5rem 0;
-  background:
-    radial-gradient(circle at 10% 20%, var(--rvo-color-hemelblauw-150) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, var(--rvo-color-logoblauw-150) 0%, transparent 45%),
-    var(--ifm-background-surface-color);
+  background: var(--ifm-background-surface-color);
+  border-top: 1px solid var(--rvo-color-grijs-200);
+  border-bottom: 1px solid var(--rvo-color-grijs-200);
+}
+
+.section::before,
+.section::after {
+  content: "";
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 18px;
+  background: var(--rvo-color-hemelblauw-150);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.section::before {
+  top: 1.2rem;
+  right: 3rem;
+}
+
+.section::after {
+  bottom: 1.2rem;
+  left: 3rem;
+  background: var(--rvo-color-logoblauw-150);
 }
 
 .header {
   text-align: center;
   margin-bottom: 3rem;
+  position: relative;
+  z-index: 1;
 }
 
 .subtitle {
@@ -21,6 +46,8 @@
 
 /* ── Two-column grid ──────────────────────────────────────────── */
 .layout {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 2.5rem;
@@ -31,6 +58,11 @@
 .sidebar {
   position: sticky;
   top: 1.5rem;
+  background: var(--ifm-background-color);
+  border: 1px solid var(--rvo-color-grijs-200);
+  border-radius: 16px;
+  padding: 0.9rem;
+  box-shadow: 0 10px 24px rgba(1, 104, 155, 0.08);
 }
 
 .tabList {
@@ -219,6 +251,11 @@
 @media (max-width: 996px) {
   .section {
     padding: 3rem 0;
+  }
+
+  .section::before,
+  .section::after {
+    display: none;
   }
 
   .layout {

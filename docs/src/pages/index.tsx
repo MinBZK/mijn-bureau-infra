@@ -5,6 +5,7 @@ import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import HomepageFeatures from "@site/src/components/HomepageFeatures";
 import MijnBureauScreenshots from "@site/src/components/MijnBureauScreenshots";
+import EUCollaboration from "@site/src/components/EUCollaboration";
 import Heading from "@theme/Heading";
 
 import styles from "./index.module.css";
@@ -56,8 +57,8 @@ export default function Home(): ReactNode {
       <HomepageHeader />
       <main>
         <HomepageFeatures />
-
         <MijnBureauScreenshots />
+        <EUCollaboration />
 
 
       </main>

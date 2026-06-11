@@ -1,0 +1,105 @@
+.section {
+  position: relative;
+  padding: 4rem 0;
+  background: var(--rvo-color-logoblauw-150);
+  border-top: 1px solid var(--rvo-color-logoblauw-300);
+  border-bottom: 1px solid var(--rvo-color-logoblauw-300);
+}
+
+.section::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 8px;
+  background: var(--ifm-color-primary);
+}
+
+[data-theme="dark"] .section {
+  background: var(--rvo-color-grijs-800);
+  border-top-color: var(--rvo-color-grijs-700);
+  border-bottom-color: var(--rvo-color-grijs-700);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2.25rem;
+}
+
+.euLogo {
+  width: min(100%, 220px);
+  max-height: 72px;
+  object-fit: contain;
+  margin: 0 auto 0.85rem;
+  display: block;
+}
+
+.subtitle {
+  max-width: 720px;
+  margin: 0.5rem auto 0;
+  color: var(--ifm-color-content-secondary);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--ifm-background-color);
+  border: 1px solid var(--rvo-color-logoblauw-300);
+  border-radius: 14px;
+  padding: 1.3rem;
+  box-shadow: 0 14px 28px rgba(21, 66, 115, 0.12);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  min-height: 56px;
+}
+
+.partnerLogo {
+  width: 120px;
+  max-height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.cardTop :global(h3) {
+  margin: 0;
+}
+
+.card p {
+  margin: 0.25rem 0 1rem;
+  color: var(--ifm-color-content-secondary);
+}
+
+.cardActions {
+  margin-top: auto;
+}
+
+@media (max-width: 996px) {
+  .section {
+    padding: 3rem 0;
+  }
+
+  .euLogo {
+    max-height: 60px;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .partnerLogo {
+    width: 104px;
+  }
+}
