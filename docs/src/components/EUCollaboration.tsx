@@ -38,9 +38,10 @@ export default function EUCollaboration(): React.JSX.Element {
               <Heading as="h3">France: La Suite</Heading>
             </div>
             <p>
-              We closely collaborate with France around <strong>La Suite</strong>,
-              exchanging practical lessons on open-source government workplace
-              tooling and reusable building blocks.
+              We closely collaborate with France around{" "}
+              <strong>La Suite</strong>, exchanging practical lessons on
+              open-source government workplace tooling and reusable building
+              blocks.
             </p>
             <div className={styles.cardActions}>
               <Link
@@ -63,9 +64,9 @@ export default function EUCollaboration(): React.JSX.Element {
               <Heading as="h3">Germany: openDesk</Heading>
             </div>
             <p>
-              We also align with Germany's <strong>openDesk</strong> initiative to
-              strengthen cross-border cooperation on secure, public-sector-first
-              digital collaboration suites.
+              We also align with Germany's <strong>openDesk</strong> initiative
+              to strengthen cross-border cooperation on secure,
+              public-sector-first digital collaboration suites.
             </p>
             <div className={styles.cardActions}>
               <Link

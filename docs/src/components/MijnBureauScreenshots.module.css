@@ -88,7 +88,10 @@
   font-size: 0.95rem;
   text-align: left;
   cursor: pointer;
-  transition: background 140ms, border-color 140ms, box-shadow 140ms;
+  transition:
+    background 140ms,
+    border-color 140ms,
+    box-shadow 140ms;
 }
 
 .tab:hover {
@@ -210,7 +213,8 @@
     transform: scale(0.6);
     opacity: 1;
   }
-  80%, 100% {
+  80%,
+  100% {
     transform: scale(2.2);
     opacity: 0;
   }
@@ -230,7 +234,9 @@
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  transition: background 160ms, transform 160ms;
+  transition:
+    background 160ms,
+    transform 160ms;
   padding: 0;
 }
 

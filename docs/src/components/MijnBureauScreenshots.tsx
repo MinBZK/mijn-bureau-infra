@@ -28,7 +28,8 @@ const SCREENSHOTS: ScreenshotItem[] = [
     icon: "🏠",
     image: "/img/screenshots/1-bureaublad.png",
     alt: "MijnBureau bureaublad overzicht",
-    description: "Centraal startpunt voor al je apps, meldingen en dagelijkse taken.",
+    description:
+      "Centraal startpunt voor al je apps, meldingen en dagelijkse taken.",
     hotspots: [{ x: 26, y: 2, targetId: "notities", label: "Bekijk Notities" }],
   },
   {
@@ -37,8 +38,12 @@ const SCREENSHOTS: ScreenshotItem[] = [
     icon: "📝",
     image: "/img/screenshots/2-notities-files.png",
     alt: "Notities component in MijnBureau",
-    description: "Maak, organiseer en deel notities veilig binnen je organisatie.",
-    hotspots: [{ x: 32, y: 2, targetId: "bestanden", label: "Bekijk Bestanden" }, { x: 40, y: 31, targetId: "notities-files", label: "Bekijk Notitie" }],
+    description:
+      "Maak, organiseer en deel notities veilig binnen je organisatie.",
+    hotspots: [
+      { x: 32, y: 2, targetId: "bestanden", label: "Bekijk Bestanden" },
+      { x: 40, y: 31, targetId: "notities-files", label: "Bekijk Notitie" },
+    ],
   },
   {
     id: "notities-files",
@@ -46,7 +51,8 @@ const SCREENSHOTS: ScreenshotItem[] = [
     icon: "📝",
     image: "/img/screenshots/2-notities.png",
     alt: "Notities component in MijnBureau",
-    description: "Maak, organiseer en deel notities veilig binnen je organisatie.",
+    description:
+      "Maak, organiseer en deel notities veilig binnen je organisatie.",
     hotspots: [{ x: 26, y: 2, targetId: "notities", label: "Bekijk Notities" }],
   },
   {
@@ -56,11 +62,11 @@ const SCREENSHOTS: ScreenshotItem[] = [
     image: "/img/screenshots/3-bestanden.png",
     alt: "Bestandenoverzicht in MijnBureau",
     description: "Beheer documenten en mappen met heldere rechtenstructuur.",
-    hotspots: [{ x: 38, y: 2, targetId: "videobellen", label: "Bekijk Videobellen" }
-      , { x: 35, y: 33, targetId: "powerpoint", label: "Bekijk Presentaties" }
-      , { x: 35, y: 51, targetId: "excel", label: "Bekijk Spreadsheets" }
-      , { x: 35, y: 62, targetId: "word", label: "Bekijk Text" }
-
+    hotspots: [
+      { x: 38, y: 2, targetId: "videobellen", label: "Bekijk Videobellen" },
+      { x: 35, y: 33, targetId: "powerpoint", label: "Bekijk Presentaties" },
+      { x: 35, y: 51, targetId: "excel", label: "Bekijk Spreadsheets" },
+      { x: 35, y: 62, targetId: "word", label: "Bekijk Text" },
     ],
   },
   {
@@ -70,7 +76,9 @@ const SCREENSHOTS: ScreenshotItem[] = [
     image: "/img/screenshots/3-bestanden-powerpoint.png",
     alt: "PowerPoint-bestand openen in MijnBureau",
     description: "Bewerk en bekijk presentaties direct in de browser.",
-    hotspots: [{ x: 32, y: 2, targetId: "bestanden", label: "Bekijk Bestanden" }],
+    hotspots: [
+      { x: 32, y: 2, targetId: "bestanden", label: "Bekijk Bestanden" },
+    ],
   },
   {
     id: "excel",
@@ -79,7 +87,9 @@ const SCREENSHOTS: ScreenshotItem[] = [
     image: "/img/screenshots/3-bestanden-spreadsheet.png",
     alt: "Spreadsheet-bestand openen in MijnBureau",
     description: "Bewerk en bekijk spreadsheet direct in de browser.",
-    hotspots: [{ x: 32, y: 2, targetId: "bestanden", label: "Bekijk Bestanden" }],
+    hotspots: [
+      { x: 32, y: 2, targetId: "bestanden", label: "Bekijk Bestanden" },
+    ],
   },
   {
     id: "word",
@@ -88,7 +98,9 @@ const SCREENSHOTS: ScreenshotItem[] = [
     image: "/img/screenshots/3-bestanden-text.png",
     alt: "Text-bestand openen in MijnBureau",
     description: "Bewerk en bekijk text bestanden direct in de browser.",
-    hotspots: [{  x: 32, y: 2,  targetId: "bestanden", label: "Bekijk Bestanden" }],
+    hotspots: [
+      { x: 32, y: 2, targetId: "bestanden", label: "Bekijk Bestanden" },
+    ],
   },
   {
     id: "videobellen",
@@ -96,9 +108,16 @@ const SCREENSHOTS: ScreenshotItem[] = [
     icon: "📹",
     image: "/img/screenshots/4-videobellen.png",
     alt: "Videobellen binnen MijnBureau",
-    description: "Start beveiligde videovergaderingen op je eigen infrastructuur.",
-    hotspots: [{ x: 44, y: 2, targetId: "nextcloud", label: "Bekijk Bestanden" },
-      { x: 19, y: 45, targetId: "videobellen-call", label: "Bekijk videobellen" }
+    description:
+      "Start beveiligde videovergaderingen op je eigen infrastructuur.",
+    hotspots: [
+      { x: 44, y: 2, targetId: "nextcloud", label: "Bekijk Bestanden" },
+      {
+        x: 19,
+        y: 45,
+        targetId: "videobellen-call",
+        label: "Bekijk videobellen",
+      },
     ],
   },
   {
@@ -107,8 +126,11 @@ const SCREENSHOTS: ScreenshotItem[] = [
     icon: "📹",
     image: "/img/screenshots/4-videobellen-call.png",
     alt: "Videobellen binnen MijnBureau",
-    description: "Start beveiligde videovergaderingen op je eigen infrastructuur.",
-    hotspots: [{ x: 38, y: 2, targetId: "videobellen", label: "Bekijk Videobellen" }],
+    description:
+      "Start beveiligde videovergaderingen op je eigen infrastructuur.",
+    hotspots: [
+      { x: 38, y: 2, targetId: "videobellen", label: "Bekijk Videobellen" },
+    ],
   },
 
   {
@@ -118,7 +140,9 @@ const SCREENSHOTS: ScreenshotItem[] = [
     image: "/img/screenshots/5-nextcloud.png",
     alt: "Nextcloud integratie in MijnBureau",
     description: "Deel bestanden en werk samen in teams via Nextcloud.",
-    hotspots: [{ x: 51, y: 2, targetId: "spreadsheet", label: "Bekijk Spreadsheet" }],
+    hotspots: [
+      { x: 51, y: 2, targetId: "spreadsheet", label: "Bekijk Spreadsheet" },
+    ],
   },
   {
     id: "spreadsheet",
@@ -127,7 +151,9 @@ const SCREENSHOTS: ScreenshotItem[] = [
     image: "/img/screenshots/6-spreadsheet.png",
     alt: "Spreadsheet bewerken in MijnBureau",
     description: "Analyseer en bewerk data samen in realtime via Grist.",
-    hotspots: [{ x: 58, y: 2, targetId: "ai-assistant", label: "Bekijk AI Assistent" }],
+    hotspots: [
+      { x: 58, y: 2, targetId: "ai-assistant", label: "Bekijk AI Assistent" },
+    ],
   },
   {
     id: "ai-assistant",
@@ -135,7 +161,8 @@ const SCREENSHOTS: ScreenshotItem[] = [
     icon: "🤖",
     image: "/img/screenshots/7-ai-assistant.png",
     alt: "AI Assistant in MijnBureau",
-    description: "Gebruik AI-ondersteuning in een soevereine omgeving zonder datadeling.",
+    description:
+      "Gebruik AI-ondersteuning in een soevereine omgeving zonder datadeling.",
     hotspots: [{ x: 63, y: 2, targetId: "chat", label: "Bekijk Chat" }],
   },
   {
@@ -145,12 +172,19 @@ const SCREENSHOTS: ScreenshotItem[] = [
     image: "/img/screenshots/8-chat.png",
     alt: "Chat functionaliteit in MijnBureau",
     description: "Communiceer veilig via kanalen en directe berichten.",
-    hotspots: [{ x: 2, y: 2, targetId: "bureaublad", label: "Back to Bureaublad" }],
+    hotspots: [
+      { x: 2, y: 2, targetId: "bureaublad", label: "Back to Bureaublad" },
+    ],
   },
 ];
 
 const SIDEBAR_SCREENSHOTS = SCREENSHOTS.filter(
-  (item) => item.id !== "powerpoint" && item.id !== "videobellen-call" && item.id !== "notities-files" && item.id !== "excel" && item.id !== "word",
+  (item) =>
+    item.id !== "powerpoint" &&
+    item.id !== "videobellen-call" &&
+    item.id !== "notities-files" &&
+    item.id !== "excel" &&
+    item.id !== "word",
 );
 
 export default function MijnBureauScreenshots(): React.JSX.Element {
@@ -166,14 +200,16 @@ export default function MijnBureauScreenshots(): React.JSX.Element {
       <div className="container">
         <div className={styles.header}>
           <Heading as="h2">MijnBureau in Action</Heading>
-          <p className={styles.subtitle}>
-            Experience the posibilities
-          </p>
+          <p className={styles.subtitle}>Experience the possibilities</p>
         </div>
 
         <div className={styles.layout}>
           <div className={styles.sidebar}>
-            <ul className={styles.tabList} role="tablist" aria-label="Onderdelen">
+            <ul
+              className={styles.tabList}
+              role="tablist"
+              aria-label="Onderdelen"
+            >
               {SIDEBAR_SCREENSHOTS.map((item) => {
                 const isActive = item.id === activeId;
                 return (
@@ -191,10 +227,14 @@ export default function MijnBureauScreenshots(): React.JSX.Element {
                       <span className={styles.tabText}>
                         <strong>{item.label}</strong>
                         {isActive && (
-                          <span className={styles.tabDesc}>{item.description}</span>
+                          <span className={styles.tabDesc}>
+                            {item.description}
+                          </span>
                         )}
                       </span>
-                      <span className={styles.tabArrow} aria-hidden="true">›</span>
+                      <span className={styles.tabArrow} aria-hidden="true">
+                        ›
+                      </span>
                     </button>
                   </li>
                 );

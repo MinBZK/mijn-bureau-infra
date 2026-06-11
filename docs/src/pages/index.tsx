@@ -6,6 +6,7 @@ import Layout from "@theme/Layout";
 import HomepageFeatures from "@site/src/components/HomepageFeatures";
 import MijnBureauScreenshots from "@site/src/components/MijnBureauScreenshots";
 import EUCollaboration from "@site/src/components/EUCollaboration";
+import OpenSourceFoundation from "@site/src/components/OpenSourceFoundation";
 import Heading from "@theme/Heading";
 
 import styles from "./index.module.css";
@@ -15,7 +16,9 @@ function HomepageHeader() {
   return (
     <header className={styles.heroBanner}>
       <div className={clsx("container", styles.heroInner)}>
-        <div className={styles.heroBadge}>Open source · Self-hosted · Government-ready</div>
+        <div className={styles.heroBadge}>
+          Open source · Self-hosted · Government-ready
+        </div>
         <Heading as="h1" className={styles.heroTitle}>
           {siteConfig.title}
         </Heading>
@@ -51,8 +54,7 @@ export default function Home(): ReactNode {
         <HomepageFeatures />
         <MijnBureauScreenshots />
         <EUCollaboration />
-
-
+        <OpenSourceFoundation />
       </main>
     </Layout>
   );

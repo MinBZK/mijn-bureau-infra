@@ -38,7 +38,9 @@ function Feature({ title, Svg, description }: FeatureItem) {
         <Svg className={styles.featureSvg} role="img" aria-hidden="true" />
       </div>
       <div className={styles.cardBody}>
-        <Heading as="h3" className={styles.cardTitle}>{title}</Heading>
+        <Heading as="h3" className={styles.cardTitle}>
+          {title}
+        </Heading>
         <p className={styles.cardDesc}>{description}</p>
       </div>
     </div>

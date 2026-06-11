@@ -18,7 +18,9 @@
   background: var(--ifm-background-surface-color);
   border: 1px solid var(--rvo-color-grijs-200);
   border-radius: 14px;
-  transition: box-shadow 160ms, border-color 160ms;
+  transition:
+    box-shadow 160ms,
+    border-color 160ms;
 }
 
 .card:hover {
