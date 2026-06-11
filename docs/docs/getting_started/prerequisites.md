@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Prerequisites
 
-MijnBureau has minimal prerequisites, requiring only a Kubernetes cluster and some essential tools.
+MijnBureau has minimal prerequisites, requiring only a Kubernetes cluster and a domain name with TLS certificates.
 
 ---
 
@@ -14,14 +14,14 @@ MijnBureau has minimal prerequisites, requiring only a Kubernetes cluster and so
 
 - A [CNCF certified](https://www.cncf.io/training/certification/software-conformance/) Kubernetes or [Haven](https://haven.commonground.nl/) compliant Kubernetes.
 - AMD64 platform.
-- A LoadBalancer (or more)
+- A LoadBalancer (or more) if you want to host video conferencing backend
 - A routing solution — one of:
-  - **Ingress controller**: Nginx, Traefik or HAProxy (OpenShift).
+  - **Ingress controller**: Traefik or HAProxy (OpenShift).
   - **Gateway API controller**: any [conformant Gateway API](https://gateway-api.sigs.k8s.io/) implementation (e.g. Nginx Gateway Fabric, Cilium, Envoy Gateway, Istio).
-- Access to DNS
+- Access to DNS domain records
 
 > Ingress with Traefik is the primary and default routing option. Gateway API support is available as an alternative for clusters that already run a Gateway API controller.
-> Note: For ingress mode, currently only the Nginx, Traefik and HAProxy controllers are supported. Additional controllers can be added if needed.
+> Note: For ingress mode, currently only the Traefik and HAProxy controllers are supported. Additional controllers can be added if needed.
 
 ### Kubernetes Resources
 
@@ -48,13 +48,13 @@ MijnBureau simplifies resource setup with a global size parameter that adjusts r
 | **2xlarge** | Demo        | 43.4 cores    | 258.8 cores | 134.1 GiB        | 532.5 GiB     |
 |             | Production  | 20.4 cores    | 120.8 cores | 63.5 GiB         | 250.0 GiB     |
 
-nano and micro size will give issues with some of the workloads. You can resolve this by defining resources for these workloads in the resources.yaml. None will not set any resources and will share the available resources among all applications.
+> None will not set any resources and will share the available resources among all applications. The None options is not recommended for production setups.
 
 ## 🛠️ Tools
 
 To install MijnBureau on Kubernetes, you need the following tools:
 
-- **Helmfile**: Used to generate Kubernetes manifests. [Installation Guide](https://helmfile.readthedocs.io/en/latest/#installation)
+- **Helmfile**: [Installation Guide](https://helmfile.readthedocs.io/en/latest/#installation)
 - **Helm**: [Installation Guide](https://helm.sh/docs/intro/install/)
 
 ### Secrets Management
