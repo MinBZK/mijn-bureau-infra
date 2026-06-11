@@ -4,9 +4,9 @@ sidebar_position: 1
 
 # Introduction
 
-MijnBureau is a flexible and secure digital workplace suite. Its primary goal is to provide an **autonomous** solution for digital workplaces, ensuring you can run everything on your own hardware while maintaining full control over your critical data.
+MijnBureau is an digital workplace suite. Its primary goal is to provide an **autonomous** solution, ensuring you can run everything on your own hardware while maintaining full control over your critical data.
 
-Developed in collaboration with Dutch municipalities, provinces, and ministries, MijnBureau draws inspiration from similar initiatives like Germany’s Opendesk and France’s LaSuite.
+Developed in collaboration with Dutch municipalities, provinces, and ministries, MijnBureau draws inspiration and collaborates with similar initiatives like Germany’s Opendesk and France’s LaSuite.
 
 Although MijnBureau is a public-driven initiative, its licensing encourages private sector actors to use, sell, and contribute to the project.
 
@@ -14,29 +14,21 @@ Although MijnBureau is a public-driven initiative, its licensing encourages priv
 
 ## Features
 
-MijnBureau offers a rich set of features focused on collaboration:
+MijnBureau gives you one workspace for seamless collaboration and communication across teams and organizations.
 
-- Collaborative Documents
-- Collaborative Spreadsheets
-- Collaborative Presentations
-- Collaborative Notes
-- Secure File Sharing
-- Team Chat
-- Self-hosted AI Language Models
-- Integrated Identity Management
-- Video Conferencing
-- AI Assistant
-- Start page with integrations to the different features
-- User Portal
+- **Work together:** documents, spreadsheets, presentations, notes, project management and secure file sharing.
+- **Communicate:** team chat, video conferencing
+- **AI** AI-assisted workflows
+- **Organize work:** one start page for all tools.
+- **Manage access:** integrated identity management, user portal, and admin portal.
 
 ### Planned Features
 
 We are actively expanding the suite with plans to include:
 
 - Email
-- Admin Portal
+- Agenda
 - Password Manager
-- Discussion Forum
 
 ---
 
