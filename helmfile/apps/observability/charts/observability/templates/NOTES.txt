@@ -7,8 +7,8 @@ SPDX-License-Identifier: APACHE-2.0
 
 The following GrafanaDashboard resources were created in namespace {{ include "common.names.namespace" . | quote }}:
 
-{{- range $path, $_ := .Files.Glob "dashboards/*.json" }}
-{{- $slug := $path | base | trimSuffix ".json" -}}
+{{- range $path, $_ := .Files.Glob "dashboards/**.json" }}
+{{- $slug := $path | trimPrefix "dashboards/" | trimSuffix ".json" | replace "/" "-" -}}
 {{- $ctx := dict "context" $ "slug" $slug }}
   - {{ include "observability.dashboardName" $ctx }}   (from {{ $path }})
 {{- end }}

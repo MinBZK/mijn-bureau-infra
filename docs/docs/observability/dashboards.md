@@ -58,7 +58,11 @@ helmfile -e <environment> apply
 
 ## Default dashboards
 
-Three dashboards ship out of the box, giving you a **cluster → pod → host** drill-down without any extra setup. All appear in Grafana under the `Mijn Bureau` folder.
+The chart ships dashboards in two Grafana folders, organized by what they monitor.
+
+### `Mijn Bureau` folder — platform-level
+
+Three dashboards giving a **cluster → pod → host** drill-down. They work on any Kubernetes cluster scraped by `kube-prometheus-stack` — no per-app exporter required.
 
 | Dashboard                 | Source                                                             | Use it to answer                  |
 | ------------------------- | ------------------------------------------------------------------ | --------------------------------- |
@@ -66,7 +70,28 @@ Three dashboards ship out of the box, giving you a **cluster → pod → host** 
 | Kubernetes / Views / Pods | [grafana.com #15760](https://grafana.com/grafana/dashboards/15760) | "Which pod is the problem?"       |
 | Node Exporter Full        | [grafana.com #1860](https://grafana.com/grafana/dashboards/1860)   | "Is the underlying host healthy?" |
 
-Every panel uses metrics included in [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) by default — no additional exporters required.
+### `Datastore` folder — shared backing services
+
+Four dashboards covering the data stores that almost every MijnBureau app depends on: PostgreSQL, Redis, MinIO, and CloudNativePG (the CNPG-based PostgreSQL alternative). All require [`metric.enabled: true`](./metrics.md) so the exporter sidecars are running and producing the metrics each dashboard queries.
+
+| Dashboard           | Source                                                             | Use it to answer                                       |
+| ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------ |
+| PostgreSQL Database | [grafana.com #9628](https://grafana.com/grafana/dashboards/9628)   | "Is any app's bitnami Postgres misbehaving?"           |
+| CloudNativePG       | [grafana.com #20417](https://grafana.com/grafana/dashboards/20417) | Same question, for apps running on CNPG instead.       |
+| Redis Dashboard     | [grafana.com #11835](https://grafana.com/grafana/dashboards/11835) | "Why is the cache slow / memory blowing up?"           |
+| MinIO Dashboard     | [grafana.com #13502](https://grafana.com/grafana/dashboards/13502) | "How healthy is object storage (uploads, throughput)?" |
+
+### `Apps` folder — application-level
+
+Three dashboards covering individual MijnBureau apps that expose their own Prometheus metrics. These appear only when the corresponding app is enabled (otherwise their panels show "no data").
+
+| Dashboard                  | Source                                                                                                                                                       | Use it to answer                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| Keycloak Metrics Dashboard | [grafana.com #10441](https://grafana.com/grafana/dashboards/10441)                                                                                           | "How is identity & auth performing — logins, sessions, JVM heap?" |
+| Synapse                    | [element-hq/synapse](https://github.com/element-hq/synapse/blob/develop/contrib/grafana/synapse.json)                                                        | "Is the Matrix homeserver healthy — federation, request volume?"  |
+| Nextcloud                  | [xperimental/nextcloud-exporter](https://github.com/xperimental/nextcloud-exporter/blob/master/contrib/grafana-dashboard.json)                               | "How is Nextcloud doing — users, files, free space?"              |
+
+Every panel uses metrics included in [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) (platform-level dashboards), in the bitnami / CNPG exporter sidecars (datastore dashboards), or in the app's own `/metrics` endpoint (apps dashboards). No additional exporters or tools required.
 
 ### General overview
 
@@ -135,11 +160,184 @@ curl -sSL 'https://grafana.com/api/dashboards/1860/revisions/latest/download' \
 
 This dashboard uses an internal datasource picker (no `__inputs`), so it does not require an entry in `metric.grafanaDashboards.datasources` — Grafana will offer a Prometheus datasource dropdown the first time you open it.
 
+### PostgreSQL Database
+
+[dashboards/datastore/postgresql.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/postgresql.json) — works against the `postgres-exporter` sidecar that ships in the bitnami `postgresql` subchart. Multiple MijnBureau apps run their own Postgres instance (nextcloud, meet, docs, drive, grist, openproject, conversations, …); this single dashboard covers all of them via the `namespace` and `pod` dropdowns at the top.
+
+What you can drill into:
+
+- **Connections** — active, idle, waiting, max
+- **Transactions** — commits / rollbacks per second
+- **Cache hit ratio** — should sit above 99% on a healthy DB
+- **Disk I/O** — blocks read from disk vs from cache
+- **Locks** held and lock waits
+- **Replication lag** if any read replicas exist
+
+Metric source: [`postgres-exporter`](https://github.com/prometheus-community/postgres_exporter), enabled per app by `metric.enabled: true` (see [Metrics](./metrics.md)).
+
+To refresh the JSON when a newer revision is published on grafana.com:
+
+```bash
+curl -sSL 'https://grafana.com/api/dashboards/9628/revisions/latest/download' \
+  > helmfile/apps/observability/charts/observability/dashboards/datastore/postgresql.json
+```
+
+### Redis Dashboard
+
+[dashboards/datastore/redis.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/redis.json) — works against the `redis-exporter` sidecar that ships in the bitnami `redis` subchart. Used by almost every app for caching and session storage (nextcloud, meet, element, docs, drive, grist, openproject, conversations, bureaublad, livekit).
+
+What you can drill into:
+
+- **Memory usage** vs maxmemory, fragmentation
+- **Connected clients**, blocked clients
+- **Commands processed per second**, broken down by type
+- **Hit/miss rate** on the cache
+- **Keyspace** — total keys, expiring keys
+- **Evictions** (signal that maxmemory is hit)
+- **Replication health** if replicas exist
+
+Metric source: [`redis-exporter`](https://github.com/oliver006/redis_exporter), enabled per app by `metric.enabled: true`.
+
+To refresh the JSON:
+
+```bash
+curl -sSL 'https://grafana.com/api/dashboards/11835/revisions/latest/download' \
+  > helmfile/apps/observability/charts/observability/dashboards/datastore/redis.json
+```
+
+### MinIO Dashboard
+
+[dashboards/datastore/minio.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/minio.json) — MinIO exposes Prometheus metrics natively (no sidecar exporter required). Used wherever MijnBureau needs S3-compatible object storage: nextcloud uploads, docs/drive document storage, meet recordings, grist attachments, openproject file storage.
+
+What you can drill into:
+
+- **Bucket usage** — objects, total size per bucket
+- **S3 API request rates** broken down by operation (GET, PUT, DELETE, …)
+- **API error rates** and latency
+- **Network throughput** in / out
+- **Disk usage** on the MinIO node(s)
+- **Replication lag** if multi-site / multi-tenant is configured
+
+Metric source: MinIO's built-in `/minio/v2/metrics/cluster` endpoint, scraped via the `ServiceMonitor` created by the bitnami `minio` subchart when `metric.enabled: true`.
+
+To refresh the JSON:
+
+```bash
+curl -sSL 'https://grafana.com/api/dashboards/13502/revisions/latest/download' \
+  > helmfile/apps/observability/charts/observability/dashboards/datastore/minio.json
+```
+
+### CloudNativePG
+
+[dashboards/datastore/cloudnative-pg.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/cloudnative-pg.json) — the **official CNPG team dashboard**. Use this whenever an app's `database.default.provider` is set to `cnpg` instead of the bitnami `postgresql` subchart. The metrics families are completely different (`cnpg_*` vs `pg_*`) so the bitnami PostgreSQL dashboard would show no data for these clusters.
+
+What you can drill into:
+
+- **Cluster topology** — primary, replicas, instance health
+- **Backup status** — last backup, retention, WAL archiving
+- **Replication lag** between primary and standbys
+- **Connections, transactions, cache hit rate** — the usual Postgres signals
+- **Storage utilization** per instance
+
+Metric source: the [CNPG operator](https://cloudnative-pg.io/) exposes Prometheus metrics natively — no exporter sidecar needed. Scraped via the ServiceMonitor in the [`cluster`](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/common/charts/cluster) subchart when `metric.enabled: true`.
+
+To refresh the JSON:
+
+```bash
+curl -sSL 'https://grafana.com/api/dashboards/20417/revisions/latest/download' \
+  > helmfile/apps/observability/charts/observability/dashboards/datastore/cloudnative-pg.json
+```
+
+### Keycloak Metrics Dashboard
+
+[dashboards/apps/keycloak.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/apps/keycloak.json) — login health and JVM metrics for the Keycloak identity provider.
+
+What you can drill into:
+
+- **Login rates** — successful logins, failed logins, registrations
+- **Active sessions** per realm and client
+- **HTTP request rates and latencies** to Keycloak endpoints
+- **JVM heap memory**, GC pauses, threads
+- **Database query latency**
+
+Metric source: Keycloak's built-in `/metrics` endpoint (Micrometer + JVM), scraped via the ServiceMonitor in [keycloak's chart](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/keycloak/charts/keycloak/templates/servicemonitor.yaml) when `metric.enabled: true`.
+
+This dashboard uses a templated datasource picker (no `__inputs`) — no entry in `metric.grafanaDashboards.datasources` is required.
+
+To refresh the JSON:
+
+```bash
+curl -sSL 'https://grafana.com/api/dashboards/10441/revisions/latest/download' \
+  > helmfile/apps/observability/charts/observability/dashboards/apps/keycloak.json
+```
+
+### Synapse
+
+[dashboards/apps/synapse.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/apps/synapse.json) — the **official dashboard maintained by the Synapse team** (the Matrix homeserver behind MijnBureau's chat / element app).
+
+What you can drill into:
+
+- **Federation** — outgoing/incoming events, federation queue size
+- **Request rate and latency** broken down by endpoint type (login, send, sync, …)
+- **Database query performance** — slowest queries, transaction rates
+- **Background jobs** — running, queued, time spent
+- **Memory and CPU** of the Synapse Python process
+
+Metric source: Synapse's native Prometheus endpoint, scraped via the ServiceMonitor in [synapse's chart](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/element/charts/synapse/templates/master/servicemonitor.yaml) when element is enabled and `metric.enabled: true`.
+
+Sourced directly from Synapse upstream rather than grafana.com:
+
+```bash
+curl -sSL 'https://raw.githubusercontent.com/element-hq/synapse/develop/contrib/grafana/synapse.json' \
+  > helmfile/apps/observability/charts/observability/dashboards/apps/synapse.json
+```
+
+### Nextcloud
+
+[dashboards/apps/nextcloud.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/apps/nextcloud.json) — file-sharing service metrics from the `nextcloud-exporter` project (which the bitnami nextcloud chart already wires up).
+
+What you can drill into:
+
+- **User counts** — total, active in last 24h / week / month
+- **File counts** and total storage used
+- **Free space** on the underlying storage
+- **App count** enabled in Nextcloud
+- **Sharing activity** — outgoing / incoming shares, federated shares
+- **Server info** — Nextcloud version, PHP version, database type
+
+Metric source: [`nextcloud-exporter`](https://github.com/xperimental/nextcloud-exporter), running as a sidecar in the nextcloud pod when `metric.enabled: true`. Scraped via the ServiceMonitor in [nextcloud's chart](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/nextcloud/charts/nextcloud/templates/servicemonitor.yaml).
+
+This dashboard uses an input named `DS_LOCAL` instead of the standard `DS_PROMETHEUS` — add a matching entry under `metric.grafanaDashboards.datasources`:
+
+```yaml
+datasources:
+  - inputName: DS_LOCAL
+    datasourceName: Prometheus
+```
+
+Sourced directly from the nextcloud-exporter repo:
+
+```bash
+curl -sSL 'https://raw.githubusercontent.com/xperimental/nextcloud-exporter/master/contrib/grafana-dashboard.json' \
+  > helmfile/apps/observability/charts/observability/dashboards/apps/nextcloud.json
+```
+
 ---
 
 ## Adding a dashboard
 
-The chart auto-discovers every `*.json` file under [dashboards/](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/). To add a new dashboard:
+The chart auto-discovers every `*.json` file under [dashboards/](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/) — recursively, so subfolders are supported.
+
+**Folder convention** — the path you put the JSON in determines where it appears in Grafana:
+
+| File path                            | Grafana folder            |
+| ------------------------------------ | ------------------------- |
+| `dashboards/<name>.json`             | `Mijn Bureau` (default)   |
+| `dashboards/<subdir>/<name>.json`    | Title-cased `<subdir>`    |
+
+For example, `dashboards/datastore/postgresql.json` lands in the **Datastore** folder. Create a new subfolder to start a new group; no template changes needed.
+
+To add a new dashboard:
 
 ### From the community library
 
