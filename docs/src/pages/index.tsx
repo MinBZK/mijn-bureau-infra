@@ -258,6 +258,12 @@ function ProductionReadiness(): ReactNode {
                       <li>
                         <strong>Docs:</strong> Note editing and collaboration
                       </li>
+                      <li>
+                        <strong>Meet:</strong> Real-time video conferencing
+                      </li>
+                      <li>
+                        <strong>Grist:</strong> Collaborative spreadsheets
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -290,16 +296,13 @@ function ProductionReadiness(): ReactNode {
                     </p>
                     <ul>
                       <li>
-                        <strong>Grist:</strong> Collaborative spreadsheets
-                      </li>
-                      <li>
                         <strong>Ollama:</strong> Local AI model
                       </li>
                       <li>
-                        <strong>Meet:</strong> Real-time video conferencing
+                        <strong>Drive:</strong> File sharing and collaboration
                       </li>
                       <li>
-                        <strong>Drive:</strong> File sharing and collaboration
+                        <strong>Conversations:</strong> AI Assistant
                       </li>
                     </ul>
                   </div>
@@ -334,9 +337,6 @@ function ProductionReadiness(): ReactNode {
                       <li>
                         <strong>Bureaublad:</strong> Dashboard that integrates
                         all components
-                      </li>
-                      <li>
-                        <strong>Conversations:</strong> AI Assistant
                       </li>
                     </ul>
                   </div>
