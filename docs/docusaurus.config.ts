@@ -6,7 +6,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
   title: "Mijn Bureau",
-  tagline: "The autonomous, flexible and secure digital workplace suite",
+  tagline: "The autonomous digital workplace suite",
   favicon: "img/favicon.ico",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
