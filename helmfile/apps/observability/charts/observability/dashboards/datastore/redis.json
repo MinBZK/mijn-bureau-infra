@@ -1272,10 +1272,7 @@
   "refresh": "30s",
   "schemaVersion": 21,
   "style": "dark",
-  "tags": [
-    "prometheus",
-    "redis"
-  ],
+  "tags": ["prometheus", "redis"],
   "templating": {
     "list": [
       {
@@ -1380,17 +1377,7 @@
       "2h",
       "1d"
     ],
-    "time_options": [
-      "5m",
-      "15m",
-      "1h",
-      "6h",
-      "12h",
-      "24h",
-      "2d",
-      "7d",
-      "30d"
-    ]
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
   },
   "timezone": "browser",
   "title": "Redis Dashboard for Prometheus Redis Exporter (helm stable/redis-ha)",

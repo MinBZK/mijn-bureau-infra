@@ -75,9 +75,7 @@
       "icon": "external link",
       "includeVars": true,
       "keepTime": true,
-      "tags": [
-        "matrix"
-      ],
+      "tags": ["matrix"],
       "title": "Dashboards",
       "type": "dashboards"
     }
@@ -2666,9 +2664,7 @@
                   "id": "byNames",
                   "options": {
                     "mode": "exclude",
-                    "names": [
-                      "libera.chat "
-                    ],
+                    "names": ["libera.chat "],
                     "prefix": "All except:",
                     "readOnly": true
                   }
@@ -2788,9 +2784,7 @@
                   "id": "byNames",
                   "options": {
                     "mode": "exclude",
-                    "names": [
-                      "libera.chat"
-                    ],
+                    "names": ["libera.chat"],
                     "prefix": "All except:",
                     "readOnly": true
                   }
@@ -7724,9 +7718,7 @@
   "preload": false,
   "refresh": "",
   "schemaVersion": 42,
-  "tags": [
-    "matrix"
-  ],
+  "tags": ["matrix"],
   "templating": {
     "list": [
       {

@@ -85,11 +85,11 @@ Four dashboards covering the data stores that almost every MijnBureau app depend
 
 Three dashboards covering individual MijnBureau apps that expose their own Prometheus metrics. These appear only when the corresponding app is enabled (otherwise their panels show "no data").
 
-| Dashboard                  | Source                                                                                                                                                       | Use it to answer                                                  |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| Keycloak Metrics Dashboard | [grafana.com #10441](https://grafana.com/grafana/dashboards/10441)                                                                                           | "How is identity & auth performing — logins, sessions, JVM heap?" |
-| Synapse                    | [element-hq/synapse](https://github.com/element-hq/synapse/blob/develop/contrib/grafana/synapse.json)                                                        | "Is the Matrix homeserver healthy — federation, request volume?"  |
-| Nextcloud                  | [xperimental/nextcloud-exporter](https://github.com/xperimental/nextcloud-exporter/blob/master/contrib/grafana-dashboard.json)                               | "How is Nextcloud doing — users, files, free space?"              |
+| Dashboard                  | Source                                                                                                                         | Use it to answer                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| Keycloak Metrics Dashboard | [grafana.com #10441](https://grafana.com/grafana/dashboards/10441)                                                             | "How is identity & auth performing — logins, sessions, JVM heap?" |
+| Synapse                    | [element-hq/synapse](https://github.com/element-hq/synapse/blob/develop/contrib/grafana/synapse.json)                          | "Is the Matrix homeserver healthy — federation, request volume?"  |
+| Nextcloud                  | [xperimental/nextcloud-exporter](https://github.com/xperimental/nextcloud-exporter/blob/master/contrib/grafana-dashboard.json) | "How is Nextcloud doing — users, files, free space?"              |
 
 Every panel uses metrics included in [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) (platform-level dashboards), in the bitnami / CNPG exporter sidecars (datastore dashboards), or in the app's own `/metrics` endpoint (apps dashboards). No additional exporters or tools required.
 
@@ -330,10 +330,10 @@ The chart auto-discovers every `*.json` file under [dashboards/](https://github.
 
 **Folder convention** — the path you put the JSON in determines where it appears in Grafana:
 
-| File path                            | Grafana folder            |
-| ------------------------------------ | ------------------------- |
-| `dashboards/<name>.json`             | `Mijn Bureau` (default)   |
-| `dashboards/<subdir>/<name>.json`    | Title-cased `<subdir>`    |
+| File path                         | Grafana folder          |
+| --------------------------------- | ----------------------- |
+| `dashboards/<name>.json`          | `Mijn Bureau` (default) |
+| `dashboards/<subdir>/<name>.json` | Title-cased `<subdir>`  |
 
 For example, `dashboards/datastore/postgresql.json` lands in the **Datastore** folder. Create a new subfolder to start a new group; no template changes needed.
 

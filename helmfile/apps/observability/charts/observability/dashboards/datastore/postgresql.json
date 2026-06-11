@@ -73,11 +73,7 @@
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": true,
-      "colors": [
-        "#299c46",
-        "#7eb26d",
-        "#d44a3a"
-      ],
+      "colors": ["#299c46", "#7eb26d", "#d44a3a"],
       "datasource": "${DS_PROMETHEUS}",
       "format": "none",
       "gauge": {
@@ -156,11 +152,7 @@
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
       "datasource": "${DS_PROMETHEUS}",
       "description": "start time of the process",
       "format": "dateTimeFromNow",
@@ -488,11 +480,7 @@
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
       "datasource": "${DS_PROMETHEUS}",
       "format": "none",
       "gauge": {
@@ -864,11 +852,7 @@
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
       "datasource": "${DS_PROMETHEUS}",
       "format": "bytes",
       "gauge": {
@@ -945,11 +929,7 @@
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
       "datasource": "${DS_PROMETHEUS}",
       "format": "bytes",
       "gauge": {
@@ -1026,11 +1006,7 @@
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
       "datasource": "${DS_PROMETHEUS}",
       "format": "bytes",
       "gauge": {
@@ -1107,11 +1083,7 @@
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
       "datasource": "${DS_PROMETHEUS}",
       "format": "bytes",
       "gauge": {
@@ -1189,11 +1161,7 @@
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
       "datasource": "${DS_PROMETHEUS}",
       "decimals": 1,
       "format": "bytes",
@@ -1271,11 +1239,7 @@
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
       "datasource": "${DS_PROMETHEUS}",
       "format": "none",
       "gauge": {
@@ -1352,11 +1316,7 @@
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
       "datasource": "${DS_PROMETHEUS}",
       "format": "none",
       "gauge": {
@@ -1433,11 +1393,7 @@
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
       "datasource": "${DS_PROMETHEUS}",
       "format": "none",
       "gauge": {
@@ -1514,11 +1470,7 @@
       "cacheTimeout": null,
       "colorBackground": false,
       "colorValue": false,
-      "colors": [
-        "#299c46",
-        "rgba(237, 129, 40, 0.89)",
-        "#d44a3a"
-      ],
+      "colors": ["#299c46", "rgba(237, 129, 40, 0.89)", "#d44a3a"],
       "datasource": "${DS_PROMETHEUS}",
       "format": "none",
       "gauge": {
@@ -2944,11 +2896,7 @@
   "refresh": "10s",
   "schemaVersion": 19,
   "style": "dark",
-  "tags": [
-    "postgres",
-    "db",
-    "stats"
-  ],
+  "tags": ["postgres", "db", "stats"],
   "templating": {
     "list": [
       {
@@ -3148,17 +3096,7 @@
       "2h",
       "1d"
     ],
-    "time_options": [
-      "5m",
-      "15m",
-      "1h",
-      "6h",
-      "12h",
-      "24h",
-      "2d",
-      "7d",
-      "30d"
-    ]
+    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
   },
   "timezone": "",
   "title": "PostgreSQL Database",
