@@ -32,6 +32,7 @@ spec:
         {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.podAnnotations "context" $) | nindent 8 }}
         {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: meet-backend
     spec:
@@ -100,6 +101,36 @@ spec:
           env:
             - name: BITNAMI_DEBUG
               value: {{ ternary "true" "false" (or .Values.meet_backend.image.debug .Values.diagnosticMode.enabled) | quote }}
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: DJANGO_SECRET_KEY
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: DB_PASSWORD
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: REDIS_URL
+            - name: CELERY_BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: CELERY_BROKER_URL
+            - name: OIDC_RP_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: OIDC_RP_CLIENT_SECRET
+            - name: LIVEKIT_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: LIVEKIT_API_SECRET
             {{- if .Values.meet_backend.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}

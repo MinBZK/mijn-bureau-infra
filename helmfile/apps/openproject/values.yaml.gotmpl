@@ -183,7 +183,9 @@ postgresql:
   bundled: false
   auth:
     username: {{ .Values.database.openproject.user | quote }}
-    password: {{ .Values.database.openproject.password | quote }}
+    existingSecret: "openproject-environment"
+    secretKeys:
+      userPasswordKey: "OPENPROJECT_DB_PASSWORD"
     database: {{ .Values.database.openproject.name | quote }}
   connection:
     host: {{ .Values.database.openproject.host }}
@@ -237,6 +239,7 @@ s3:
   directUploads: false
 
 environment:
+  OPENPROJECT_DB_PASSWORD: {{ .Values.database.openproject.password | quote }}
   OPENPROJECT_CACHE__REDIS__URL: {{ printf "redis://default:%s@%s:%d/1" .Values.cache.openproject.password .Values.cache.openproject.host .Values.cache.openproject.port }}
   OPENPROJECT_EMAIL__DELIVERY__METHOD: "smtp"
   OPENPROJECT_SMTP__ADDRESS: {{ .Values.smtp.host }}

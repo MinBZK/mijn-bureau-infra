@@ -26,8 +26,10 @@ spec:
       app.kubernetes.io/component: celery-worker
   template:
     metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       {{- if .Values.backend.celery.podAnnotations }}
-      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.backend.celery.podAnnotations "context" $) | nindent 8 }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.backend.celery.podAnnotations "context" $) | nindent 8 }}
       {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: celery-worker

@@ -42,6 +42,8 @@ spec:
               envFrom:
                 - configMapRef:
                     name: {{ template "common.names.fullname" . }}
+                - secretRef:
+                    name: {{ template "common.names.fullname" . }}
               image: {{ template "drive.image" . }}
               imagePullPolicy: {{ .Values.drive.image.pullPolicy }}
               {{- if .Values.drive.containerSecurityContext.enabled }}

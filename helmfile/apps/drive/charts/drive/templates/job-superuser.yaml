@@ -42,7 +42,10 @@ spec:
             - name: DB_USER
               value:  {{ .Values.externalDatabase.username | quote }}
             - name: DB_PASSWORD
-              value:  {{ .Values.externalDatabase.password | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: DB_PASSWORD
             - name: DB_PORT
               value: {{ .Values.externalDatabase.port | quote }}
             - name: DJANGO_CONFIGURATION
@@ -50,14 +53,23 @@ spec:
             - name: DJANGO_SETTINGS_MODULE
               value: drive.settings
             - name: DJANGO_SECRET_KEY
-              value: {{ .Values.drive.secretKey | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: DJANGO_SECRET_KEY
             - name: REDIS_URL
-              value: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: REDIS_URL
             - name: CELERY_BROKER_URL
-              value: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: CELERY_BROKER_URL
           envFrom:
             - secretRef:
-                name: {{ template "common.names.fullname" . }}
+                name: {{ template "common.names.fullname" . }}-superuser
           image: {{ template "drive.image" . }}
           imagePullPolicy: {{ .Values.drive.image.pullPolicy }}
           {{- if .Values.drive.containerSecurityContext.enabled }}

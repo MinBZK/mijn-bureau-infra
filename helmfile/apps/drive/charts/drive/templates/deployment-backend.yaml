@@ -29,6 +29,7 @@ spec:
     metadata:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       {{- if .Values.drive.podAnnotations }}
         {{- include "common.tplvalues.render" (dict "value" .Values.drive.podAnnotations "context" $) | nindent 8 }}
       {{- end }}
@@ -103,6 +104,8 @@ spec:
             {{- end }}
           envFrom:
             - configMapRef:
+                name: {{ template "common.names.fullname" . }}
+            - secretRef:
                 name: {{ template "common.names.fullname" . }}
             {{- if .Values.drive.extraEnvVarsCM }}
             - configMapRef:

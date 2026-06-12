@@ -25,9 +25,11 @@ spec:
       app.kubernetes.io/component: master
   template:
     metadata:
-      {{- if .Values.master.podAnnotations }}
-      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.master.podAnnotations "context" $) | nindent 8 }}
-      {{- end }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.master.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.master.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: master
     spec:
@@ -87,6 +89,14 @@ spec:
           command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
           {{- else if .Values.master.command }}
           command: {{- include "common.tplvalues.render" (dict "value" .Values.master.command "context" $) | nindent 12 }}
+          {{- else }}
+          command:
+            - sh
+            - -c
+            - |
+              exec python -B -m synapse.app.homeserver \
+                          -c {{ .Values.synapse.config.homeServerConfigFile }} \
+                          -c /synapse/secrets/secrets.yaml
           {{- end }}
           {{- if .Values.diagnosticMode.enabled }}
           args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
@@ -170,6 +180,9 @@ spec:
             - name: synapse-config
               mountPath: /synapse/config
               readOnly: true
+            - name: synapse-secrets
+              mountPath: /synapse/secrets
+              readOnly: true
           {{- if .Values.master.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.master.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
@@ -200,6 +213,9 @@ spec:
         - name: synapse-config
           configMap:
             name: {{ include "common.names.fullname" . }}
+        - name: synapse-secrets
+          secret:
+            secretName: {{ include "common.names.fullname" . }}
         {{- if .Values.master.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.master.extraVolumes "context" $) | nindent 8 }}
         {{- end }}

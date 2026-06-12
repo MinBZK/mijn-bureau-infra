@@ -27,9 +27,11 @@ spec:
       app.kubernetes.io/component: nextcloud
   template:
     metadata:
-      {{- if .Values.podAnnotations }}
-      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
-      {{- end }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret-nextcloud.yaml") . | sha256sum }}
+        {{- if .Values.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: nextcloud
     spec:
@@ -208,6 +210,16 @@ spec:
                 secretKeyRef:
                   name: {{ include "nextcloud.metrics.secretName" . }}
                   key: {{ .Values.metrics.auth.secretKey | quote }}
+            {{- end }}
+            {{- if .Values.auth.oidc.enabled }}
+            {{/*
+            OIDC secrets
+            */}}
+            - name: NEXTCLOUD_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: oidc-client-secret
             {{- end }}
             {{- if .Values.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}

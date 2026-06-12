@@ -27,9 +27,11 @@ spec:
       app.kubernetes.io/component: grist
   template:
     metadata:
-      {{- if .Values.podAnnotations }}
-      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
-      {{- end }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: grist
     spec:
@@ -101,7 +103,10 @@ spec:
             {{- end }}
            {{- if .Values.licensekey }}
             - name: GRIST_ACTIVATION
-              value: {{ .Values.licensekey | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: GRIST_ACTIVATION
             {{- end }}
             {{- if .Values.orgInPath }}
             - name: GRIST_ORG_IN_PATH
@@ -120,7 +125,10 @@ spec:
             - name: GRIST_TELEMETRY_LEVEL
               value: "off"
             - name: GRIST_SESSION_SECRET
-              value: {{ .Values.sessionSecret | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: GRIST_SESSION_SECRET
             - name: GRIST_UI_FEATURES
               value: createSite,multiSite,multiAccounts,templates,themes
             - name: GRIST_LIST_PUBLIC_SITES
@@ -128,11 +136,20 @@ spec:
             - name: GRIST_DEFAULT_EMAIL
               value: {{ .Values.adminEmail | quote }}
             - name: REDIS_URL
-              value: "redis://default:{{ .Values.externalRedis.password }}@{{ .Values.externalRedis.host }}:{{ .Values.externalRedis.port }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: REDIS_URL
             - name: GRIST_DOCS_MINIO_ACCESS_KEY
-              value: {{ .Values.externalMinio.accessKey | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: GRIST_DOCS_MINIO_ACCESS_KEY
             - name: GRIST_DOCS_MINIO_SECRET_KEY
-              value: {{ .Values.externalMinio.secretKey | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: GRIST_DOCS_MINIO_SECRET_KEY
             - name: GRIST_DOCS_MINIO_USE_SSL
               value: {{ .Values.externalMinio.useSSL | quote }}
             - name: GRIST_DOCS_MINIO_BUCKET
@@ -150,7 +167,10 @@ spec:
             - name: TYPEORM_LOGGING
               value: {{ .Values.externalDatabase.logging | quote }}
             - name: TYPEORM_PASSWORD
-              value: {{ .Values.externalDatabase.password | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: TYPEORM_PASSWORD
             - name: GRIST_FORCE_LOGIN
               value: "true"
             - name: GRIST_OFFER_ALL_LANGUAGES
@@ -166,7 +186,10 @@ spec:
               {{- end }}
               {{- if .Values.ai.apiKey }}
             - name: ASSISTANT_API_KEY
-              value: {{ .Values.ai.apiKey | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: ASSISTANT_API_KEY
               {{- end }}
               {{- if .Values.ai.model }}
             - name: ASSISTANT_MODEL
@@ -183,7 +206,10 @@ spec:
             - name: GRIST_OIDC_IDP_CLIENT_ID
               value: {{ .Values.auth.oidcIdpClientId | quote }}
             - name: GRIST_OIDC_IDP_CLIENT_SECRET
-              value: {{ .Values.auth.oidcIdpClientSecret | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: GRIST_OIDC_IDP_CLIENT_SECRET
               {{- if .Values.auth.oidcIdpScopes }}
             - name: GRIST_OIDC_IDP_SCOPES
               value: {{ .Values.auth.oidcIdpScopes | quote }}

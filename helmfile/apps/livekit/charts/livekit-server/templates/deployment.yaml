@@ -30,9 +30,11 @@ spec:
       {{- if .Values.livekit.podAnnotations }}
       annotations: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.podAnnotations "context" $) | nindent 8 }}
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       {{ else }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: livekit-server
@@ -102,7 +104,10 @@ spec:
               value: "{{.Values.livekit.redis.host}}:{{.Values.livekit.redis.port}}"
             {{- if .Values.livekit.redis.password }}
             - name: REDIS_PASSWORD
-              value: "{{.Values.livekit.redis.password}}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: REDIS_PASSWORD
             {{- end }}
             {{- end }}
             {{- if .Values.livekit.extraEnvVars }}

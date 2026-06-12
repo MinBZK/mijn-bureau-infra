@@ -31,6 +31,33 @@ extraDeploy:
           app.kubernetes.io/component: keycloak-config-cli
       policyTypes:
       - Egress
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      namespace: {{ .Release.Namespace }}
+      labels:
+        app.kubernetes.io/component: {{ .Release.Name }}-cli
+        app.kubernetes.io/name: {{ .Release.Name }}-cli
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: 1.0.0
+        app.kubernetes.io/managed-by: Helm
+      name: {{ .Release.Name }}-config-cli
+    type: Opaque
+    stringData:
+      MB_CLIENT_SECRET_GRIST: {{ .Values.authentication.client.grist.client_secret | quote }}
+      MB_CLIENT_SECRET_SYNAPSE: {{ .Values.authentication.client.synapse.client_secret | quote }}
+      MB_CLIENT_SECRET_MEET: {{ .Values.authentication.client.meet.client_secret | quote }}
+      MB_CLIENT_SECRET_CONVERSATIONS: {{ .Values.authentication.client.conversations.client_secret | quote }}
+      MB_CLIENT_SECRET_DRIVE: {{ .Values.authentication.client.drive.client_secret | quote }}
+      MB_CLIENT_SECRET_NEXTCLOUD: {{ .Values.authentication.client.nextcloud.client_secret | quote }}
+      MB_CLIENT_SECRET_OPENPROJECT: {{ .Values.authentication.client.openproject.client_secret | quote }}
+      MB_CLIENT_SECRET_DOCS: {{ .Values.authentication.client.docs.client_secret | quote }}
+      MB_CLIENT_SECRET_BUREAUBLAD: {{ .Values.authentication.client.bureaublad.client_secret | quote }}
+      {{- if eq .Environment.Name "demo" }}
+      {{- range $user := .Values.user }}
+      MB_USER_PASSWORD_{{ regexReplaceAll "[^A-Z0-9_]" (upper $user.username) "_" }}: {{ $user.password | quote }}
+      {{- end }}
+      {{- end }}
 
 image:
   registry: {{ coalesce .Values.container.keycloak.registry .Values.container.default.registry | default "docker.io" | quote }}
@@ -141,6 +168,10 @@ keycloakConfigCli:
     {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   podSecurityContext:
     {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  extraEnvVars:
+    - name: IMPORT_VARSUBSTITUTION_ENABLED
+      value: "true"
+  extraEnvVarsSecret: {{ .Release.Name }}-config-cli
   configuration:
     master.json: |
       {
@@ -184,7 +215,7 @@ keycloakConfigCli:
             "enabled": true,
             "alwaysDisplayInConsole": true,
             "clientAuthenticatorType": "client-secret",
-            "secret": {{ .Values.authentication.client.grist.client_secret | quote }},
+            "secret": "$(env:MB_CLIENT_SECRET_GRIST)",
             "redirectUris": [
               "/oauth2/callback"
             ],
@@ -227,7 +258,7 @@ keycloakConfigCli:
             "enabled": true,
             "alwaysDisplayInConsole": true,
             "clientAuthenticatorType": "client-secret",
-            "secret": {{ .Values.authentication.client.synapse.client_secret | quote }},
+            "secret": "$(env:MB_CLIENT_SECRET_SYNAPSE)",
             "redirectUris": [
               "/_synapse/client/oidc/callback"
             ],
@@ -265,7 +296,7 @@ keycloakConfigCli:
             "enabled": true,
             "alwaysDisplayInConsole": true,
             "clientAuthenticatorType": "client-secret",
-            "secret": {{ .Values.authentication.client.meet.client_secret | quote }},
+            "secret": "$(env:MB_CLIENT_SECRET_MEET)",
             "redirectUris": [
               "/*"
             ],
@@ -308,7 +339,7 @@ keycloakConfigCli:
             "enabled": true,
             "alwaysDisplayInConsole": true,
             "clientAuthenticatorType": "client-secret",
-            "secret": {{ .Values.authentication.client.conversations.client_secret | quote }},
+            "secret": "$(env:MB_CLIENT_SECRET_CONVERSATIONS)",
             "redirectUris": [
               "/*"
             ],
@@ -351,7 +382,7 @@ keycloakConfigCli:
             "enabled": true,
             "alwaysDisplayInConsole": true,
             "clientAuthenticatorType": "client-secret",
-            "secret": {{ .Values.authentication.client.drive.client_secret | quote }},
+            "secret": "$(env:MB_CLIENT_SECRET_DRIVE)",
             "redirectUris": [
               "/*"
             ],
@@ -394,7 +425,7 @@ keycloakConfigCli:
             "enabled": true,
             "alwaysDisplayInConsole": true,
             "clientAuthenticatorType": "client-secret",
-            "secret": {{ .Values.authentication.client.nextcloud.client_secret | quote }},
+            "secret": "$(env:MB_CLIENT_SECRET_NEXTCLOUD)",
             "redirectUris": [
               "/*"
             ],
@@ -432,7 +463,7 @@ keycloakConfigCli:
             "enabled": true,
             "alwaysDisplayInConsole": true,
             "clientAuthenticatorType": "client-secret",
-            "secret": {{ .Values.authentication.client.openproject.client_secret | quote }},
+            "secret": "$(env:MB_CLIENT_SECRET_OPENPROJECT)",
             "redirectUris": [
               "/*"
             ],
@@ -469,7 +500,7 @@ keycloakConfigCli:
             "enabled": true,
             "alwaysDisplayInConsole": true,
             "clientAuthenticatorType": "client-secret",
-            "secret": {{ .Values.authentication.client.docs.client_secret | quote }},
+            "secret": "$(env:MB_CLIENT_SECRET_DOCS)",
             "redirectUris": [
               "/*"
             ],
@@ -512,7 +543,7 @@ keycloakConfigCli:
             "enabled": true,
             "alwaysDisplayInConsole": true,
             "clientAuthenticatorType": "client-secret",
-            "secret": {{ .Values.authentication.client.bureaublad.client_secret | quote }},
+            "secret": "$(env:MB_CLIENT_SECRET_BUREAUBLAD)",
             "redirectUris": [
               "/api/v1/auth/callback"
             ],
@@ -655,7 +686,7 @@ keycloakConfigCli:
             "emailVerified" : true,
             "credentials" : [ {
               "type" : "password",
-              "value": {{ $user.password | quote }},
+              "value": "$(env:MB_USER_PASSWORD_{{ regexReplaceAll "[^A-Z0-9_]" (upper $user.username) "_" }})",
               "temporary": false
             } ],
             "enabled" : true

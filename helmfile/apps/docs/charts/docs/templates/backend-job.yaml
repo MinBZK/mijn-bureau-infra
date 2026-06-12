@@ -79,7 +79,16 @@ spec:
             {{- $envVars | indent 12 }}
             {{- end }}
             {{- if and (eq $config.name "migrate") $.Values.backend.migrateDbCredentials }}
+            {{- if kindIs "string" $.Values.backend.migrateDbCredentials.DB_PASSWORD }}
+            {{- include "docs.env.transformDict" (omit $.Values.backend.migrateDbCredentials "DB_PASSWORD") | indent 12 }}
+            - name: "DB_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" $ }}
+                  key: MIGRATE_DB_PASSWORD
+            {{- else }}
             {{- include "docs.env.transformDict" $.Values.backend.migrateDbCredentials | indent 12 }}
+            {{- end }}
             {{- end }}
             {{- if $.Values.backend.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" $.Values.backend.extraEnvVars "context" $) | nindent 12 }}

@@ -141,7 +141,7 @@ Return Nextcloud password
 Return true if a secret object for Nextcloud should be created
 */}}
 {{- define "nextcloud.createSecret" -}}
-  {{- if or (not .Values.auth.existingSecret) (and .Values.mail.enabled .Values.mail.smtp.auth.username (not .Values.mail.smtp.auth.existingSecret)) }}
+  {{- if or (not .Values.auth.existingSecret) (and .Values.mail.enabled .Values.mail.smtp.auth.username (not .Values.mail.smtp.auth.existingSecret)) .Values.auth.oidc.enabled }}
     {{- true -}}
 {{- end -}}
 {{- end -}}

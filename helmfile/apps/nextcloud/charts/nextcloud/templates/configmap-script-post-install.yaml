@@ -95,7 +95,7 @@ data:
         echo "Configuring OIDC provider..."
         if ! php /var/www/html/occ user_oidc:provider keycloak \
           --clientid="{{ .Values.auth.oidc.clientId }}" \
-          --clientsecret="{{ .Values.auth.oidc.clientSecret }}" \
+          --clientsecret="$NEXTCLOUD_OIDC_CLIENT_SECRET" \
           --discoveryuri="{{ .Values.auth.oidc.discoveryUri }}"; then
           echo "WARNING: Failed to configure OIDC provider"
         else

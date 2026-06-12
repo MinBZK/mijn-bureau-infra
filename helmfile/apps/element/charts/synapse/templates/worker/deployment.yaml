@@ -26,9 +26,11 @@ spec:
       app.kubernetes.io/component: {{ $fullname }}
   template:
     metadata:
-      {{- if ($config.podAnnotations | default $default.podAnnotations) }}
-      annotations: {{- include "common.tplvalues.render" (dict "value" ($config.podAnnotations | default $default.podAnnotations) "context" $) | nindent 8 }}
-      {{- end }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") $ | sha256sum }}
+        {{- if ($config.podAnnotations | default $default.podAnnotations) }}
+        {{- include "common.tplvalues.render" (dict "value" ($config.podAnnotations | default $default.podAnnotations) "context" $) | nindent 8 }}
+        {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: {{ $fullname }}
     spec:
@@ -99,6 +101,7 @@ spec:
             - |
               exec python -B -m synapse.app.{{ (not (not $config.generic)) | ternary "generic_worker" $app }} \
                           -c {{ $.Values.synapse.config.homeServerConfigFile }} \
+                          -c /synapse/secrets/secrets.yaml \
                           -c {{ $.Values.synapse.config.directory }} \
                           -c {{ $.Values.synapse.config.directory }}/{{ $worker }}.worker
           {{- end }}
@@ -181,6 +184,9 @@ spec:
             - name: synapse-config
               mountPath: /synapse/config
               readOnly: true
+            - name: synapse-secrets
+              mountPath: /synapse/secrets
+              readOnly: true
             - name: synapse-config-worker
               mountPath: {{ $.Values.synapse.config.directory }}
               readOnly: true
@@ -208,6 +214,9 @@ spec:
         - name: synapse-config
           configMap:
             name: {{ include "common.names.fullname" $ }}
+        - name: synapse-secrets
+          secret:
+            secretName: {{ include "common.names.fullname" $ }}
         - name: synapse-config-worker
           configMap:
             name: {{ include "synapse.worker.fullname" (dict "global" $ "worker" "workers") }}

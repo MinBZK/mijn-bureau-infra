@@ -29,6 +29,7 @@ spec:
     metadata:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       {{- if .Values.conversations.podAnnotations }}
         {{- include "common.tplvalues.render" (dict "value" .Values.conversations.podAnnotations "context" $) | nindent 8 }}
       {{- end }}
@@ -100,6 +101,36 @@ spec:
           env:
             - name: BITNAMI_DEBUG
               value: {{ ternary "true" "false" (or .Values.conversations.image.debug .Values.diagnosticMode.enabled) | quote }}
+            - name: COLLABORATION_SERVER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: COLLABORATION_SERVER_SECRET
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: DJANGO_SECRET_KEY
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: DB_PASSWORD
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: REDIS_URL
+            - name: OIDC_RP_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: OIDC_RP_CLIENT_SECRET
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}
+                  key: AI_API_KEY
             {{- if .Values.conversations.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.conversations.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
