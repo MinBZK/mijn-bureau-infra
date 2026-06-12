@@ -1,17 +1,22 @@
 environments:
   default:
+    values:
+      - "helmfile/environments/default/*.yaml*"
   demo:
     values:
+      - "helmfile/environments/default/*.yaml*"
       - "helmfile/environments/demo/*.yaml.gotmpl"
     # secrets:
     #   - "helmfile/environments/{{ .Environment.Name }}/*.secrets.yaml"
   local:
     values:
+      - "helmfile/environments/default/*.yaml*"
       - "helmfile/environments/local/*.yaml.gotmpl"
     # secrets:
     #   - "helmfile/environments/{{ .Environment.Name }}/*.secrets.yaml"
   production:
     values:
+      - "helmfile/environments/default/*.yaml*"
       - "helmfile/environments/production/*.yaml.gotmpl"
     # secrets:
     #   - "helmfile/environments/{{ .Environment.Name }}/*.secrets.yaml"

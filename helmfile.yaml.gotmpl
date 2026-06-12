@@ -6,22 +6,22 @@ bases:
 bases:
   - "helmfile/bases/default.yaml.gotmpl"
 
-helmfiles:
-  - path: "helmfile/bases/logic/authentication.yaml.gotmpl"
-    values: &values
-      - "helmfile/environments/default/*.yaml*"
-      - {{ toYaml .Values | nindent 8 }}
-  - path: "helmfile/bases/logic/ai.yaml.gotmpl"
-    values: *values
-  - path: "helmfile/bases/logic/livekit.yaml.gotmpl"
-    values: *values
+# Computed value layer: derives defaults (OIDC endpoints, AI endpoint,
+# livekit keys) for values the environment left empty. Loaded as an extra
+# environment values layer so the results merge into .Values; the files
+# only emit a key when the corresponding value is not already set.
+environments:
+  {{ .Environment.Name }}:
+    values:
+      - "helmfile/bases/logic/authentication.yaml.gotmpl"
+      - "helmfile/bases/logic/ai.yaml.gotmpl"
+      - "helmfile/bases/logic/livekit.yaml.gotmpl"
 
 ---
 
 helmfiles:
   - path: "helmfile/apps/common/helmfile-gateway.yaml.gotmpl"
     values: &appvalues
-      - "helmfile/environments/default/*.yaml*"
       - {{ toYaml .Values | nindent 8 }}
   - path: "helmfile/apps/keycloak/helmfile-child.yaml.gotmpl"
     values: *appvalues
