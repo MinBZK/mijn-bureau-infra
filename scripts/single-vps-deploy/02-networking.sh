@@ -36,7 +36,7 @@ kubectl -n kube-system rollout restart deploy/coredns
 
 echo "==> [5b] Egress NetworkPolicies allowing Traefik on 8443"
 for ns in mb-keycloak mb-grist mb-element mb-collabora mb-nextcloud \
-          mb-livekit mb-meet mb-docs mb-bureaublad mb-clamav mb-openproject; do
+          mb-livekit mb-meet mb-docs mb-bureaublad; do
 kubectl apply -f - <<YAML
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

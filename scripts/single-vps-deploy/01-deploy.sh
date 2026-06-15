@@ -85,6 +85,13 @@ cluster:
 application:
   ollama:
     enabled: false
+  # Antivirus and project-management are disabled for this install. To re-enable:
+  # set enabled: true and give each a namespace. OpenProject additionally needs
+  # the security.openproject and tls.openproject blocks (see the guide).
+  clamav:
+    enabled: false
+  openproject:
+    enabled: false
   keycloak:    { namespace: mb-keycloak }
   grist:       { namespace: mb-grist }
   element:     { namespace: mb-element }
@@ -94,10 +101,6 @@ application:
   meet:        { namespace: mb-meet }
   docs:        { namespace: mb-docs }
   bureaublad:  { namespace: mb-bureaublad }
-  clamav:      { namespace: mb-clamav }
-  openproject:
-    enabled: true
-    namespace: mb-openproject
 
 authentication:
   oidc:
@@ -109,23 +112,6 @@ authentication:
     end_session_endpoint: "https://id.${DOMAIN}/realms/mijnbureau/protocol/openid-connect/logout"
     jwks_uri: "https://id.${DOMAIN}/realms/mijnbureau/protocol/openid-connect/certs"
 
-security:
-  openproject:
-    containerSecurityContext:
-      enabled: true
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop: [ALL]
-      readOnlyRootFilesystem: false
-      runAsNonRoot: true
-      runAsUser: 1000
-      runAsGroup: 1000
-
-tls:
-  openproject:
-    - hosts:
-        - openproject.${DOMAIN}
-      secretName: openproject.${DOMAIN}-tls
 YAML
 
 echo "==> [4/4] Deploying (this takes 10-20 minutes)"
