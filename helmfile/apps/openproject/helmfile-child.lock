@@ -2,6 +2,6 @@ version: v1.5.2
 dependencies:
   - name: openproject
     repository: https://charts.openproject.org
-    version: 13.7.0
-digest: sha256:54f5615cb9696cb73d0c3b451311a7de6ddf85e7056d90db86f88f6c20706def
-generated: "2026-06-10T08:51:09.908644+02:00"
+    version: 13.8.0
+digest: sha256:55d831eff928b8cadf638b548065dd81e5efd3ba329c715df9d74646718c9205
+generated: "2026-06-15T12:36:39.350607+02:00"
