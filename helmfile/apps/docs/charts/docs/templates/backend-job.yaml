@@ -84,7 +84,7 @@ spec:
             - name: "DB_PASSWORD"
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" $ }}
+                  name: {{ include "docs.secretName" $ }}
                   key: MIGRATE_DB_PASSWORD
             {{- else }}
             {{- include "docs.env.transformDict" $.Values.backend.migrateDbCredentials | indent 12 }}

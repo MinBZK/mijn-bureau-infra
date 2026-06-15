@@ -104,32 +104,32 @@ spec:
             - name: DJANGO_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "meet.secretName" . }}
                   key: DJANGO_SECRET_KEY
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "meet.secretName" . }}
                   key: DB_PASSWORD
             - name: REDIS_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "meet.secretName" . }}
                   key: REDIS_URL
             - name: CELERY_BROKER_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "meet.secretName" . }}
                   key: CELERY_BROKER_URL
             - name: OIDC_RP_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "meet.secretName" . }}
                   key: OIDC_RP_CLIENT_SECRET
             - name: LIVEKIT_API_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "meet.secretName" . }}
                   key: LIVEKIT_API_SECRET
             {{- if .Values.meet_backend.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.extraEnvVars "context" $) | nindent 12 }}

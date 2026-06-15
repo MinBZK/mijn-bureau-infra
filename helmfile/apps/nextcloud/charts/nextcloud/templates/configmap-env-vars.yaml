@@ -54,7 +54,6 @@ data:
   OBJECTSTORE_S3_USEPATH_STYLE: {{ .Values.externalMinio.pathStyle | default "true" | quote }}
   OBJECTSTORE_S3_LEGACYAUTH: {{ .Values.externalMinio.legacyAuth | quote }}
   OBJECTSTORE_S3_AUTOCREATE: {{ .Values.externalMinio.autocreate | quote }}
-  OBJECTSTORE_S3_SSE_C_KEY: {{ .Values.externalMinio.sseKey | quote }}
   {{/*
   PHP runtime limits — consumed by the upstream image's
   /usr/local/etc/php/conf.d/nextcloud.ini at PHP SAPI startup.

@@ -44,7 +44,7 @@ spec:
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "drive.secretName" . }}
                   key: DB_PASSWORD
             - name: DB_PORT
               value: {{ .Values.externalDatabase.port | quote }}
@@ -55,21 +55,28 @@ spec:
             - name: DJANGO_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "drive.secretName" . }}
                   key: DJANGO_SECRET_KEY
             - name: REDIS_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "drive.secretName" . }}
                   key: REDIS_URL
             - name: CELERY_BROKER_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "drive.secretName" . }}
                   key: CELERY_BROKER_URL
-          envFrom:
-            - secretRef:
-                name: {{ template "common.names.fullname" . }}-superuser
+            - name: DJANGO_SUPERUSER_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}-superuser
+                  key: DJANGO_SUPERUSER_EMAIL
+            - name: DJANGO_SUPERUSER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}-superuser
+                  key: DJANGO_SUPERUSER_PASSWORD
           image: {{ template "drive.image" . }}
           imagePullPolicy: {{ .Values.drive.image.pullPolicy }}
           {{- if .Values.drive.containerSecurityContext.enabled }}

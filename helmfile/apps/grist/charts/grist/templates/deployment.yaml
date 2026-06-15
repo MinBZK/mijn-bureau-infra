@@ -105,7 +105,7 @@ spec:
             - name: GRIST_ACTIVATION
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "grist.secretName" . }}
                   key: GRIST_ACTIVATION
             {{- end }}
             {{- if .Values.orgInPath }}
@@ -127,7 +127,7 @@ spec:
             - name: GRIST_SESSION_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "grist.secretName" . }}
                   key: GRIST_SESSION_SECRET
             - name: GRIST_UI_FEATURES
               value: createSite,multiSite,multiAccounts,templates,themes
@@ -138,17 +138,17 @@ spec:
             - name: REDIS_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "grist.secretName" . }}
                   key: REDIS_URL
             - name: GRIST_DOCS_MINIO_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "grist.secretName" . }}
                   key: GRIST_DOCS_MINIO_ACCESS_KEY
             - name: GRIST_DOCS_MINIO_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "grist.secretName" . }}
                   key: GRIST_DOCS_MINIO_SECRET_KEY
             - name: GRIST_DOCS_MINIO_USE_SSL
               value: {{ .Values.externalMinio.useSSL | quote }}
@@ -169,7 +169,7 @@ spec:
             - name: TYPEORM_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "grist.secretName" . }}
                   key: TYPEORM_PASSWORD
             - name: GRIST_FORCE_LOGIN
               value: "true"
@@ -188,7 +188,7 @@ spec:
             - name: ASSISTANT_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "grist.secretName" . }}
                   key: ASSISTANT_API_KEY
               {{- end }}
               {{- if .Values.ai.model }}
@@ -208,7 +208,7 @@ spec:
             - name: GRIST_OIDC_IDP_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "grist.secretName" . }}
                   key: GRIST_OIDC_IDP_CLIENT_SECRET
               {{- if .Values.auth.oidcIdpScopes }}
             - name: GRIST_OIDC_IDP_SCOPES

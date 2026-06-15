@@ -141,6 +141,13 @@ Return the full name for the custom CSS ConfigMap
 {{- end -}}
 
 {{/*
+Return the name of the Secret that stores the grist credentials
+*/}}
+{{- define "grist.secretName" -}}
+{{- include "common.names.fullname" . -}}
+{{- end -}}
+
+{{/*
 Optional: Validate values of Grist - OIDC Configuration
 */}}
 {{- define "grist.validateValues.oidc" -}}

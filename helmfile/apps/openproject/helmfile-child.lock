@@ -1,4 +1,4 @@
-version: v1.1.1
+version: v1.5.2
 dependencies:
   - name: openproject
     repository: https://charts.openproject.org

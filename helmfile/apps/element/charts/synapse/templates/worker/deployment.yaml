@@ -76,6 +76,37 @@ spec:
       terminationGracePeriodSeconds: {{ $config.terminationGracePeriodSeconds | default $default.terminationGracePeriodSeconds }}
       {{- end }}
       initContainers:
+        # Assemble the full homeserver config by merging the non-secret ConfigMap
+        # config with the secret-bearing sections from the Secret into the single
+        # file Synapse loads, so the secrets are loaded through the standard config
+        # path regardless of the container command.
+        {{- $wcsc := $config.containerSecurityContext | default $default.containerSecurityContext }}
+        - name: merge-config
+          image: {{ template "synapse.image" $ }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          {{- if $wcsc.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" $wcsc "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cat /synapse/config-src/log.yaml > /synapse/config/log.yaml
+              {
+                cat /synapse/config-src/homeserver.yaml
+                printf '\n'
+                cat /synapse/secrets/secrets.yaml
+              } > /synapse/config/homeserver.yaml
+          volumeMounts:
+            - name: synapse-config-src
+              mountPath: /synapse/config-src
+              readOnly: true
+            - name: synapse-secrets
+              mountPath: /synapse/secrets
+              readOnly: true
+            - name: synapse-config
+              mountPath: /synapse/config
         {{- if and $.Values.defaultInitContainers.volumePermissions.enabled $.Values.persistence.enabled }}
         {{- include "synapse.defaultInitContainers.volumePermissions" (dict "context" $ "component" "worker.default") | nindent 8 }}
         {{- end }}
@@ -101,7 +132,6 @@ spec:
             - |
               exec python -B -m synapse.app.{{ (not (not $config.generic)) | ternary "generic_worker" $app }} \
                           -c {{ $.Values.synapse.config.homeServerConfigFile }} \
-                          -c /synapse/secrets/secrets.yaml \
                           -c {{ $.Values.synapse.config.directory }} \
                           -c {{ $.Values.synapse.config.directory }}/{{ $worker }}.worker
           {{- end }}
@@ -184,9 +214,6 @@ spec:
             - name: synapse-config
               mountPath: /synapse/config
               readOnly: true
-            - name: synapse-secrets
-              mountPath: /synapse/secrets
-              readOnly: true
             - name: synapse-config-worker
               mountPath: {{ $.Values.synapse.config.directory }}
               readOnly: true
@@ -212,11 +239,14 @@ spec:
           secret:
             secretName: synapse-signing-key
         - name: synapse-config
+          emptyDir:
+            medium: Memory
+        - name: synapse-config-src
           configMap:
             name: {{ include "common.names.fullname" $ }}
         - name: synapse-secrets
           secret:
-            secretName: {{ include "common.names.fullname" $ }}
+            secretName: {{ include "synapse.secretName" $ }}
         - name: synapse-config-worker
           configMap:
             name: {{ include "synapse.worker.fullname" (dict "global" $ "worker" "workers") }}

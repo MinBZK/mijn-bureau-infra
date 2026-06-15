@@ -95,6 +95,6 @@ spec:
             name: {{ include "common.names.fullname" . }}
         - name: synapse-secrets
           secret:
-            secretName: {{ include "common.names.fullname" . }}
+            secretName: {{ include "synapse.secretName" . }}
         - name: empty-dir
           emptyDir: {}

@@ -177,6 +177,13 @@ spec:
                 secretKeyRef:
                   name: {{ include "nextcloud.minio.secretName" . }}
                   key: {{ include "nextcloud.minio.secretPasswordKey" . }}
+            {{- if .Values.externalMinio.sseKey }}
+            - name: OBJECTSTORE_S3_SSE_C_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "nextcloud.minio.secretName" . }}
+                  key: {{ include "nextcloud.minio.secretSseCKeyKey" . }}
+            {{- end }}
             {{/*
             Database secrets
             */}}
@@ -218,8 +225,8 @@ spec:
             - name: NEXTCLOUD_OIDC_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
-                  key: oidc-client-secret
+                  name: {{ include "nextcloud.oidc.secretName" . }}
+                  key: {{ include "nextcloud.oidc.secretKey" . }}
             {{- end }}
             {{- if .Values.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}

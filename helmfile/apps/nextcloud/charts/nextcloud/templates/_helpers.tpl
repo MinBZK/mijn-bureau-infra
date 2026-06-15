@@ -119,7 +119,29 @@ Get the SMTP password key to be retrieved from SMTP secret.
 {{- if and .Values.mail.smtp.existingSecret .Values.mail.smtp.existingSecretPasswordKey -}}
 {{- printf "%s" (tpl .Values.mail.smtp.existingSecretPasswordKey $) -}}
 {{- else -}}
-{{- printf "nextcloud-password" -}}
+{{- printf "smtp-password" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get the OIDC secret name.
+*/}}
+{{- define "nextcloud.oidc.secretName" -}}
+{{- if .Values.auth.oidc.existingSecret -}}
+{{- printf "%s" (tpl .Values.auth.oidc.existingSecret $) -}}
+{{- else -}}
+{{- printf "%s" (include "common.names.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get the OIDC client secret key.
+*/}}
+{{- define "nextcloud.oidc.secretKey" -}}
+{{- if and .Values.auth.oidc.existingSecret .Values.auth.oidc.existingSecretKey -}}
+{{- printf "%s" (tpl .Values.auth.oidc.existingSecretKey $) -}}
+{{- else -}}
+{{- printf "oidc-client-secret" -}}
 {{- end -}}
 {{- end -}}
 
@@ -141,7 +163,7 @@ Return Nextcloud password
 Return true if a secret object for Nextcloud should be created
 */}}
 {{- define "nextcloud.createSecret" -}}
-  {{- if or (not .Values.auth.existingSecret) (and .Values.mail.enabled .Values.mail.smtp.auth.username (not .Values.mail.smtp.auth.existingSecret)) .Values.auth.oidc.enabled }}
+  {{- if or (not .Values.auth.existingSecret) (and .Values.mail.enabled .Values.mail.smtp.username (not .Values.mail.smtp.existingSecret)) (and .Values.auth.oidc.enabled (not .Values.auth.oidc.existingSecret)) }}
     {{- true -}}
 {{- end -}}
 {{- end -}}
@@ -198,6 +220,17 @@ Return the external minio password
   {{- default "password" .Values.externalMinio.existingSecretPasswordKey }}
 {{- else -}}
   {{- print "password" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the external minio SSE-C key secret key
+*/}}
+{{- define "nextcloud.minio.secretSseCKeyKey" -}}
+{{- if .Values.externalMinio.existingSecret -}}
+  {{- default "sse-c-key" .Values.externalMinio.existingSecretSseCKeyKey }}
+{{- else -}}
+  {{- print "sse-c-key" -}}
 {{- end -}}
 {{- end -}}
 

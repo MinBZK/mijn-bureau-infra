@@ -81,3 +81,10 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Return the name of the Secret that stores the collabora credentials
+*/}}
+{{- define "collabora.secretName" -}}
+{{- include "common.names.fullname" . -}}
+{{- end -}}

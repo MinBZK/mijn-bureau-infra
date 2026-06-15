@@ -72,6 +72,37 @@ spec:
       terminationGracePeriodSeconds: {{ .Values.master.terminationGracePeriodSeconds }}
       {{- end }}
       initContainers:
+        # Assemble the full homeserver config by merging the non-secret ConfigMap
+        # config with the secret-bearing sections from the Secret into the single
+        # file Synapse loads (SYNAPSE_CONFIG_PATH). This keeps the secrets in a
+        # Secret at rest while loading them through the standard config path, so a
+        # custom master.command cannot drop them.
+        - name: merge-config
+          image: {{ template "synapse.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.master.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.master.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              cat /synapse/config-src/log.yaml > /synapse/config/log.yaml
+              {
+                cat /synapse/config-src/homeserver.yaml
+                printf '\n'
+                cat /synapse/secrets/secrets.yaml
+              } > /synapse/config/homeserver.yaml
+          volumeMounts:
+            - name: synapse-config-src
+              mountPath: /synapse/config-src
+              readOnly: true
+            - name: synapse-secrets
+              mountPath: /synapse/secrets
+              readOnly: true
+            - name: synapse-config
+              mountPath: /synapse/config
         {{- if and .Values.defaultInitContainers.volumePermissions.enabled .Values.persistence.enabled }}
         {{- include "synapse.defaultInitContainers.volumePermissions" (dict "context" . "component" "master") | nindent 8 }}
         {{- end }}
@@ -89,14 +120,6 @@ spec:
           command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
           {{- else if .Values.master.command }}
           command: {{- include "common.tplvalues.render" (dict "value" .Values.master.command "context" $) | nindent 12 }}
-          {{- else }}
-          command:
-            - sh
-            - -c
-            - |
-              exec python -B -m synapse.app.homeserver \
-                          -c {{ .Values.synapse.config.homeServerConfigFile }} \
-                          -c /synapse/secrets/secrets.yaml
           {{- end }}
           {{- if .Values.diagnosticMode.enabled }}
           args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
@@ -180,9 +203,6 @@ spec:
             - name: synapse-config
               mountPath: /synapse/config
               readOnly: true
-            - name: synapse-secrets
-              mountPath: /synapse/secrets
-              readOnly: true
           {{- if .Values.master.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.master.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
@@ -211,11 +231,14 @@ spec:
           secret:
             secretName: synapse-signing-key
         - name: synapse-config
+          emptyDir:
+            medium: Memory
+        - name: synapse-config-src
           configMap:
             name: {{ include "common.names.fullname" . }}
         - name: synapse-secrets
           secret:
-            secretName: {{ include "common.names.fullname" . }}
+            secretName: {{ include "synapse.secretName" . }}
         {{- if .Values.master.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.master.extraVolumes "context" $) | nindent 8 }}
         {{- end }}

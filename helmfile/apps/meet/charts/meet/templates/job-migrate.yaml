@@ -44,7 +44,7 @@ spec:
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "meet.secretName" . }}
                   key: DB_PASSWORD
             - name: DB_PORT
               value: {{ .Values.externalDatabase.port | quote }}
@@ -55,7 +55,7 @@ spec:
             - name: DJANGO_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "meet.secretName" . }}
                   key: DJANGO_SECRET_KEY
           image: {{ template "meet_backend.image" . }}
           imagePullPolicy: {{ .Values.meet_backend.image.pullPolicy }}

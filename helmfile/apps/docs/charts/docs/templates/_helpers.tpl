@@ -169,6 +169,13 @@ envVars:
 
 
 {{/*
+Return the name of the Secret that stores the docs credentials
+*/}}
+{{- define "docs.secretName" -}}
+{{- include "common.names.fullname" . -}}
+{{- end -}}
+
+{{/*
 Names of environment variables whose values are stored in the chart Secret
 */}}
 {{- define "docs.secretEnvNames" -}}
@@ -187,7 +194,7 @@ docs env vars
 - name: {{ $key | quote }}
   valueFrom:
     secretKeyRef:
-      name: {{ include "common.names.fullname" $topLevelScope }}
+      name: {{ include "docs.secretName" $topLevelScope }}
       key: {{ $key }}
 {{- else }}
 {{- include "docs.env.transformDict" (dict $key $value) }}

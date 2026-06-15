@@ -104,32 +104,32 @@ spec:
             - name: COLLABORATION_SERVER_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "conversations.secretName" . }}
                   key: COLLABORATION_SERVER_SECRET
             - name: DJANGO_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "conversations.secretName" . }}
                   key: DJANGO_SECRET_KEY
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "conversations.secretName" . }}
                   key: DB_PASSWORD
             - name: REDIS_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "conversations.secretName" . }}
                   key: REDIS_URL
             - name: OIDC_RP_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "conversations.secretName" . }}
                   key: OIDC_RP_CLIENT_SECRET
             - name: AI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "conversations.secretName" . }}
                   key: AI_API_KEY
             {{- if .Values.conversations.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.conversations.extraEnvVars "context" $) | nindent 12 }}

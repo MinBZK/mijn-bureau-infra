@@ -106,7 +106,7 @@ spec:
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ template "common.names.fullname" . }}
+                  name: {{ include "livekit_server.secretName" . }}
                   key: REDIS_PASSWORD
             {{- end }}
             {{- end }}
@@ -219,7 +219,7 @@ spec:
       volumes:
         - name: keys
           secret:
-            secretName: {{ template "common.names.fullname" . }}
+            secretName: {{ include "livekit_server.secretName" . }}
             defaultMode: 0400
         - name: data
         {{- if .Values.livekit.turnTLSecretName }}
