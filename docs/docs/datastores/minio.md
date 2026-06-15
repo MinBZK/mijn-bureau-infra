@@ -9,7 +9,7 @@ Object stores are designed to store and retrieve large amounts of unstructured d
 ## Managed vs. Self-Hosted Object Stores
 
 - **Managed Services**: Cloud providers offer fully managed object storage solutions. These services handle infrastructure, scaling, and maintenance.
-- **Self-Hosted Solutions**: Tools like MinIO allow you to deploy and manage your own object store, providing greater control and data sovereignty.
+- **Self-Hosted Solutions**: Tools like Garage or Minio allow you to deploy and manage your own object store, providing greater control and data sovereignty.
 
 ## Deploying MinIO in Kubernetes
 

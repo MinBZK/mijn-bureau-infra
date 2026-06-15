@@ -78,6 +78,12 @@ releases:
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"
 
+  - name: openproject-backups
+    chart: charts/openproject-backups
+    installed: {{ .Values.backup.enabled | default false | toYaml }}
+    values:
+      - {{ toYaml .Values | nindent 8 }}
+
   - name: openproject-httproute
     chart: ../common/charts/httproute
     installed: {{ and .Values.application.openproject.enabled (eq .Values.cluster.routingMode "gateway-api") | toYaml }}
