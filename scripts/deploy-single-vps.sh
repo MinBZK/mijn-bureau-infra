@@ -126,7 +126,7 @@ export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 export MIJNBUREAU_MASTER_PASSWORD="${MASTER_PASSWORD}"
 export MIJNBUREAU_CREATE_NAMESPACES=true
 
-yes | helmfile init
+yes | helmfile init || true
 helmfile -e demo apply --skip-diff-on-install
 
 echo ""
