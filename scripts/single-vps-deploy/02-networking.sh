@@ -51,6 +51,25 @@ spec:
 YAML
 done
 
+echo "==> [5c] Set LiveKit's advertised IP so WebRTC media connects"
+# Without node_ip, LiveKit advertises its pod IP in ICE candidates, which the
+# browser can't reach, so calls get stuck on "Reconnecting". Set it to the node's
+# public IPv4 (the exposed media ports 30001-30009 map 1:1 to it).
+NODE_IP=$(kubectl get node -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' \
+  | tr ' ' '\n' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+python3 - "$NODE_IP" <<'PY'
+import json, subprocess, sys
+ip = sys.argv[1]
+cur = subprocess.check_output(['kubectl','get','cm','livekit-server','-n','mb-livekit',
+                               '-o','jsonpath={.data.config\\.yaml}']).decode()
+if 'node_ip:' not in cur:
+    cur = cur.replace('  use_external_ip: false',
+                      '  use_external_ip: false\n  node_ip: %s' % ip)
+    subprocess.run(['kubectl','patch','cm','livekit-server','-n','mb-livekit',
+                    '--type','merge','-p',json.dumps({'data': {'config.yaml': cur}})], check=True)
+PY
+kubectl rollout restart deploy/livekit-server -n mb-livekit
+
 echo ""
 echo "Networking workarounds applied. Wait for all certificates to be issued:"
 echo "  kubectl get certificate -A"
