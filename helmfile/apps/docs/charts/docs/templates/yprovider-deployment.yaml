@@ -25,8 +25,10 @@ spec:
       app.kubernetes.io/component: y-provider
   template:
     metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       {{- if .Values.yProvider.podAnnotations }}
-      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.yProvider.podAnnotations "context" $) | nindent 8 }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.yProvider.podAnnotations "context" $) | nindent 8 }}
       {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: y-provider
@@ -101,9 +103,15 @@ spec:
             - name: COLLABORATION_SERVER_ORIGIN
               value: {{ include "docs.baseUrl" . | quote }}
             - name: COLLABORATION_SERVER_SECRET
-              value: {{ .Values.yProvider.configuration.collaboration.serverSecret | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "docs.secretName" . }}
+                  key: COLLABORATION_SERVER_SECRET
             - name: Y_PROVIDER_API_KEY
-              value: {{ .Values.yProvider.configuration.api.key | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "docs.secretName" . }}
+                  key: Y_PROVIDER_API_KEY
             {{- if .Values.yProvider.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.yProvider.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}

@@ -99,6 +99,13 @@ spec:
                     secretKeyRef:
                       name: {{ include "nextcloud.redis.secretName" . }}
                       key: {{ include "nextcloud.redis.secretPasswordKey" . }}
+                {{- if .Values.externalMinio.sseKey }}
+                - name: OBJECTSTORE_S3_SSE_C_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "nextcloud.minio.secretName" . }}
+                      key: {{ include "nextcloud.minio.secretSseCKeyKey" . }}
+                {{- end }}
                 {{- if eq .Values.externalDatabase.type "mysql" }}
                 - name: MYSQL_USER
                   valueFrom:

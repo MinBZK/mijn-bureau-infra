@@ -43,7 +43,10 @@ spec:
             - name: DB_USER
               value:  {{ .Values.externalDatabase.username | quote }}
             - name: DB_PASSWORD
-              value:  {{ .Values.externalDatabase.password | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "meet.secretName" . }}
+                  key: DB_PASSWORD
             - name: DB_PORT
               value: {{ .Values.externalDatabase.port | quote }}
             - name: DJANGO_CONFIGURATION
@@ -51,10 +54,20 @@ spec:
             - name: DJANGO_SETTINGS_MODULE
               value: meet.settings
             - name: DJANGO_SECRET_KEY
-              value: {{ .Values.meet_backend.secretKey | quote }}
-          envFrom:
-            - secretRef:
-                name: {{ template "common.names.fullname" . }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "meet.secretName" . }}
+                  key: DJANGO_SECRET_KEY
+            - name: DJANGO_SUPERUSER_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}-superuser
+                  key: DJANGO_SUPERUSER_EMAIL
+            - name: DJANGO_SUPERUSER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "common.names.fullname" . }}-superuser
+                  key: DJANGO_SUPERUSER_PASSWORD
           image: {{ template "meet_backend.image" . }}
           imagePullPolicy: {{ .Values.meet_backend.image.pullPolicy }}
           {{- if .Values.meet_backend.containerSecurityContext.enabled }}

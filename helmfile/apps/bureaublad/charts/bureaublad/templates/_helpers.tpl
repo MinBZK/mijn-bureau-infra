@@ -104,10 +104,32 @@ envVars:
 
 
 {{/*
+Names of environment variables that contain credentials and are stored in the chart Secret
+*/}}
+{{- define "bureaublad.secret.envNames" -}}
+AI_API_KEY OIDC_CLIENT_SECRET REDIS_URL SECRET_KEY
+{{- end -}}
+
+{{/*
 bureaublad env vars
+Environment variables listed in "bureaublad.secret.envNames" are referenced from the chart
+Secret via secretKeyRef, the remaining ones are rendered with "bureaublad.env.transformDict".
 */}}
 {{- define "bureaublad.common.env" -}}
 {{- $topLevelScope := index . 0 -}}
 {{- $workerScope := index . 1 -}}
-{{- include "bureaublad.env.transformDict" $workerScope.envVars -}}
+{{- $secretEnvNames := splitList " " (include "bureaublad.secret.envNames" $topLevelScope) -}}
+{{- $plainEnvVars := dict -}}
+{{- range $key, $value := $workerScope.envVars -}}
+{{- if and (has $key $secretEnvNames) (not (kindIs "map" $value)) }}
+- name: {{ $key | quote }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ template "common.names.fullname" $topLevelScope }}
+      key: {{ $key | quote }}
+{{- else -}}
+{{- $_ := set $plainEnvVars $key $value -}}
+{{- end -}}
+{{- end -}}
+{{- include "bureaublad.env.transformDict" $plainEnvVars -}}
 {{- end }}

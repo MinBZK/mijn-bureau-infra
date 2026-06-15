@@ -16,7 +16,6 @@ metadata:
 data:
   DJANGO_CONFIGURATION: Production
   DJANGO_SETTINGS_MODULE: meet.settings
-  DJANGO_SECRET_KEY: {{ .Values.meet_backend.secretKey | quote }}
   DJANGO_LANGUAGE_CODE: {{ .Values.meet_backend.languageCode | quote }}
   DJANGO_ALLOWED_HOSTS: {{ .Values.meet_backend.AllowedHosts | quote }}
   DJANGO_CSRF_TRUSTED_ORIGINS: {{ .Values.meet_backend.CSRFTrustedOrigins | quote }}
@@ -25,11 +24,8 @@ data:
   DB_HOST: {{ .Values.externalDatabase.host | quote }}
   DB_NAME: {{ .Values.externalDatabase.database | quote }}
   DB_USER: {{ .Values.externalDatabase.username | quote }}
-  DB_PASSWORD: {{ .Values.externalDatabase.password | quote }}
   DB_PORT: {{ .Values.externalDatabase.port | quote }}
-  REDIS_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/1"
   OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
-  OIDC_RP_CLIENT_SECRET: {{ .Values.authentication.client.client_secret | quote }}
   OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.jwks_uri | quote }}
   OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.authorization_endpoint | quote }}
   OIDC_OP_TOKEN_ENDPOINT: {{ .Values.authentication.token_endpoint | quote }}
@@ -38,12 +34,10 @@ data:
   OIDC_USERINFO_FULLNAME_FIELDS: "{{ .Values.authentication.claims.given_name }},{{ .Values.authentication.claims.family_name }}"
   OIDC_USERINFO_SHORTNAME_FIELD: {{ .Values.authentication.claims.given_name | quote }}
   LIVEKIT_API_KEY: {{ .Values.externalLivekit.apiKey | quote }}
-  LIVEKIT_API_SECRET: {{ .Values.externalLivekit.apiSecret | quote }}
   LIVEKIT_API_URL: {{ .Values.externalLivekit.apiUrl | quote }}
   RESOURCE_DEFAULT_ACCESS_LEVEL: "restricted"
   ALLOW_UNREGISTERED_ROOMS: "false"
   RECORDING_ENABLE: "false"
-  CELERY_BROKER_URL: "redis://default:{{ .Values.externalRedis.password  }}@{{ .Values.externalRedis.host  }}:{{ .Values.externalRedis.port }}/0"
   LIVEKIT_FORCE_WSS_PROTOCOL: "true"
   LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND: "true"
   LOGIN_REDIRECT_URL: {{ .Values.ingress.hostname | quote }}

@@ -29,6 +29,7 @@ spec:
     metadata:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap-coolwsd.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
         {{- if .Values.podAnnotations }}
         {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
         {{- end }}
@@ -102,7 +103,10 @@ spec:
             - name: username
               value: {{ .Values.collabora.username | quote }}
             - name: password
-              value: {{ .Values.collabora.password | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "collabora.secretName" . }}
+                  key: password
             - name: dictionaries
               value: {{ .Values.collabora.dictionaries | quote }}
           {{- if .Values.collabora.extraEnv }}

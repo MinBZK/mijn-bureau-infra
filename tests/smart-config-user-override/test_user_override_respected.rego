@@ -56,19 +56,29 @@ deny contains msg if {
 	)
 }
 
-ai_expected := {
+ai_configmap_expected := {
 	"AI_BASE_URL": "https://custom-ai.example.com:443/v1",
 	"AI_MODEL": "custom-model",
-	"AI_API_KEY": "custom-api-key",
 }
 
 deny contains msg if {
 	input.kind == "ConfigMap"
 	"AI_BASE_URL" in object.keys(input.data)
-	some key, expected in ai_expected
+	some key, expected in ai_configmap_expected
 	object.get(input.data, key, "") != expected
 	msg := sprintf(
 		"user override: ConfigMap %s should keep the custom value %q, got %q",
 		[key, expected, object.get(input.data, key, "")],
+	)
+}
+
+# AI_API_KEY is a credential and lives in the Secret, not the ConfigMap.
+deny contains msg if {
+	input.kind == "Secret"
+	"AI_API_KEY" in object.keys(object.get(input, "stringData", {}))
+	object.get(input.stringData, "AI_API_KEY", "") != "custom-api-key"
+	msg := sprintf(
+		"user override: Secret AI_API_KEY should keep the custom value %q, got %q",
+		["custom-api-key", object.get(input.stringData, "AI_API_KEY", "")],
 	)
 }

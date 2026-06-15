@@ -128,28 +128,7 @@ data:
     # The trusted servers to download signing keys from.
     trusted_key_servers: {{- .Values.synapse.trustedKeyServers | toYaml | nindent 6 }}
 
-    database:
-      name: {{ .Values.synapse.database.name | quote }}
-      txn_limit: {{ .Values.synapse.database.txnLimit }}
-      args: {{- .Values.synapse.database.args | toYaml | nindent 8 }}
-
-    registration_shared_secret: {{ .Values.synapse.registrationSharedSecret | quote }}
-    form_secret: {{ .Values.synapse.formSecret | quote }}
-
     suppress_key_server_warning: {{ .Values.synapse.suppressKeyServerWarning }}
-
-    redis:
-      enabled: {{ .Values.synapse.redis.enabled | quote }}
-      host: {{ .Values.synapse.redis.host | quote }}
-      port: {{ .Values.synapse.redis.port }}
-      password: {{ .Values.synapse.redis.password | quote }}
-      password_path: {{ .Values.synapse.redis.passwordPath | quote }}
-      dbid: {{ .Values.synapse.redis.dbid }}
-      use_tls: {{ .Values.synapse.redis.useTls }}
-      certificate_file: {{ .Values.synapse.redis.certificateFile | quote }}
-      private_key_file: {{ .Values.synapse.redis.privateKeyFile | quote }}
-      ca_file: {{ .Values.synapse.redis.caFile | quote }}
-      ca_path: {{ .Values.synapse.redis.caPath | quote }}
 
     background_updates:
       background_update_duration_ms: {{ .Values.synapse.backgroundUpdates.duration }}
@@ -157,25 +136,6 @@ data:
       sleep_duration_ms: {{ .Values.synapse.backgroundUpdates.sleepDuration }}
       min_batch_size: {{ .Values.synapse.backgroundUpdates.minBatchSize }}
       default_batch_size: {{ .Values.synapse.backgroundUpdates.defaultBatchSize }}
-
-    email:
-      smtp_host: {{ .Values.synapse.email.smtp.host | quote }}
-      smtp_port: {{ .Values.synapse.email.smtp.port }}
-      smtp_user: {{ .Values.synapse.email.smtp.user | quote }}
-      smtp_pass: {{ .Values.synapse.email.smtp.pass | quote }}
-      enable_tls: {{ .Values.synapse.email.smtp.tls.enabled }}
-      tlsname: {{ .Values.synapse.email.smtp.tls.name | quote }}
-      force_tls: {{ .Values.synapse.email.smtp.tls.force }}
-      require_transport_security: {{ .Values.synapse.email.smtp.tls.requireTransportSecurity }}
-      enable_notifs: {{ .Values.synapse.email.notifs.enabled }}
-      notif_from: {{ .Values.synapse.email.notifs.from | quote }}
-      app_name: {{ .Values.synapse.email.notifs.appName | quote }}
-      notif_for_new_users: {{ .Values.synapse.email.notifs.forNewUsers }}
-      delay_before_maik: {{ .Values.synapse.email.notifs.delayBeforeMail | quote }}
-      client_base_url: {{ .Values.synapse.email.clientBaseUrl | quote }}
-      validation_token_lifetime: {{ .Values.synapse.email.validationTokenLifetime | quote }}
-      invite_client_location: {{ .Values.synapse.email.inviteClientLocation | quote }}
-      subjects: {{- .Values.synapse.email.subjects | toYaml | nindent 8 }}
 
     # temporarily boost rate-limits to avoid breaking WIP MatrixRTC signalling
     rc_message:
@@ -203,20 +163,6 @@ data:
       purge_jobs: {{- .Values.synapse.retention.purgeJobs | toYaml | nindent 8 }}
 
     auto_join_rooms: {{- .Values.synapse.autoJoinRooms | toYaml | nindent 6 }}
-
-    oidc_providers: {{- .Values.synapse.oidcProviders | toYaml | nindent 6 }}
-
-    password_config:
-      enabled: {{ .Values.synapse.passwordConfig.enabled }}
-      localdb_enabled: {{ .Values.synapse.passwordConfig.localdbEnabled }}
-      pepper: {{ .Values.synapse.passwordConfig.pepper | quote }}
-      policy:
-        enabled: {{ .Values.synapse.passwordConfig.policy.enabled }}
-        minimum_length: {{ .Values.synapse.passwordConfig.policy.minimumLength }}
-        require_digit: {{ .Values.synapse.passwordConfig.policy.requireDigit }}
-        require_symbol: {{ .Values.synapse.passwordConfig.policy.requireSymbol }}
-        require_lowercase: {{ .Values.synapse.passwordConfig.policy.requireLowercase }}
-        require_uppercase: {{ .Values.synapse.passwordConfig.policy.requireUppercase }}
 
     encryption_enabled_by_default_for_room_type: {{ .Values.synapse.encryptionEnabledByDefaultForRoomType | quote }}
 

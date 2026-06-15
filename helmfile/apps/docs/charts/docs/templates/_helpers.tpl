@@ -169,10 +169,35 @@ envVars:
 
 
 {{/*
+Return the name of the Secret that stores the docs credentials
+*/}}
+{{- define "docs.secretName" -}}
+{{- include "common.names.fullname" . -}}
+{{- end -}}
+
+{{/*
+Names of environment variables whose values are stored in the chart Secret
+*/}}
+{{- define "docs.secretEnvNames" -}}
+AI_API_KEY AWS_S3_ACCESS_KEY_ID AWS_S3_SECRET_ACCESS_KEY COLLABORATION_SERVER_SECRET DB_PASSWORD DJANGO_CELERY_BROKER_URL DJANGO_EMAIL_HOST_PASSWORD DJANGO_SECRET_KEY DJANGO_SERVER_TO_SERVER_API_TOKENS DJANGO_SUPERUSER_PASSWORD OIDC_RP_CLIENT_SECRET REDIS_URL Y_PROVIDER_API_KEY
+{{- end -}}
+
+{{/*
 docs env vars
 */}}
 {{- define "docs.common.env" -}}
 {{- $topLevelScope := index . 0 -}}
 {{- $workerScope := index . 1 -}}
-{{- include "docs.env.transformDict" $workerScope.envVars -}}
+{{- $secretEnvNames := splitList " " (include "docs.secretEnvNames" $topLevelScope) -}}
+{{- range $key, $value := $workerScope.envVars }}
+{{- if and (has $key $secretEnvNames) (kindIs "string" $value) }}
+- name: {{ $key | quote }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "docs.secretName" $topLevelScope }}
+      key: {{ $key }}
+{{- else }}
+{{- include "docs.env.transformDict" (dict $key $value) }}
+{{- end }}
+{{- end }}
 {{- end }}

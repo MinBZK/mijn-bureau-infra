@@ -183,7 +183,16 @@ postgresql:
   bundled: false
   auth:
     username: {{ .Values.database.openproject.user | quote }}
-    password: {{ .Values.database.openproject.password | quote }}
+    # The upstream chart renders .Values.environment (below) into a Secret named
+    # "<fullname>-environment" and injects it via envFrom. existingSecret points the
+    # chart's explicit OPENPROJECT_DB_PASSWORD env var at that same Secret so the
+    # password is not rendered as a pod env literal. The name must match the chart
+    # fullname, which equals the release name.
+    # TODO(external-secrets): point existingSecret at the ESO-managed secret and move
+    # the remaining credentials in .environment to openproject.extraEnvVarsSecret.
+    existingSecret: "{{ .Release.Name }}-environment"
+    secretKeys:
+      userPasswordKey: "OPENPROJECT_DB_PASSWORD"
     database: {{ .Values.database.openproject.name | quote }}
   connection:
     host: {{ .Values.database.openproject.host }}
@@ -237,6 +246,7 @@ s3:
   directUploads: false
 
 environment:
+  OPENPROJECT_DB_PASSWORD: {{ .Values.database.openproject.password | quote }}
   OPENPROJECT_CACHE__REDIS__URL: {{ printf "redis://default:%s@%s:%d/1" .Values.cache.openproject.password .Values.cache.openproject.host .Values.cache.openproject.port }}
   OPENPROJECT_EMAIL__DELIVERY__METHOD: "smtp"
   OPENPROJECT_SMTP__ADDRESS: {{ .Values.smtp.host }}
@@ -246,7 +256,7 @@ environment:
   OPENPROJECT_SMTP__ENABLE__STARTTLS__AUTO: {{ .Values.smtp.tls.enabled }}
   OPENPROJECT_SMTP__AUTHENTICATION: "login"
   OPENPROJECT_SMTP__USER__NAME: {{ .Values.smtp.username }}
-  OPENPROJECT_SMTP__PASSWORD: {{ .Values.smtp.password }}
+  OPENPROJECT_SMTP__PASSWORD: {{ .Values.smtp.password | quote }}
   OPENPROJECT_OMNIAUTH__DIRECT__LOGIN__PROVIDER: "Keycloak"
 
 # Security context configuration (optional)

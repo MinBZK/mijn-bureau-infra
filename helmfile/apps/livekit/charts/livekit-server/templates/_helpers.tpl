@@ -39,6 +39,13 @@ Return the proper Docker Image Registry Secret Names
 {{- end -}}
 
 {{/*
+Return the name of the Secret that stores the livekit credentials
+*/}}
+{{- define "livekit_server.secretName" -}}
+{{- include "common.names.fullname" . -}}
+{{- end -}}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "livekit_server.serviceAccountName" -}}

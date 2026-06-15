@@ -135,12 +135,16 @@ auth:
   ## @param auth.oidc.clientSecret OpenID client secret
   ## @param auth.oidc.discoveryUri OpenID discovery endpoint URI
   ## @param auth.oidc.endSessionEndpointUri OpenID end session endpoint URI
+  ## @param auth.oidc.existingSecret Name of an existing secret containing the OIDC client secret (clientSecret is ignored when set)
+  ## @param auth.oidc.existingSecretKey Key in the existing secret holding the OIDC client secret (defaults to "oidc-client-secret")
   oidc:
     enabled: false
     clientId: ""
     clientSecret: ""
     discoveryUri: ""
     endSessionEndpointUri: ""
+    existingSecret: ""
+    existingSecretKey: ""
 ## @param update Trigger update if custom command is used
 ##
 update: 0
@@ -212,6 +216,7 @@ externalRedis:
 ## @param externalMinio.existingSecret Name of an existing secret resource containing the Minio credentials
 ## @param externalMinio.existingSecretUsernameKey Name of the username key in the existing secret
 ## @param externalMinio.existingSecretPasswordKey Name of the password key in the existing secret
+## @param externalMinio.existingSecretSseCKeyKey Key of the SSE-C key in the existing secret
 ##
 externalMinio:
   endpoint: ""
@@ -228,6 +233,7 @@ externalMinio:
   existingSecret: ""
   existingSecretUsernameKey: ""
   existingSecretPasswordKey: ""
+  existingSecretSseCKeyKey: ""
 
 ## External Database configuration
 ## @param externalDatabase.type Set to 'mysql' or 'postgresql'

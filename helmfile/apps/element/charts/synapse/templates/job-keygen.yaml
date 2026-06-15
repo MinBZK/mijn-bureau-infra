@@ -67,6 +67,7 @@ spec:
 
               synapse_homeserver \
                 --config-path /synapse/config/homeserver.yaml \
+                --config-path /synapse/secrets/secrets.yaml \
                 --generate-keys
 
               /tmp/kubectl create secret generic synapse-signing-key --from-file=/synapse/keys/synapse_signing_key
@@ -77,6 +78,9 @@ spec:
           volumeMounts:
             - mountPath: /synapse/config
               name: synapse
+              readOnly: true
+            - mountPath: /synapse/secrets
+              name: synapse-secrets
               readOnly: true
             - name: synapse-keys
               mountPath: /synapse/keys
@@ -89,5 +93,8 @@ spec:
           configMap:
             defaultMode: 420
             name: {{ include "common.names.fullname" . }}
+        - name: synapse-secrets
+          secret:
+            secretName: {{ include "synapse.secretName" . }}
         - name: empty-dir
           emptyDir: {}

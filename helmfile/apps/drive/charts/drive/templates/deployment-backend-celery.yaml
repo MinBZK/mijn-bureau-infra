@@ -27,8 +27,10 @@ spec:
       app.kubernetes.io/component: drive-backend-celery
   template:
     metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       {{- if .Values.drive.podAnnotations }}
-      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.drive.podAnnotations "context" $) | nindent 8 }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.drive.podAnnotations "context" $) | nindent 8 }}
       {{- end }}
       labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
         app.kubernetes.io/component: drive-backend-celery
@@ -92,6 +94,46 @@ spec:
             {{- end }}
           {{- end }}
           env:
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "drive.secretName" . }}
+                  key: DJANGO_SECRET_KEY
+            - name: DJANGO_SERVER_TO_SERVER_API_TOKENS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "drive.secretName" . }}
+                  key: DJANGO_SERVER_TO_SERVER_API_TOKENS
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "drive.secretName" . }}
+                  key: DB_PASSWORD
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "drive.secretName" . }}
+                  key: REDIS_URL
+            - name: OIDC_RP_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "drive.secretName" . }}
+                  key: OIDC_RP_CLIENT_SECRET
+            - name: AWS_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "drive.secretName" . }}
+                  key: AWS_S3_ACCESS_KEY_ID
+            - name: AWS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "drive.secretName" . }}
+                  key: AWS_S3_SECRET_ACCESS_KEY
+            - name: CELERY_BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "drive.secretName" . }}
+                  key: CELERY_BROKER_URL
             {{- if .Values.drive.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.drive.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}

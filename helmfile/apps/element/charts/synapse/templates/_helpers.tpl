@@ -66,6 +66,13 @@ Create the name of the service account to use
 {{- end -}}
 
 {{/*
+Return the name of the Secret that stores the synapse credentials
+*/}}
+{{- define "synapse.secretName" -}}
+{{- include "common.names.fullname" . -}}
+{{- end -}}
+
+{{/*
 Return true if cert-manager required annotations for TLS signed certificates are set in the Ingress annotations
 Ref: https://cert-manager.io/docs/usage/ingress/#supported-annotations
 */}}

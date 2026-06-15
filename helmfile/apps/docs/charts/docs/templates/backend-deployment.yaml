@@ -27,6 +27,7 @@ spec:
   template:
     metadata:
       annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       {{- if .Values.backend.podAnnotations }}
       {{- include "common.tplvalues.render" (dict "value" .Values.backend.podAnnotations "context" $) | nindent 8 }}
       {{- end }}
