@@ -87,6 +87,11 @@ spec:
           {{- if $wcsc.enabled }}
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" $wcsc "context" $) | nindent 12 }}
           {{- end }}
+          {{- if ($config.resources | default $default.resources) }}
+          resources: {{- toYaml ($config.resources | default $default.resources) | nindent 12 }}
+          {{- else if ne ($config.resourcesPreset | default $default.resourcesPreset) "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" ($config.resourcesPreset | default $default.resourcesPreset)) | nindent 12 }}
+          {{- end }}
           command:
             - sh
             - -c
