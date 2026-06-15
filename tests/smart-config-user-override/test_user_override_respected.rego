@@ -1,73 +1,74 @@
 package main
+
 import rego.v1
 
-# Test that smart configuration respects user-provided values
-# and does NOT override them with auto-generated values
+# When the user provides custom authentication.oidc.* and ai.llm.* values,
+# the logic layer must leave them untouched: no auto-generated keycloak or
+# ollama values may appear in the rendered manifests. This also guards the
+# all-values-overridden case, where the logic layer must emit nothing at
+# all (an empty map would null out the whole subtree on merge).
 
-# Check that custom authentication issuer is preserved
-deny contains msg if {
-  input_str := sprintf("%v", [input])
-  contains(input_str, "authentication:")
-  contains(input_str, "oidc:")
+computed_kc_base := "https://id-test.test-override.example/realms/mijnbureau"
 
-  # Should keep the custom issuer, not auto-populate with keycloak URL
-  not contains(input_str, "issuer: https://custom-auth.example.com/realms/custom")
-
-  msg := "User override: custom authentication issuer should be preserved, not auto-populated"
+meet_expected := {
+	"OIDC_OP_AUTHORIZATION_ENDPOINT": "https://custom-auth.example.com/auth",
+	"OIDC_OP_TOKEN_ENDPOINT": "https://custom-auth.example.com/token",
+	"OIDC_OP_USER_ENDPOINT": "https://custom-auth.example.com/userinfo",
+	"OIDC_OP_JWKS_ENDPOINT": "https://custom-auth.example.com/certs",
+	"OIDC_OP_LOGOUT_ENDPOINT": "https://custom-auth.example.com/logout",
 }
 
-# Check that custom authentication endpoints are preserved
 deny contains msg if {
-  input_str := sprintf("%v", [input])
-  contains(input_str, "authentication:")
-  contains(input_str, "oidc:")
-
-  not contains(input_str, "authorization_endpoint: https://custom-auth.example.com/auth")
-
-  msg := "User override: custom authorization_endpoint should be preserved, not auto-populated"
+	input.kind == "ConfigMap"
+	input.data.OIDC_RP_CLIENT_ID == "meet"
+	some key, expected in meet_expected
+	object.get(input.data, key, "") != expected
+	msg := sprintf(
+		"user override: meet ConfigMap %s should keep the custom value %q, got %q",
+		[key, expected, object.get(input.data, key, "")],
+	)
 }
 
-# Check that keycloak auto-populated values are NOT present when user provides custom values
 deny contains msg if {
-  input_str := sprintf("%v", [input])
-  contains(input_str, "authentication:")
-
-  # Should NOT contain auto-generated keycloak URLs when user provided custom values
-  contains(input_str, "https://id-test.test-override.example/realms/mijnbureau")
-
-  msg := "User override: should not auto-populate keycloak URLs when user provided custom authentication values"
+	input.kind == "Deployment"
+	some container in input.spec.template.spec.containers
+	some scope in container.env
+	scope.name == "OIDC_CLIENT_ID"
+	scope.value == "bureaublad"
+	some env in container.env
+	env.name == "OIDC_ISSUER"
+	object.get(env, "value", "") != "https://custom-auth.example.com/realms/custom"
+	msg := sprintf(
+		"user override: bureaublad OIDC_ISSUER should keep the custom value, got %q",
+		[object.get(env, "value", "")],
+	)
 }
 
-# Check that custom AI model is preserved
+# No resource may carry an auto-generated keycloak URL when the user
+# provided custom authentication values.
 deny contains msg if {
-  input_str := sprintf("%v", [input])
-  contains(input_str, "ai:")
-  contains(input_str, "llm:")
-
-  # Should keep the custom model, not auto-populate with ollama model
-  not contains(input_str, "model: custom-model")
-
-  msg := "User override: custom AI model should be preserved, not auto-populated"
+	walk(input, [path, value])
+	is_string(value)
+	contains(value, computed_kc_base)
+	msg := sprintf(
+		"user override: auto-generated keycloak URL %q must not appear when custom authentication values are set (found at %v)",
+		[computed_kc_base, path],
+	)
 }
 
-# Check that custom AI endpoint is preserved
-deny contains msg if {
-  input_str := sprintf("%v", [input])
-  contains(input_str, "ai:")
-  contains(input_str, "llm:")
-
-  not contains(input_str, "endpoint: https://custom-ai.example.com/api")
-
-  msg := "User override: custom AI endpoint should be preserved, not auto-populated"
+ai_expected := {
+	"AI_BASE_URL": "https://custom-ai.example.com:443/v1",
+	"AI_MODEL": "custom-model",
+	"AI_API_KEY": "custom-api-key",
 }
 
-# Check that ollama auto-populated values are NOT present when user provides custom values
 deny contains msg if {
-  input_str := sprintf("%v", [input])
-  contains(input_str, "ai:")
-
-  # Should NOT contain auto-generated ollama service URLs when user provided custom values
-  contains(input_str, "http://ollama.test-namespace.svc.cluster.local:11434")
-
-  msg := "User override: should not auto-populate ollama service URL when user provided custom AI values"
+	input.kind == "ConfigMap"
+	"AI_BASE_URL" in object.keys(input.data)
+	some key, expected in ai_expected
+	object.get(input.data, key, "") != expected
+	msg := sprintf(
+		"user override: ConfigMap %s should keep the custom value %q, got %q",
+		[key, expected, object.get(input.data, key, "")],
+	)
 }

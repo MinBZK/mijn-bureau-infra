@@ -1,25 +1,36 @@
+{{/*
+  Derives the OIDC endpoints from the keycloak hostname when keycloak is
+  enabled and the environment did not set them. Only keys that are actually
+  derived are emitted: emitting an empty map would null out the whole
+  authentication.oidc subtree (claims, user overrides) on merge.
+*/}}
+{{- $oidc := dict }}
 {{- if .Values.application.keycloak.enabled }}
+{{- $realm := printf "https://%s.%s/realms/mijnbureau" .Values.global.hostname.keycloak .Values.global.domain }}
+{{- if not .Values.authentication.oidc.issuer }}
+{{- $_ := set $oidc "issuer" $realm }}
+{{- end }}
+{{- if not .Values.authentication.oidc.authorization_endpoint }}
+{{- $_ := set $oidc "authorization_endpoint" (printf "%s/protocol/openid-connect/auth" $realm) }}
+{{- end }}
+{{- if not .Values.authentication.oidc.token_endpoint }}
+{{- $_ := set $oidc "token_endpoint" (printf "%s/protocol/openid-connect/token" $realm) }}
+{{- end }}
+{{- if not .Values.authentication.oidc.introspection_endpoint }}
+{{- $_ := set $oidc "introspection_endpoint" (printf "%s/protocol/openid-connect/token/introspect" $realm) }}
+{{- end }}
+{{- if not .Values.authentication.oidc.userinfo_endpoint }}
+{{- $_ := set $oidc "userinfo_endpoint" (printf "%s/protocol/openid-connect/userinfo" $realm) }}
+{{- end }}
+{{- if not .Values.authentication.oidc.end_session_endpoint }}
+{{- $_ := set $oidc "end_session_endpoint" (printf "%s/protocol/openid-connect/logout" $realm) }}
+{{- end }}
+{{- if not .Values.authentication.oidc.jwks_uri }}
+{{- $_ := set $oidc "jwks_uri" (printf "%s/protocol/openid-connect/certs" $realm) }}
+{{- end }}
+{{- end }}
+{{- if $oidc }}
 authentication:
   oidc:
-    {{- if not .Values.authentication.oidc.issuer }}
-    issuer: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau"
-    {{- end }}
-    {{- if not .Values.authentication.oidc.authorization_endpoint }}
-    authorization_endpoint: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau/protocol/openid-connect/auth"
-    {{- end }}
-    {{- if not .Values.authentication.oidc.token_endpoint }}
-    token_endpoint: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau/protocol/openid-connect/token"
-    {{- end }}
-    {{- if not .Values.authentication.oidc.introspection_endpoint }}
-    introspection_endpoint: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau/protocol/openid-connect/token/introspect"
-    {{- end }}
-    {{- if not .Values.authentication.oidc.userinfo_endpoint }}
-    userinfo_endpoint: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau/protocol/openid-connect/userinfo"
-    {{- end }}
-    {{- if not .Values.authentication.oidc.end_session_endpoint }}
-    end_session_endpoint: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau/protocol/openid-connect/logout"
-    {{- end }}
-    {{- if not .Values.authentication.oidc.jwks_uri }}
-    jwks_uri: "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}/realms/mijnbureau/protocol/openid-connect/certs"
-    {{- end }}
+    {{- $oidc | toYaml | nindent 4 }}
 {{- end }}

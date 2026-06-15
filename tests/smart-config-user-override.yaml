@@ -6,6 +6,11 @@ application:
     enabled: true
     namespace: test-namespace
     model: "llama3.2"
+  # conversations consumes both authentication.oidc.* and ai.llm.*,
+  # so enabling it exercises the user-provided values end to end
+  conversations:
+    enabled: true
+    namespace: test-namespace
 
 global:
   domain: "test-override.example"

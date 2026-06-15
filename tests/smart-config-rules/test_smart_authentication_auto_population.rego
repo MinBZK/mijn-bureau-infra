@@ -1,53 +1,54 @@
 package main
+
 import rego.v1
 
-# Test that smart authentication configuration auto-populates when keycloak is enabled
-# and original values are empty
+# When keycloak is enabled and authentication.oidc.* values are left empty,
+# the logic layer (helmfile/bases/logic/authentication.yaml.gotmpl) must
+# auto-populate the OIDC endpoints from the keycloak hostname and domain.
+# These rules assert on rendered manifests of two independent consumers
+# (meet's ConfigMap and bureaublad's Deployment) so an empty or missing
+# value fails loudly instead of shipping a broken SSO configuration.
 
-# Check that authentication issuer is auto-populated with keycloak URL
-deny contains msg if {
-  # Convert input to string for pattern matching
-  input_str := sprintf("%v", [input])
+kc_base := "https://id-test.test-smart-config.example/realms/mijnbureau"
 
-  # Look for rendered values in any resource that contains authentication config
-  contains(input_str, "authentication:")
-  contains(input_str, "oidc:")
-
-  # When keycloak is enabled and issuer was null, it should be auto-populated
-  not contains(input_str, "issuer: https://id-test.test-smart-config.example/realms/mijnbureau")
-
-  msg := "Smart authentication: issuer should be auto-populated when keycloak is enabled and issuer is empty"
+meet_expected := {
+	"OIDC_OP_AUTHORIZATION_ENDPOINT": sprintf("%s/protocol/openid-connect/auth", [kc_base]),
+	"OIDC_OP_TOKEN_ENDPOINT": sprintf("%s/protocol/openid-connect/token", [kc_base]),
+	"OIDC_OP_USER_ENDPOINT": sprintf("%s/protocol/openid-connect/userinfo", [kc_base]),
+	"OIDC_OP_JWKS_ENDPOINT": sprintf("%s/protocol/openid-connect/certs", [kc_base]),
+	"OIDC_OP_LOGOUT_ENDPOINT": sprintf("%s/protocol/openid-connect/logout", [kc_base]),
 }
 
-# Check that authorization_endpoint is auto-populated
 deny contains msg if {
-  input_str := sprintf("%v", [input])
-  contains(input_str, "authentication:")
-  contains(input_str, "oidc:")
-
-  not contains(input_str, "authorization_endpoint: https://id-test.test-smart-config.example/realms/mijnbureau/protocol/openid-connect/auth")
-
-  msg := "Smart authentication: authorization_endpoint should be auto-populated when keycloak is enabled and value is empty"
+	input.kind == "ConfigMap"
+	input.data.OIDC_RP_CLIENT_ID == "meet"
+	some key, expected in meet_expected
+	object.get(input.data, key, "") != expected
+	msg := sprintf(
+		"smart authentication: meet ConfigMap %s should be auto-populated to %q, got %q",
+		[key, expected, object.get(input.data, key, "")],
+	)
 }
 
-# Check that token_endpoint is auto-populated
-deny contains msg if {
-  input_str := sprintf("%v", [input])
-  contains(input_str, "authentication:")
-  contains(input_str, "oidc:")
-
-  not contains(input_str, "token_endpoint: https://id-test.test-smart-config.example/realms/mijnbureau/protocol/openid-connect/token")
-
-  msg := "Smart authentication: token_endpoint should be auto-populated when keycloak is enabled and value is empty"
+bureaublad_expected := {
+	"OIDC_ISSUER": kc_base,
+	"OIDC_AUTHORIZATION_ENDPOINT": sprintf("%s/protocol/openid-connect/auth", [kc_base]),
+	"OIDC_TOKEN_ENDPOINT": sprintf("%s/protocol/openid-connect/token", [kc_base]),
+	"OIDC_JWKS_ENDPOINT": sprintf("%s/protocol/openid-connect/certs", [kc_base]),
 }
 
-# Check that jwks_uri is auto-populated
 deny contains msg if {
-  input_str := sprintf("%v", [input])
-  contains(input_str, "authentication:")
-  contains(input_str, "oidc:")
-
-  not contains(input_str, "jwks_uri: https://id-test.test-smart-config.example/realms/mijnbureau/protocol/openid-connect/certs")
-
-  msg := "Smart authentication: jwks_uri should be auto-populated when keycloak is enabled and value is empty"
+	input.kind == "Deployment"
+	some container in input.spec.template.spec.containers
+	some scope in container.env
+	scope.name == "OIDC_CLIENT_ID"
+	scope.value == "bureaublad"
+	some key, expected in bureaublad_expected
+	some env in container.env
+	env.name == key
+	object.get(env, "value", "") != expected
+	msg := sprintf(
+		"smart authentication: bureaublad Deployment env %s should be auto-populated to %q, got %q",
+		[key, expected, object.get(env, "value", "")],
+	)
 }

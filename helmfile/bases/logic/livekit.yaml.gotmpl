@@ -1,10 +1,20 @@
+{{/*
+  Derives the livekit API credentials and URL from the livekit application
+  configuration when livekit is enabled and the environment did not set an
+  apiURL. Only emits when something is derived: emitting an empty map would
+  null out the whole livekit.meet subtree (user overrides) on merge.
+*/}}
+{{- $meet := dict }}
 {{- if .Values.application.livekit.enabled }}
+{{- if not .Values.livekit.meet.apiURL }}
+{{- $keyName := .Values.application.livekit.keys | keys | first }}
+{{- $_ := set $meet "apiKey" $keyName }}
+{{- $_ := set $meet "apiSecret" (index .Values.application.livekit.keys $keyName) }}
+{{- $_ := set $meet "apiURL" (printf "https://%s.%s" .Values.global.hostname.livekit .Values.global.domain) }}
+{{- end }}
+{{- end }}
+{{- if $meet }}
 livekit:
   meet:
-    {{- if not .Values.livekit.meet.apiURL }}
-    {{- $keyName := .Values.application.livekit.keys | keys | first }}
-    apiKey: {{ $keyName | quote }}
-    apiSecret: {{ index .Values.application.livekit.keys $keyName | quote }}
-    apiURL: "https://{{ .Values.global.hostname.livekit }}.{{ .Values.global.domain }}"
-    {{- end }}
+    {{- $meet | toYaml | nindent 4 }}
 {{- end }}
