@@ -5,97 +5,118 @@ description: Deploy the full MijnBureau suite on a single Linux server using k3s
 
 # Get started on a single VPS with K3s
 
-This gets the full MijnBureau suite
-(Keycloak SSO, Nextcloud + Collabora office, Grist, Docs, Element chat, Meet video,
-OpenProject, Bureaublad dashboard) running on **one Linux server** with real TLS
-certificates and working single sign-on, in roughly 30–45 minutes.
+This gets the full MijnBureau suite (Keycloak SSO, Nextcloud + Collabora office,
+Grist, Docs, Element chat, Meet video, Bureaublad dashboard) running on **one
+Linux server** with real TLS certificates and working single sign-on, in roughly
+30–45 minutes.
 
 :::warning Demo/evaluation only
 Single node, no backups, no disaster recovery, all datastores in-cluster, secrets
 derived from one master password. Don't put real data on it without adding backups
-(Velero or similar) and rotating every secret.
+(Velero or similar) and rotating every secret. Antivirus (ClamAV) and project
+management (OpenProject) are disabled in this setup to keep it lean.
 :::
 
 ## Prerequisites
 
 - A server with **≥12 vCPU and ≥48 GiB RAM**, Ubuntu 24.04, root access.
-  (Tested on a Hetzner AX41-NVMe. Less RAM may work since resource requests are
-  disabled, but Nextcloud + Synapse + OpenProject together are hungry.)
-- A **wildcard DNS record**: `*.DOMAIN` → your server's IPv4.
-  (~18 hostnames are needed; the wildcard covers all of them. Remove any AAAA record
-  unless your box serves IPv6.)
+  (Less RAM may work since resource requests are disabled, but Nextcloud + Synapse
+  together are hungry.)
+- A **wildcard DNS record**: `*.DOMAIN` → your server's IPv4. (~16 hostnames are
+  needed; the wildcard covers all of them. Remove any AAAA record unless your box
+  serves IPv6.)
 - Nothing else listening on ports 80/443.
 
 Throughout, replace `DOMAIN` with your domain (e.g. `mb.example.com`) and pick a
-strong `MASTER_PASSWORD` — every app secret is derived from it.
+strong master password — every app secret is derived from it.
 
-## 1. k3s + Helm + Helmfile
+There are two ways to do this:
 
-```bash
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--write-kubeconfig-mode 644" sh -
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+- **[Part 1 — Quick start](#part-1--quick-start)** runs one script that does
+  everything. Best if you just want a working instance.
+- **[Part 2 — Step by step](#part-2--step-by-step)** runs the same work as a
+  series of small scripts, showing what each one does and why. Best if you want to
+  understand the setup or adapt it.
 
-curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-HELMFILE_V=1.1.7
-curl -fsSL "https://github.com/helmfile/helmfile/releases/download/v${HELMFILE_V}/helmfile_${HELMFILE_V}_linux_amd64.tar.gz" \
-  | tar -xz -C /usr/local/bin helmfile
-helm plugin install https://github.com/databus23/helm-diff
-```
+---
 
-## 2. cert-manager + Let's Encrypt
+## Part 1 — Quick start
 
-Real certificates are **required**, not nice-to-have: with self-signed certs the
-server-side OIDC calls between apps fail and SSO breaks.
+Run this on a fresh Ubuntu 24.04 box as root, substituting your domain, an email
+(for Let's Encrypt expiry notices), and a master password:
 
 ```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
-kubectl -n cert-manager rollout status deploy/cert-manager-webhook --timeout=180s
-
-kubectl apply -f - <<'YAML'
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata: { name: letsencrypt-prod }
-spec:
-  acme:
-    server: https://acme-v02.api.letsencrypt.org/directory
-    email: you@example.com            # <- change
-    privateKeySecretRef: { name: letsencrypt-prod-account-key }
-    solvers: [{ http01: { ingress: { class: traefik } } }]
-YAML
+curl -fsSL https://raw.githubusercontent.com/MinBZK/mijn-bureau-infra/main/scripts/single-vps-deploy/install.sh \
+  | bash -s -- DOMAIN you@example.com 'YOUR_MASTER_PASSWORD'
 ```
 
-## 3. Get MijnBureau and configure the demo environment
+It installs k3s, deploys the suite, waits for TLS certificates to be issued, then
+applies the post-deploy fixes. Allow 30–45 minutes. When it finishes, log in at
+`https://bureaublad.DOMAIN`.
+
+### Log in
+
+Demo users (seeded automatically): `johndoe` / `janedoe`, password
+`myStrongPassword123`.
+
+Keycloak admin console (`https://id.DOMAIN/admin`), username `admin`, password from:
 
 ```bash
-git clone https://github.com/MinBZK/mijn-bureau-infra && cd mijn-bureau-infra
+kubectl get secret keycloak-keycloak -n mb-keycloak \
+  -o jsonpath='{.data.admin-password}' | base64 -d
 ```
 
-Overwrite `helmfile/environments/demo/mijnbureau.yaml.gotmpl` with the following
-(then `sed -i 's/DOMAIN/your.actual.domain/g'` it):
+### Verify each app
+
+| App | URL | What to check |
+|---|---|---|
+| Dashboard | `https://bureaublad.DOMAIN` | Loads and shows the app tiles |
+| Files + Office | `https://nextcloud.DOMAIN` | Log in, open or create an `.xlsx` — it opens in Collabora |
+| Docs | `https://docs.DOMAIN` | Log in, create a document, type into it — no 500 |
+| Grist | `https://grist.DOMAIN` | Create a table, import a CSV — no "Unknown upload" error |
+| Chat | `https://element.DOMAIN` | Loads and you can send a message |
+| Video | `https://meet.DOMAIN` | Start a meeting, camera/mic work |
+| SSO | `https://id.DOMAIN` | Keycloak login works |
+
+If everything above checks out, you're done. The rest of this page explains how it
+works.
+
+---
+
+## Part 2 — Step by step
+
+This does exactly what Part 1 does, but as separate scripts you run one at a time,
+so you can see each fix and understand why it's needed. Every script is
+idempotent — re-running it is safe.
+
+All scripts live in
+[`scripts/single-vps-deploy/`](https://github.com/MinBZK/mijn-bureau-infra/tree/main/scripts/single-vps-deploy)
+and are fetched the same way:
+
+```bash
+BASE=https://raw.githubusercontent.com/MinBZK/mijn-bureau-infra/main/scripts/single-vps-deploy
+```
+
+### 1. Deploy — `01-deploy.sh`
+
+```bash
+curl -fsSL $BASE/01-deploy.sh | bash -s -- DOMAIN you@example.com 'YOUR_MASTER_PASSWORD'
+```
+
+This installs k3s, Helm and Helmfile; installs cert-manager and a Let's Encrypt
+`ClusterIssuer`; clones the repo; writes the demo environment config; and runs
+`helmfile -e demo apply`. It also saves your domain to `/etc/mijnbureau/domain` so
+the later scripts pick it up automatically.
+
+The config it writes makes a few non-obvious but essential choices:
 
 ```yaml
----
 global:
   domain: "DOMAIN"
-
-  # The demo "small" preset requests ~22 CPU cores and will never schedule on
+  # The demo "small" preset *requests* ~22 CPU cores and will never schedule on
   # one box. "none" drops requests/limits so apps share whatever exists.
   resourcesPreset: "none"
-  resourcesPresetPerApp:
-    collabora: "none"
-    elementweb: "none"
-    keycloak: "none"
-    ollama: "none"
-    synapse: "none"
-    grist: "none"
-    livekit: "none"
-    meet: { backend: "none", frontend: "none" }
-    nextcloud: "none"
-    docs: { backend: "none", frontend: "none", celery: "none", yProvider: "none", docspec: "none" }
-    drive: { backend: "none", frontend: "none" }
-    conversations: { backend: "none", frontend: "none" }
-    bureaublad: { backend: "none", frontend: "none" }
-
+  resourcesPresetPerApp: { ... all apps: "none" ... }
   tls:
     enabled: true
     selfSigned: false        # real certs via cert-manager; self-signed breaks SSO
@@ -104,95 +125,46 @@ cluster:
   routingMode: ingress
   ingress:
     type: traefik
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-  # k3s pod/service CIDRs. The chart derives Collabora's WOPI allowlist from
-  # podSubnet; the default (10.244.0.0/16) is wrong for k3s and breaks all
-  # office-document opening with "Unauthorized WOPI host".
+    annotations: { cert-manager.io/cluster-issuer: letsencrypt-prod }
+  # The chart derives Collabora's WOPI allowlist from podSubnet; the default
+  # (10.244.0.0/16) is wrong for k3s and breaks office-document opening.
   networking:
-    podSubnet:
-      - "10.42.0.0/16"
-    serviceSubnet:
-      - "10.43.0.0/16"
+    podSubnet: ["10.42.0.0/16"]
+    serviceSubnet: ["10.43.0.0/16"]
 
-# Per-app namespaces are REQUIRED: every app templates a Traefik Middleware
-# named "hsts-header"; two apps in one namespace collide on Helm ownership.
 application:
-  ollama:
-    enabled: false
-  keycloak:    { namespace: mb-keycloak }
-  grist:       { namespace: mb-grist }
-  element:     { namespace: mb-element }
-  collabora:   { namespace: mb-collabora }
-  nextcloud:   { namespace: mb-nextcloud }
-  livekit:     { namespace: mb-livekit }
-  meet:        { namespace: mb-meet }
-  docs:        { namespace: mb-docs }
-  bureaublad:  { namespace: mb-bureaublad }
-  clamav:      { namespace: mb-clamav }
-  openproject:
-    enabled: true
-    namespace: mb-openproject
+  ollama:      { enabled: false }   # local LLM: heavy, off
+  clamav:      { enabled: false }   # antivirus: off for this setup
+  openproject: { enabled: false }   # project management: off for this setup
+  # Per-app namespaces are REQUIRED: every app templates a Traefik Middleware
+  # named "hsts-header"; two apps in one namespace collide on Helm ownership.
+  keycloak: { namespace: mb-keycloak }
+  # ... grist, element, collabora, nextcloud, livekit, meet, docs, bureaublad ...
 
 # OIDC endpoints must be set explicitly — auto-derivation from the keycloak app
-# does not propagate into sub-helmfiles (synapse renders authorization_endpoint: null
-# and crashloops; Nextcloud gets a hostless discovery URI).
+# does not propagate into the sub-helmfiles (synapse renders a null
+# authorization_endpoint and crashloops; Nextcloud gets a hostless discovery URI).
 authentication:
   oidc:
     issuer: "https://id.DOMAIN/realms/mijnbureau"
-    authorization_endpoint: "https://id.DOMAIN/realms/mijnbureau/protocol/openid-connect/auth"
-    token_endpoint: "https://id.DOMAIN/realms/mijnbureau/protocol/openid-connect/token"
-    introspection_endpoint: "https://id.DOMAIN/realms/mijnbureau/protocol/openid-connect/token/introspect"
-    userinfo_endpoint: "https://id.DOMAIN/realms/mijnbureau/protocol/openid-connect/userinfo"
-    end_session_endpoint: "https://id.DOMAIN/realms/mijnbureau/protocol/openid-connect/logout"
-    jwks_uri: "https://id.DOMAIN/realms/mijnbureau/protocol/openid-connect/certs"
-
-# OpenProject (Ruby 3.4) refuses world-writable tmp dirs, which is exactly what
-# its mounted emptyDir volumes are. With a writable root filesystem it falls
-# back to a usable tmp path. Without this the seeder job crashloops.
-security:
-  openproject:
-    containerSecurityContext:
-      enabled: true
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop: [ALL]
-      readOnlyRootFilesystem: false
-      runAsNonRoot: true
-      runAsUser: 1000
-      runAsGroup: 1000
-
-# The OpenProject chart needs TLS hosts spelled out or its ingress gets no
-# tls: block and cert-manager never issues a certificate.
-tls:
-  openproject:
-    - hosts:
-        - openproject.DOMAIN
-      secretName: openproject.DOMAIN-tls
+    # ... all 7 endpoints spelled out ...
 ```
 
-## 4. Deploy
+**Why real certificates are required, not optional:** with self-signed certs the
+server-side OIDC calls between apps fail TLS verification and SSO breaks.
+
+### 2. Single-node networking — `02-networking.sh`
 
 ```bash
-export MIJNBUREAU_MASTER_PASSWORD="change-me-please"   # pick something strong
-export MIJNBUREAU_CREATE_NAMESPACES=true
-
-yes | helmfile init        # interactive prompts; installs helm plugins
-helmfile -e demo apply --skip-diff-on-install
+curl -fsSL $BASE/02-networking.sh | bash
 ```
-
-This takes 10–20 minutes. If a re-run fails with "field is immutable" on a Job,
-delete the named job (`kubectl delete job <name> -n <ns>`) and re-apply.
-
-## 5. Single-node networking workarounds
 
 Two unavoidable quirks of running everything on one box behind k3s Traefik:
 
-**a) Hairpin: pods can't reach the cluster's own public IP.** Send `*.DOMAIN`
-back to the in-cluster Traefik via CoreDNS (escape the dots in your domain):
-
 ```bash
-kubectl apply -f - <<'YAML'
+# a) Hairpin: a pod can't reach its own node's public IP. Rewrite *.DOMAIN via
+#    CoreDNS to the in-cluster Traefik service so traffic stays internal.
+kubectl apply -f - <<YAML
 apiVersion: v1
 kind: ConfigMap
 metadata: { name: coredns-custom, namespace: kube-system }
@@ -200,17 +172,13 @@ data:
   mb.override: |
     rewrite name regex (.*)\.DOMAIN_ESCAPED traefik.kube-system.svc.cluster.local answer auto
 YAML
-# DOMAIN_ESCAPED example: mb\.example\.com
 kubectl -n kube-system rollout restart deploy/coredns
-```
 
-**b) k3s Traefik listens on 8443, not 443.** The bundled egress NetworkPolicies
-allow 443 only, so apps can't call each other's public hostnames. Allow 8443 everywhere:
-
-```bash
+# b) k3s Traefik listens on 8443, not 443; the bundled egress NetworkPolicies only
+#    allow 443, so apps can't call each other's public hostnames. Allow 8443.
 for ns in mb-keycloak mb-grist mb-element mb-collabora mb-nextcloud \
-          mb-livekit mb-meet mb-docs mb-bureaublad mb-clamav mb-openproject; do
-kubectl apply -f - <<YAML
+          mb-livekit mb-meet mb-docs mb-bureaublad; do
+  kubectl apply -f - <<YAML
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata: { name: allow-egress-traefik, namespace: $ns }
@@ -225,52 +193,87 @@ YAML
 done
 ```
 
-Wait for all certificates before continuing:
+This is a single-node issue specifically: on a multi-node cluster behind a real
+external load balancer, a pod reaching the public IP lands on a different node and
+comes back normally, so the hairpin never happens.
+
+### 3. Wait for certificates
+
+Before continuing, every certificate must be issued — the OIDC apps need valid
+certs to read Keycloak's discovery document:
 
 ```bash
 kubectl get certificate -A
-# All must show READY=True
+# Wait until every row shows READY=True (a few minutes).
 ```
 
-## 6. Post-deploy fixes
+(The `install.sh` parent does this wait automatically.)
 
-These are chart bugs with fixes pending upstream; apply by hand until merged.
-
-### a) OpenProject: missing Traefik middleware
-
-The chart references `hsts-header` but doesn't create it; Traefik silently drops
-the entire route (plain 404s):
+### 4. Nextcloud networking + restart OIDC apps — `03-restart-oidc-apps.sh`
 
 ```bash
-kubectl apply -f - <<'YAML'
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata: { name: hsts-header, namespace: mb-openproject }
-spec:
-  headers: { stsSeconds: 31536000, stsIncludeSubdomains: true, stsPreload: true }
-YAML
+curl -fsSL $BASE/03-restart-oidc-apps.sh | bash
 ```
 
-### b) Docs: realtime collaboration 500s
+```bash
+# Step 2a's CoreDNS rewrite resolves id.DOMAIN to a private IP. Nextcloud's SSRF
+# guard refuses server-side requests to private IPs unless this is enabled, so
+# OIDC discovery fails ("Could not reach the provider") and login 404s.
+kubectl exec -n mb-nextcloud deploy/nextcloud -- \
+  php occ config:system:set allow_local_remote_servers --value=true --type=boolean
 
-The y-provider service sits on port 443 with a plain-HTTP backend, so Traefik
-tries TLS against it:
+# Traefik runs in the pod subnet (10.42.0.0/16) but Nextcloud's trusted_proxies
+# only lists the service subnet (10.43.0.0/16), so Nextcloud sees every request
+# as one internal IP — all users share one rate-limit bucket ("Too many requests")
+# and client IPs are logged wrong. Add the pod subnet.
+kubectl exec -n mb-nextcloud deploy/nextcloud -- \
+  php occ config:system:set trusted_proxies 1 --value=10.42.0.0/16
+
+# Each app fetched Keycloak's discovery at startup, before the network path and
+# certs were ready; that failure is sticky until the pod restarts.
+kubectl rollout restart deploy/grist -n mb-grist
+kubectl rollout restart deploy/docs-backend -n mb-docs
+kubectl rollout restart deploy/nextcloud -n mb-nextcloud
+kubectl rollout restart deploy/meet-backend -n mb-meet
+kubectl rollout restart deploy/synapse -n mb-element
+```
+
+### 5. Nextcloud Office — `04-nextcloud-office.sh`
 
 ```bash
+curl -fsSL $BASE/04-nextcloud-office.sh | bash
+```
+
+```bash
+kubectl rollout status deploy/nextcloud -n mb-nextcloud --timeout=300s
+# richdocuments caches the capabilities doc it fetches from Collabora. On first
+# deploy that fetch happened before the networking existed, so an empty/failed
+# response got cached and every file-open 500s (xpath() on false). Re-fetch it now
+# that the path works.
+kubectl exec -n mb-nextcloud deploy/nextcloud -- php occ richdocuments:activate-config
+```
+
+This is a first-deploy ordering artifact, not a recurring problem — once the cache
+holds a valid response it stays good.
+
+### 6. Docs — `05-docs.sh`
+
+```bash
+curl -fsSL $BASE/05-docs.sh | bash
+```
+
+```bash
+# b) The y-provider service sits on port 443 with a plain-HTTP backend, so Traefik
+#    tries TLS against it and realtime collaboration 500s. Re-map the ports.
 kubectl patch svc docs-y-provider -n mb-docs --type=merge -p '{
   "spec": {"ports": [
     {"name": "http", "port": 80, "targetPort": 4444, "protocol": "TCP"},
     {"name": "internal-443", "port": 443, "targetPort": 4444, "protocol": "TCP"}
   ]}}'
-```
 
-### c) Docs: login 500s
-
-Migrations run as `postgres` so the app role `docs` has no grants on the tables
-it needs (docs runs on a CloudNativePG cluster; the superuser password lives in
-the `docs-cluster-rw` secret):
-
-```bash
+# c) Migrations run as the postgres superuser, so the app role `docs` has no grants
+#    on its tables and login 500s. Grant them (CloudNativePG; superuser password in
+#    the docs-cluster-rw secret).
 PGPASS=$(kubectl get secret docs-cluster-rw -n mb-docs -o jsonpath='{.data.postgres-password}' | base64 -d)
 kubectl exec -n mb-docs docs-cluster-rw-0 -- env PGPASSWORD="$PGPASS" psql -U postgres -h localhost -d docs -c "
   GRANT ALL ON ALL TABLES IN SCHEMA public TO docs;
@@ -279,126 +282,41 @@ kubectl exec -n mb-docs docs-cluster-rw-0 -- env PGPASSWORD="$PGPASS" psql -U po
   ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO docs;"
 ```
 
-### d) Nextcloud: can't open Office files
-
-Its S3 client falls through the AWS credential chain to EC2 metadata (times out
-on non-AWS hosts), and the SSRF guard blocks the CoreDNS-rewritten private IP:
+### 7. Grist — `06-grist.sh`
 
 ```bash
-MINIO_USER=$(kubectl get secret -n mb-nextcloud nextcloud-minio -o jsonpath='{.data.root-user}' | base64 -d)
-MINIO_SECRET=$(kubectl get secret -n mb-nextcloud nextcloud-minio -o jsonpath='{.data.root-password}' | base64 -d)
-kubectl set env deploy/nextcloud -n mb-nextcloud \
-  AWS_ACCESS_KEY_ID="$MINIO_USER" AWS_SECRET_ACCESS_KEY="$MINIO_SECRET" AWS_EC2_METADATA_DISABLED=true
-kubectl set env cronjob/nextcloud-cronjob -n mb-nextcloud \
-  AWS_ACCESS_KEY_ID="$MINIO_USER" AWS_SECRET_ACCESS_KEY="$MINIO_SECRET" AWS_EC2_METADATA_DISABLED=true
-
-kubectl exec -n mb-nextcloud deploy/nextcloud -- \
-  php occ config:system:set allow_local_remote_servers --value=true --type=boolean
-
-# Force a cron run with the fixed credentials — if a cron pod from before the
-# env change already tried (and failed) to cache Collabora's capabilities,
-# office files 500 on open until the next successful run:
-kubectl create job --from=cronjob/nextcloud-cronjob cron-recache -n mb-nextcloud
+curl -fsSL $BASE/06-grist.sh | bash
 ```
 
-### e) Collabora: rejects Nextcloud's WOPI requests
-
-Nextcloud sends its host with an explicit `:443`; Collabora's configured alias has
-none, so the anchored match fails ("Unauthorized WOPI host"). Make the alias
-port-tolerant (replace `DOMAIN_ESCAPED` with dots escaped, e.g. `mb\.example\.com`):
-
 ```bash
-kubectl set env deploy/collabora-online -n mb-collabora \
-  'extra_params=--o:ssl.enable=false --o:ssl.termination=true \
-  --o:storage.wopi.alias_groups.mode=groups \
-  --o:storage.wopi.alias_groups.group[0].host=https://nextcloud\.DOMAIN_ESCAPED(:443)? \
-  --o:storage.wopi.alias_groups.group[1].host=https://drive\.DOMAIN_ESCAPED(:443)?'
-```
-
-### f) Grist: file imports fail
-
-Two replicas with no session affinity; the upload lands on one pod and the import
-request hits the other:
-
-```bash
+# Grist runs two replicas with no session affinity, so a file upload lands on one
+# pod and the import request hits the other ("Unknown upload"). Pin to one replica.
 kubectl patch hpa grist -n mb-grist -p '{"spec":{"minReplicas":1,"maxReplicas":1}}'
 kubectl scale deploy grist -n mb-grist --replicas=1
 ```
 
-### g) ClamAV: crashloops on startup
-
-The bundled NetworkPolicy only allows DNS egress (port 53), so freshclam can
-resolve the definitions server but never download from it:
+### 8. Session lifetimes (optional) — `07-session-lifetimes.sh`
 
 ```bash
-kubectl apply -f - <<'YAML'
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata: { name: allow-clamav-freshclam, namespace: mb-clamav }
-spec:
-  podSelector:
-    matchLabels: { app.kubernetes.io/name: clamav }
-  policyTypes: [Egress]
-  egress:
-    - ports: [{ port: 443, protocol: TCP }]
-YAML
-kubectl delete pod -n mb-clamav -l app.kubernetes.io/name=clamav
+curl -fsSL $BASE/07-session-lifetimes.sh | bash
 ```
-
-### h) Restart OIDC apps
-
-So they re-read discovery against the now-valid certificates:
-
-```bash
-for d in "deploy/grist -n mb-grist" "deploy/docs-backend -n mb-docs" \
-         "deploy/nextcloud -n mb-nextcloud" "deploy/meet-backend -n mb-meet" \
-         "deploy/synapse -n mb-element"; do
-  kubectl rollout restart $d
-done
-```
-
-## 7. (Optional) Saner session lifetimes
 
 Out of the box Keycloak issues 5-minute tokens with a 30-minute idle timeout, so
-you re-authenticate constantly across all apps. Stretch them:
+you re-authenticate constantly. This widens them to a 30-minute access token, a
+7-day idle timeout, a 30-day max session, and enables "remember me" on the
+`mijnbureau` realm.
 
-```bash
-KC_PASS=$(kubectl get secret keycloak-keycloak -n mb-keycloak -o jsonpath='{.data.admin-password}' | base64 -d)
-TOKEN=$(curl -s "https://id.DOMAIN/realms/master/protocol/openid-connect/token" \
-  -d grant_type=password -d client_id=admin-cli -d username=admin -d "password=$KC_PASS" | python3 -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
-curl -s -X PUT "https://id.DOMAIN/admin/realms/mijnbureau" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"accessTokenLifespan":1800,"ssoSessionIdleTimeout":604800,"ssoSessionMaxLifespan":2592000,"rememberMe":true}'
-```
+---
 
-## 8. Log in
+## Known limitations
 
-| URL | What |
-|---|---|
-| `https://bureaublad.DOMAIN` | Dashboard (start here) |
-| `https://nextcloud.DOMAIN` | Files + Office (Word/Excel-style editing) |
-| `https://docs.DOMAIN` | Notion-style collaborative notes |
-| `https://grist.DOMAIN` | Airtable-style data grids |
-| `https://element.DOMAIN` | Chat (Matrix) |
-| `https://meet.DOMAIN` | Video calls |
-| `https://openproject.DOMAIN` | Project management |
-| `https://id.DOMAIN` | Keycloak (SSO) |
-
-Demo users (seeded automatically): `johndoe` / `janedoe`, password `myStrongPassword123`.
-
-Keycloak admin console (`https://id.DOMAIN/admin`): username `admin`, password from:
-
-```bash
-kubectl get secret keycloak-keycloak -n mb-keycloak -o jsonpath='{.data.admin-password}' | base64 -d
-```
-
-## Known remaining issues
-
-- Nextcloud Office "New file" / "Save As" from inside the editor crashes
-  (richdocuments / Nextcloud version incompatibility — create files from the
-  Files app ➕ instead).
-- OpenProject is not integrated into the Bureaublad dashboard (upstream gap).
-- The AI assistant (Conversations) and Drive are not exposed in this setup; Ollama is off.
+- Nextcloud Office "New file" / "Save As" from inside the editor can crash on some
+  versions — create files from the Files app's ➕ instead.
+- ClamAV (antivirus) and OpenProject are disabled here. To re-enable, set
+  `enabled: true` for them in the config in `01-deploy.sh`; OpenProject also needs
+  the `security.openproject` and `tls.openproject` blocks (and a `hsts-header`
+  Middleware created in its namespace).
+- The AI assistant (Conversations) and Drive are not exposed in this setup.
 
 ## Teardown
 
