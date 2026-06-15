@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Usage: ./02-networking.sh <domain>
+# Usage: ./02-networking.sh [domain]
 # Step 5 of the single-VPS quickstart: single-node networking workarounds.
 # Run after 01-deploy.sh, once the apps have been deployed.
+#
+# The domain defaults to the value 01-deploy.sh saved in /etc/mijnbureau/domain;
+# pass it as an argument only to override.
 #
 # Two unavoidable quirks of running everything on one box behind k3s Traefik:
 #   a) Pods can't reach the cluster's own public IP (hairpin). Rewrite *.DOMAIN
@@ -10,7 +13,11 @@
 #      only allow 443, so apps can't call each other's public hostnames. Allow 8443.
 set -euo pipefail
 
-DOMAIN="${1:?Usage: $0 <domain>}"
+DOMAIN="${1:-$(cat /etc/mijnbureau/domain 2>/dev/null || true)}"
+if [ -z "${DOMAIN}" ]; then
+  echo "No domain found. Pass it as an argument, or run 01-deploy.sh first." >&2
+  exit 1
+fi
 # Escape dots for the CoreDNS regex (e.g. mb.example.com -> mb\.example\.com)
 DOMAIN_ESCAPED="${DOMAIN//./\\.}"
 

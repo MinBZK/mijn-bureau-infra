@@ -1,12 +1,19 @@
 #!/usr/bin/env bash
-# Usage: ./deploy.sh <domain> <email> <master-password>
+# Usage: ./01-deploy.sh <domain> <email> <master-password>
 # Runs steps 1-4 of the MijnBureau Hetzner quickstart.
 # Must be run as root on a fresh Ubuntu 24.04 server.
+#
+# The domain is persisted to /etc/mijnbureau/domain so the later scripts in
+# this folder pick it up automatically — you only pass it here.
 set -euo pipefail
 
 DOMAIN="${1:?Usage: $0 <domain> <email> <master-password>}"
 EMAIL="${2:?Usage: $0 <domain> <email> <master-password>}"
 MASTER_PASSWORD="${3:?Usage: $0 <domain> <email> <master-password>}"
+
+# Persist the domain for the later scripts (02-networking.sh, 03-...).
+mkdir -p /etc/mijnbureau
+echo "${DOMAIN}" > /etc/mijnbureau/domain
 
 HELMFILE_V=1.1.7
 
