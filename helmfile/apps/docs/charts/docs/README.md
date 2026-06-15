@@ -122,8 +122,6 @@ service:
       targetPort: 11311
 ```
 
-> NOTE: This Helm chart already includes sidecar containers for the Prometheus exporters (where applicable). These can be activated by adding the `--enable-metrics=true` parameter at deployment time. The `sidecars` parameter should therefore only be used for any extra sidecar containers.
-
 If additional init containers are needed in the same pod, they can be defined using the `initContainers` parameter. Here is an example:
 
 ```yaml
@@ -143,24 +141,6 @@ Learn more about [sidecar containers](https://kubernetes.io/docs/concepts/worklo
 This chart allows you to set your custom affinity using the `affinity` parameter. Find more information about Pod affinity in the [kubernetes documentation](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity).
 
 As an alternative, use one of the preset configurations for pod affinity, pod anti-affinity, and node affinity available at the [bitnami/common](https://github.com/bitnami/charts/tree/main/bitnami/common#affinities) chart. To do so, set the `podAffinityPreset`, `podAntiAffinityPreset`, or `nodeAffinityPreset` parameters.
-
-### Prometheus metrics
-
-This chart can be integrated with Prometheus by setting `metrics.enabled` to `true`. It will have the necessary annotations to be automatically scraped by Prometheus.
-
-#### Prometheus requirements
-
-It is necessary to have a working installation of Prometheus or Prometheus Operator for the integration to work. Install the [Bitnami Prometheus helm chart](https://github.com/bitnami/charts/tree/main/bitnami/prometheus) or the [Bitnami Kube Prometheus helm chart](https://github.com/bitnami/charts/tree/main/bitnami/kube-prometheus) to easily have a working Prometheus in your cluster.
-
-#### Integration with Prometheus Operator
-
-The chart can deploy `ServiceMonitor` objects for integration with Prometheus Operator installations. To do so, set the value `metrics.serviceMonitor.enabled=true`. Ensure that the Prometheus Operator `CustomResourceDefinitions` are installed in the cluster or it will fail with the following error:
-
-```text
-no matches for kind "ServiceMonitor" in version "monitoring.coreos.com/v1"
-```
-
-Install the [Bitnami Kube Prometheus helm chart](https://github.com/bitnami/charts/tree/main/bitnami/kube-prometheus) for having the necessary CRDs and the Prometheus Operator.
 
 ### Backup and restore
 
@@ -781,25 +761,12 @@ To back up and restore Helm chart deployments on Kubernetes, you need to back up
 
 ### Other Parameters
 
-| Name                                          | Description                                                                                            | Value   |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------- |
-| `serviceAccount.create`                       | Specifies whether a ServiceAccount should be created                                                   | `true`  |
-| `serviceAccount.name`                         | The name of the ServiceAccount to use.                                                                 | `""`    |
-| `serviceAccount.annotations`                  | Additional Service Account annotations (evaluated as a template)                                       | `{}`    |
-| `serviceAccount.automountServiceAccountToken` | Automount service account token for the server service account                                         | `true`  |
-| `metrics.enabled`                             | Enable the export of Prometheus metrics                                                                | `false` |
-| `metrics.serviceMonitor.enabled`              | if `true`, creates a Prometheus Operator ServiceMonitor (also requires `metrics.enabled` to be `true`) | `false` |
-| `metrics.serviceMonitor.namespace`            | Namespace in which Prometheus is running                                                               | `""`    |
-| `metrics.serviceMonitor.annotations`          | Additional custom annotations for the ServiceMonitor                                                   | `{}`    |
-| `metrics.serviceMonitor.labels`               | Extra labels for the ServiceMonitor                                                                    | `{}`    |
-| `metrics.serviceMonitor.jobLabel`             | The name of the label on the target service to use as the job name in Prometheus                       | `""`    |
-| `metrics.serviceMonitor.honorLabels`          | honorLabels chooses the metric's labels on collisions with target labels                               | `false` |
-| `metrics.serviceMonitor.tlsConfig`            | TLS configuration used for scrape endpoints used by Prometheus                                         | `{}`    |
-| `metrics.serviceMonitor.interval`             | Interval at which metrics should be scraped.                                                           | `""`    |
-| `metrics.serviceMonitor.scrapeTimeout`        | Timeout after which the scrape is ended                                                                | `""`    |
-| `metrics.serviceMonitor.metricRelabelings`    | Specify additional relabeling of metrics                                                               | `[]`    |
-| `metrics.serviceMonitor.relabelings`          | Specify general relabeling                                                                             | `[]`    |
-| `metrics.serviceMonitor.selector`             | Prometheus instance selector labels                                                                    | `{}`    |
+| Name                                          | Description                                                      | Value  |
+| --------------------------------------------- | ---------------------------------------------------------------- | ------ |
+| `serviceAccount.create`                       | Specifies whether a ServiceAccount should be created             | `true` |
+| `serviceAccount.name`                         | The name of the ServiceAccount to use.                           | `""`   |
+| `serviceAccount.annotations`                  | Additional Service Account annotations (evaluated as a template) | `{}`   |
+| `serviceAccount.automountServiceAccountToken` | Automount service account token for the server service account   | `true` |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.
 

@@ -14,3 +14,25 @@ metric:
     enabled: false
   podMonitor:
     enabled: false
+
+  # GrafanaDashboard custom resources shipped by helmfile/apps/observability.
+  # Requires the grafana-operator (https://grafana.github.io/grafana-operator/)
+  # to be installed and a Grafana CR whose labels match `instanceSelector`.
+  grafanaDashboards:
+    enabled: false
+    # Selects which Grafana instance the dashboards are pushed to.
+    instanceSelector:
+      matchLabels:
+        dashboards: "grafana"
+    # Folder in Grafana where the dashboards will appear. Leave empty for root.
+    folder: "Mijn Bureau"
+    # How often the operator re-applies the dashboard JSON.
+    resyncPeriod: "5m"
+    # Let dashboards CRs match a Grafana CR in a different namespace.
+    allowCrossNamespaceImport: true
+    # Map dashboard JSON __inputs entries to actual Grafana datasource names.
+    # Example:
+    #   datasources:
+    #     - inputName: DS_MIMIR_POC
+    #       datasourceName: Prometheus
+    datasources: []

@@ -1,0 +1,52 @@
+#
+# SPDX-License-Identifier: APACHE-2.0
+
+## @section Common parameters
+
+## @param kubeVersion Override Kubernetes version reported by .Capabilities
+##
+kubeVersion: ""
+## @param apiVersions Override Kubernetes API versions reported by .Capabilities
+##
+apiVersions: []
+## @param nameOverride String to partially override common.names.name
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: cluster.local
+
+## @section Dashboard parameters
+
+dashboard:
+  ## @param dashboard.instanceSelector Label selector matching the target Grafana instance(s) managed by the grafana-operator.
+  ## The selector must match the labels on the Grafana CR. The operator default is `dashboards: "grafana"`.
+  ##
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  ## @param dashboard.folder Grafana folder under which the dashboards will be created. Leave empty to use Grafana's root folder.
+  ##
+  folder: "Mijn Bureau"
+  ## @param dashboard.resyncPeriod How often the grafana-operator re-applies the dashboard JSON (Go duration, e.g. "5m", "30s").
+  ##
+  resyncPeriod: "5m"
+  ## @param dashboard.allowCrossNamespaceImport Allow the grafana-operator to import a dashboard CR that lives in a different namespace than the matched Grafana CR.
+  ##
+  allowCrossNamespaceImport: true
+  ## @param dashboard.datasources Map dashboard JSON __inputs entries to actual Grafana datasource names. Each entry: { inputName, datasourceName }.
+  ## When the exported JSON references a datasource as e.g. `${DS_MIMIR_POC}`, set inputName: DS_MIMIR_POC and datasourceName to the datasource name as it appears in the target Grafana.
+  ##
+  datasources: []

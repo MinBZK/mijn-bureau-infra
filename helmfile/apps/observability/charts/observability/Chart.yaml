@@ -1,0 +1,26 @@
+#
+# SPDX-License-Identifier: APACHE-2.0
+
+annotations:
+  category: Observability
+  licenses: EUPL-1.2
+apiVersion: v2
+appVersion: "1.0.0"
+description: "Ships Grafana dashboards as GrafanaDashboard custom resources for the grafana-operator. Each JSON file under dashboards/ becomes a GrafanaDashboard, picked up by any Grafana instance whose labels match the configured instanceSelector."
+icon: https://grafana.com/static/img/menu/grafana2.svg
+keywords:
+  - grafana
+  - dashboard
+  - observability
+  - monitoring
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: observability
+sources:
+  - https://github.com/grafana/grafana-operator
+dependencies:
+  - name: common
+    repository: "file://../../../common/charts/common"
+    version: 2.31.1
+version: 0.1.0

@@ -1,0 +1,38 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+** Observability: Grafana dashboards shipped **
+
+The following GrafanaDashboard resources were created in namespace {{ include "common.names.namespace" . | quote }}:
+
+{{- range $path, $_ := .Files.Glob "dashboards/**.json" }}
+{{- $slug := $path | trimPrefix "dashboards/" | trimSuffix ".json" | replace "/" "-" -}}
+{{- $ctx := dict "context" $ "slug" $slug }}
+  - {{ include "observability.dashboardName" $ctx }}   (from {{ $path }})
+{{- end }}
+
+These will be imported into any Grafana CR that matches:
+
+  {{ toYaml .Values.dashboard.instanceSelector | nindent 2 }}
+
+Make sure the grafana-operator is installed in the cluster:
+
+  https://grafana.github.io/grafana-operator/
+
+{{- if .Values.dashboard.datasources }}
+
+Dashboard JSON __inputs are mapped to Grafana datasources as follows:
+{{- range .Values.dashboard.datasources }}
+  - {{ .inputName }} -> {{ .datasourceName }}
+{{- end }}
+{{- else }}
+
+NOTE: no `dashboard.datasources` mappings are configured. If a dashboard JSON
+references a datasource via `__inputs` (e.g. `${DS_PROMETHEUS}`), set
+`dashboard.datasources` so the grafana-operator can resolve it against an
+existing datasource in the target Grafana.
+{{- end }}
+
+{{ include "observability.validateValues" . }}

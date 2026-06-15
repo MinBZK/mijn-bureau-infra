@@ -1,0 +1,52 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+
+Iterates over every *.json under dashboards/ (recursively) and emits one
+GrafanaDashboard CR per file. The grafana-operator picks them up via
+instanceSelector and pushes them into the matching Grafana instance.
+
+Folder layout:
+  dashboards/<name>.json                  -> Grafana folder: .Values.dashboard.folder
+  dashboards/<subdir>/<name>.json         -> Grafana folder: title-cased <subdir>
+
+CR naming reflects the path so subfolder dashboards do not collide with
+top-level ones: dashboards/datastore/postgresql.json becomes
+<release>-datastore-postgresql.
+*/}}
+{{- $defaultFolder := .Values.dashboard.folder -}}
+{{- range $path, $_ := .Files.Glob "dashboards/**.json" }}
+{{- $rel := $path | trimPrefix "dashboards/" -}}
+{{- $slug := $rel | trimSuffix ".json" | replace "/" "-" -}}
+{{- $parts := splitList "/" ($rel | trimSuffix ".json") -}}
+{{- $folder := $defaultFolder -}}
+{{- if gt (len $parts) 1 -}}
+{{- $folder = index $parts 0 | title -}}
+{{- end -}}
+{{- $ctx := dict "context" $ "slug" $slug }}
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: {{ include "observability.dashboardName" $ctx }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: dashboard
+  {{- if $.Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $.Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $.Values.dashboard.resyncPeriod }}
+  resyncPeriod: {{ $.Values.dashboard.resyncPeriod | quote }}
+  {{- end }}
+  allowCrossNamespaceImport: {{ $.Values.dashboard.allowCrossNamespaceImport }}
+  instanceSelector: {{- include "common.tplvalues.render" ( dict "value" $.Values.dashboard.instanceSelector "context" $ ) | nindent 4 }}
+  {{- if $folder }}
+  folder: {{ $folder | quote }}
+  {{- end }}
+  {{- if $.Values.dashboard.datasources }}
+  datasources: {{- include "common.tplvalues.render" ( dict "value" $.Values.dashboard.datasources "context" $ ) | nindent 4 }}
+  {{- end }}
+  json: |
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
