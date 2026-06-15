@@ -14,5 +14,5 @@ Please check all the boxes that apply to this pull request using "x":
 - [ ] I have rebased my branch onto the latest commit of the main branch.
 - [ ] I have squashed or reorganized my commits into logical units.
 - [ ] I have updated documentation.
-- [ ] I have followed the [AI-assisted coding guidelines](docs/docs/development/AI-Coding-Assistants.md).
-- [ ] I have signed off my commits with `git commit --signoff` (DCO compliance) and agree to the [DCO](DCO.md)
+- [ ] I have followed the [AI-assisted coding guidelines](/docs/docs/development/AI-Coding-Assistants.md).
+- [ ] I have signed off my commits with `git commit --signoff` (DCO compliance) and agree to the [DCO](/DCO.md)
