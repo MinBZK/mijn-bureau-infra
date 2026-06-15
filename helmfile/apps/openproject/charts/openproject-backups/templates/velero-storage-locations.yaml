@@ -1,0 +1,33 @@
+{{- $backup := .Values.backup | default dict -}}
+{{- if and (default false $backup.enabled) ($backup.BackupStorageLocation) (kindIs "map" $backup.BackupStorageLocation) }}
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: {{ default "default" $backup.BackupStorageLocation.name | quote }}
+  namespace: {{ $backup.namespace | default "velero" | quote }}
+spec:
+  provider: {{ $backup.BackupStorageLocation.provider | quote }}
+  objectStorage:
+    bucket: {{ $backup.BackupStorageLocation.objectStorage.bucket | quote }}
+    {{- with $backup.BackupStorageLocation.objectStorage.prefix }}
+    prefix: {{ . | quote }}
+    {{- end }}
+  {{- with $backup.BackupStorageLocation.config }}
+  config:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+{{- end }}
+{{- if and (default false $backup.enabled) ($backup.VolumeSnapshotLocation) (kindIs "map" $backup.VolumeSnapshotLocation) }}
+---
+apiVersion: velero.io/v1
+kind: VolumeSnapshotLocation
+metadata:
+  name: {{ default "default" $backup.VolumeSnapshotLocation.name | quote }}
+  namespace: {{ $backup.namespace | default "velero" | quote }}
+spec:
+  provider: {{ $backup.VolumeSnapshotLocation.provider | quote }}
+  {{- with $backup.VolumeSnapshotLocation.config }}
+  config:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,25 @@
+{{- $app := "clamav" -}}
+{{- $backup := .Values.backup | default dict -}}
+{{- $application := .Values.application | default dict -}}
+{{- $appCfg := index $application $app | default dict -}}
+{{- $appBackupCfg := index $backup $app | default dict -}}
+{{- $namespace := get $appCfg "namespace" | default .Release.Namespace -}}
+{{- if and (default false $backup.enabled) (default false (get $appCfg "enabled")) (ne (default true (get $appBackupCfg "enabled")) false) $namespace }}
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: {{ printf "%s-pvc-backup" $app | quote }}
+  namespace: {{ $backup.namespace | default "velero" | quote }}
+spec:
+  schedule: {{ $backup.schedule | default "0 0 * * *" | quote }}
+  template:
+    includedNamespaces:
+      - {{ $namespace | quote }}
+    snapshotVolumes: true
+    defaultVolumesToFsBackup: true
+    includeClusterResources: true
+    ttl: {{ $backup.retention | default "168h0m0s" | quote }}
+    storageLocation: {{ default "default" (get ($backup.BackupStorageLocation | default dict) "name") | quote }}
+    volumeSnapshotLocations:
+      - {{ default "default" (get ($backup.VolumeSnapshotLocation | default dict) "name") | quote }}
+{{- end }}
