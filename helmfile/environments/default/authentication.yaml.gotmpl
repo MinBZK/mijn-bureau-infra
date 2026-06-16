@@ -1,6 +1,7 @@
 authentication:
 
-  # setup openID Connect (OIDC) authentication
+  # OpenID Connect (OIDC) endpoints. Default to the in-cluster keycloak;
+  # override per environment to point at an external identity provider.
   oidc:
     issuer: ~
     authorization_endpoint: ~

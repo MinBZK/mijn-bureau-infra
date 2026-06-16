@@ -1,21 +1,6 @@
 bases:
   - "helmfile/bases/environment.yaml.gotmpl"
-
----
-
-bases:
   - "helmfile/bases/default.yaml.gotmpl"
-
-# Computed value layer: derives defaults (OIDC endpoints, AI endpoint,
-# livekit keys) for values the environment left empty. Loaded as an extra
-# environment values layer so the results merge into .Values; the files
-# only emit a key when the corresponding value is not already set.
-environments:
-  {{ .Environment.Name }}:
-    values:
-      - "helmfile/bases/logic/authentication.yaml.gotmpl"
-      - "helmfile/bases/logic/ai.yaml.gotmpl"
-      - "helmfile/bases/logic/livekit.yaml.gotmpl"
 
 ---
 
