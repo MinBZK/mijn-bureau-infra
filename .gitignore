@@ -41,8 +41,10 @@ debug.log
 # Local-only observability bootstrap helper (grafana-operator + Prometheus on kind)
 /scripts/observability-local.sh
 
-CLAUDE.md
 
 # ignore certificates
 127.0.0.1.sslip.io+1-key.pem
 127.0.0.1.sslip.io+1.pem
+
+# ignore logs from copilot hooks
+.github/logs/
