@@ -953,9 +953,14 @@ rbac:
   ##       - list
   ##
   rules:
+    # Scoped to the single objects the kubectl Job/CronJob touch (see cronjob.args):
+    # `kubectl get service livekit-livekit-server` and `kubectl set env deployment/livekit-server`.
+    # resourceNames is honored for get/update/patch, preventing namespace-wide Deployment takeover.
     - apiGroups: ["apps"]
       resources: ["deployments"]
       verbs: ["get", "update", "patch"]
+      resourceNames: ["livekit-server"]
     - apiGroups: [""]
       resources: ["services"]
       verbs: ["get"]
+      resourceNames: ["livekit-livekit-server"]
