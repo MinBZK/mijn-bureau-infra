@@ -8,11 +8,11 @@ description: Deploy the full MijnBureau suite on a single Linux server using k3s
 This guide shows you how to get the full MijnBureau suite (Keycloak SSO, Nextcloud + Collabora office,
 Grist, Docs, Element chat, Meet video, Bureaublad dashboard) running on a single Linux server using K3s
 
-This aims to be the fastest and cheapest way to have a fully functional MijnBureau set up running fully within the EU. 
+This aims to be the fastest and cheapest way to have a fully functional MijnBureau set up running fully within the EU.
 
 You can use it to evaluate the functionality or it might even be enough to run as a production instance for a small company or department.
 
-We tested it on an [AX41](https://www.hetzner.com/dedicated-rootserver/ax41/) from Hetzner, which costs €60/month and gives you 64GB of RAM and 512GB SSD RAID. 
+We tested it on an [AX41](https://www.hetzner.com/dedicated-rootserver/ax41/) from Hetzner, which costs €60/month and gives you 64GB of RAM and 512GB SSD RAID.
 
 :::warning
 Single node, no backups, no disaster recovery, all datastores in-cluster, secrets
@@ -31,7 +31,7 @@ strong master password as every app secret is derived from that.
 
 There are two ways to do this:
 
-- **[Part 1 — Quick start](#part-1--quick-start)** runs one script that does
+- **[Part 1 — Quick start](#part-1-quick-start)** runs one script that does
   everything. Best if you just want a working instance.
 - **[Part 2 — Step by step](#part-2--step-by-step)** runs the same work as a
   series of small scripts, showing what each one does and why. Best if you want to
@@ -65,15 +65,15 @@ kubectl get secret keycloak-keycloak -n mb-keycloak \
 
 ### Verify each app
 
-| App | URL | What to check |
-|---|---|---|
-| Dashboard | `https://bureaublad.DOMAIN` | Loads and shows the app tiles |
-| Files + Office | `https://nextcloud.DOMAIN` | Log in and upload an `.xlsx` file |  
-| Docs | `https://docs.DOMAIN` | Log in, create a document, type into it |
-| Grist | `https://grist.DOMAIN` | Create a table, import a CSV |
-| Chat | `https://element.DOMAIN` | Loads and you can send a message |
-| Video | `https://meet.DOMAIN` | Start a meeting, camera/mic work |
-| SSO | `https://id.DOMAIN` | Keycloak login works |
+| App            | URL                         | What to check                           |
+| -------------- | --------------------------- | --------------------------------------- |
+| Dashboard      | `https://bureaublad.DOMAIN` | Loads and shows the app tiles           |
+| Files + Office | `https://nextcloud.DOMAIN`  | Log in and upload an `.xlsx` file       |
+| Docs           | `https://docs.DOMAIN`       | Log in, create a document, type into it |
+| Grist          | `https://grist.DOMAIN`      | Create a table, import a CSV            |
+| Chat           | `https://element.DOMAIN`    | Loads and you can send a message        |
+| Video          | `https://meet.DOMAIN`       | Start a meeting, camera/mic work        |
+| SSO            | `https://id.DOMAIN`         | Keycloak login works                    |
 
 If everything above checks out, you're done. The rest of this page explains how it
 works.
@@ -83,7 +83,7 @@ works.
 ## Part 2 — Step by step
 
 This does exactly what Part 1 does, but as separate scripts you run one at a time,
-so you can see each fix and understand why it's needed. 
+so you can see each fix and understand why it's needed.
 
 All scripts live in
 [`scripts/single-vps-deploy/`](https://github.com/MinBZK/mijn-bureau-infra/tree/main/scripts/single-vps-deploy)
