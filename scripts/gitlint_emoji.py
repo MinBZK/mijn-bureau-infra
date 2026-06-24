@@ -6,9 +6,10 @@ from __future__ import unicode_literals
 
 import os
 import re
+from typing import Any
 
 import requests
-from gitlint.rules import CommitMessageTitle, LineRule, RuleViolation
+from gitlint.rules import CommitMessageTitle, LineRule, RuleViolation, CommitRule
 
 
 class GitmojiTitle(LineRule):
@@ -22,7 +23,7 @@ class GitmojiTitle(LineRule):
     name = "title-should-have-gitmoji-and-scope"
     target = CommitMessageTitle
 
-    def validate(self, title, _commit):
+    def validate(self, title: str, _commit: Any):
         """
         Download the list possible gitmojis from the project's github repository and check that
         title contains one of them.
@@ -57,3 +58,40 @@ class GitmojiTitle(LineRule):
         if not re.search(pattern, title):
             violation_msg = 'The scope should be one of: {:s}'.format(", ".join(scopes))
             return [RuleViolation(self.id, violation_msg, title)]
+
+
+# also add a sign-off check to the gitlint config file, to ensure that all commits are signed off
+class SignOff(CommitRule):
+    """
+    This rule will enforce that each commit message contains a sign-off line.
+    """
+
+    id = "UC2"
+    name = "commit-should-have-sign-off"
+
+    def _message_to_text(self, message: Any) -> str:
+        """Convert a gitlint commit message object to plain text."""
+        if isinstance(message, str):
+            return message
+
+        full = getattr(message, "full", None)
+        if isinstance(full, str):
+            return full
+
+        title = getattr(message, "title", "")
+        body = getattr(message, "body", "")
+        title_text = title if isinstance(title, str) else str(title)
+        body_text = body if isinstance(body, str) else str(body)
+
+        combined = "\n\n".join(part for part in [title_text, body_text] if part)
+        return combined if combined else str(message)
+
+    def validate(self, commit: Any):
+        """
+        Check if the commit message contains a sign-off line.
+        """
+        sign_off_pattern = r"^Signed-off-by: (.+) <(.+)>$"
+        message_text = self._message_to_text(commit.message)
+        if not re.search(sign_off_pattern, message_text, re.MULTILINE):
+            violation_msg = "Commit message does not contain a sign-off line."
+            return [RuleViolation(self.id, violation_msg, message_text)]

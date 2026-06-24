@@ -16,3 +16,7 @@ ignore=B6
 [ignore-by-author-name]
 regex=dependabot
 ignore=all
+
+[ignore-by-body]
+regex=Signed-off-by:
+ignore=body-max-line-length
