@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This script create a kind cluster with nginx ingress controller and self-signed certificate for local testing.
+# This script create a kind cluster with Traefik ingress controller and self-signed certificate for local testing.
 # Usage: $0 [-d] [-k domain]
 #   -d: delete the kind cluster after creation
 #   -k: domain for the self-signed certificate (default: kubernetes.local
@@ -40,6 +40,12 @@ fi
 # Check if Helmfile is installed
 if ! command -v mkcert &> /dev/null; then
   echo "mkcert could not be found. Please install it. for more information visit https://github.com/FiloSottile/mkcert"
+  exit 1
+fi
+
+# Check if Helm is installed
+if ! command -v helm &> /dev/null; then
+  echo "helm could not be found. Please install it. For more information visit https://helm.sh/docs/intro/install/"
   exit 1
 fi
 
@@ -155,7 +161,7 @@ data:
           max_concurrent 1000
         }
         rewrite stop {
-          name regex (.*).127.0.0.1.sslip.io ingress-nginx-controller.ingress-nginx.svc.cluster.local answer auto
+          name regex (.*).127.0.0.1.sslip.io traefik.traefik.svc.cluster.local answer auto
         }
         cache 30
         loop
@@ -167,43 +173,68 @@ EOF
 kubectl -n kube-system scale deployment coredns --replicas=1
 kubectl -n kube-system rollout restart deployments/coredns
 
-echo "5. Install nginx ingress controller"
-if ! kubectl get ns ingress-nginx; then
-  echo "Installing NGINX Ingress Controller..."
-  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.13.2/deploy/static/provider/kind/deploy.yaml > /dev/null 2>&1
-  kubectl apply -n ingress-nginx -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/refs/heads/main/docs/examples/customization/custom-errors/custom-default-backend.yaml > /dev/null 2>&1
-  kubectl -n ingress-nginx create secret tls mkcert --key ${PWD}/127.0.0.1.sslip.io+1-key.pem --cert ${PWD}/127.0.0.1.sslip.io+1.pem|| echo ok
-  kubectl -n ingress-nginx patch deployments.apps ingress-nginx-controller --type 'json' -p '[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value":"--default-ssl-certificate=ingress-nginx/mkcert"},{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value":"--default-backend-service=ingress-nginx/nginx-errors"}
-]'
-  kubectl patch ingressclass nginx -p '{"metadata": {"annotations":{"ingressclass.kubernetes.io/is-default-class":"true"}}}'
+echo "5. Install Traefik ingress controller"
+if ! kubectl get ns traefik > /dev/null 2>&1; then
+  echo "Installing Traefik Ingress Controller..."
 
-  cat <<EOF | kubectl apply -n ingress-nginx -f -
-  apiVersion: v1
-  data:
-    allow-snippet-annotations: "true"
-    annotations-risk-level: Critical
-    custom-http-errors: 500,501,502,503,504
-  kind: ConfigMap
-  metadata:
-    name: ingress-nginx-controller
-    namespace: ingress-nginx
+  # Create the namespace and the self-signed (mkcert) certificate up front so the
+  # default TLSStore created by the chart can resolve it immediately.
+  kubectl create namespace traefik > /dev/null 2>&1 || true
+  kubectl -n traefik create secret tls mkcert \
+    --key "${PWD}/127.0.0.1.sslip.io+1-key.pem" \
+    --cert "${PWD}/127.0.0.1.sslip.io+1.pem" || echo ok
+
+  helm repo add traefik https://traefik.github.io/charts > /dev/null 2>&1 || true
+  helm repo update traefik > /dev/null 2>&1
+
+  helm upgrade --install traefik traefik/traefik \
+    --namespace traefik --version 40.3.0 --wait -f - <<EOF
+# Bind the controller directly to the kind node's host ports 80/443, which the
+# cluster maps out to the host (see extraPortMappings in the cluster config above).
+service:
+  type: ClusterIP
+ports:
+  web:
+    hostPort: 80
+    # Redirect all plain HTTP to HTTPS (equivalent to nginx force-ssl-redirect).
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    hostPort: 443
+# Schedule onto the control-plane node that carries the ingress-ready label.
+nodeSelector:
+  ingress-ready: "true"
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+# Register Traefik's IngressClass as the cluster default.
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+# Use the mkcert secret as the default certificate for every HTTPS route.
+tlsStore:
+  default:
+    defaultCertificate:
+      secretName: mkcert
+# Process both plain Ingress objects and Traefik CRDs (Middleware, TLSStore, ...).
+providers:
+  kubernetesCRD:
+    enabled: true
+  kubernetesIngress:
+    enabled: true
 EOF
 fi
-
-exit 1
-
-# change configmap for ingress nginx
-# kubectl patch configmap ingress-nginx-controller -n ingress-nginx --type merge -p '{"data": {"force-ssl-redirect": "true"}}' > /dev/null 2>&1
-
-
-# change deployment to add default certificate
-kubectl patch deployment ingress-nginx-controller -n ingress-nginx --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--default-ssl-certificate=ingress-nginx/kind-tls"}]' > /dev/null 2>&1
 
 # install gateway API
 kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml
 
 echo "Kind cluster ready for use, Execute the following command to install MijnBureau:"
-echo "helmfile -e demo apply --skip-refresh"
+echo "helmfile -e demo apply --state-values-set cluster.ingress.type=traefik --skip-refresh"
 
 echo "To autocreate namespace run:"
 echo "export MIJNBUREAU_CREATE_NAMESPACES=true"
