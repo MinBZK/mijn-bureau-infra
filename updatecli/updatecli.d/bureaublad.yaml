@@ -37,7 +37,7 @@ targets:
       file: "helmfile/environments/default/container.yaml.gotmpl"
       keys:
         - "$.container.bureaublad.backend.tag"
-        - "$.container.frontend.backend.tag"
+        - "$.container.bureaublad.frontend.tag"
     sourceid: bureaublad_latest_version
     scmid: default
 

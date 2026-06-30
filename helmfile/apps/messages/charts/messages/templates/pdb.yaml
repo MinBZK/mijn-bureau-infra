@@ -1,0 +1,28 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.messages.pdb.create }}
+apiVersion: {{ include "common.capabilities.policy.apiVersion" . }}
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: messages
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.messages.pdb.minAvailable }}
+  minAvailable: {{ .Values.messages.pdb.minAvailable }}
+  {{- end  }}
+  {{- if or .Values.messages.pdb.maxUnavailable ( not .Values.messages.pdb.minAvailable ) }}
+  maxUnavailable: {{ .Values.messages.pdb.maxUnavailable | default 1 }}
+  {{- end  }}
+  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.messages.podLabels .Values.commonLabels ) "context" . ) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: messages
+{{- end }}

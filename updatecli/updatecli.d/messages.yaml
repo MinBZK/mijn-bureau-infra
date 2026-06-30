@@ -1,0 +1,76 @@
+name: "Update messages container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump messages version to {{ source "messages_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  messages_latest_version:
+    name: "Get latest messages tag"
+    kind: dockerimage
+    spec:
+      image: "ghcr.io/suitenumerique/messages-backend"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_messages_tag:
+    name: "Update messages tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      keys:
+        - "$.container.messages_backend.tag"
+        - "$.container.messages_frontend.tag"
+        - "$.container.messages_mta_in.tag"
+        - "$.container.messages_mta_out.tag"
+    sourceid: messages_latest_version
+    scmid: default
+
+  update_values_messages_tag:
+    name: "Update values messages tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/messages/charts/messages/values.yaml"
+      keys:
+        - "$.messages.image.tag"
+        - "$.messages_frontend.tag"
+        - "$.messages.mta_in.tag"
+        - "$.messages.mta_out.tag"
+    sourceid: messages_latest_version
+    scmid: default
+
+  update_chart_appVersion:
+    name: "Update messages chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/messages/charts/messages/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: messages_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump messages version to {{ source "messages_latest_version" }}

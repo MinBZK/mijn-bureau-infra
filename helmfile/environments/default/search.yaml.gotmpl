@@ -1,0 +1,6 @@
+search:
+  messages:
+    name: messages
+    user: messages
+    port: 9200
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "messages" "search_admin" | sha1sum | quote}}

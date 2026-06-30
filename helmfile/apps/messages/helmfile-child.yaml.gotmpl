@@ -1,0 +1,74 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: messages
+    chart: charts/messages
+    condition: application.messages.enabled
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    {{- if .Values.application.messages.enabled }}
+    needs:
+      {{- if eq .Environment.Name "demo" }}
+      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-cluster
+      {{- else }}
+      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-postgresql
+      {{- end }}
+      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-redis
+      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-opensearch
+      {{- end }}
+    {{- end }}
+    values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values.yaml.gotmpl"
+
+  - name: messages-postgresql
+    chart: ../common/charts/postgresql
+    version: "16.7.18"
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.messages.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-postgresql.yaml.gotmpl"
+
+  - name: messages-opensearch
+    chart: ../common/charts/opensearch
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.messages.enabled) | toYaml }}
+    values:
+      - "values-opensearch.yaml.gotmpl"
+
+  - name: messages-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.messages.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: messages-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.messages.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    needs:
+      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
+
+  - name: messages-redis
+    chart: ../common/charts/redis
+    version: "21.2.6"
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.messages.enabled) | toYaml }}
+    values:
+      - "values-redis.yaml.gotmpl"
