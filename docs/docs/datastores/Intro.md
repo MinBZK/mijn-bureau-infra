@@ -16,7 +16,7 @@ In the Demo environment, MijnBureau deploys all required datastores, including:
 - **Redis Caches**
 - **MinIO Object Stores**
 
-> **Note**: The Demo environment does not include backup and restore features. It is intended for testing and evaluation purposes.
+> **Note**: The Demo environment is intended for testing and evaluation purposes, but if done correctly can be configured for production usage.
 
 ---
 

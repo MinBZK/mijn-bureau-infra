@@ -1,3 +1,7 @@
+---
+sidebar_position: 13
+---
+
 # Resource Management
 
 This document describes how CPU and memory resources are managed across all MijnBureau applications, including preset definitions, per-app overrides, and custom resource helpers.
