@@ -85,7 +85,7 @@ clamav:
   image:
     registry: docker.io
     repository: clamav/clamav
-    tag: 1.5.2
+    tag: 1.5.3
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
