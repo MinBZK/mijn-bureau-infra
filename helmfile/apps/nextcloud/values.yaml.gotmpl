@@ -236,6 +236,8 @@ files:
 
 metrics:
   enabled: {{ .Values.metric.enabled | default false }}
+  image:
+    pullPolicy: Always
   networkPolicy:
     monitoringNamespace: {{ .Values.metric.namespace | quote }}
   serviceMonitor:
