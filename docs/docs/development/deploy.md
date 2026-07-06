@@ -33,7 +33,7 @@ go install sigs.k8s.io/cloud-provider-kind@latest
 
 ### Create the KIND Cluster
 
-Run the following script to create a KIND cluster named `mijnbureau` and set up NGINX ingress, Gateway API, and self-signed certificates:
+Run the following script to create a KIND cluster named `mijnbureau` and set up Traefik ingress, Gateway API, and self-signed certificates:
 
 ```bash
 ./scripts/kind.sh
