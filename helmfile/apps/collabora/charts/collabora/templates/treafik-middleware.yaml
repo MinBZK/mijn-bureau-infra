@@ -34,5 +34,5 @@ metadata:
 spec:
   forwardingTimeouts:
     responseHeaderTimeout: 600s
-    idleTimeout: 600s
+    idleConnTimeout: 600s
 {{- end }}
