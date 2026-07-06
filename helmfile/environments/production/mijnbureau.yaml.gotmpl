@@ -72,51 +72,54 @@ pvc:
 # place to set which apps run and in which namespace. enabled values match the
 # default environment; per-app secrets/config in default/application.yaml are
 # preserved via deep-merge.
-# TODO(operator): set a real per-app `namespace` (left as ~ = release namespace,
-# matching the default).
+# Namespaces are preset with a `mijnbureau-<app>` convention (rename to match
+# your platform). NOTE: with each app in its own namespace, cross-app traffic
+# (e.g. nextcloud->keycloak OIDC, collabora<->nextcloud, meet->livekit) is
+# blocked by the same-namespace NetworkPolicies until they gain a
+# namespaceSelector — or put related apps in a shared namespace.
 application:
   grist:
     enabled: true
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-grist
   ollama:
     enabled: true
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-ollama
   keycloak:
     enabled: true
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-keycloak
   element:
     enabled: true
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-element
   collabora:
     enabled: true
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-collabora
   nextcloud:
     enabled: true
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-nextcloud
   openproject:
     enabled: false
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-openproject
   livekit:
     enabled: true
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-livekit
   meet:
     enabled: true
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-meet
   conversations:
     enabled: false
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-conversations
   docs:
     enabled: true
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-docs
   bureaublad:
     enabled: true
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-bureaublad
   drive:
     enabled: false
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-drive
   clamav:
     enabled: true
-    namespace: ~ # <-- set production namespace
+    namespace: mijnbureau-clamav
 
 # ── autoscaling ─────────────────────────────────────────────────────────────
 # Raises minReplicas to 2 for the user-facing apps so a single node drain never
@@ -128,7 +131,7 @@ autoscaling:
     keycloak:
       enabled: true
       minReplicas: 2
-      maxReplicas: 3
+      maxReplicas: 5
       targetCPU: 75
       targetMemory: ""
     grist:
