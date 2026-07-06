@@ -220,11 +220,20 @@ jobs:
           mv /tmp/kubeconform /usr/local/bin/kubeconform
           chmod +x /usr/local/bin/kubeconform
 
+      # Vendor the JSON schemas with one clone each instead of fetching every
+      # resource's schema over the network. raw.githubusercontent.com rate-limits
+      # the runner and makes per-resource fetches flaky ("giving up after 3 attempts").
+      - name: Vendor JSON schemas locally
+        run: |
+          git clone --depth 1 https://github.com/datreeio/CRDs-catalog /tmp/schemas/crds
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/yannh/kubernetes-json-schema /tmp/schemas/k8s
+          cd /tmp/schemas/k8s && git sparse-checkout set master-standalone-strict
+
       - name: Run kubeconform against rendered manifests
         run: |
-          kubeconform -strict -ignore-missing-schemas -summary -schema-location default -schema-location https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json /tmp/manifest/production/
-          kubeconform -strict -ignore-missing-schemas -summary -schema-location default -schema-location https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json /tmp/manifest/demo/
-          kubeconform -strict -ignore-missing-schemas -summary -schema-location default -schema-location https://raw.githubusercontent.com/datreeio/CRDs-catalog/refs/heads/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json /tmp/manifest/default/
+          kubeconform -strict -summary -schema-location '/tmp/schemas/k8s/master-standalone-strict/{{ .ResourceKind }}{{ .KindSuffix }}.json' -schema-location '/tmp/schemas/crds/{{ .Group }}/{{ .ResourceKind }}_{{ .ResourceAPIVersion }}.json' /tmp/manifest/production/
+          kubeconform -strict -summary -schema-location '/tmp/schemas/k8s/master-standalone-strict/{{ .ResourceKind }}{{ .KindSuffix }}.json' -schema-location '/tmp/schemas/crds/{{ .Group }}/{{ .ResourceKind }}_{{ .ResourceAPIVersion }}.json' /tmp/manifest/demo/
+          kubeconform -strict -summary -schema-location '/tmp/schemas/k8s/master-standalone-strict/{{ .ResourceKind }}{{ .KindSuffix }}.json' -schema-location '/tmp/schemas/crds/{{ .Group }}/{{ .ResourceKind }}_{{ .ResourceAPIVersion }}.json' /tmp/manifest/default/
 
   diff:
     runs-on: ubuntu-latest
