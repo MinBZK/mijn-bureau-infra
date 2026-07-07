@@ -1,0 +1,228 @@
+# ── MijnBureau production overlay ───────────────────────────────────────────
+# Loaded after helmfile/environments/default/* (see
+# helmfile/bases/environment.yaml.gotmpl), so every key here overrides the
+# dev/default baseline for production. Anything not set here is deep-merged from
+# the default environment unchanged.
+#
+# REQUIRED before first deploy: replace every "REPLACE-ME" / TODO(operator) below.
+# ────────────────────────────────────────────────────────────────────────────
+
+# ── global ──────────────────────────────────────────────────────────────────
+global:
+  # Default is "small"; give production more headroom. Per-app presets in
+  # default/global.yaml still take precedence where set.
+  resourcesPreset: "medium"
+
+  # TODO(operator): the default base domain ("kubernetes.local") is not routable.
+  # Uncomment and set the real production domain before deploying.
+  # domain: "REPLACE-ME.example.gov"
+
+# ── cluster / ingress ───────────────────────────────────────────────────────
+cluster:
+  ingress:
+    # Default uses nginx ingress; production routes through Traefik.
+    type: traefik
+    # TODO(operator): confirm the Traefik IngressClass name on your cluster.
+    className: "traefik"
+
+# ── observability ───────────────────────────────────────────────────────────
+# Enabling these makes every app/CNPG chart that supports it emit
+# ServiceMonitor / PodMonitor / PrometheusRule resources (the default
+# environment renders none). REQUIRES the prometheus-operator CRDs on cluster.
+metric:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+  prometheusRule:
+    enabled: true
+  podMonitor:
+    enabled: true
+
+# ── SMTP ────────────────────────────────────────────────────────────────────
+# Everything not set here inherits the default environment (port 587, TLS
+# enabled/forced, password from $SMTP_PASSWORD).
+smtp:
+  from:
+    # TODO(operator): the sender identity shown to recipients.
+    email: "noreply@REPLACE-ME.example.gov" # <-- REPLACE
+    name: "Mijn Bureau"
+    logoImage: "https://minbzk.github.io/mijn-bureau/assets/logo-kleur.png"
+  # TODO(operator): without a host, no mail is sent (default host is empty).
+  host: "REPLACE-ME-smtp-host" # <-- REPLACE
+  username: "REPLACE-ME-smtp-user" # <-- REPLACE
+  # password stays sourced from the SMTP_PASSWORD env var (see default/smtp.yaml).
+
+# ── demo users ──────────────────────────────────────────────────────────────
+# The default environment seeds demo users (johndoe / janedoe) with a known
+# hardcoded password. Production must NOT create them.
+user: []
+
+# ── persistent volumes ──────────────────────────────────────────────────────
+# Default falls back to a 1Gi generic PVC; give production more room. Per-app
+# sizes in default/pvc.yaml (nextcloud, clamav, ollama, ...) still apply.
+pvc:
+  default:
+    size: "10Gi"
+    # TODO(operator): pin a production StorageClass (leaving it null/~ uses the
+    # cluster default). e.g. "ocs-storagecluster-ceph-rbd" on OpenShift.
+    # storageClass: "REPLACE-ME"
+
+# ── applications ────────────────────────────────────────────────────────────
+# Per-app structure mirrors default/application.yaml so production has a single
+# place to set which apps run and in which namespace. enabled values match the
+# default environment; per-app secrets/config in default/application.yaml are
+# preserved via deep-merge.
+# Namespaces are preset with a `mijnbureau-<app>` convention (rename to match
+# your platform). NOTE: with each app in its own namespace, cross-app traffic
+# (e.g. nextcloud->keycloak OIDC, collabora<->nextcloud, meet->livekit) is
+# blocked by the same-namespace NetworkPolicies until they gain a
+# namespaceSelector — or put related apps in a shared namespace.
+application:
+  grist:
+    enabled: true
+    namespace: mijnbureau-grist
+  ollama:
+    enabled: true
+    namespace: mijnbureau-ollama
+  keycloak:
+    enabled: true
+    namespace: mijnbureau-keycloak
+  element:
+    enabled: true
+    namespace: mijnbureau-element
+  collabora:
+    enabled: true
+    namespace: mijnbureau-collabora
+  nextcloud:
+    enabled: true
+    namespace: mijnbureau-nextcloud
+  openproject:
+    enabled: false
+    namespace: mijnbureau-openproject
+  livekit:
+    enabled: true
+    namespace: mijnbureau-livekit
+  meet:
+    enabled: true
+    namespace: mijnbureau-meet
+  conversations:
+    enabled: false
+    namespace: mijnbureau-conversations
+  docs:
+    enabled: true
+    namespace: mijnbureau-docs
+  bureaublad:
+    enabled: true
+    namespace: mijnbureau-bureaublad
+  drive:
+    enabled: false
+    namespace: mijnbureau-drive
+  clamav:
+    enabled: true
+    namespace: mijnbureau-clamav
+
+# ── autoscaling ─────────────────────────────────────────────────────────────
+# Raises minReplicas to 2 for the user-facing apps so a single node drain never
+# causes downtime (the default environment runs several at minReplicas: 1).
+# Apps not listed here (ollama, livekit, clamav, celery/batch workers, and the
+# disabled apps) inherit the default environment unchanged.
+autoscaling:
+  horizontal:
+    keycloak:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 5
+      targetCPU: 75
+      targetMemory: ""
+    grist:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: ""
+    element:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 3
+      targetCPU: 75
+    nextcloud:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: ""
+    meet:
+      backend:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      frontend:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+    docs:
+      backend:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      frontend:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+    bureaublad:
+      backend:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      frontend:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+
+# ── pod disruption budgets ──────────────────────────────────────────────────
+# The default environment already creates sensible PDBs; production explicitly
+# pins the user-facing apps (the ones scaled to minReplicas: 2 above) to keep at
+# least one pod available during node drains. Apps not listed inherit default.
+pdb:
+  keycloak:
+    create: true
+    minAvailable: 1
+  grist:
+    create: true
+    minAvailable: 1
+  nextcloud:
+    create: true
+    maxUnavailable: 1
+  meet:
+    backend:
+      create: true
+      maxUnavailable: 1
+    frontend:
+      create: true
+      maxUnavailable: 1
+  docs:
+    backend:
+      create: true
+      maxUnavailable: 1
+    frontend:
+      create: true
+      maxUnavailable: 1
+  bureaublad:
+    backend:
+      create: true
+      maxUnavailable: 1
+    frontend:
+      create: true
+      maxUnavailable: 1
