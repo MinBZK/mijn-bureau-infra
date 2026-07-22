@@ -1,7 +1,7 @@
 application:
   # grist is a modern spreadsheet application
   grist:
-    enabled: true
+    enabled: false
     namespace: ~
     defaultLocale: ~
     sessionSecret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "grist" "sessionSecret" | sha1sum | quote }}
@@ -43,7 +43,7 @@ application:
 
   # nextcloud is a self hosted file sharing platform
   nextcloud:
-    enabled: true
+    enabled: false
     namespace: ~
     defaultQuota: "10 GB"
     # Maximum file upload size. Applied at both the nginx-ingress
@@ -78,7 +78,7 @@ application:
 
   # conversations is an prototype AI assistant from LaSuite
   conversations:
-    enabled: false
+    enabled: true
     namespace: ~
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "conversations" "secretkey" | sha1sum | quote }}
 
@@ -106,7 +106,7 @@ application:
 
   # drive is a document management system from LaSuite
   drive:
-    enabled: false
+    enabled: true
     namespace: ~
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secretkey" | sha1sum | quote }}
     secrettoServerKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secrettoServerKey" | sha1sum | quote }}
