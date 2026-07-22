@@ -147,3 +147,11 @@ container:
   nginx:
     registry: ""
     imagePullSecret: ""
+
+  conversations_backend:
+    registry: ""
+    imagePullSecret: ""
+
+  conversations_frontend:
+    registry: ""
+    imagePullSecret: ""
