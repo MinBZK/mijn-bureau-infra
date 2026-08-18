@@ -169,6 +169,7 @@ externalRedis:
   host: {{ .Values.cache.grist.host | quote }}
   port: {{ .Values.cache.grist.port | quote }}
   password: {{ .Values.cache.grist.password | quote }}
+  username: {{ dig "username" "default" .Values.cache.grist | quote }}
 
 externalMinio:
   endpoint: {{ .Values.objectstore.grist.endpoint | quote }}

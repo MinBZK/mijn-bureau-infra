@@ -123,10 +123,12 @@ allowAutomaticVersionChecking: false
 ## @param externalRedis.host Redis hostname
 ## @param externalRedis.port Redis port
 ## @param externalRedis.password Redis password
+## @param externalRedis.username Redis ACL username (defaults to "default")
 externalRedis:
   host: ""
   port: ""
   password: ""
+  username: "default"
 
 ## Minio
 ## @param externalMinio.endpoint MinIO endpoint

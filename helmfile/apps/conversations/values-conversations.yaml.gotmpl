@@ -87,6 +87,7 @@ externalRedis:
   host: {{ .Values.cache.conversations.host | quote }}
   port: {{ .Values.cache.conversations.port | quote }}
   password: {{ .Values.cache.conversations.password | quote }}
+  username: {{ dig "username" "default" .Values.cache.conversations | quote }}
 
 externalDatabase:
   database: {{ .Values.database.conversations.name | quote }}

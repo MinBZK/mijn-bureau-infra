@@ -164,6 +164,7 @@ externalRedis:
   host: {{ .Values.cache.meet.host | quote }}
   port: {{ .Values.cache.meet.port | quote }}
   password: {{ .Values.cache.meet.password | quote }}
+  username: {{ dig "username" "default" .Values.cache.meet | quote }}
 
 externalDatabase:
   database: {{ .Values.database.meet.name | quote }}

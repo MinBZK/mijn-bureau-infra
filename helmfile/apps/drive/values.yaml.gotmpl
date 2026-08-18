@@ -164,6 +164,7 @@ externalRedis:
   host: {{ .Values.cache.drive.host | quote }}
   port: {{ .Values.cache.drive.port | quote }}
   password: {{ .Values.cache.drive.password | quote }}
+  username: {{ dig "username" "default" .Values.cache.drive | quote }}
 
 externalMinio:
   endpoint: {{ .Values.objectstore.drive.endpoint | quote }}
