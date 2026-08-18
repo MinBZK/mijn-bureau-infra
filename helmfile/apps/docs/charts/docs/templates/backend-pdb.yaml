@@ -25,4 +25,5 @@ spec:
   selector:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
       app.kubernetes.io/component: backend
+      app.kubernetes.io/workload-type: deployment
 {{- end }}
