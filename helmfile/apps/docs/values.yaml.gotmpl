@@ -8,9 +8,17 @@ global:
   security:
     allowInsecureImages: true
 
-  {{- with (coalesce .Values.container.docs.imagePullSecret .Values.container.default.imagePullSecret) }}
+  {{- /* One pull secret per source registry: docspec ships from a different registry
+       than the docs images, so on clusters with per-registry pull secrets it needs
+       its own entry. The kubelet simply tries every listed secret. */}}
+  {{- $pullSecrets := compact (uniq (list
+        (coalesce .Values.container.docs.imagePullSecret .Values.container.default.imagePullSecret)
+        (coalesce .Values.container.docspec.imagePullSecret .Values.container.default.imagePullSecret))) }}
+  {{- with $pullSecrets }}
   imagePullSecrets:
+    {{- range . }}
     - name: {{ . | quote }}
+    {{- end }}
   {{- end }}
 
 commonLabels:
