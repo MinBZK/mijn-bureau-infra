@@ -1,4 +1,6 @@
-{{- $releaseId := now | unixEpoch }}
+{{- /* Tag-derived instead of `now`: a timestamp changes every render, which keeps
+     GitOps tools permanently out of sync and re-runs the backend jobs on every sync. */}}
+{{- $releaseId := regexReplaceAll "[^a-z0-9]+" (.Values.container.docs.backend.tag | lower) "-" | trimAll "-" }}
 {{- $hostname := printf "%s.%s" .Values.global.hostname.docs .Values.global.domain }}
 {{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
 {{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
