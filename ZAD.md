@@ -19,10 +19,12 @@ the individual patches go upstream as separate pull requests (see
 | Managed Redis with the `default` ACL user disabled; a named ACL user is required | Every Redis URL is hardcoded to `redis://default:…` |
 | Managed PostgreSQL that does not hand out the `postgres` superuser role | The docs migration jobs connect as `postgres` |
 | Nodes get drained during cluster migration | The docs backend PDB also selects Job pods, so eviction is refused forever |
+| Pull secrets scoped per registry | A single pull secret is assumed to cover every docs image, docspec included |
+| Releases are reconciled by ArgoCD | The docs job names carry a fresh timestamp on every render |
 
 ## What is on this branch
 
-Three commits on top of `origin/main`.
+Five commits on top of `origin/main`.
 
 ### 1. Configurable Redis ACL username
 
@@ -85,11 +87,51 @@ bureaublad give their jobs a distinct `component` label.
 > them, and until then the PDB matches zero pods. Roll out first, let the
 > rollout finish, then drain.
 
+### 4. Own image pull secret for docspec
+
+`🐛(docs) give docspec its own image pull secret`
+
+The docspec image ships from `ghcr.io` while the other docs images come from
+their own registry, but `global.imagePullSecrets` rendered a single secret
+via `coalesce(docs, default)`. On a cluster where pull secrets are scoped per
+registry — a per-registry proxy cache, for instance — the docspec pods fail
+to pull with an auth error while every other pod starts fine.
+
+`global.imagePullSecrets` is now a deduplicated list of the docs and docspec
+secrets, each falling back to `container.default.imagePullSecret`:
+
+```yaml
+container:
+  docspec:
+    imagePullSecret: "ghcr-pull"   # omit to keep the docs/default secret
+```
+
+The kubelet simply tries every listed secret, so listing both is harmless.
+
+### 5. Stable job release suffix
+
+`🐛(docs) derive the job release suffix from the backend tag`
+
+The docs job names were suffixed with `now | unixEpoch`, which made every
+render unique. Under ArgoCD that means the application never reaches Synced
+and the `migrate` and `createsuperuser` jobs re-run on **every** sync.
+
+The suffix is now derived from `container.docs.backend.tag`, so jobs get a
+fresh name exactly when the version changes. Re-applying a changed job spec
+under the same name is already covered by the jobs' `Replace=true,Force=true`
+sync options.
+
+Unlike the other four, this patch is not opt-in: it changes the rendered job
+names for every environment. That is deliberate — a timestamped name is
+unusable under GitOps — but it is the one place where this branch diverges
+from `main` without a key to turn it off.
+
 ## Guarantee: a no-op without the new keys
 
-All three patches are written so that an environment setting none of the new
-keys renders byte-identical manifests to plain `origin/main` — the only
-intended difference being the `workload-type` labels.
+Patches 1, 2 and 4 are written so that an environment setting none of the new
+keys renders byte-identical manifests to plain `origin/main`. Patches 3 and 5
+change output unconditionally, by design: the `workload-type` labels and the
+job name suffix.
 
 Verified by rendering both revisions and diffing:
 
@@ -99,7 +141,8 @@ git worktree add --detach /tmp/wt-main origin/main
 for app in docs drive meet conversations bureaublad; do
   (cd /tmp/wt-main && helmfile -e demo template --selector name=$app > /tmp/main-$app.yaml)
   helmfile -e demo template --selector name=$app > /tmp/new-$app.yaml
-  diff /tmp/main-$app.yaml /tmp/new-$app.yaml   # ignore the job releaseSuffix timestamp
+  diff /tmp/main-$app.yaml /tmp/new-$app.yaml   # expect only workload-type labels
+                                               # and the docs job name suffix
 done
 git worktree remove /tmp/wt-main
 ```
@@ -108,7 +151,7 @@ Re-run this after every rebase.
 
 ## Keeping the branch current
 
-**Prefer re-applying over rebasing.** The patches are small (19 files, ~27
+**Prefer re-applying over rebasing.** The patches are small (19 files, ~39
 added lines) and touch code that upstream refactors regularly. Upstream
 PR #625 moved credentials from ConfigMaps into a per-app `secret.yaml`,
 which rewrote most of the lines this branch patches — resolving those
@@ -118,7 +161,7 @@ conflicts took longer than redoing the work.
 git tag parked/zad-compatible-$(date +%F) zad-compatible
 git format-patch origin/main..zad-compatible -o ../parked-patches/
 git switch -c zad-compatible-next origin/main
-# re-apply the three changes, then diff against the parked patches
+# re-apply the five changes, then diff against the parked patches
 ```
 
 Useful check for whether upstream has drifted:
@@ -126,6 +169,7 @@ Useful check for whether upstream has drifted:
 ```bash
 git grep -n "redis://default:" -- helmfile/
 git grep -n 'DB_USER: "postgres"' -- helmfile/
+git grep -n "now | unixEpoch" -- helmfile/
 ```
 
 Both should return nothing on this branch.
@@ -137,6 +181,8 @@ Both should return nothing on this branch.
 | Redis ACL username | No PR has ever been opened |
 | Docs DB admin user | No PR has ever been opened |
 | PDB workload-type label | PR #377 closed unmerged, January 2026 |
+| Docspec image pull secret | No PR has ever been opened |
+| Stable job release suffix | No PR has ever been opened |
 
 Getting these merged upstream is the only way to retire this branch. Until
 then every docs version bump requires re-applying the patches.
