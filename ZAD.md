@@ -26,7 +26,7 @@ the individual patches go upstream as separate pull requests (see
 
 ## What is on this branch
 
-Seven commits on top of `origin/main`.
+Eight commits on top of `origin/main`.
 
 ### 1. Configurable Redis ACL username
 
@@ -233,10 +233,47 @@ This is the one patch here that is genuinely upstreamable — it is opt-in and
 renders nothing when the key is unset. Grist and openproject hardcode their own
 `extraEnvVars` and would be unaffected.
 
+### 8. Overridable `FRONTEND_JS_URL`
+
+`✨(docs) allow FRONTEND_JS_URL to be overridden per deployment`
+
+Upstream hardcodes a back-to-bureaublad button into every docs deployment:
+
+```gotmpl
+FRONTEND_JS_URL: "https://static-{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/bureaublad-button.js"
+```
+
+A deployment that does not run bureaublad gets a button pointing at a host that
+does not exist. The obvious workaround -- setting the name again through
+`backend.extraEnvVars` -- is a trap: it adds a *second* `FRONTEND_JS_URL` entry.
+Kubernetes takes the last one and the app behaves, but ArgoCD cannot build a
+strategic merge patch for a list with duplicate names, and the whole
+application goes `OutOfSync` with
+
+```
+The order in patch list ... doesn't match $setElementOrder list
+```
+
+So the value is made overridable in place instead:
+
+```yaml
+application:
+  docs:
+    frontend:
+      jsUrl: ""      # omit to keep the bureaublad button
+```
+
+Read with `dig "jsUrl" <the upstream URL> .Values.application.docs.frontend`,
+so an environment that does not set it renders exactly as before.
+
+**General rule for this chart:** never re-declare an env name that
+`values.yaml.gotmpl` already sets. Make the value overridable at its source.
+`extraEnvVars` is only for names the chart does not set itself.
+
 ## Guarantee: a no-op without the new keys
 
-Patches 1, 2, 4 and 7 are written so that an environment setting none of the new
-keys renders byte-identical manifests to plain `origin/main`. Patches 3, 5 and 6
+Patches 1, 2, 4, 7 and 8 are written so that an environment setting none of the
+new keys renders byte-identical manifests to plain `origin/main`. Patches 3, 5 and 6
 change output unconditionally, by design: the `workload-type` labels, the job
 name suffix, and the OpenShift securityContext adaptation.
 
@@ -294,7 +331,7 @@ conflicts took longer than redoing the work.
 git tag parked/zad-compatible-$(date +%F) zad-compatible
 git format-patch origin/main..zad-compatible -o ../parked-patches/
 git switch -c zad-compatible-next origin/main
-# re-apply the seven changes, then diff against the parked patches
+# re-apply the eight changes, then diff against the parked patches
 ```
 
 Useful check for whether upstream has drifted:
@@ -323,6 +360,7 @@ git grep -n "security.openshift.io/v1" -- helmfile/apps/docs/helmfile-child.yaml
 | Stable job release suffix | No PR has ever been opened |
 | OpenShift API declaration | Not upstreamable as it stands (see patch 6) |
 | `backend.extraEnvVars` passthrough | Upstreamable as is; no PR opened yet |
+| Overridable `FRONTEND_JS_URL` | Upstreamable as is; no PR opened yet |
 
 Getting these merged upstream is the only way to retire this branch. Until
 then every docs version bump requires re-applying the patches.

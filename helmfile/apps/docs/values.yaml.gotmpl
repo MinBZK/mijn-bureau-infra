@@ -144,7 +144,11 @@ backend:
     CRISP_WEBSITE_ID: ""
     DOCUMENT_IMAGE_MAX_SIZE: "10485760"
     FRONTEND_CSS_URL: "https://static-{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/iframe-hide.css"
-    FRONTEND_JS_URL: "https://static-{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/bureaublad-button.js"
+    {{- /* Overridable so a deployment without bureaublad can switch the back-button
+         off with application.docs.frontend.jsUrl: "". Overriding it through
+         backend.extraEnvVars instead would add a second FRONTEND_JS_URL entry,
+         which ArgoCD cannot diff. Unset renders exactly as before. */}}
+    FRONTEND_JS_URL: {{ dig "jsUrl" (printf "https://static-%s.%s/bureaublad-button.js" .Values.global.hostname.docs .Values.global.domain) (.Values.application.docs.frontend | default dict) | quote }}
     FRONTEND_HOMEPAGE_FEATURE_ENABLED: "false"
     FRONTEND_THEME: ""
     DB_ENGINE: {{ .Values.database.docs.engine | quote}}
