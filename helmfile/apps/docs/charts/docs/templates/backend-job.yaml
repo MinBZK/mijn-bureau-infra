@@ -4,6 +4,16 @@ SPDX-License-Identifier: APACHE-2.0
 */}}
 {{- $envVars := include "docs.common.env" (list . .Values.backend) -}}
 
+{{- /* The migrate job appends DB_USER/DB_PASSWORD from migrateDbCredentials below.
+     Those two names are already in the common env, so appending them produced two
+     entries with the same name. Kubernetes takes the last one, but ArgoCD cannot
+     diff such a list -- the Job stayed permanently OutOfSync and, with
+     Replace=true and selfHeal, was re-created in a loop. Render the migrate job
+     from a scope with both keys dropped so each name appears exactly once. */}}
+{{- $migrateScope := deepCopy .Values.backend -}}
+{{- $_ := set $migrateScope "envVars" (omit .Values.backend.envVars "DB_USER" "DB_PASSWORD") -}}
+{{- $migrateEnvVars := include "docs.common.env" (list . $migrateScope) -}}
+
 {{- range $job, $config := $.Values.backend.jobs.jobs }}
 {{- if $config.command }}
 ---
@@ -76,8 +86,12 @@ spec:
           args: {{- include "common.tplvalues.render" (dict "value" $.Values.backend.args "context" $) | nindent 12 }}
           {{- end }}
           env:
-            {{- if $envVars }}
-            {{- $envVars | indent 12 }}
+            {{- $jobEnvVars := $envVars }}
+            {{- if and (eq $config.name "migrate") $.Values.backend.migrateDbCredentials }}
+            {{- $jobEnvVars = $migrateEnvVars }}
+            {{- end }}
+            {{- if $jobEnvVars }}
+            {{- $jobEnvVars | indent 12 }}
             {{- end }}
             {{- if and (eq $config.name "migrate") $.Values.backend.migrateDbCredentials }}
             {{- if kindIs "string" $.Values.backend.migrateDbCredentials.DB_PASSWORD }}

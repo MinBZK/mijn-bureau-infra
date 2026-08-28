@@ -65,6 +65,15 @@ database:
 Docs v5.2.0 changed migration 0027 so it no longer requires a superuser
 role, which is what makes a plain owner account sufficient.
 
+> **The credentials replace, they do not append.** `DB_USER` and `DB_PASSWORD`
+> are already in the common env, so appending the admin pair produced two
+> entries with the same name. Kubernetes takes the last one and the job runs
+> fine, but ArgoCD cannot build a strategic merge patch for a list with
+> duplicate names: the Job stays `OutOfSync` forever and, with `Replace=true`
+> and `selfHeal`, is re-created in a loop every reconcile. The migrate job is
+> therefore rendered from a scope with both keys dropped, so each name appears
+> exactly once. Watch for this whenever a value is added to a job's env.
+
 ### 3. Backend PDB no longer selects Job pods
 
 `🐛(docs) stop the backend PDB from selecting job pods`
