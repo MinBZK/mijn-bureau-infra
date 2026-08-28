@@ -43,6 +43,12 @@ backend:
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.docs.backend | toYaml | nindent 6 }}
     vpa: {{ .Values.autoscaling.vertical.docs.backend | toYaml | nindent 6 }}
+  {{- /* The chart renders backend.extraEnvVars after the generated env list, so a
+       duplicate name here overrides the generated value. Nothing is emitted when
+       the key is unset. */}}
+  {{- with dig "backend" "extraEnvVars" list .Values }}
+  extraEnvVars: {{ toYaml . | nindent 4 }}
+  {{- end }}
   networkPolicy:
     extraEgress:
       # Database connectivity

@@ -22,10 +22,11 @@ the individual patches go upstream as separate pull requests (see
 | Pull secrets scoped per registry | A single pull secret is assumed to cover every docs image, docspec included |
 | Releases are reconciled by ArgoCD | The docs job names carry a fresh timestamp on every render |
 | ArgoCD renders offline with `helmfile template`, so `.Capabilities` is empty | OpenShift is detected at install time from the live cluster |
+| Deployments set extra env vars through their own values | The docs app has no route from a values key to `backend.extraEnvVars` |
 
 ## What is on this branch
 
-Six commits on top of `origin/main`.
+Seven commits on top of `origin/main`.
 
 ### 1. Configurable Redis ACL username
 
@@ -182,9 +183,50 @@ adaptation behave as it does during a live install.
 > upstream as it stands — upstream would need the API list to come from an
 > environment value.
 
+### 7. Pass `backend.extraEnvVars` through to the docs chart
+
+`✨(docs) pass backend.extraEnvVars through to the chart`
+
+The docs chart supports `backend.extraEnvVars` and renders it *after* the
+generated env list (`backend-deployment.yaml:106`), so a duplicate name there
+overrides a generated value. But `helmfile/apps/docs/values.yaml.gotmpl` never
+populated it, so the key was unreachable.
+
+This is easy to get wrong, because the same key name exists at two layers. A
+deployment's `helm-values` are handed to helmfile as `--state-values-file`,
+which makes them **helmfile template values** (`.Values.*` inside a `.gotmpl`),
+not helm chart values. Every key has to be forwarded by hand in
+`values.yaml.gotmpl`; anything that is not simply evaporates, with no warning.
+A deployment that set
+
+```yaml
+backend:
+  extraEnvVars:
+    - name: FRONTEND_SILENT_LOGIN_ENABLED
+      value: "true"
+```
+
+got no error and no env var.
+
+The patch forwards the key, defaulting to an empty list:
+
+```gotmpl
+{{- with dig "backend" "extraEnvVars" list .Values }}
+extraEnvVars: {{ toYaml . | nindent 4 }}
+{{- end }}
+```
+
+Note `dig` on `.Values` root rather than `.Values.backend`: helmfile renders
+values files with `missingkey=error`, so touching an absent top-level key is a
+hard failure for every environment that does not set it.
+
+This is the one patch here that is genuinely upstreamable — it is opt-in and
+renders nothing when the key is unset. Grist and openproject hardcode their own
+`extraEnvVars` and would be unaffected.
+
 ## Guarantee: a no-op without the new keys
 
-Patches 1, 2 and 4 are written so that an environment setting none of the new
+Patches 1, 2, 4 and 7 are written so that an environment setting none of the new
 keys renders byte-identical manifests to plain `origin/main`. Patches 3, 5 and 6
 change output unconditionally, by design: the `workload-type` labels, the job
 name suffix, and the OpenShift securityContext adaptation.
@@ -243,7 +285,7 @@ conflicts took longer than redoing the work.
 git tag parked/zad-compatible-$(date +%F) zad-compatible
 git format-patch origin/main..zad-compatible -o ../parked-patches/
 git switch -c zad-compatible-next origin/main
-# re-apply the six changes, then diff against the parked patches
+# re-apply the seven changes, then diff against the parked patches
 ```
 
 Useful check for whether upstream has drifted:
@@ -271,6 +313,7 @@ git grep -n "security.openshift.io/v1" -- helmfile/apps/docs/helmfile-child.yaml
 | Docspec image pull secret | No PR has ever been opened |
 | Stable job release suffix | No PR has ever been opened |
 | OpenShift API declaration | Not upstreamable as it stands (see patch 6) |
+| `backend.extraEnvVars` passthrough | Upstreamable as is; no PR opened yet |
 
 Getting these merged upstream is the only way to retire this branch. Until
 then every docs version bump requires re-applying the patches.
