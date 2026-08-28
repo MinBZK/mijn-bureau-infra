@@ -301,7 +301,7 @@ This is the third instance of the same assumption biting a bureaublad-less
 deployment, after the back button (patch 8) and this one. When something in the
 docs UI is missing, check `values-static-nginx.yaml.gotmpl` first.
 
-### 10. Point Django at the mounted theme customization file
+### 10. Make the theme customization actually load
 
 `🐛(docs) wire THEME_CUSTOMIZATION_FILE_PATH to the mounted file`
 
@@ -322,11 +322,29 @@ has had to repair that looked configured but never arrived, after
 `backend.extraEnvVars`, `application.docs.yProvider.apiKey` and the
 `security.default` nulls.
 
-> **Not yet confirmed to be the header logo fix.** The docs header renders the
-> product name as `sr-only` and omits `<img data-testid="header-icon-docs">`
-> entirely. Nothing in this repo does that — the only rule touching
-> `header-logo-link` is the CSS in patch 9 — so it comes from the frontend
-> bundle. Whether a working theme customization changes it is untested.
+Two more things had to be true before the theme actually worked, both found by
+reading `LeftPanelHeader.tsx` upstream:
+
+```tsx
+{icon && (<Image data-testid="header-icon-docs" ... />)}
+<Title headingLevel="h1" className={icon?.withTitle ? undefined : 'sr-only'} />
+```
+
+`const icon = config?.theme_customization?.header?.icon`. Our theme only had a
+**footer** logo, so `icon` was undefined: no `<img>` at all, and `sr-only` on
+the title. That is the missing docs logo, and it is configuration, not CSS.
+A `header.icon` block was added, matching upstream's `demo.json`.
+
+And the chart renders the file with
+
+```gotmpl
+{{ .Values.backend.themeCustomization.fileContent | toJson }}
+```
+
+`toJson` expects a YAML mapping. This repo passed a JSON string in a `|` block
+scalar, so it was encoded a second time and the file on disk held a JSON
+*string* rather than an object — unusable even with the path set. `fileContent`
+is now a real YAML mapping.
 
 ## Guarantee: a no-op without the new keys
 
