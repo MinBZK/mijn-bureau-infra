@@ -1,3 +1,12 @@
+{{- /* ZAD: ArgoCD renders this with "helmfile template" and no cluster
+     connection, so .Capabilities is empty and the bitnami-common chart's
+     upstream "adaptSecurityContext: auto" never detects OpenShift. The result
+     is a hardcoded runAsUser/runAsGroup/fsGroup 1001, which the restricted-v2
+     SCC rejects. Declaring the API explicitly makes the upstream
+     auto-detection fire as it does during a live helm install. */}}
+apiVersions:
+  - security.openshift.io/v1
+
 bases:
   - "../../bases/default.yaml.gotmpl"
 

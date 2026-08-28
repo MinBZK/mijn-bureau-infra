@@ -21,10 +21,11 @@ the individual patches go upstream as separate pull requests (see
 | Nodes get drained during cluster migration | The docs backend PDB also selects Job pods, so eviction is refused forever |
 | Pull secrets scoped per registry | A single pull secret is assumed to cover every docs image, docspec included |
 | Releases are reconciled by ArgoCD | The docs job names carry a fresh timestamp on every render |
+| ArgoCD renders offline with `helmfile template`, so `.Capabilities` is empty | OpenShift is detected at install time from the live cluster |
 
 ## What is on this branch
 
-Five commits on top of `origin/main`.
+Six commits on top of `origin/main`.
 
 ### 1. Configurable Redis ACL username
 
@@ -126,12 +127,67 @@ names for every environment. That is deliberate — a timestamped name is
 unusable under GitOps — but it is the one place where this branch diverges
 from `main` without a key to turn it off.
 
+### 6. Declare the OpenShift API so the upstream SCC adaptation fires
+
+`🐛(docs) declare the openshift API so securityContext adaptation fires`
+
+Every values file in the repo asks the bitnami-common chart to adapt the
+securityContext for OpenShift the same way:
+
+```yaml
+global:
+  compatibility:
+    openshift:
+      adaptSecurityContext: auto
+```
+
+`auto` resolves through `common.compatibility.isOpenshift`, which is a live
+cluster lookup:
+
+```gotmpl
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1" -}}
+```
+
+During `helm install` / `helmfile apply` against an OpenShift cluster that is
+populated from the API server, `auto` fires, and `runAsUser`, `runAsGroup` and
+`fsGroup` are stripped so the restricted-v2 SCC can assign its own IDs. That is
+how upstream runs on OpenShift, and why upstream needs no OpenShift-specific
+values at all.
+
+**ArgoCD renders offline.** The rig-cluster CMP plugin runs
+
+```sh
+helmfile --file "$helmfile_name" $helmfile_args template --include-crds
+```
+
+with no cluster connection, so `.Capabilities` is empty, `auto` never fires, and
+the `runAsUser: 1001` / `fsGroup: 1001` defaults from
+`helmfile/environments/default/security.yaml.gotmpl` end up in the manifests.
+The restricted-v2 SCC then refuses the pods.
+
+The fix declares the API in `helmfile/apps/docs/helmfile-child.yaml.gotmpl`:
+
+```yaml
+apiVersions:
+  - security.openshift.io/v1
+```
+
+`security.openshift.io/v1` is referenced in exactly one place in the whole
+chart tree (`common.compatibility.isOpenshift`, which only feeds
+`renderSecurityContext`), so this has no other effect than making the upstream
+adaptation behave as it does during a live install.
+
+> **This makes every render of the docs app behave as OpenShift**, `kind` and
+> `demo` included. That is intentional for ZAD but is why the patch cannot go
+> upstream as it stands — upstream would need the API list to come from an
+> environment value.
+
 ## Guarantee: a no-op without the new keys
 
 Patches 1, 2 and 4 are written so that an environment setting none of the new
-keys renders byte-identical manifests to plain `origin/main`. Patches 3 and 5
-change output unconditionally, by design: the `workload-type` labels and the
-job name suffix.
+keys renders byte-identical manifests to plain `origin/main`. Patches 3, 5 and 6
+change output unconditionally, by design: the `workload-type` labels, the job
+name suffix, and the OpenShift securityContext adaptation.
 
 Verified by rendering both revisions and diffing:
 
@@ -141,13 +197,39 @@ git worktree add --detach /tmp/wt-main origin/main
 for app in docs drive meet conversations bureaublad; do
   (cd /tmp/wt-main && helmfile -e demo template --selector name=$app > /tmp/main-$app.yaml)
   helmfile -e demo template --selector name=$app > /tmp/new-$app.yaml
-  diff /tmp/main-$app.yaml /tmp/new-$app.yaml   # expect only workload-type labels
-                                               # and the docs job name suffix
+  diff /tmp/main-$app.yaml /tmp/new-$app.yaml   # expect only workload-type labels,
+                                               # the docs job name suffix, and for
+                                               # docs the dropped runAsUser /
+                                               # runAsGroup / fsGroup
 done
 git worktree remove /tmp/wt-main
 ```
 
 Re-run this after every rebase.
+
+## Gotcha: `null` no longer deletes a value
+
+Upstream `fad9945` (PR #667, July 2026) changed
+`helmfile/bases/environment.yaml.gotmpl` so that **every** environment now also
+loads `helmfile/environments/default/*.yaml*`. Previously `default` and
+`production` were empty at the environment level and the defaults only entered
+through each app's own child helmfile.
+
+The consequence is easy to miss: those defaults are now part of `.Values`, and
+a `null` in the project's `--state-values-file` no longer deletes them — the
+helmfile state merge treats null as "absent, do not override". A deployment
+that switched something off with
+
+```yaml
+security:
+  default:
+    containerSecurityContext:
+      runAsUser: null      # used to remove the key entirely
+```
+
+silently gets the upstream default back. This is exactly what patch 6 works
+around; check any other `null`/`~` override in a deployment's values before
+trusting it.
 
 ## Keeping the branch current
 
@@ -161,7 +243,7 @@ conflicts took longer than redoing the work.
 git tag parked/zad-compatible-$(date +%F) zad-compatible
 git format-patch origin/main..zad-compatible -o ../parked-patches/
 git switch -c zad-compatible-next origin/main
-# re-apply the five changes, then diff against the parked patches
+# re-apply the six changes, then diff against the parked patches
 ```
 
 Useful check for whether upstream has drifted:
@@ -172,7 +254,12 @@ git grep -n 'DB_USER: "postgres"' -- helmfile/
 git grep -n "now | unixEpoch" -- helmfile/
 ```
 
-Both should return nothing on this branch.
+All three should return nothing on this branch. For patch 6, the check is the
+other way round — this must return a hit:
+
+```bash
+git grep -n "security.openshift.io/v1" -- helmfile/apps/docs/helmfile-child.yaml.gotmpl
+```
 
 ## Upstream status
 
@@ -183,6 +270,7 @@ Both should return nothing on this branch.
 | PDB workload-type label | PR #377 closed unmerged, January 2026 |
 | Docspec image pull secret | No PR has ever been opened |
 | Stable job release suffix | No PR has ever been opened |
+| OpenShift API declaration | Not upstreamable as it stands (see patch 6) |
 
 Getting these merged upstream is the only way to retire this branch. Until
 then every docs version bump requires re-applying the patches.
