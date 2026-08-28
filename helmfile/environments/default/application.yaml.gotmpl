@@ -94,6 +94,10 @@ application:
     frontend:
       # When the GPLv3 is acceptable, this can be set to true. See https://github.com/suitenumerique/docs/blob/main/docs/env.md#impress-frontend-image
       publishAsMit: false
+      # Docs runs embedded underneath bureaublad, which supplies the logo and the
+      # logout button, so the injected CSS hides both. Set to false when
+      # bureaublad is not deployed, otherwise there is no way to log out.
+      embedded: true
     yProvider:
       key: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "yProviderKey" | sha1sum | quote }}
 

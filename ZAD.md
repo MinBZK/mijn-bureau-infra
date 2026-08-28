@@ -26,7 +26,7 @@ the individual patches go upstream as separate pull requests (see
 
 ## What is on this branch
 
-Eight commits on top of `origin/main`.
+Nine commits on top of `origin/main`.
 
 ### 1. Configurable Redis ACL username
 
@@ -270,10 +270,41 @@ so an environment that does not set it renders exactly as before.
 `values.yaml.gotmpl` already sets. Make the value overridable at its source.
 `extraEnvVars` is only for names the chart does not set itself.
 
+### 9. Keep the logo and logout button without bureaublad
+
+`✨(docs) make the bureaublad shell chrome optional`
+
+The chart injects an `iframe-hide.css` that removes the docs logo, the logout
+button, and the margin that closes the gap the logo leaves behind. The comments
+in it say why: *"users log out via bureaublad"*, *"shown via bureaublad"*. Docs
+is assumed to run embedded underneath bureaublad, which supplies that chrome.
+
+A deployment without bureaublad has no shell to fall back on, so it loses the
+only way to log out. The same file also sets the Rijksoverheid brand colours and
+loads Inter, which such a deployment does still want, so switching the whole
+stylesheet off is the wrong lever.
+
+The three hiding rules are therefore gated:
+
+```yaml
+application:
+  docs:
+    frontend:
+      embedded: false    # default true: assume bureaublad supplies the chrome
+```
+
+Branding is emitted either way. Verified by rendering both: with the flag unset
+the ConfigMap is unchanged; with `embedded: false` only the three rules
+disappear and `#154273` and Inter stay.
+
+This is the third instance of the same assumption biting a bureaublad-less
+deployment, after the back button (patch 8) and this one. When something in the
+docs UI is missing, check `values-static-nginx.yaml.gotmpl` first.
+
 ## Guarantee: a no-op without the new keys
 
-Patches 1, 2, 4, 7 and 8 are written so that an environment setting none of the
-new keys renders byte-identical manifests to plain `origin/main`. Patches 3, 5 and 6
+Patches 1, 2, 4, 7, 8 and 9 are written so that an environment setting none of
+the new keys renders byte-identical manifests to plain `origin/main`. Patches 3, 5 and 6
 change output unconditionally, by design: the `workload-type` labels, the job
 name suffix, and the OpenShift securityContext adaptation.
 
@@ -331,7 +362,7 @@ conflicts took longer than redoing the work.
 git tag parked/zad-compatible-$(date +%F) zad-compatible
 git format-patch origin/main..zad-compatible -o ../parked-patches/
 git switch -c zad-compatible-next origin/main
-# re-apply the eight changes, then diff against the parked patches
+# re-apply the nine changes, then diff against the parked patches
 ```
 
 Useful check for whether upstream has drifted:
@@ -361,6 +392,7 @@ git grep -n "security.openshift.io/v1" -- helmfile/apps/docs/helmfile-child.yaml
 | OpenShift API declaration | Not upstreamable as it stands (see patch 6) |
 | `backend.extraEnvVars` passthrough | Upstreamable as is; no PR opened yet |
 | Overridable `FRONTEND_JS_URL` | Upstreamable as is; no PR opened yet |
+| Optional bureaublad shell chrome | Upstreamable as is; no PR opened yet |
 
 Getting these merged upstream is the only way to retire this branch. Until
 then every docs version bump requires re-applying the patches.

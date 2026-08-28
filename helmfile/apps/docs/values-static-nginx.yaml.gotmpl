@@ -119,6 +119,14 @@ extraDeploy:
           }
         })();
       iframe-hide.css: |
+        {{- /* These three rules strip the chrome that bureaublad provides when docs
+             runs embedded underneath it: the logo, the logout button, and the
+             margin that closes the gap the logo leaves behind. A deployment that
+             does not run bureaublad has no shell to fall back on and loses the
+             only way to log out, so it can keep them with
+             application.docs.frontend.embedded: false. The branding below is
+             emitted either way. */}}
+        {{- if dig "embedded" true (.Values.application.docs.frontend | default dict) }}
         /* Hide logout button - users log out via bureaublad */
         .--docs--button-logout {
           display: none !important;
@@ -133,6 +141,7 @@ extraDeploy:
         .--docs--header-block-right {
           margin-left: auto !important;
         }
+        {{- end }}
 
         /* Use Inter font */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
