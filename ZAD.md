@@ -26,7 +26,7 @@ the individual patches go upstream as separate pull requests (see
 
 ## What is on this branch
 
-Nine commits on top of `origin/main`.
+Ten commits on top of `origin/main`.
 
 ### 1. Configurable Redis ACL username
 
@@ -301,6 +301,33 @@ This is the third instance of the same assumption biting a bureaublad-less
 deployment, after the back button (patch 8) and this one. When something in the
 docs UI is missing, check `values-static-nginx.yaml.gotmpl` first.
 
+### 10. Point Django at the mounted theme customization file
+
+`🐛(docs) wire THEME_CUSTOMIZATION_FILE_PATH to the mounted file`
+
+`backend.themeCustomization` is enabled and mounts `default.json` at the
+chart's documented `mountPath` (`/app/impress/configuration/theme`), but
+`THEME_CUSTOMIZATION_FILE_PATH` was left as `""`. Django therefore never read
+the file and everything under `fileContent` — the *Mijn Bureau Docs* rename,
+the `+` label on the new-doc button, the footer logo and links — silently did
+nothing. Confirmed on the running backend:
+
+```
+THEME_CUSTOMIZATION_FILE_PATH = ''
+bestaat dat pad: False
+```
+
+The setting now points at the mounted file. This is the fourth key this branch
+has had to repair that looked configured but never arrived, after
+`backend.extraEnvVars`, `application.docs.yProvider.apiKey` and the
+`security.default` nulls.
+
+> **Not yet confirmed to be the header logo fix.** The docs header renders the
+> product name as `sr-only` and omits `<img data-testid="header-icon-docs">`
+> entirely. Nothing in this repo does that — the only rule touching
+> `header-logo-link` is the CSS in patch 9 — so it comes from the frontend
+> bundle. Whether a working theme customization changes it is untested.
+
 ## Guarantee: a no-op without the new keys
 
 Patches 1, 2, 4, 7, 8 and 9 are written so that an environment setting none of
@@ -362,7 +389,7 @@ conflicts took longer than redoing the work.
 git tag parked/zad-compatible-$(date +%F) zad-compatible
 git format-patch origin/main..zad-compatible -o ../parked-patches/
 git switch -c zad-compatible-next origin/main
-# re-apply the nine changes, then diff against the parked patches
+# re-apply the ten changes, then diff against the parked patches
 ```
 
 Useful check for whether upstream has drifted:
@@ -393,6 +420,7 @@ git grep -n "security.openshift.io/v1" -- helmfile/apps/docs/helmfile-child.yaml
 | `backend.extraEnvVars` passthrough | Upstreamable as is; no PR opened yet |
 | Overridable `FRONTEND_JS_URL` | Upstreamable as is; no PR opened yet |
 | Optional bureaublad shell chrome | Upstreamable as is; no PR opened yet |
+| Theme customization file path | Upstreamable as is; no PR opened yet |
 
 Getting these merged upstream is the only way to retire this branch. Until
 then every docs version bump requires re-applying the patches.

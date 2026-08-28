@@ -217,7 +217,11 @@ backend:
     SPECTACULAR_SETTINGS_ENABLE_DJANGO_DEPLOY_CHECK: "false"
     STORAGES_STATICFILES_BACKEND: "django.contrib.staticfiles.storage.StaticFilesStorage"
     THEME_CUSTOMIZATION_CACHE_TIMEOUT: "86400"
-    THEME_CUSTOMIZATION_FILE_PATH: ""
+    {{- /* backend.themeCustomization below mounts default.json at the chart's
+         mountPath (/app/impress/configuration/theme), but the setting telling
+         Django where to look was left empty, so the file was never read and the
+         translations under fileContent did nothing. */}}
+    THEME_CUSTOMIZATION_FILE_PATH: "/app/impress/configuration/theme/default.json"
     USER_OIDC_ESSENTIAL_CLAIMS: ""
     Y_PROVIDER_API_BASE_URL: "http://docs-y-provider:443/api/"
     Y_PROVIDER_API_KEY: {{ .Values.application.docs.yProvider.key | quote }}
