@@ -26,7 +26,7 @@ the individual patches go upstream as separate pull requests (see
 
 ## What is on this branch
 
-Ten commits on top of `origin/main`.
+Eleven commits on top of `origin/main`.
 
 ### 1. Configurable Redis ACL username
 
@@ -346,6 +346,27 @@ scalar, so it was encoded a second time and the file on disk held a JSON
 *string* rather than an object — unusable even with the path set. `fileContent`
 is now a real YAML mapping.
 
+### 11. Dutch branding and the untranslated `Leave`
+
+`🌐(docs) add Dutch theme translations`
+
+The theme only overrode the `en` translations, which looked right in English and
+wrong in Dutch. Upstream translates the `Docs` key *to* `"Docs"` for nl, fr and
+de, so with only an `en` override a Dutch user saw the untouched product name
+while an English user saw *Mijn Bureau Docs*. Branding has to be repeated per
+language.
+
+`Leave`, the primary action of the leave-a-document feature, has no Dutch
+translation upstream, so i18next falls back to the English key. `fr` has
+*Quitter* and `es` has *Salir*, which settles the meaning: leaving a document,
+not logging out. Translated as *Verlaten*.
+
+> **The Dutch translation is 33% incomplete upstream**: 144 of 437 keys are
+> missing, against 0 for French. *Add comment* and *Cancel leaving the document*
+> are among them. Patching them through theme customization does not scale —
+> `Leave` is fixed here only because it is a primary action. The rest belongs
+> upstream.
+
 ## Guarantee: a no-op without the new keys
 
 Patches 1, 2, 4, 7, 8 and 9 are written so that an environment setting none of
@@ -407,7 +428,7 @@ conflicts took longer than redoing the work.
 git tag parked/zad-compatible-$(date +%F) zad-compatible
 git format-patch origin/main..zad-compatible -o ../parked-patches/
 git switch -c zad-compatible-next origin/main
-# re-apply the ten changes, then diff against the parked patches
+# re-apply the eleven changes, then diff against the parked patches
 ```
 
 Useful check for whether upstream has drifted:

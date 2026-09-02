@@ -232,10 +232,23 @@ backend:
          a string instead of an object. */}}
     fileContent:
       translations:
+        {{- /* The branding has to be repeated per language: upstream translates the
+             "Docs" key to "Docs" in nl/fr/de, and that wins over an en-only
+             override, so Dutch users saw the untouched product name. */}}
         en:
           translation:
             Docs: Mijn Bureau Docs
-            New doc: +
+            New doc: "+"
+        nl:
+          translation:
+            Docs: Mijn Bureau Docs
+            New doc: "+"
+            # Stopgap: upstream has no Dutch for this key, so i18next falls back to
+            # the English key and the button reads "Leave". fr has "Quitter" and es
+            # has "Salir", so this is leaving a document, not logging out. 144 of
+            # 437 Dutch keys are missing upstream; patching them here does not
+            # scale, this one is only fixed because it is a primary action.
+            Leave: Verlaten
       header:
         icon:
           src: /assets/icon-docs.svg
