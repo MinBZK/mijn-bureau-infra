@@ -59,7 +59,7 @@ releases:
 
   - name: openproject
     chart: openproject/openproject
-    version: "13.8.1"
+    version: "llm-stack-1.0.2"
     condition: application.openproject.enabled
     {{- if .Values.application.openproject.namespace }}
     namespace: {{ .Values.application.openproject.namespace }}
