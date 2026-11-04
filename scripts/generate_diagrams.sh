@@ -31,6 +31,7 @@ namespaces=(
   bureaublad
   drive
   clamav
+  vaultwarden
 )
 
 for ns in "${namespaces[@]}"; do

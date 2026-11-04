@@ -1,0 +1,233 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: vaultwarden
+  {{- if or .Values.vaultwarden.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.vaultwarden.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.vaultwarden.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.vaultwarden.replicaCount }}
+  {{- end }}
+  {{- if .Values.vaultwarden.updateStrategy }}
+  strategy: {{- toYaml .Values.vaultwarden.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.vaultwarden.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: vaultwarden
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.vaultwarden.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: vaultwarden
+    spec:
+      {{- include "vaultwarden.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "vaultwarden.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.vaultwarden.automountServiceAccountToken }}
+      {{- if .Values.vaultwarden.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.vaultwarden.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.vaultwarden.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.vaultwarden.podAffinityPreset "component" "vaultwarden" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.vaultwarden.podAntiAffinityPreset "component" "vaultwarden" "customLabels" $podLabels "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.vaultwarden.nodeAffinityPreset.type "key" .Values.vaultwarden.nodeAffinityPreset.key "values" .Values.vaultwarden.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.vaultwarden.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.vaultwarden.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.vaultwarden.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.vaultwarden.priorityClassName }}
+      priorityClassName: {{ .Values.vaultwarden.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.vaultwarden.schedulerName }}
+      schedulerName: {{ .Values.vaultwarden.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.vaultwarden.runtimeClassName }}
+      runtimeClassName: {{ .Values.vaultwarden.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.vaultwarden.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.vaultwarden.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.vaultwarden.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.vaultwarden.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.vaultwarden.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.vaultwarden.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: vaultwarden
+          image: {{ template "vaultwarden.image" . }}
+          imagePullPolicy: {{ .Values.vaultwarden.image.pullPolicy }}
+          {{- if .Values.vaultwarden.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.vaultwarden.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.vaultwarden.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.vaultwarden.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.args "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: DATA_FOLDER
+              value: {{ .Values.persistence.mountPath | quote }}
+            - name: WEB_VAULT_ENABLED
+              value: "true"
+            - name: ROCKET_PORT
+              value: {{ .Values.vaultwarden.containerPorts.http | quote }}
+            {{- if .Values.vaultwarden.domain }}
+            - name: DOMAIN
+              value: {{ .Values.vaultwarden.domain | quote }}
+            {{- end }}
+            - name: SIGNUPS_ALLOWED
+              value: {{ .Values.vaultwarden.signupsAllowed | quote }}
+            - name: INVITATIONS_ALLOWED
+              value: {{ .Values.vaultwarden.invitationsAllowed | quote }}
+            - name: EMAIL_CHANGE_ALLOWED
+              value: {{ .Values.vaultwarden.emailChangeAllowed | quote }}
+            - name: ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "vaultwarden.secretName" . }}
+                  key: admin-token
+            {{- if .Values.vaultwarden.sso.enabled }}
+            - name: SSO_ENABLED
+              value: "true"
+            - name: SSO_ONLY
+              value: {{ .Values.vaultwarden.sso.only | quote }}
+            - name: SSO_AUTHORITY
+              value: {{ .Values.vaultwarden.sso.authority | quote }}
+            - name: SSO_CLIENT_ID
+              value: {{ .Values.vaultwarden.sso.clientId | quote }}
+            - name: SSO_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "vaultwarden.secretName" . }}
+                  key: sso-client-secret
+            - name: SSO_SCOPES
+              value: {{ .Values.vaultwarden.sso.scopes | quote }}
+            - name: SSO_PKCE
+              value: {{ .Values.vaultwarden.sso.pkce | quote }}
+            - name: SSO_SIGNUPS_ALLOWED
+              value: {{ .Values.vaultwarden.sso.signupsAllowed | quote }}
+            - name: SSO_SIGNUPS_MATCH_EMAIL
+              value: {{ .Values.vaultwarden.sso.signupsMatchEmail | quote }}
+            - name: SSO_ALLOW_UNKNOWN_EMAIL_VERIFICATION
+              value: {{ .Values.vaultwarden.sso.allowUnknownEmailVerification | quote }}
+            - name: SSO_CLIENT_CACHE_EXPIRATION
+              value: {{ .Values.vaultwarden.sso.clientCacheExpiration | quote }}
+            {{- end }}
+            {{- if .Values.database.host }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "vaultwarden.secretName" . }}
+                  key: database-url
+            {{- end }}
+            {{- if .Values.vaultwarden.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          envFrom:
+            {{- if .Values.vaultwarden.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.vaultwarden.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.vaultwarden.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.vaultwarden.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.vaultwarden.resources }}
+          resources: {{- toYaml .Values.vaultwarden.resources | nindent 12 }}
+          {{- else if ne .Values.vaultwarden.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.vaultwarden.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.vaultwarden.containerPorts.http }}
+              protocol: TCP
+            {{- if .Values.vaultwarden.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.vaultwarden.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.vaultwarden.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.vaultwarden.livenessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /alive
+              port: http
+          {{- end }}
+          {{- if .Values.vaultwarden.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.vaultwarden.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.vaultwarden.readinessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /alive
+              port: http
+          {{- end }}
+          {{- if .Values.vaultwarden.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.vaultwarden.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.vaultwarden.startupProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /alive
+              port: http
+          {{- end }}
+          {{- end }}
+          {{- if .Values.vaultwarden.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+              {{- if .Values.persistence.subPath }}
+              subPath: {{ .Values.persistence.subPath }}
+              {{- end }}
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+          {{- if .Values.vaultwarden.extraVolumeMounts }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.extraVolumeMounts "context" $) | nindent 12 }}
+          {{- end }}
+        {{- if .Values.vaultwarden.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.vaultwarden.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: data
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ default (include "common.names.fullname" .) .Values.persistence.existingClaim }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.vaultwarden.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.vaultwarden.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

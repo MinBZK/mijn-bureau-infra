@@ -1,0 +1,520 @@
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+## @section Global parameters
+
+global:
+  ## Global Docker image parameters
+  ## @param global.imageRegistry Global Docker Image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: ""
+  imagePullSecrets: []
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: ""
+  ## Security parameters
+  ## @param global.security.allowInsecureImages Allows skipping image verification
+  ##
+  security:
+    allowInsecureImages: false
+  ## Compatibility adaptations for Kubernetes platforms
+  ##
+  compatibility:
+    openshift:
+      ## @param global.compatibility.openshift.adaptSecurityContext Adapt the securityContext sections of the deployment to make them compatible with Openshift restricted-v2 SCC
+      ##
+      adaptSecurityContext: auto
+    ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
+    ##
+    omitEmptySeLinuxOptions: false
+
+## @section Common parameters
+
+## @param kubeVersion Override Kubernetes version reported by .Capabilities
+##
+kubeVersion: ""
+## @param apiVersions Override Kubernetes API versions reported by .Capabilities
+##
+apiVersions: []
+## @param nameOverride String to partially override common.names.name
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: cluster.local
+## @param extraDeploy Array of extra objects to deploy with the release
+##
+extraDeploy: []
+## Diagnostic mode
+## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
+## @param diagnosticMode.command Command to override all containers in the chart release
+## @param diagnosticMode.args Args to override all containers in the chart release
+##
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section Vaultwarden Parameters
+##
+
+vaultwarden:
+  ## Vaultwarden image
+  ## ref: https://hub.docker.com/r/vaultwarden/server/tags
+  ## @param vaultwarden.image.registry Vaultwarden image registry
+  ## @param vaultwarden.image.repository Vaultwarden image repository
+  ## @param vaultwarden.image.tag Vaultwarden image tag
+  ## @param vaultwarden.image.digest Vaultwarden image digest
+  ## @param vaultwarden.image.pullPolicy Vaultwarden image pull policy
+  ## @param vaultwarden.image.pullSecrets Vaultwarden image pull secrets
+  ## @param vaultwarden.image.debug Enable Vaultwarden image debug mode
+  ##
+  image:
+    registry: docker.io
+    repository: vaultwarden/server
+    tag: "1.37.5"
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+    debug: false
+  ## @param vaultwarden.replicaCount Number of Vaultwarden replicas to deploy
+  ##
+  replicaCount: 1
+  ## @param vaultwarden.containerPorts.http Vaultwarden HTTP container port
+  ##
+  containerPorts:
+    http: 8080
+  ## @param vaultwarden.extraContainerPorts Optionally specify extra list of additional ports for Vaultwarden containers
+  ##
+  extraContainerPorts: []
+  ## @param vaultwarden.adminToken Token used to access the /admin panel. When empty a random token is generated.
+  ##
+  adminToken: ""
+  ## @param vaultwarden.existingSecret Name of an existing secret containing an "admin-token" key
+  ##
+  existingSecret: ""
+  ## @param vaultwarden.domain Public URL of the Vaultwarden instance
+  ##
+  domain: ""
+  ## @param vaultwarden.signupsAllowed Allow new users to sign up
+  ##
+  signupsAllowed: false
+  ## @param vaultwarden.invitationsAllowed Allow users to invite others
+  ##
+  invitationsAllowed: true
+  ## @param vaultwarden.emailChangeAllowed Allow users to change their email address
+  ##
+  emailChangeAllowed: false
+  ## Single sign-on (OpenID Connect) configuration
+  ## @param vaultwarden.sso.enabled Enable SSO
+  ## @param vaultwarden.sso.only Disable password login and require SSO
+  ## @param vaultwarden.sso.authority OpenID Connect authority/issuer URL
+  ## @param vaultwarden.sso.clientId OpenID Connect client ID
+  ## @param vaultwarden.sso.clientSecret OpenID Connect client secret
+  ## @param vaultwarden.sso.scopes OpenID Connect scopes
+  ## @param vaultwarden.sso.pkce Enable PKCE
+  ## @param vaultwarden.sso.signupsAllowed Allow SSO to create accounts
+  ## @param vaultwarden.sso.signupsMatchEmail Associate an existing account by email
+  ## @param vaultwarden.sso.allowUnknownEmailVerification Allow a missing email_verified claim
+  ## @param vaultwarden.sso.clientCacheExpiration Discovery cache duration in seconds
+  ##
+  sso:
+    enabled: true
+    only: true
+    authority: ""
+    clientId: ""
+    clientSecret: ""
+    scopes: "openid profile email offline_access"
+    pkce: true
+    signupsAllowed: true
+    signupsMatchEmail: true
+    allowUnknownEmailVerification: false
+    clientCacheExpiration: 600
+  ## Configure extra options for Vaultwarden containers' liveness and readiness probes
+  ## @param vaultwarden.livenessProbe.enabled Enable livenessProbe on Vaultwarden containers
+  ## @param vaultwarden.readinessProbe.enabled Enable readinessProbe on Vaultwarden containers
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 30
+    successThreshold: 1
+  ## @param vaultwarden.customLivenessProbe Custom livenessProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  ## @param vaultwarden.customReadinessProbe Custom readinessProbe that overrides the default one
+  ##
+  customReadinessProbe: {}
+  ## @param vaultwarden.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customStartupProbe: {}
+  ## Vaultwarden resource requests and limits
+  ## @param vaultwarden.resourcesPreset Set Vaultwarden container resources according to one common preset
+  ## @param vaultwarden.resources Set Vaultwarden container requests and limits
+  ##
+  resourcesPreset: "small"
+  resources: {}
+  ## Configure Pods Security Context
+  ## @param vaultwarden.podSecurityContext.enabled Enable Vaultwarden pods' Security Context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## Configure Container Security Context
+  ## @param vaultwarden.containerSecurityContext.enabled Enable Vaultwarden container Security Context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param vaultwarden.command Override default Vaultwarden container command
+  ##
+  command: []
+  ## @param vaultwarden.args Override default Vaultwarden container args
+  ##
+  args: []
+  ## @param vaultwarden.automountServiceAccountToken Mount Service Account token in Vaultwarden pods
+  ##
+  automountServiceAccountToken: false
+  ## @param vaultwarden.hostAliases Vaultwarden pods host aliases
+  ##
+  hostAliases: []
+  ## @param vaultwarden.deploymentAnnotations Annotations for Vaultwarden deployment
+  ##
+  deploymentAnnotations: {}
+  ## @param vaultwarden.podLabels Extra labels for Vaultwarden pods
+  ##
+  podLabels: {}
+  ## @param vaultwarden.podAnnotations Annotations for Vaultwarden pods
+  ##
+  podAnnotations: {}
+  ## @param vaultwarden.podAffinityPreset Pod affinity preset
+  ##
+  podAffinityPreset: ""
+  ## @param vaultwarden.podAntiAffinityPreset Pod anti-affinity preset
+  ##
+  podAntiAffinityPreset: soft
+  ## Node affinity preset
+  ##
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  ## @param vaultwarden.affinity Affinity for Vaultwarden pods assignment
+  ##
+  affinity: {}
+  ## @param vaultwarden.nodeSelector Node labels for Vaultwarden pods assignment
+  ##
+  nodeSelector: {}
+  ## @param vaultwarden.tolerations Tolerations for Vaultwarden pods assignment
+  ##
+  tolerations: []
+  ## @param vaultwarden.updateStrategy.type Vaultwarden deployment strategy type
+  ##
+  updateStrategy:
+    type: RollingUpdate
+  ## @param vaultwarden.priorityClassName Vaultwarden pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param vaultwarden.topologySpreadConstraints Topology Spread Constraints for Vaultwarden pods
+  ##
+  topologySpreadConstraints: []
+  ## @param vaultwarden.schedulerName Name of the k8s scheduler for Vaultwarden pods
+  ##
+  schedulerName: ""
+  ## @param vaultwarden.runtimeClassName Name of the runtime class for Vaultwarden pods
+  ##
+  runtimeClassName: ""
+  ## @param vaultwarden.terminationGracePeriodSeconds Seconds Vaultwarden pods need to terminate gracefully
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param vaultwarden.lifecycleHooks Lifecycle hooks for Vaultwarden containers
+  ##
+  lifecycleHooks: {}
+  ## @param vaultwarden.extraEnvVars Array with extra environment variables to add to Vaultwarden containers
+  ##
+  extraEnvVars: []
+  ## @param vaultwarden.extraEnvVarsCM Name of existing ConfigMap containing extra env vars
+  ##
+  extraEnvVarsCM: ""
+  ## @param vaultwarden.extraEnvVarsSecret Name of existing Secret containing extra env vars
+  ##
+  extraEnvVarsSecret: ""
+  ## @param vaultwarden.extraVolumes Optionally specify extra list of additional volumes
+  ##
+  extraVolumes: []
+  ## @param vaultwarden.extraVolumeMounts Optionally specify extra list of additional volumeMounts
+  ##
+  extraVolumeMounts: []
+  ## @param vaultwarden.sidecars Add additional sidecar containers
+  ##
+  sidecars: []
+  ## @param vaultwarden.initContainers Add additional init containers
+  ##
+  initContainers: []
+  ## Pod Disruption Budget configuration
+  ## @param vaultwarden.pdb.create Enable/disable a Pod Disruption Budget creation
+  ##
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+  ## Autoscaling configuration
+  ## PostgreSQL is used for the database, but attachments and keys are still
+  ## stored on a ReadWriteOnce volume, so horizontal scaling stays disabled
+  ## until shared storage (RWX or S3) is configured.
+  ##
+  autoscaling:
+    vpa:
+      enabled: false
+      annotations: {}
+      controlledResources: []
+      maxAllowed: {}
+      minAllowed: {}
+      updatePolicy:
+        updateMode: Auto
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 1
+      targetCPU: 75
+      targetMemory: ""
+
+## @section Database Parameters
+##
+
+## PostgreSQL connection used via DATABASE_URL. Leave host empty to fall back
+## to the bundled SQLite database stored on the persistence volume.
+##
+database:
+  ## @param database.host PostgreSQL host
+  ##
+  host: ""
+  ## @param database.port PostgreSQL port
+  ##
+  port: 5432
+  ## @param database.name PostgreSQL database name
+  ##
+  name: ""
+  ## @param database.user PostgreSQL user
+  ##
+  user: ""
+  ## @param database.password PostgreSQL password
+  ##
+  password: ""
+
+## @section Traffic Exposure Parameters
+##
+
+service:
+  ## @param service.type Vaultwarden service type
+  ##
+  type: ClusterIP
+  ## @param service.ports.http Vaultwarden service HTTP port
+  ##
+  ports:
+    http: 80
+  ## @param service.nodePorts.http Node port for HTTP
+  ##
+  nodePorts:
+    http: ""
+  ## @param service.clusterIP Vaultwarden service Cluster IP
+  ##
+  clusterIP: ""
+  ## @param service.loadBalancerIP Vaultwarden service Load Balancer IP
+  ##
+  loadBalancerIP: ""
+  ## @param service.loadBalancerSourceRanges Vaultwarden service Load Balancer sources
+  ##
+  loadBalancerSourceRanges: []
+  ## @param service.externalTrafficPolicy Vaultwarden service external traffic policy
+  ##
+  externalTrafficPolicy: Cluster
+  ## @param service.annotations Additional custom annotations for Vaultwarden service
+  ##
+  annotations: {}
+  ## @param service.extraPorts Extra ports to expose in Vaultwarden service
+  ##
+  extraPorts: []
+  ## @param service.sessionAffinity Control where client requests go
+  ##
+  sessionAffinity: None
+  ## @param service.sessionAffinityConfig Additional settings for the sessionAffinity
+  ##
+  sessionAffinityConfig: {}
+
+## Network Policies
+##
+networkPolicy:
+  ## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+  ##
+  enabled: true
+  ## @param networkPolicy.allowExternal Don't require server label for connections
+  ##
+  allowExternal: true
+  ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations
+  ##
+  allowExternalEgress: false
+  ## @param networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true"
+  ##
+  addExternalClientAccess: true
+  ## @param networkPolicy.extraIngress Add extra ingress rules to the NetworkPolicy
+  ##
+  extraIngress: []
+  ## @param networkPolicy.extraEgress Add extra egress rules to the NetworkPolicy
+  ##
+  extraEgress: []
+  ## @param networkPolicy.ingressPodMatchLabels Labels to match to allow traffic from other pods
+  ##
+  ingressPodMatchLabels: {}
+  ## @param networkPolicy.ingressNSMatchLabels Labels to match to allow traffic from other namespaces
+  ##
+  ingressNSMatchLabels: {}
+  ## @param networkPolicy.ingressNSPodMatchLabels Pod labels to match to allow traffic from other namespaces
+  ##
+  ingressNSPodMatchLabels: {}
+
+## Vaultwarden ingress parameters
+## ref: http://kubernetes.io/docs/concepts/services-networking/ingress/
+##
+ingress:
+  ## @param ingress.enabled Enable ingress record generation for Vaultwarden
+  ##
+  enabled: false
+  ## @param ingress.pathType Ingress path type
+  ##
+  pathType: ImplementationSpecific
+  ## @param ingress.apiVersion Force Ingress API version
+  ##
+  apiVersion: ""
+  ## @param ingress.hostname Default host for the ingress record
+  ##
+  hostname: vaultwarden.local
+  ## @param ingress.ingressClassName IngressClass that will be used to implement the Ingress
+  ##
+  ingressClassName: ""
+  ## @param ingress.path Default path for the ingress record
+  ##
+  path: /
+  ## @param ingress.annotations Additional annotations for the Ingress resource
+  ##
+  annotations: {}
+  ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname`
+  ##
+  tls: false
+  ## @param ingress.selfSigned Create a TLS secret for this ingress record using self-signed certificates
+  ##
+  selfSigned: false
+  ## @param ingress.extraHosts An array with additional hostname(s) to be covered with the ingress record
+  ##
+  extraHosts: []
+  ## @param ingress.extraPaths An array with additional arbitrary paths
+  ##
+  extraPaths: []
+  ## @param ingress.extraTls TLS configuration for additional hostname(s)
+  ##
+  extraTls: []
+  ## @param ingress.secrets Custom TLS certificates as secrets
+  ##
+  secrets: []
+  ## @param ingress.extraRules Additional rules to be covered with this ingress record
+  ##
+  extraRules: []
+
+## @section Persistence Parameters
+##
+
+persistence:
+  ## @param persistence.enabled Enable persistence using Persistent Volume Claims
+  ##
+  enabled: true
+  ## @param persistence.mountPath Path to mount the volume at
+  ##
+  mountPath: /data
+  ## @param persistence.subPath The subdirectory of the volume to mount to
+  ##
+  subPath: ""
+  ## @param persistence.storageClass Storage class of backing PVC
+  ##
+  storageClass: ""
+  ## @param persistence.annotations Persistent Volume Claim annotations
+  ##
+  annotations: {}
+  ## @param persistence.accessModes Persistent Volume Access Modes
+  ##
+  accessModes:
+    - ReadWriteOnce
+  ## @param persistence.size Size of data volume
+  ##
+  size: 8Gi
+  ## @param persistence.dataSource Custom PVC data source
+  ##
+  dataSource: {}
+  ## @param persistence.existingClaim The name of an existing PVC to use for persistence
+  ##
+  existingClaim: ""
+  ## @param persistence.selector Selector to match an existing Persistent Volume
+  ##
+  selector: {}
+
+## @section Other Parameters
+##
+
+## ServiceAccount configuration
+##
+serviceAccount:
+  ## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+  ##
+  create: true
+  ## @param serviceAccount.name The name of the ServiceAccount to use
+  ##
+  name: ""
+  ## @param serviceAccount.annotations Additional Service Account annotations
+  ##
+  annotations: {}
+  ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
+  ##
+  automountServiceAccountToken: false

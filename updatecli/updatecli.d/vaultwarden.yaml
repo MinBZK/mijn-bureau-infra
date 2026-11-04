@@ -1,0 +1,80 @@
+name: "Update vaultwarden container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump vaultwarden version to {{ source "vaultwarden_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  vaultwarden_latest_version:
+    name: "Get latest vaultwarden tag"
+    kind: dockerimage
+    spec:
+      image: "vaultwarden/server"
+      architecture: amd64
+      tagfilter: "^[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_vaultwarden_tag:
+    name: "Update vaultwarden tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.vaultwarden.tag"
+    sourceid: vaultwarden_latest_version
+    scmid: default
+
+  update_values_vaultwarden_tag:
+    name: "Update values vaultwarden tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/vaultwarden/charts/vaultwarden/values.yaml"
+      keys:
+        - "$.vaultwarden.image.tag"
+    sourceid: vaultwarden_latest_version
+    scmid: default
+
+  update_chart_appVersion:
+    name: "Update vaultwarden chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/vaultwarden/charts/vaultwarden/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: vaultwarden_latest_version
+    scmid: default
+
+  update_markdowns_version:
+    name: "Update markdown intro file"
+    kind: file
+    spec:
+      files:
+        - "docs/docs/intro.md"
+      matchpattern: "v([0-9.]+)]\\Q(https://github.com/dani-garcia/vaultwarden/releases/tag/\\E([0-9.]+)"
+      replacepattern: 'v{{ source "vaultwarden_latest_version" }}](https://github.com/dani-garcia/vaultwarden/releases/tag/{{ source "vaultwarden_latest_version" }}'
+    sourceid: vaultwarden_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump vaultwarden version to {{ source "vaultwarden_latest_version" }}

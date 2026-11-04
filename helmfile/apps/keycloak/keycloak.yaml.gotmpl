@@ -53,6 +53,7 @@ extraDeploy:
       MB_CLIENT_SECRET_OPENPROJECT: {{ .Values.authentication.client.openproject.client_secret | quote }}
       MB_CLIENT_SECRET_DOCS: {{ .Values.authentication.client.docs.client_secret | quote }}
       MB_CLIENT_SECRET_BUREAUBLAD: {{ .Values.authentication.client.bureaublad.client_secret | quote }}
+      MB_CLIENT_SECRET_VAULTWARDEN: {{ .Values.authentication.client.vaultwarden.client_secret | quote }}
       {{- if eq .Environment.Name "demo" }}
       {{- range $user := .Values.user }}
       MB_USER_PASSWORD_{{ regexReplaceAll "[^A-Z0-9_]" (upper $user.username) "_" }}: {{ $user.password | quote }}
@@ -572,6 +573,48 @@ keycloakConfigCli:
               "frontchannel.logout.session.required": "false",
               "oauth2.device.authorization.grant.enabled": "false",
               "display.on.consent.screen": "false",
+              "backchannel.logout.revoke.offline.tokens": "false"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.vaultwarden.client_id }}",
+            "name": "Vaultwarden",
+            "description": "Self-hosted Bitwarden-compatible password manager",
+            "rootUrl": "https://{{ .Values.global.hostname.vaultwarden }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.vaultwarden }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.vaultwarden }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_VAULTWARDEN)",
+            "redirectUris": [
+              "https://{{ .Values.global.hostname.vaultwarden }}.{{ .Values.global.domain }}/identity/connect/oidc-signin"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.vaultwarden }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "[PHONE]",
+              "standard.token.exchange.enabled": "false",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.vaultwarden }}.{{ .Values.global.domain }}/*",
+              "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "pkce.code.challenge.method": "S256",
+              "access.token.lifespan": "900",
               "backchannel.logout.revoke.offline.tokens": "false"
             }
           }

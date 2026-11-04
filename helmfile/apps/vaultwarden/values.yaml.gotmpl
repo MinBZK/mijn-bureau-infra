@@ -1,0 +1,126 @@
+{{- $hostname := printf "%s.%s" .Values.global.hostname.vaultwarden .Values.global.domain }}
+{{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
+{{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
+{{- $issuer := .Values.authentication.oidc.issuer }}
+{{- if and (not $issuer) .Values.application.keycloak.enabled }}
+{{- $issuer = printf "https://%s.%s/realms/mijnbureau" .Values.global.hostname.keycloak .Values.global.domain }}
+{{- end }}
+
+global:
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+
+  security:
+    allowInsecureImages: false
+
+  {{- with (coalesce .Values.container.vaultwarden.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - name: {{ . | quote }}
+  {{- end }}
+
+commonLabels:
+  app.kubernetes.io/part-of: vaultwarden
+
+diagnosticMode:
+  enabled: false
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+database:
+  host: {{ .Values.database.vaultwarden.host | quote }}
+  port: {{ .Values.database.vaultwarden.port }}
+  name: {{ .Values.database.vaultwarden.name | quote }}
+  user: {{ .Values.database.vaultwarden.user | quote }}
+  password: {{ .Values.database.vaultwarden.password | quote }}
+
+vaultwarden:
+  image:
+    registry: {{ (coalesce .Values.container.vaultwarden.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.vaultwarden.repository | quote }}
+    tag: {{ .Values.container.vaultwarden.tag | quote }}
+  domain: {{ $baseUrl | quote }}
+  adminToken: {{ .Values.application.vaultwarden.adminToken | quote }}
+  signupsAllowed: {{ .Values.application.vaultwarden.signupsAllowed | default false }}
+  invitationsAllowed: {{ .Values.application.vaultwarden.invitationsAllowed | default true }}
+  emailChangeAllowed: {{ .Values.application.vaultwarden.emailChangeAllowed | default false }}
+  sso:
+    enabled: true
+    only: true
+    authority: {{ $issuer | default "" | quote }}
+    clientId: {{ .Values.authentication.client.vaultwarden.client_id | quote }}
+    clientSecret: {{ .Values.authentication.client.vaultwarden.client_secret | quote }}
+    signupsAllowed: {{ .Values.application.vaultwarden.sso.signupsAllowed | default true }}
+    signupsMatchEmail: {{ .Values.application.vaultwarden.sso.signupsMatchEmail | default true }}
+    allowUnknownEmailVerification: {{ .Values.application.vaultwarden.sso.allowUnknownEmailVerification | default false }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  resourcesPreset: {{ coalesce (index .Values.global.resourcesPresetPerApp "vaultwarden") .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.vaultwarden.vaultwarden | default dict | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.vaultwarden | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.vaultwarden | toYaml | nindent 4 }}
+
+ingress:
+  enabled: true
+  hostname: {{ $hostname }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.vaultwarden | default list | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if and (hasKey .Values.cluster "certificate") (hasKey .Values.cluster.certificate "issuerRef") }}
+    {{- if eq .Values.cluster.certificate.issuerRef.kind "ClusterIssuer" }}
+    cert-manager.io/cluster-issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- else if eq .Values.cluster.certificate.issuerRef.kind "Issuer" }}
+    cert-manager.io/issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- end }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+
+persistence:
+  enabled: true
+  storageClass: {{ coalesce .Values.pvc.vaultwarden.storageClass .Values.pvc.default.storageClass | quote }}
+  accessModes: {{ coalesce .Values.pvc.vaultwarden.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+  size: {{ coalesce .Values.pvc.vaultwarden.size .Values.pvc.default.size "8Gi" }}
+
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: false
+  addExternalClientAccess: true
+  extraEgress:
+    # PostgreSQL connectivity
+    - ports:
+        - port: {{ .Values.database.vaultwarden.port }}
+          protocol: TCP
+      {{- if .Values.database.vaultwarden.isInternal }}
+      to:
+        - podSelector:
+            matchLabels:
+              {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+              cnpg.io/cluster: vaultwarden-cluster
+              role: primary
+              {{- else }}
+              app.kubernetes.io/name: postgresql
+              app.kubernetes.io/component: primary
+              {{- end }}
+      {{- end }}
+    # Keycloak / external OpenID Connect provider
+    - ports:
+        - port: 443
+          protocol: TCP

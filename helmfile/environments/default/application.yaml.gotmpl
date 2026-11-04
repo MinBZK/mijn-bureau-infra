@@ -115,3 +115,22 @@ application:
   clamav:
     enabled: true
     namespace: ~
+
+  # Vaultwarden is a self-hosted Bitwarden-compatible password manager
+  vaultwarden:
+    enabled: true
+    namespace: ~
+    # Token for the /admin panel. Use a concatenation of two derived hashes to
+    # stay well above Vaultwarden's recommended 48 character minimum.
+    adminToken: {{ printf "%s%s" (derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "vaultwarden" "adminToken" | sha1sum) (derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "vaultwarden" "adminToken2" | sha1sum) | quote }}
+    signupsAllowed: false
+    invitationsAllowed: true
+    emailChangeAllowed: false
+    sso:
+      # SSO is always enabled and is the only login method.
+      # Uses authentication.oidc.issuer; when Keycloak is enabled and no
+      # issuer is configured, the in-cluster Keycloak realm is used.
+      # Allow first-time SSO logins to create accounts automatically.
+      signupsAllowed: true
+      signupsMatchEmail: true
+      allowUnknownEmailVerification: false

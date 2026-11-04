@@ -144,6 +144,15 @@ autoscaling:
       maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
+    vaultwarden:
+      # PostgreSQL handles the database layer, but attachments, keys and the
+      # icon cache still live on a ReadWriteOnce volume. Horizontal scaling
+      # needs shared storage (RWX or S3) first.
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 1
+      targetCPU: 75
+      targetMemory: ""
 
   vertical:
     synapse:

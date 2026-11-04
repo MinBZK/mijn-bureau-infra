@@ -1,0 +1,26 @@
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+annotations:
+  category: Security
+  licenses: EUPL-1.2
+apiVersion: v2
+appVersion: 1.37.5
+dependencies:
+  - name: common
+    repository: "file://../../../common/charts/common"
+    version: 2.31.1
+description: Vaultwarden is an alternative implementation of the Bitwarden server API written in Rust and compatible with upstream Bitwarden clients.
+home: https://github.com/dani-garcia/vaultwarden
+icon: https://raw.githubusercontent.com/dani-garcia/vaultwarden/main/resources/vaultwarden-icon.svg
+keywords:
+  - password manager
+  - bitwarden
+  - vaultwarden
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: vaultwarden
+sources:
+  - https://github.com/dani-garcia/vaultwarden
+version: 0.1.0

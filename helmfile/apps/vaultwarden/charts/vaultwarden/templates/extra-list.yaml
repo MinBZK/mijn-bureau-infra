@@ -1,0 +1,9 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- range .Values.extraDeploy }}
+---
+{{ include "common.tplvalues.render" (dict "value" . "context" $) }}
+{{- end }}

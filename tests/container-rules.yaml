@@ -136,6 +136,10 @@ container:
     registry: ""
     imagePullSecret: ""
 
+  vaultwarden:
+    registry: ""
+    imagePullSecret: ""
+
   drive_backend:
     registry: ""
     imagePullSecret: ""
