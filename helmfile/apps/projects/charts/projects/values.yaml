@@ -1,0 +1,584 @@
+#
+# SPDX-License-Identifier: APACHE-2.0
+
+## @section Global parameters
+
+global:
+  ## @param global.imageRegistry Global Docker image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: ""
+  imagePullSecrets: []
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: ""
+  ## Security parameters
+  ##
+  security:
+    ## @param global.security.allowInsecureImages Allows skipping image verification
+    ##
+    allowInsecureImages: true
+
+## @section Common parameters
+
+## @param kubeVersion Override Kubernetes version reported by .Capabilities
+##
+kubeVersion: ""
+## @param nameOverride String to partially override common.names.name
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: cluster.local
+## @param extraDeploy Array of extra objects to deploy with the release
+##
+extraDeploy: []
+## Diagnostic mode
+## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
+## @param diagnosticMode.command Command to override all containers in the chart release
+## @param diagnosticMode.args Args to override all containers in the chart release
+##
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section Projects parameters
+
+## Projects application configuration
+##
+projects:
+  ## Projects image
+  ## ref: https://hub.docker.com/r/lasuite/projects/tags/
+  ## @param projects.image.registry Projects image registry
+  ## @param projects.image.repository Projects image repository
+  ## @param projects.image.tag Projects image tag (immutable tags are recommended)
+  ## @param projects.image.digest Projects image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag
+  ## @param projects.image.pullPolicy Projects image pull policy
+  ## @param projects.image.pullSecrets Projects image pull secrets
+  ##
+  image:
+    registry: docker.io
+    repository: lasuite/projects
+    tag: "1.27.13"
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  ## @param projects.secretKey Secret used to sign session cookies
+  ##
+  secretKey: ""
+  ## @param projects.baseUrl Public URL of the application
+  ##
+  baseUrl: ""
+  ## @param projects.serviceName Display name of the service
+  ##
+  serviceName: "Projecten"
+  ## @param projects.allowAllToCreateProjects Allow any authenticated user to create projects
+  ##
+  allowAllToCreateProjects: true
+  ## @param projects.adminEmail Email of the default admin user seeded on first initialization
+  ##
+  adminEmail: ""
+  ## @param projects.adminPassword Password of the default admin user seeded on first initialization
+  ##
+  adminPassword: ""
+  ## Object storage configuration
+  ## @param projects.s3.enabled Store uploads in S3-compatible object storage instead of local volumes
+  ##
+  s3:
+    enabled: false
+  ## @param projects.replicaCount Number of Projects replicas to deploy
+  ##
+  replicaCount: 1
+  ## @param projects.containerPorts.http Projects HTTP container port
+  ##
+  containerPorts:
+    http: 1337
+  ## @param projects.extraContainerPorts Optionally specify extra list of additional ports for Projects containers
+  ##
+  extraContainerPorts: []
+  ## Configure extra options for Projects containers' liveness and readiness probes
+  ## @param projects.livenessProbe.enabled Enable livenessProbe on Projects containers
+  ## @param projects.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+  ## @param projects.livenessProbe.periodSeconds Period seconds for livenessProbe
+  ## @param projects.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+  ## @param projects.livenessProbe.failureThreshold Failure threshold for livenessProbe
+  ## @param projects.livenessProbe.successThreshold Success threshold for livenessProbe
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param projects.readinessProbe.enabled Enable readinessProbe on Projects containers
+  ## @param projects.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+  ## @param projects.readinessProbe.periodSeconds Period seconds for readinessProbe
+  ## @param projects.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+  ## @param projects.readinessProbe.failureThreshold Failure threshold for readinessProbe
+  ## @param projects.readinessProbe.successThreshold Success threshold for readinessProbe
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param projects.startupProbe.enabled Enable startupProbe on Projects containers
+  ## @param projects.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+  ## @param projects.startupProbe.periodSeconds Period seconds for startupProbe
+  ## @param projects.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+  ## @param projects.startupProbe.failureThreshold Failure threshold for startupProbe
+  ## @param projects.startupProbe.successThreshold Success threshold for startupProbe
+  ##
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 30
+    successThreshold: 1
+  ## @param projects.customLivenessProbe Custom livenessProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  ## @param projects.customReadinessProbe Custom readinessProbe that overrides the default one
+  ##
+  customReadinessProbe: {}
+  ## @param projects.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customStartupProbe: {}
+  ## @param projects.resourcesPreset Set Projects container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge)
+  ##
+  resourcesPreset: "micro"
+  ## @param projects.resources Set Projects container requests and limits for different resources like CPU or memory
+  ##
+  resources: {}
+  ## @param projects.podSecurityContext.enabled Enable Projects pods' Security Context
+  ## @param projects.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy for Projects pods
+  ## @param projects.podSecurityContext.sysctls Set kernel settings using the sysctl interface for Projects pods
+  ## @param projects.podSecurityContext.supplementalGroups Set filesystem extra groups for Projects pods
+  ## @param projects.podSecurityContext.fsGroup Set fsGroup in Projects pods' Security Context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## @param projects.containerSecurityContext.enabled Enabled Projects container' Security Context
+  ## @param projects.containerSecurityContext.runAsUser Set runAsUser in Projects container' Security Context
+  ## @param projects.containerSecurityContext.runAsGroup Set runAsGroup in Projects container' Security Context
+  ## @param projects.containerSecurityContext.runAsNonRoot Set runAsNonRoot in Projects container' Security Context
+  ## @param projects.containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in Projects container' Security Context
+  ## @param projects.containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in Projects container' Security Context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param projects.existingConfigmap The name of an existing ConfigMap with your custom configuration for Projects
+  ##
+  existingConfigmap: ""
+  ## @param projects.command Override default Projects container command
+  ##
+  command: []
+  ## @param projects.args Override default Projects container args
+  ##
+  args: []
+  ## @param projects.automountServiceAccountToken Mount Service Account token in Projects pods
+  ##
+  automountServiceAccountToken: false
+  ## @param projects.hostAliases Projects pods host aliases
+  ##
+  hostAliases: []
+  ## @param projects.deploymentAnnotations Annotations for Projects deployment
+  ##
+  deploymentAnnotations: {}
+  ## @param projects.podLabels Extra labels for Projects pods
+  ##
+  podLabels: {}
+  ## @param projects.podAnnotations Annotations for Projects pods
+  ##
+  podAnnotations: {}
+  ## @param projects.podAffinityPreset Pod affinity preset. Allowed values: `soft` or `hard`
+  ##
+  podAffinityPreset: ""
+  ## @param projects.podAntiAffinityPreset Pod anti-affinity preset. Allowed values: `soft` or `hard`
+  ##
+  podAntiAffinityPreset: soft
+  ## @param projects.nodeAffinityPreset.type Node affinity preset type. Allowed values: `soft` or `hard`
+  ## @param projects.nodeAffinityPreset.key Node label key to match
+  ## @param projects.nodeAffinityPreset.values Node label values to match
+  ##
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  ## @param projects.affinity Affinity for Projects pods assignment
+  ##
+  affinity: {}
+  ## @param projects.nodeSelector Node labels for Projects pods assignment
+  ##
+  nodeSelector: {}
+  ## @param projects.tolerations Tolerations for Projects pods assignment
+  ##
+  tolerations: []
+  ## @param projects.updateStrategy.type Projects deployment strategy type
+  ##
+  updateStrategy:
+    type: RollingUpdate
+  ## @param projects.priorityClassName Projects pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param projects.topologySpreadConstraints Topology Spread Constraints for Projects pod assignment
+  ##
+  topologySpreadConstraints: []
+  ## @param projects.schedulerName Name of the k8s scheduler for Projects pods
+  ##
+  schedulerName: ""
+  ## @param projects.runtimeClassName Name of the runtime class name for Projects pods
+  ##
+  runtimeClassName: ""
+  ## @param projects.terminationGracePeriodSeconds Seconds Projects pods need to terminate gracefully
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param projects.lifecycleHooks for Projects containers to automate configuration before or after startup
+  ##
+  lifecycleHooks: {}
+  ## @param projects.extraEnvVars Array with extra environment variables to add to Projects containers
+  ##
+  extraEnvVars: []
+  ## @param projects.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for Projects containers
+  ##
+  extraEnvVarsCM: ""
+  ## @param projects.extraEnvVarsSecret Name of existing Secret containing extra env vars for Projects containers
+  ##
+  extraEnvVarsSecret: ""
+  ## @param projects.extraVolumes Optionally specify extra list of additional volumes for the Projects pods
+  ##
+  extraVolumes: []
+  ## @param projects.extraVolumeMounts Optionally specify extra list of additional volumeMounts for the Projects containers
+  ##
+  extraVolumeMounts: []
+  ## @param projects.sidecars Add additional sidecar containers to the Projects pods
+  ##
+  sidecars: []
+  ## @param projects.initContainers Add additional init containers to the Projects pods
+  ##
+  initContainers: []
+  ## Pod Disruption Budget configuration
+  ## @param projects.pdb.create Enable/disable a Pod Disruption Budget creation
+  ## @param projects.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param projects.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
+  ##
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+  ## Autoscaling configuration
+  ## @param projects.autoscaling.hpa.enabled Enable HPA for Projects pods
+  ## @param projects.autoscaling.hpa.minReplicas Minimum number of replicas
+  ## @param projects.autoscaling.hpa.maxReplicas Maximum number of replicas
+  ## @param projects.autoscaling.hpa.targetCPU Target CPU utilization percentage
+  ## @param projects.autoscaling.hpa.targetMemory Target Memory utilization percentage
+  ##
+  autoscaling:
+    hpa:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: ""
+
+## @section Authentication parameters
+
+## OpenID Connect configuration
+##
+authentication:
+  ## @param authentication.issuer OIDC issuer URL
+  ##
+  issuer: ""
+  ## @param authentication.fullnameAttributes Comma-separated OIDC claims used to build the display name
+  ##
+  fullnameAttributes: "name"
+  ## @param authentication.scopes Space-separated OIDC scopes
+  ##
+  scopes: "openid email profile"
+  ## @param authentication.emailAttribute OIDC claim used as the user's email
+  ##
+  emailAttribute: "email"
+  ## @param authentication.enforced Require OIDC login
+  ##
+  enforced: true
+  ## Client configuration
+  ##
+  client:
+    client_id: ""
+    client_secret: ""
+
+## @section Redis parameters
+
+## External Redis configuration
+##
+externalRedis:
+  ## @param externalRedis.host Redis host
+  ##
+  host: ""
+  ## @param externalRedis.port Redis port
+  ##
+  port: 6379
+  ## @param externalRedis.password Redis password
+  ##
+  password: ""
+
+## @section Object storage parameters
+
+## External S3-compatible object storage configuration
+##
+externalMinio:
+  ## @param externalMinio.endpoint S3 endpoint URL
+  ##
+  endpoint: ""
+  ## @param externalMinio.region S3 region
+  ##
+  region: "us-east-1"
+  ## @param externalMinio.accessKey S3 access key ID
+  ##
+  accessKey: ""
+  ## @param externalMinio.secretKey S3 secret access key
+  ##
+  secretKey: ""
+  ## @param externalMinio.bucket S3 bucket name
+  ##
+  bucket: ""
+  ## @param externalMinio.pathStyle Use path-style S3 requests
+  ##
+  pathStyle: true
+
+## @section SMTP parameters
+
+## Email notifications configuration
+##
+smtp:
+  ## @param smtp.host SMTP server host
+  ##
+  host: ""
+  ## @param smtp.port SMTP server port
+  ##
+  port: 587
+  ## @param smtp.secure Use TLS from the start of the connection
+  ##
+  secure: false
+  ## @param smtp.username SMTP auth username
+  ##
+  username: ""
+  ## @param smtp.password SMTP auth password
+  ##
+  password: ""
+  ## @param smtp.from From header used on outgoing emails
+  ##
+  from: ""
+
+## @section Traffic Exposure Parameters
+
+## Projects service parameters
+##
+service:
+  ## @param service.type Projects service type
+  ##
+  type: ClusterIP
+  ## @param service.ports.http Projects service HTTP port
+  ##
+  ports:
+    http: 80
+  ## @param service.nodePorts.http Node port for HTTP
+  ##
+  nodePorts:
+    http: ""
+  ## @param service.clusterIP Projects service Cluster IP
+  ##
+  clusterIP: ""
+  ## @param service.loadBalancerIP Projects service Load Balancer IP
+  ##
+  loadBalancerIP: ""
+  ## @param service.loadBalancerSourceRanges Projects service Load Balancer sources
+  ##
+  loadBalancerSourceRanges: []
+  ## @param service.externalTrafficPolicy Projects service external traffic policy
+  ##
+  externalTrafficPolicy: Cluster
+  ## @param service.annotations Additional custom annotations for Projects service
+  ##
+  annotations: {}
+  ## @param service.extraPorts Extra ports to expose in Projects service
+  ##
+  extraPorts: []
+  ## @param service.sessionAffinity Control where client requests go, to the same pod or round-robin
+  ##
+  sessionAffinity: None
+  ## @param service.sessionAffinityConfig Additional settings for the sessionAffinity
+  ##
+  sessionAffinityConfig: {}
+
+## Network Policies
+## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+## @param networkPolicy.allowExternal Don't require server label for connections
+## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations
+## @param networkPolicy.extraIngress Add extra ingress rules to the NetworkPolicy
+## @param networkPolicy.extraEgress Add extra egress rules to the NetworkPolicy
+##
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: true
+  extraIngress: []
+  extraEgress: []
+
+## Projects ingress parameters
+##
+ingress:
+  ## @param ingress.enabled Enable ingress record generation for Projects
+  ##
+  enabled: true
+  ## @param ingress.pathType Ingress path type
+  ##
+  pathType: Prefix
+  ## @param ingress.apiVersion Force Ingress API version (automatically detected if not set)
+  ##
+  apiVersion: ""
+  ## @param ingress.hostname Default host for the ingress record
+  ##
+  hostname: projects.local
+  ## @param ingress.ingressClassName IngressClass that will be used to implement the Ingress
+  ##
+  ingressClassName: ""
+  ## @param ingress.path Default path for the ingress record
+  ##
+  path: /
+  ## @param ingress.annotations Additional annotations for the Ingress resource
+  ##
+  annotations: {}
+  ## @param ingress.tls Enable TLS configuration for the host defined at `ingress.hostname`
+  ##
+  tls: false
+  ## @param ingress.selfSigned Create a TLS secret for this ingress record using self-signed certificates
+  ##
+  selfSigned: false
+  ## @param ingress.extraHosts An array with additional hostname(s) to be covered with the ingress record
+  ##
+  extraHosts: []
+  ## @param ingress.extraPaths An array with additional arbitrary paths that may need to be added to the ingress under the main host
+  ##
+  extraPaths: []
+  ## @param ingress.extraTls TLS configuration for additional hostname(s) to be covered with this ingress record
+  ##
+  extraTls: []
+  ## @param ingress.secrets Custom TLS certificates as secrets
+  ##
+  secrets: []
+  ## @param ingress.extraRules Additional rules to be covered with this ingress record
+  ##
+  extraRules: []
+
+## @section Persistence Parameters
+
+## Persistent storage for uploaded files
+##
+persistence:
+  ## User avatars volume
+  ## @param persistence.public.enabled Enable persistence for user avatars
+  ## @param persistence.public.storageClass Storage class of backing PVC
+  ## @param persistence.public.accessModes Persistent Volume Access Modes
+  ## @param persistence.public.size Size of data volume
+  ## @param persistence.public.existingClaim The name of an existing PVC to use
+  ##
+  public:
+    enabled: true
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+    annotations: {}
+    existingClaim: ""
+  ## Project background images volume
+  ## @param persistence.backgrounds.enabled Enable persistence for project background images
+  ## @param persistence.backgrounds.storageClass Storage class of backing PVC
+  ## @param persistence.backgrounds.accessModes Persistent Volume Access Modes
+  ## @param persistence.backgrounds.size Size of data volume
+  ## @param persistence.backgrounds.existingClaim The name of an existing PVC to use
+  ##
+  backgrounds:
+    enabled: true
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+    annotations: {}
+    existingClaim: ""
+  ## Attachments volume
+  ## @param persistence.attachments.enabled Enable persistence for attachments
+  ## @param persistence.attachments.storageClass Storage class of backing PVC
+  ## @param persistence.attachments.accessModes Persistent Volume Access Modes
+  ## @param persistence.attachments.size Size of data volume
+  ## @param persistence.attachments.existingClaim The name of an existing PVC to use
+  ##
+  attachments:
+    enabled: true
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 8Gi
+    annotations: {}
+    existingClaim: ""
+
+## @section Other Parameters
+
+## ServiceAccount configuration
+## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+## @param serviceAccount.name The name of the ServiceAccount to use
+## @param serviceAccount.annotations Additional Service Account annotations
+## @param serviceAccount.automountServiceAccountToken Automount service account token
+##
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+## @param cluster Kubernetes cluster routing configuration (populated by shared values)
+##
+cluster:
+  routingMode: ingress
+  ingress:
+    type: nginx
+    className: ""
+  gateway:
+    name: ""
+    namespace: ""
+  tls:
+    selfSigned: false

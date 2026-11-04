@@ -26,6 +26,7 @@ global:
     drive:
       backend: "xlarge"
       frontend: "xlarge"
+    projects: "xlarge"
     conversations:
       backend: "xlarge"
       frontend: "xlarge"

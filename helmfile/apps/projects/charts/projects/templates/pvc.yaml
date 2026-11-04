@@ -1,0 +1,31 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- range $name := list "public" "backgrounds" "attachments" }}
+{{- $pvc := index $.Values.persistence $name }}
+{{- if and $pvc.enabled (not $pvc.existingClaim) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ printf "%s-%s" (include "common.names.fullname" $) $name }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: projects
+  {{- if or $pvc.annotations $.Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list $pvc.annotations $.Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- range $pvc.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ $pvc.size | quote }}
+  {{- include "common.storage.class" (dict "persistence" $pvc "global" $.Values.global) | nindent 2 }}
+{{- end }}
+{{- end }}

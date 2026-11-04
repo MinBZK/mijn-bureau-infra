@@ -1,0 +1,148 @@
+{{- $hostname := printf "%s.%s" .Values.global.hostname.projects .Values.global.domain }}
+{{- $minioHostname := index .Values.global.hostname "projects-minio" | default "projects-minio" }}
+{{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
+{{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
+
+global:
+  ## Global Docker image parameters
+  ##
+  imageRegistry: {{ (coalesce .Values.container.projects.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.projects.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+  ## Security parameters
+  ##
+  security:
+    allowInsecureImages: true
+
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels:
+  app.kubernetes.io/part-of: projects
+
+projects:
+  image:
+    registry: {{ (coalesce .Values.container.projects.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.projects.repository | quote }}
+    tag: {{ .Values.container.projects.tag | quote }}
+    pullPolicy: Always
+
+  secretKey: {{ .Values.application.projects.secretKey | quote }}
+  baseUrl: {{ $baseUrl | quote }}
+  serviceName: {{ .Values.application.projects.serviceName | default "Projecten" | quote }}
+  allowAllToCreateProjects: {{ .Values.application.projects.allowAllToCreateProjects | default true }}
+  adminEmail: {{ .Values.secret.projects.adminUser | quote }}
+  adminPassword: {{ .Values.secret.projects.adminPassword | quote }}
+  s3:
+    enabled: {{ .Values.application.projects.objectStorage.enabled | default true }}
+
+  replicaCount: {{ .Values.application.projects.replicaCount | default 1 }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.projects .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.projects.projects | default dict | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.projects | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.projects | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+
+authentication:
+  issuer: {{ .Values.authentication.oidc.issuer | quote }}
+  fullnameAttributes: {{ .Values.application.projects.oidc.fullnameAttributes | default "name" | quote }}
+  scopes: {{ .Values.application.projects.oidc.scopes | default "openid email profile" | quote }}
+  emailAttribute: {{ .Values.authentication.oidc.claims.email | default "email" | quote }}
+  enforced: {{ .Values.application.projects.oidc.enforced | default true }}
+  client:
+    client_id: {{ .Values.authentication.client.projects.client_id | quote }}
+    client_secret: {{ .Values.authentication.client.projects.client_secret | quote }}
+
+smtp:
+  host: {{ .Values.smtp.host | quote }}
+  port: {{ .Values.smtp.port | default 587 }}
+  secure: {{ .Values.smtp.tls.enabled | default false }}
+  username: {{ .Values.smtp.username | quote }}
+  password: {{ .Values.smtp.password | quote }}
+  from: {{ printf "%s <%s>" .Values.smtp.from.name .Values.smtp.from.email | quote }}
+
+externalDatabase:
+  database: {{ .Values.database.projects.name | quote }}
+  username: {{ .Values.database.projects.user | quote }}
+  host: {{ .Values.database.projects.host | quote }}
+  password: {{ .Values.database.projects.password | quote }}
+  port: {{ .Values.database.projects.port | quote }}
+  type: {{ .Values.database.projects.type | default "postgresql" | quote }}
+
+externalRedis:
+  host: {{ .Values.cache.projects.host | quote }}
+  port: {{ .Values.cache.projects.port | quote }}
+  password: {{ .Values.cache.projects.password | quote }}
+
+externalMinio:
+  endpoint: {{ printf "https://%s.%s" $minioHostname .Values.global.domain | quote }}
+  region: "us-east-1"
+  accessKey: {{ .Values.objectstore.projects.username | quote }}
+  secretKey: {{ .Values.objectstore.projects.rootPassword | quote }}
+  bucket: {{ .Values.objectstore.projects.bucket | quote }}
+  pathStyle: true
+
+persistence:
+  public:
+    enabled: {{ not (.Values.application.projects.objectStorage.enabled | default true) }}
+    storageClass: {{ coalesce .Values.pvc.projects.public.storageClass .Values.pvc.default.storageClass | quote }}
+    accessModes: {{ coalesce .Values.pvc.projects.public.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
+    size: {{ coalesce .Values.pvc.projects.public.size .Values.pvc.default.size "1Gi" }}
+  backgrounds:
+    enabled: {{ not (.Values.application.projects.objectStorage.enabled | default true) }}
+    storageClass: {{ coalesce .Values.pvc.projects.backgrounds.storageClass .Values.pvc.default.storageClass | quote }}
+    accessModes: {{ coalesce .Values.pvc.projects.backgrounds.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
+    size: {{ coalesce .Values.pvc.projects.backgrounds.size .Values.pvc.default.size "1Gi" }}
+  attachments:
+    enabled: {{ not (.Values.application.projects.objectStorage.enabled | default true) }}
+    storageClass: {{ coalesce .Values.pvc.projects.attachments.storageClass .Values.pvc.default.storageClass | quote }}
+    accessModes: {{ coalesce .Values.pvc.projects.attachments.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
+    size: {{ coalesce .Values.pvc.projects.attachments.size .Values.pvc.default.size "1Gi" }}
+
+service:
+  type: ClusterIP
+  ports:
+    http: 80
+
+ingress:
+  enabled: true
+  hostname: {{ $hostname }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.projects | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+    {{- if and (hasKey .Values.cluster "certificate") (hasKey .Values.cluster.certificate "issuerRef") }}
+    {{- if eq .Values.cluster.certificate.issuerRef.kind "ClusterIssuer" }}
+    cert-manager.io/cluster-issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- else if eq .Values.cluster.certificate.issuerRef.kind "Issuer" }}
+    cert-manager.io/issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- end }}
+    {{- end }}

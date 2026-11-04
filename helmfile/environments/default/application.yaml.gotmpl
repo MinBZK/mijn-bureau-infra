@@ -111,6 +111,21 @@ application:
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secretkey" | sha1sum | quote }}
     secrettoServerKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secrettoServerKey" | sha1sum | quote }}
 
+  # projects is a collaborative project management system from LaSuite
+  projects:
+    enabled: true
+    namespace: ~
+    secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "projects" "secretkey" | sha1sum | quote }}
+    serviceName: "Projecten"
+    allowAllToCreateProjects: true
+    replicaCount: 1
+    objectStorage:
+      enabled: true
+    oidc:
+      fullnameAttributes: "name"
+      scopes: "openid email profile"
+      enforced: true
+
   # Clam AV is a virus toolkit
   clamav:
     enabled: true

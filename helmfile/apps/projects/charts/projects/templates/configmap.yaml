@@ -1,0 +1,50 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: projects
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  NODE_ENV: "production"
+  LOG_FILE: "/tmp/projects.log"
+  BASE_URL: {{ .Values.projects.baseUrl | quote }}
+  TRUST_PROXY: "1"
+  SERVICE_NAME: {{ .Values.projects.serviceName | quote }}
+  ALLOW_ALL_TO_CREATE_PROJECTS: {{ ternary "true" "false" .Values.projects.allowAllToCreateProjects | quote }}
+  OIDC_ISSUER: {{ .Values.authentication.issuer | default "" | quote }}
+  OIDC_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
+  OIDC_SCOPES: {{ .Values.authentication.scopes | quote }}
+  OIDC_USE_DEFAULT_RESPONSE_MODE: "true"
+  OIDC_FULLNAME_ATTRIBUTES: {{ .Values.authentication.fullnameAttributes | quote }}
+  OIDC_EMAIL_ATTRIBUTE: {{ .Values.authentication.emailAttribute | quote }}
+  OIDC_IGNORE_USERNAME: "true"
+  OIDC_IGNORE_ROLES: "true"
+  OIDC_ENFORCED: {{ ternary "true" "false" .Values.authentication.enforced | quote }}
+  OIDC_POST_LOGOUT_REDIRECT_URI: {{ .Values.projects.baseUrl | quote }}
+  {{- if .Values.projects.adminEmail }}
+  DEFAULT_ADMIN_EMAIL: {{ .Values.projects.adminEmail | quote }}
+  DEFAULT_ADMIN_NAME: "Admin"
+  DEFAULT_ADMIN_USERNAME: "admin"
+  {{- end }}
+  {{- if .Values.projects.s3.enabled }}
+  S3_ENDPOINT: {{ .Values.externalMinio.endpoint | quote }}
+  S3_REGION: {{ .Values.externalMinio.region | quote }}
+  S3_BUCKET: {{ .Values.externalMinio.bucket | quote }}
+  S3_FORCE_PATH_STYLE: {{ ternary "true" "false" .Values.externalMinio.pathStyle | quote }}
+  {{- end }}
+  {{- if .Values.smtp.host }}
+  SMTP_HOST: {{ .Values.smtp.host | quote }}
+  SMTP_PORT: {{ .Values.smtp.port | quote }}
+  SMTP_SECURE: {{ ternary "true" "false" .Values.smtp.secure | quote }}
+  SMTP_USER: {{ .Values.smtp.username | quote }}
+  SMTP_FROM: {{ .Values.smtp.from | quote }}
+  {{- end }}

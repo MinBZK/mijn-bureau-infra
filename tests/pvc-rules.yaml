@@ -24,6 +24,7 @@ global:
     drive:
       backend: "small"
       frontend: "small"
+    projects: "small"
     conversations:
       backend: "small"
       frontend: "small"
@@ -50,5 +51,8 @@ pvc:
       size: "42Gi"
     postgresql:
       size: "42Gi"
+    minio:
+      size: "42Gi"
+  projects:
     minio:
       size: "42Gi"
