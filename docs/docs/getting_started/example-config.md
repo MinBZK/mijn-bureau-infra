@@ -56,9 +56,6 @@ authentication:
     jwks_uri: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/certs"
 
   client:
-    grist:
-      client_id: "grist"
-      client_secret: secret
     synapse:
       client_id: "synapse"
       client_secret: secret
@@ -134,8 +131,6 @@ Enable or disable specific applications:
 
 ```yaml
 application:
-  grist:
-    enabled: false
   ollama:
     enabled: false
   keycloak:
@@ -368,16 +363,6 @@ chart:
     oci: true
     username: ~
     password: ~
-```
-
-## Licenses
-
-Provide licenses for enterprise features:
-
-```yaml
-license:
-  grist:
-    key: yourlicencekey
 ```
 
 ## Email Configuration

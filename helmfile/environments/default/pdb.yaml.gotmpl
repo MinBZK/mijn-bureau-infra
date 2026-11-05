@@ -4,9 +4,6 @@ pdb:
     create: false
     minAvailable: 1
     maxUnavailable: 3
-  grist:
-    create: true
-    minAvailable: 1
   keycloak:
     create: true
     minAvailable: 1
@@ -23,11 +20,6 @@ pdb:
     maxUnavailable: 1
   collabora:
     # it is disabled. Because after scaling it breaks the collaborative editing and copy/paste.
-    create: false
-    minAvailable: 1
-    maxUnavailable: 3
-  openproject:
-    # Chart doesn't have PDB template, Would require modifying the upstream chart
     create: false
     minAvailable: 1
     maxUnavailable: 3

@@ -50,3 +50,8 @@ networkPolicy:
   allowExternal: true
   addExternalClientAccess: true
   allowExternalEgress: false
+  extraEgress:
+    # Allow HTTPS/HTTP egress for freshclam database updates.
+    - ports:
+        - port: 443
+          protocol: TCP

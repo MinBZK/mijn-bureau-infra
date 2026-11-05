@@ -162,7 +162,7 @@ This dashboard uses an internal datasource picker (no `__inputs`), so it does no
 
 ### PostgreSQL Database
 
-[dashboards/datastore/postgresql.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/postgresql.json) — works against the `postgres-exporter` sidecar that ships in the bitnami `postgresql` subchart. Multiple MijnBureau apps run their own Postgres instance (nextcloud, meet, docs, drive, grist, openproject, conversations, …); this single dashboard covers all of them via the `namespace` and `pod` dropdowns at the top.
+[dashboards/datastore/postgresql.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/postgresql.json) — works against the `postgres-exporter` sidecar that ships in the bitnami `postgresql` subchart. Multiple MijnBureau apps run their own Postgres instance (nextcloud, meet, docs, drive, conversations, …); this single dashboard covers all of them via the `namespace` and `pod` dropdowns at the top.
 
 What you can drill into:
 
@@ -184,7 +184,7 @@ curl -sSL 'https://grafana.com/api/dashboards/9628/revisions/latest/download' \
 
 ### Redis Dashboard
 
-[dashboards/datastore/redis.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/redis.json) — works against the `redis-exporter` sidecar that ships in the bitnami `redis` subchart. Used by almost every app for caching and session storage (nextcloud, meet, element, docs, drive, grist, openproject, conversations, bureaublad, livekit).
+[dashboards/datastore/redis.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/redis.json) — works against the `redis-exporter` sidecar that ships in the bitnami `redis` subchart. Used by almost every app for caching and session storage (nextcloud, meet, element, docs, drive, conversations, bureaublad, livekit).
 
 What you can drill into:
 
@@ -207,7 +207,7 @@ curl -sSL 'https://grafana.com/api/dashboards/11835/revisions/latest/download' \
 
 ### MinIO Dashboard
 
-[dashboards/datastore/minio.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/minio.json) — MinIO exposes Prometheus metrics natively (no sidecar exporter required). Used wherever MijnBureau needs S3-compatible object storage: nextcloud uploads, docs/drive document storage, meet recordings, grist attachments, openproject file storage.
+[dashboards/datastore/minio.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/minio.json) — MinIO exposes Prometheus metrics natively (no sidecar exporter required). Used wherever MijnBureau needs S3-compatible object storage: nextcloud uploads, docs/drive document storage, meet recordings.
 
 What you can drill into:
 

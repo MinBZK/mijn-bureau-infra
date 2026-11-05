@@ -30,10 +30,8 @@ global:
     keycloak: "id"
     element: "element"
     synapse: "matrix"
-    grist: "grist"
     collabora: "collabora"
     nextcloud: "nextcloud"
-    openproject: "openproject"
     livekit: "livekit"
     meet: "meet"
     conversations: "conversations"
@@ -57,7 +55,6 @@ Create the following DNS records (replace `kubernetes.local` with your configure
 - `id-admin.kubernetes.local`
 - `element.kubernetes.local`
 - `matrix.kubernetes.local`
-- `grist.kubernetes.local`
 - `collabora.kubernetes.local`
 - `nextcloud.kubernetes.local`
 - `livekit.kubernetes.local`

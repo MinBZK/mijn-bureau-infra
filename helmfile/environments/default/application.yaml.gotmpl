@@ -1,12 +1,4 @@
 application:
-  # grist is a modern spreadsheet application
-  grist:
-    enabled: false
-    namespace: ~
-    defaultLocale: ~
-    sessionSecret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "grist" "sessionSecret" | sha1sum | quote }}
-    sandboxFlavor: ~
-
   # this creates a self hosted AI LLM system using Ollama. It can handle small loads.
   ollama:
     enabled: true
@@ -53,11 +45,6 @@ application:
     # above 1G also requires bumping `APACHE_BODY_LIMIT` (not currently
     # exposed).
     uploadLimit: "512M"
-
-  # OpenProject is a web-based project management system
-  openproject:
-    enabled: false
-    namespace: ~
 
   # livekit is a video conferencing backend system
   livekit:

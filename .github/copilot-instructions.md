@@ -4,7 +4,7 @@ This document provides guidance for AI coding agents working on the MijnBureau i
 
 ## About this Project
 
-This repository contains the infrastructure for MijnBureau, a collaborative suite for civil servants. It uses Helmfile to manage Kubernetes deployments for various applications like Keycloak, Grist, Ollama, and Synapse/Element for chat. The infrastructure is designed to be secure, sovereign, and flexible.
+This repository contains the infrastructure for MijnBureau, a collaborative suite for civil servants. It uses Helmfile to manage Kubernetes deployments for various applications like Keycloak, Ollama, and Synapse/Element for chat. The infrastructure is designed to be secure, sovereign, and flexible.
 
 The documentation for this project is built with Docusaurus and is located in the `docs/` directory.
 
@@ -54,7 +54,7 @@ npm start
 ## Project Structure
 
 - `helmfile/`: Contains the core Helmfile setup.
-  - `helmfile/apps/`: Contains the Helmfile configurations for each application (e.g., `grist`, `keycloak`). Each app has a `helmfile-child.yaml.gotmpl` and its own chart or dependency.
+  - `helmfile/apps/`: Contains the Helmfile configurations for each application (e.g., `projects`, `keycloak`). Each app has a `helmfile-child.yaml.gotmpl` and its own chart or dependency.
   - `helmfile/bases/`: Contains base Helmfile configurations.
   - `helmfile/environments/`: Contains environment-specific values.
 - `policy/`: Contains global Rego policies that are applied to all environments.

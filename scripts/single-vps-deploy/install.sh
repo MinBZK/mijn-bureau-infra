@@ -70,9 +70,8 @@ run_step 03-restart-oidc-apps.sh
 # Warm the Collabora capabilities cache (waits for Nextcloud internally)
 run_step 04-nextcloud-office.sh
 
-# Docs (login + realtime) and Grist (file imports)
+# Docs (login + realtime)
 run_step 05-docs.sh
-run_step 06-grist.sh
 
 # 7: longer session lifetimes (optional but recommended)
 run_step 07-session-lifetimes.sh "${DOMAIN}"

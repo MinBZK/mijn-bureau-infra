@@ -411,7 +411,7 @@ backend:
       ## Possible values are "Off", "Initial", "Recreate", and "Auto".
       ##
       updatePolicy:
-        updateMode: Auto
+        updateMode: Recreate
     ## @param backend.autoscaling.hpa.enabled Enable HPA for Impress backend pods
     ## @param backend.autoscaling.hpa.minReplicas Minimum number of replicas
     ## @param backend.autoscaling.hpa.maxReplicas Maximum number of replicas
@@ -928,7 +928,7 @@ backend:
         ## Possible values are "Off", "Initial", "Recreate", and "Auto".
         ##
         updatePolicy:
-          updateMode: Auto
+          updateMode: Recreate
       ## @param backend.celery.autoscaling.hpa.enabled Enable HPA for Celery worker pods
       ## @param backend.celery.autoscaling.hpa.minReplicas Minimum number of replicas
       ## @param backend.celery.autoscaling.hpa.maxReplicas Maximum number of replicas
@@ -1352,7 +1352,7 @@ frontend:
       ## Possible values are "Off", "Initial", "Recreate", and "Auto".
       ##
       updatePolicy:
-        updateMode: Auto
+        updateMode: Recreate
     ## @param frontend.autoscaling.hpa.enabled Enable HPA for Impress frontend pods
     ## @param frontend.autoscaling.hpa.minReplicas Minimum number of replicas
     ## @param frontend.autoscaling.hpa.maxReplicas Maximum number of replicas
@@ -1826,7 +1826,7 @@ docspec:
       ## Possible values are "Off", "Initial", "Recreate", and "Auto".
       ##
       updatePolicy:
-        updateMode: Auto
+        updateMode: Recreate
     ## @param frontend.autoscaling.hpa.enabled Enable HPA for Impress frontend pods
     ## @param frontend.autoscaling.hpa.minReplicas Minimum number of replicas
     ## @param frontend.autoscaling.hpa.maxReplicas Maximum number of replicas
@@ -2293,7 +2293,7 @@ yProvider:
       ## Possible values are "Off", "Initial", "Recreate", and "Auto".
       ##
       updatePolicy:
-        updateMode: Auto
+        updateMode: Recreate
     ## @param yProvider.autoscaling.hpa.enabled Enable HPA for Impress y-provider pods
     ## @param yProvider.autoscaling.hpa.minReplicas Minimum number of replicas
     ## @param yProvider.autoscaling.hpa.maxReplicas Maximum number of replicas

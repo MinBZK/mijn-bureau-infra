@@ -1,13 +1,4 @@
 objectstore:
-  grist:
-    bucket: "grist"
-    username: "admin"
-    endpoint: "grist-minio"
-    port: 9000
-    useSSL: false
-    isInternal: true
-    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "grist" | sha1sum | quote }}
-
   # Region matches the nextcloud/helm community chart default. Required by
   # AWS-SDK-for-PHP for SigV4 signing — empty regions cause flaky behavior.
   nextcloud:
@@ -19,15 +10,6 @@ objectstore:
     region: "eu-west-1"
     isInternal: true
     rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "nextcloud" | sha1sum | quote }}
-
-  openproject:
-    bucket: "openproject"
-    username: "admin"
-    endpoint: "openproject-minio"
-    port: 9000
-    useSSL: false
-    isInternal: true
-    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "openproject" | sha1sum | quote }}
 
   docs:
     bucket: "docs"

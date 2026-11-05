@@ -20,8 +20,6 @@ Typical stateful components include:
 
 - Keycloak
 - Nextcloud
-- OpenProject
-- Grist
 - Databases and object stores used by platform applications
 
 ## Prerequisites
@@ -87,7 +85,7 @@ Example daily schedule:
 velero schedule create mijnbureau-daily \
   --schedule "0 2 * * *" \
   --ttl 720h \
-  --include-namespaces keycloak,nextcloud,openproject,grist
+  --include-namespaces keycloak,nextcloud
 ```
 
 Example six-hour schedule for critical namespaces:
@@ -111,7 +109,7 @@ Run an immediate backup before risky operations such as chart upgrades:
 
 ```bash
 velero backup create pre-upgrade-$(date +%Y%m%d-%H%M) \
-  --include-namespaces keycloak,nextcloud,openproject,grist \
+  --include-namespaces keycloak,nextcloud \
   --wait
 ```
 

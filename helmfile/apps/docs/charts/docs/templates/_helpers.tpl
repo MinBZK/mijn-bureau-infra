@@ -188,8 +188,13 @@ docs env vars
 {{- define "docs.common.env" -}}
 {{- $topLevelScope := index . 0 -}}
 {{- $workerScope := index . 1 -}}
+{{- $excludeKeys := list -}}
+{{- if gt (len .) 2 -}}
+{{- $excludeKeys = index . 2 -}}
+{{- end -}}
 {{- $secretEnvNames := splitList " " (include "docs.secretEnvNames" $topLevelScope) -}}
 {{- range $key, $value := $workerScope.envVars }}
+{{- if not (has $key $excludeKeys) }}
 {{- if and (has $key $secretEnvNames) (kindIs "string" $value) }}
 - name: {{ $key | quote }}
   valueFrom:
@@ -198,6 +203,7 @@ docs env vars
       key: {{ $key }}
 {{- else }}
 {{- include "docs.env.transformDict" (dict $key $value) }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

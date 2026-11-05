@@ -490,7 +490,7 @@ autoscaling:
     ## Possible values are "Off", "Initial", "Recreate", and "Auto".
     ##
     updatePolicy:
-      updateMode: Auto
+      updateMode: Recreate
 ## Default init Containers
 ##
 defaultInitContainers:
@@ -1242,7 +1242,7 @@ console:
       ## Possible values are "Off", "Initial", "Recreate", and "Auto".
       ##
       updatePolicy:
-        updateMode: Auto
+        updateMode: Recreate
     ## @param console.autoscaling.hpa.enabled Enable HPA for MinIO&reg; Console pods
     ## @param console.autoscaling.hpa.minReplicas Minimum number of replicas
     ## @param console.autoscaling.hpa.maxReplicas Maximum number of replicas

@@ -141,18 +141,7 @@ const SCREENSHOTS: ScreenshotItem[] = [
     alt: "Nextcloud integratie in MijnBureau",
     description: "Deel bestanden en werk samen in teams via Nextcloud.",
     hotspots: [
-      { x: 51, y: 2, targetId: "spreadsheet", label: "Bekijk Spreadsheet" },
-    ],
-  },
-  {
-    id: "spreadsheet",
-    label: "Spreadsheet",
-    icon: "📈",
-    image: "/img/screenshots/6-spreadsheet.png",
-    alt: "Spreadsheet bewerken in MijnBureau",
-    description: "Analyseer en bewerk data samen in realtime via Grist.",
-    hotspots: [
-      { x: 58, y: 2, targetId: "ai-assistant", label: "Bekijk AI Assistent" },
+      { x: 51, y: 2, targetId: "ai-assistant", label: "Bekijk AI Assistent" },
     ],
   },
   {

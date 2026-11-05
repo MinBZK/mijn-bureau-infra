@@ -2,16 +2,6 @@ database:
   default:
     provider: bitnami
 
-  grist:
-    type: postgresql
-    host: grist-cluster-rw
-    name: grist
-    user: grist
-    port: 5432
-    isInternal: true
-    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "grist" "database" | sha1sum | quote}}
-    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "grist" "database_admin" | sha1sum | quote}}
-
   keycloak:
     name: keycloak
     host: keycloak-cluster-rw
@@ -39,16 +29,6 @@ database:
     isInternal: true
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "nextcloud" "database" | sha1sum | quote}}
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "nextcloud" "database_admin" | sha1sum | quote}}
-
-  openproject:
-    type: postgresql
-    host: openproject-cluster-rw
-    name: openproject
-    user: openproject
-    port: 5432
-    isInternal: true
-    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "openproject" "database" | sha1sum | quote}}
-    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "openproject" "database_admin" | sha1sum | quote}}
 
   meet:
     type: postgresql

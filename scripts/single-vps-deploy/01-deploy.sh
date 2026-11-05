@@ -58,7 +58,6 @@ global:
     keycloak: "none"
     ollama: "none"
     synapse: "none"
-    grist: "none"
     livekit: "none"
     meet: { backend: "none", frontend: "none" }
     nextcloud: "none"
@@ -85,15 +84,10 @@ cluster:
 application:
   ollama:
     enabled: false
-  # Antivirus and project-management are disabled for this install. To re-enable:
-  # set enabled: true and give each a namespace. OpenProject additionally needs
-  # the security.openproject and tls.openproject blocks (see the guide).
+  # Antivirus is disabled for this install. To re-enable, set enabled: true.
   clamav:
     enabled: false
-  openproject:
-    enabled: false
   keycloak:    { namespace: mb-keycloak }
-  grist:       { namespace: mb-grist }
   element:     { namespace: mb-element }
   collabora:   { namespace: mb-collabora }
   nextcloud:   { namespace: mb-nextcloud }

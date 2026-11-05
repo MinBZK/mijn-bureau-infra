@@ -846,7 +846,7 @@ frontend:
       ## Possible values are "Off", "Initial", "Recreate", and "Auto".
       ##
       updatePolicy:
-        updateMode: Auto
+        updateMode: Recreate
     ## @param frontend.autoscaling.hpa.enabled Enable HPA for frontend pods
     ## @param frontend.autoscaling.hpa.minReplicas Minimum number of replicas
     ## @param frontend.autoscaling.hpa.maxReplicas Maximum number of replicas

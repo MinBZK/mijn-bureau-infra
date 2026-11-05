@@ -31,7 +31,7 @@ Return the proper Docker Image Registry Secret Names
 {{- end -}}
 
 {{/*
-Return the proper grist image name
+Return the proper collabora image name
 */}}
 {{- define "collabora.image" -}}
 {{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global) }}

@@ -1,5 +1,5 @@
 helmDefaults:
-  createNamespace: {{ env "MIJNBUREAU_CREATE_NAMESPACES" | default false  }}
+  createNamespace: {{ (env "MIJNBUREAU_CREATE_NAMESPACES" | default "false") | eq "true" }}
   timeout: 600
   insecureSkipTLSVerify: false
   plainHttp: false

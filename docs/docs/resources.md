@@ -57,7 +57,6 @@ global:
   resourcesPresetPerApp:
     elementweb: "nano"
     synapse: "large"
-    grist: "small"
     livekit: "medium"
     nextcloud: "medium"
     meet:
@@ -141,7 +140,6 @@ These apps are safe at any preset -- the custom helper enforces the minimum rega
 | ------------- | --------------- | -------- | ------- | ------- | ------------------------------------------------- |
 | Element Web   | -               | `nano`   | 50m     | 64 MiB  | Static SPA served by nginx                        |
 | Synapse       | master + worker | `large`  | 1 core  | 2 GiB   | Matrix homeserver, memory scales with rooms/users |
-| Grist         | -               | `small`  | 500m    | 200 MiB | SQLite-based, scales with open documents          |
 | LiveKit       | -               | `medium` | 500m    | 512 MiB | WebRTC SFU, scales heavily with participants      |
 | Nextcloud     | -               | `medium` | 500m    | 512 MiB | PHP memory limit is 512 MiB per process           |
 | Meet          | backend         | `micro`  | 250m    | 256 MiB | Lightweight Django app                            |
@@ -157,12 +155,6 @@ These apps are safe at any preset -- the custom helper enforces the minimum rega
 | Conversations | frontend        | `nano`   | 100m    | 128 MiB | Static React/Next.js                              |
 | Bureaublad    | backend         | `micro`  | 250m    | 256 MiB | Dashboard backend                                 |
 | Bureaublad    | frontend        | `nano`   | 100m    | 128 MiB | Dashboard frontend                                |
-
-### Apps using global preset only
-
-| App         | Notes                                                                                                                                                                 |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| OpenProject | External Helm chart, resource presets are managed by the upstream chart. Uses `global.resourcesPreset` directly. Official minimum: 4 CPU / 4 GiB for up to 200 users. |
 
 ### Dependencies (PostgreSQL, Redis, MinIO)
 

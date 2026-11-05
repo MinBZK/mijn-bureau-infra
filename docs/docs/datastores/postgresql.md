@@ -68,13 +68,13 @@ This single setting switches all applications from the Bitnami PostgreSQL subcha
 
 Once you have one or more databases available, you can configure MijnBureau to use an external database. The default configuration for each application is located in `helmfile/environments/default/database.yaml.gotmpl`.
 
-### Example: Configuring the Grist Database
+### Example: Configuring the Nextcloud Database
 
-To configure the Grist database, add the following to `helmfile/environments/production/mijnbureau.yaml.gotmpl`:
+To configure the Nextcloud database, add the following to `helmfile/environments/production/mijnbureau.yaml.gotmpl`:
 
 ```yaml
 database:
-  grist:
+  nextcloud:
     type: postgresql
     host: yourdatabasehost
     name: databasename
@@ -92,7 +92,7 @@ Storing passwords directly in configuration files is not recommended, as they mi
 
    ```yaml
    database:
-     grist:
+     nextcloud:
        password: your user password
    ```
 
