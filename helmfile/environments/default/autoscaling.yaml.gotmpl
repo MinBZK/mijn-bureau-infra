@@ -138,6 +138,13 @@ autoscaling:
         maxReplicas: 3
         targetCPU: 80
         targetMemory: ""
+    projects:
+      # Requires Redis and object storage, both enabled in the default environment.
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
     clamav:
       enabled: true
       minReplicas: 1

@@ -40,6 +40,8 @@ global:
     docs: "docs"
     bureaublad: "bureaublad"
     drive: "drive"
+    projects: "projects"
+    projects-minio: "projects-minio"
     conversations-static: "static-conversations"
     drive-static: "static-drive"
     meet-static: "static-meet"
@@ -64,6 +66,8 @@ Create the following DNS records (replace `kubernetes.local` with your configure
 - `docs.kubernetes.local`
 - `bureaublad.kubernetes.local`
 - `drive.kubernetes.local`
+- `projects.kubernetes.local`
+- `projects-minio.kubernetes.local`
 - `static-conversations.kubernetes.local`
 - `static-drive.kubernetes.local`
 - `static-meet.kubernetes.local`

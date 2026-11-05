@@ -63,7 +63,7 @@ pvc:
     # Database holds metadata, file index, share state — grows with users not files.
     postgresql:
       storageClass: ~
-      size: "10Gi"
+      size: ~
       accessModes: []
     # MinIO is where actual user files land. Size for production scale; demo
     # environments can override smaller in helmfile/environments/demo/.
@@ -155,4 +155,30 @@ pvc:
     redis:
       storageClass: ~
       size: ~
+      accessModes: []
+
+  projects:
+    public:
+      storageClass: ~
+      size: ~
+      accessModes: []
+    backgrounds:
+      storageClass: ~
+      size: ~
+      accessModes: []
+    attachments:
+      storageClass: ~
+      size: ~
+      accessModes: []
+    postgresql:
+      storageClass: ~
+      size: ~
+      accessModes: []
+    redis:
+      storageClass: ~
+      size: ~
+      accessModes: []
+    minio:
+      storageClass: ~
+      size: "8Gi"
       accessModes: []

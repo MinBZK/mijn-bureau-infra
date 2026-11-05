@@ -25,6 +25,7 @@ global:
     drive:
       backend: "small"
       frontend: "small"
+    projects: "small"
     conversations:
       backend: "small"
       frontend: "small"

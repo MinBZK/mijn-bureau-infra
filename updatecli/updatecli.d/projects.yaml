@@ -1,0 +1,66 @@
+name: "Update projects container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump projects version to {{ source "projects_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  projects_latest_version:
+    name: "Get latest projects tag"
+    kind: dockerimage
+    spec:
+      image: "lasuite/projects"
+      architecture: amd64
+      tagfilter: "^[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_projects_tag:
+    name: "Update projects container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.projects.tag"
+    sourceid: projects_latest_version
+    scmid: default
+
+  update_values_projects_tag:
+    name: "Update values projects tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/projects/charts/projects/values.yaml"
+      key: "$.projects.image.tag"
+    sourceid: projects_latest_version
+    scmid: default
+
+  update_chart_appVersion:
+    name: "Update projects chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/projects/charts/projects/Chart.yaml"
+      key: "$.appVersion"
+    sourceid: projects_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump projects version to {{ source "projects_latest_version" }}

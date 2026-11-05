@@ -1,0 +1,201 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: projects
+  {{- if or .Values.projects.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.projects.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.projects.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.projects.replicaCount }}
+  {{- end }}
+  {{- if .Values.projects.updateStrategy }}
+  strategy: {{- toYaml .Values.projects.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.projects.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: projects
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.projects.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.projects.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: projects
+    spec:
+      {{- include "projects.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "projects.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.projects.automountServiceAccountToken }}
+      {{- if .Values.projects.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.projects.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.projects.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.projects.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.projects.podAffinityPreset "component" "projects" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.projects.podAntiAffinityPreset "component" "projects" "customLabels" $podLabels "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.projects.nodeAffinityPreset.type "key" .Values.projects.nodeAffinityPreset.key "values" .Values.projects.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.projects.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.projects.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.projects.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.projects.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.projects.priorityClassName }}
+      priorityClassName: {{ .Values.projects.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.projects.schedulerName }}
+      schedulerName: {{ .Values.projects.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.projects.runtimeClassName }}
+      runtimeClassName: {{ .Values.projects.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.projects.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.projects.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.projects.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.projects.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.projects.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.projects.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.projects.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" .Values.projects.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: projects
+          image: {{ template "projects.image" . }}
+          imagePullPolicy: {{ .Values.projects.image.pullPolicy }}
+          {{- if .Values.projects.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.projects.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.projects.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.projects.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.projects.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.projects.args "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.projects.extraEnvVars }}
+          env:
+            {{- include "common.tplvalues.render" (dict "value" .Values.projects.extraEnvVars "context" $) | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ template "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "projects.secretName" . }}
+            {{- if .Values.projects.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.projects.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.projects.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.projects.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.projects.resources }}
+          resources: {{- toYaml .Values.projects.resources | nindent 12 }}
+          {{- else if ne .Values.projects.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.projects.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.projects.containerPorts.http }}
+              protocol: TCP
+            {{- if .Values.projects.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.projects.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.projects.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.projects.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.projects.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.projects.livenessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /
+              port: http
+          {{- end }}
+          {{- if .Values.projects.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.projects.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.projects.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.projects.readinessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /
+              port: http
+          {{- end }}
+          {{- if .Values.projects.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.projects.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.projects.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.projects.startupProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /
+              port: http
+          {{- end }}
+          {{- end }}
+          {{- if .Values.projects.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.projects.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: app-tmp
+              mountPath: /app/.tmp
+            - name: public
+              mountPath: /app/public/user-avatars
+            - name: backgrounds
+              mountPath: /app/public/project-background-images
+            - name: attachments
+              mountPath: /app/attachments
+            {{- if .Values.projects.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.projects.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.projects.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.projects.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: app-tmp
+          emptyDir: {}
+        - name: public
+        {{- if .Values.persistence.public.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ default (printf "%s-public" (include "common.names.fullname" .)) .Values.persistence.public.existingClaim }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        - name: backgrounds
+        {{- if .Values.persistence.backgrounds.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ default (printf "%s-backgrounds" (include "common.names.fullname" .)) .Values.persistence.backgrounds.existingClaim }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        - name: attachments
+        {{- if .Values.persistence.attachments.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ default (printf "%s-attachments" (include "common.names.fullname" .)) .Values.persistence.attachments.existingClaim }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.projects.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.projects.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

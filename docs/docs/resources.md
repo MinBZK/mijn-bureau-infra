@@ -75,6 +75,7 @@ global:
     conversations:
       backend: "micro"
       frontend: "nano"
+    projects: "micro"
     bureaublad:
       backend: "micro"
       frontend: "nano"

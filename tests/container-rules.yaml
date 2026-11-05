@@ -144,6 +144,10 @@ container:
     registry: ""
     imagePullSecret: ""
 
+  projects:
+    registry: ""
+    imagePullSecret: ""
+
   nginx:
     registry: ""
     imagePullSecret: ""
