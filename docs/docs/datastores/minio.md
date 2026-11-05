@@ -27,8 +27,8 @@ To configure ObjectStore, add the following to `helmfile/environments/production
 
 ```yaml
 objectstore:
-  grist:
-    bucket: "grist"
+  nextcloud:
+    bucket: "nextcloud"
     username: "admin"
     endpoint: "yourhostname"
     port: 9000
@@ -45,7 +45,7 @@ Storing credentials directly in configuration files is not recommended. Use a se
 
    ```yaml
    objectstore:
-     grist:
+     nextcloud:
        username: "admin"
        rootPassword: yourpassword
    ```

@@ -421,7 +421,7 @@ conversations:
       ## Possible values are "Off", "Initial", "Recreate", and "Auto".
       ##
       updatePolicy:
-        updateMode: Auto
+        updateMode: Recreate
     ## @param conversations.autoscaling.hpa.enabled Enable HPA for conversations pods
     ## @param conversations.autoscaling.hpa.minReplicas Minimum number of replicas
     ## @param conversations.autoscaling.hpa.maxReplicas Maximum number of replicas
@@ -776,7 +776,7 @@ conversations_frontend:
       ## Possible values are "Off", "Initial", "Recreate", and "Auto".
       ##
       updatePolicy:
-        updateMode: Auto
+        updateMode: Recreate
     ## @param conversations.autoscaling.hpa.enabled Enable HPA for conversations pods
     ## @param conversations.autoscaling.hpa.minReplicas Minimum number of replicas
     ## @param conversations.autoscaling.hpa.maxReplicas Maximum number of replicas

@@ -18,7 +18,6 @@ if ! command -v kube-diagrams &> /dev/null; then
 fi
 
 namespaces=(
-  grist
   ollama
   keycloak
   element

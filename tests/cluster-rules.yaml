@@ -10,7 +10,6 @@ global:
     keycloak: "small"
     ollama: "small"
     synapse: "small"
-    grist: "small"
     livekit: "small"
     nextcloud: "small"
     meet:

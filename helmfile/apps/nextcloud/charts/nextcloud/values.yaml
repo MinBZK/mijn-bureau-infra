@@ -615,7 +615,7 @@ autoscaling:
     ## Possible values are "Off", "Initial", "Recreate", and "Auto".
     ##
     updatePolicy:
-      updateMode: Auto
+      updateMode: Recreate
   ## @param autoscaling.hpa.enabled Enable HPA for Nextcloud pods
   ## @param autoscaling.hpa.minReplicas Minimum number of replicas
   ## @param autoscaling.hpa.maxReplicas Maximum number of replicas

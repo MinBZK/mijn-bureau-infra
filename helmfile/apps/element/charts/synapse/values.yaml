@@ -452,7 +452,7 @@ master:
       ## Possible values are "Off", "Initial", "Recreate", and "Auto".
       ##
       updatePolicy:
-        updateMode: Auto
+        updateMode: Recreate
   ## Synapse master service parameters
   ##
   service:
@@ -1035,7 +1035,7 @@ worker:
         ## Possible values are "Off", "Initial", "Recreate", and "Auto".
         ##
         updatePolicy:
-          updateMode: Auto
+          updateMode: Recreate
     ## Synapse worker service parameters
     ##
     service:

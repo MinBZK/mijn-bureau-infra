@@ -87,9 +87,6 @@ backend:
     {{- if .Values.application.meet.enabled }}
     MEET_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.meet .Values.global.domain | quote }}
     {{- end }}
-    {{- if .Values.application.grist.enabled }}
-    GRIST_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.grist .Values.global.domain | quote }}
-    {{- end }}
     {{- if .Values.application.conversations.enabled }}
     CONVERSATION_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.conversations .Values.global.domain | quote }}
     {{- end }}

@@ -36,7 +36,6 @@ kubectl exec -n mb-nextcloud deploy/nextcloud -- \
 
 echo "==> [6h] Restarting OIDC apps so they re-read discovery"
 # Idempotent: rollout restart can be issued any number of times.
-kubectl rollout restart deploy/grist -n mb-grist
 kubectl rollout restart deploy/docs-backend -n mb-docs
 kubectl rollout restart deploy/nextcloud -n mb-nextcloud
 kubectl rollout restart deploy/meet-backend -n mb-meet

@@ -11,7 +11,6 @@ global:
     keycloak: "xlarge"
     ollama: "xlarge"
     synapse: "xlarge"
-    grist: "xlarge"
     livekit: "xlarge"
     nextcloud: "xlarge"
     meet:
@@ -33,13 +32,3 @@ global:
     bureaublad:
       backend: "xlarge"
       frontend: "xlarge"
-
-resource:
-  openproject:
-    openproject:
-    dbInit:
-    appInit:
-    cron:
-    workers:
-    hocuspocus:
-    seederJob:

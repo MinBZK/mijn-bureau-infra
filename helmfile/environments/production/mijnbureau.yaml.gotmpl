@@ -78,9 +78,6 @@ pvc:
 # blocked by the same-namespace NetworkPolicies until they gain a
 # namespaceSelector — or put related apps in a shared namespace.
 application:
-  grist:
-    enabled: true
-    namespace: mijnbureau-grist
   ollama:
     enabled: true
     namespace: mijnbureau-ollama
@@ -96,9 +93,6 @@ application:
   nextcloud:
     enabled: true
     namespace: mijnbureau-nextcloud
-  openproject:
-    enabled: false
-    namespace: mijnbureau-openproject
   livekit:
     enabled: true
     namespace: mijnbureau-livekit
@@ -135,12 +129,6 @@ autoscaling:
       enabled: true
       minReplicas: 2
       maxReplicas: 5
-      targetCPU: 75
-      targetMemory: ""
-    grist:
-      enabled: true
-      minReplicas: 2
-      maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
     element:
@@ -200,9 +188,6 @@ autoscaling:
 # least one pod available during node drains. Apps not listed inherit default.
 pdb:
   keycloak:
-    create: true
-    minAvailable: 1
-  grist:
     create: true
     minAvailable: 1
   nextcloud:

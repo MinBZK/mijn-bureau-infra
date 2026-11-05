@@ -64,13 +64,9 @@ global:
     selfSigned: true
 
 secret:
-  grist:
-    adminEmail: johndoe@example.com
+  adminEmail: johndoe@example.com
 
 application:
-  grist:
-    enabled: true
-    namespace: grist
   keycloak:
     enabled: true
     namespace: keycloak
@@ -129,7 +125,6 @@ When the deployment is succesfull you will be able to connect to the tools. Thes
 - [id](https://id.127.0.0.1.sslip.io)
 - [id-admin](https://chat.127.0.0.1.sslip.io)
 - [matrix](https://matrix.127.0.0.1.sslip.io)
-- [grist](https://grist.127.0.0.1.sslip.io)
 - [collabora](https://collabora.127.0.0.1.sslip.io)
 - [nextcloud](https://nextcloud.127.0.0.1.sslip.io)
 

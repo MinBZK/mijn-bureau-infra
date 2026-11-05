@@ -6,12 +6,6 @@ autoscaling:
       maxReplicas: 3
       targetCPU: 80
       targetMemory: ""
-    grist:
-      enabled: true
-      minReplicas: 2
-      maxReplicas: 3
-      targetCPU: 75
-      targetMemory: ""
     keycloak:
       enabled: true
       minReplicas: 2
@@ -38,12 +32,6 @@ autoscaling:
     collabora:
       # it is disabled. Because after scaling it breaks the collaborative editing and copy/paste.
       enabled: false
-      minReplicas: 1
-      maxReplicas: 3
-      targetCPU: 75
-      targetMemory: ""
-    openproject:
-      enabled: true
       minReplicas: 1
       maxReplicas: 3
       targetCPU: 75
@@ -161,7 +149,7 @@ autoscaling:
         maxAllowed: {}
         minAllowed: {}
         updatePolicy:
-          updateMode: Auto
+          updateMode: Recreate
       worker:
         default:
           enabled: false
@@ -170,7 +158,7 @@ autoscaling:
           maxAllowed: {}
           minAllowed: {}
           updatePolicy:
-            updateMode: Auto
+            updateMode: Recreate
     docs:
       backend:
         enabled: true
@@ -179,7 +167,7 @@ autoscaling:
         maxAllowed: {}
         minAllowed: {}
         updatePolicy:
-          updateMode: Auto
+          updateMode: Recreate
       celery:
         enabled: false
         annotations: {}
@@ -187,7 +175,7 @@ autoscaling:
         maxAllowed: {}
         minAllowed: {}
         updatePolicy:
-          updateMode: Auto
+          updateMode: Recreate
       frontend:
         enabled: false
         annotations: {}
@@ -195,7 +183,7 @@ autoscaling:
         maxAllowed: {}
         minAllowed: {}
         updatePolicy:
-          updateMode: Auto
+          updateMode: Recreate
       yProvider:
         enabled: false
         annotations: {}
@@ -203,4 +191,4 @@ autoscaling:
         maxAllowed: {}
         minAllowed: {}
         updatePolicy:
-          updateMode: Auto
+          updateMode: Recreate

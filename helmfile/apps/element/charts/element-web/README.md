@@ -128,7 +128,7 @@ To back up and restore Helm chart deployments on Kubernetes, you need to back up
 
 ## Persistence
 
-The Element-Web image stores the Grist data and configurations at the `/persist` path of the container. Persistent Volume Claims are used to keep the data across deployments.
+The Element-Web image stores the Element-Web data and configurations at the `/persist` path of the container. Persistent Volume Claims are used to keep the data across deployments.
 
 ## Parameters
 

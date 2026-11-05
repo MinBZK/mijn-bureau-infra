@@ -435,7 +435,7 @@ livekit:
       ## Possible values are "Off", "Initial", "Recreate", and "Auto".
       ##
       updatePolicy:
-        updateMode: Auto
+        updateMode: Recreate
     ## @param livekit.autoscaling.hpa.enabled Enable HPA for livekit_server pods
     ## @param livekit.autoscaling.hpa.minReplicas Minimum number of replicas
     ## @param livekit.autoscaling.hpa.maxReplicas Maximum number of replicas

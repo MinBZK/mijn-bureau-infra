@@ -30,7 +30,7 @@ To configure Redis for MijnBureau, add the following to `helmfile/environments/p
 
 ```yaml
 cache:
-  grist:
+  nextcloud:
     host: yourhostname
     port: 6379
     isInternal: true #manages networkpolicies to go outside or inside the cluster
@@ -50,7 +50,7 @@ Storing passwords directly in configuration files is not recommended. Instead, u
 
    ```yaml
    cache:
-     grist:
+     nextcloud:
        password: your redis password
    ```
 

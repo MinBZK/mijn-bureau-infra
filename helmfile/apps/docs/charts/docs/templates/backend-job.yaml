@@ -2,9 +2,13 @@
 
 SPDX-License-Identifier: APACHE-2.0
 */}}
-{{- $envVars := include "docs.common.env" (list . .Values.backend) -}}
 
 {{- range $job, $config := $.Values.backend.jobs.jobs }}
+{{- $excludeKeys := list -}}
+{{- if and (eq $config.name "migrate") $.Values.backend.migrateDbCredentials }}
+{{- $excludeKeys = keys $.Values.backend.migrateDbCredentials -}}
+{{- end -}}
+{{- $envVars := include "docs.common.env" (list $ $.Values.backend $excludeKeys) -}}
 {{- if $config.command }}
 ---
 apiVersion: {{ include "common.capabilities.job.apiVersion" $ }}

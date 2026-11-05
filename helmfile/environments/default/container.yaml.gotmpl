@@ -17,11 +17,6 @@ container:
     repository: bitnamilegacy/keycloak-config-cli
     tag: 6.4.0-debian-12-r9
     imagePullSecret: ~
-  grist:
-    registry: "registry-1.docker.io"
-    repository: "gristlabs/grist"
-    tag: "1.7.22"
-    imagePullSecret: ~
   minio:
     registry: "registry-1.docker.io"
     repository: "bitnamilegacy/minio"
@@ -82,15 +77,6 @@ container:
     repository: "bitnamilegacy/os-shell"
     tag: "12-debian-12-r51"
     imagePullSecret: ~
-  openproject:
-    imagePullSecret: ~
-    registry: "ghcr.io"
-    openproject:
-      repository: "minbzk/mijnbureau-openproject"
-      tag: "v16.6.3"
-    hocuspocus:
-      repository: "openproject/hocuspocus"
-      tag: "main-defdb238"
   livekit_server:
     registry: "registry-1.docker.io"
     repository: "livekit/livekit-server"
@@ -144,7 +130,7 @@ container:
     imagePullSecret: ~
     registry: "ghcr.io"
     repository: "docspecio/api"
-    tag: "1.21.10"
+    tag: "3.0.2"
   docs:
     imagePullSecret: ~
     registry: "registry-1.docker.io"

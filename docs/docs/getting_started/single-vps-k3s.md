@@ -5,8 +5,7 @@ description: Deploy the full MijnBureau suite on a single Linux server using k3s
 
 # Get started on a single VPS with K3s
 
-This guide shows you how to get the full MijnBureau suite (Keycloak SSO, Nextcloud + Collabora office,
-Grist, Docs, Element chat, Meet video, Bureaublad dashboard) running on a single Linux server using K3s
+This guide shows you how to get the full MijnBureau suite (Keycloak SSO, Nextcloud + Collabora office, Docs, Element chat, Meet video, Bureaublad dashboard) running on a single Linux server using K3s
 
 This aims to be the fastest and cheapest way to have a fully functional MijnBureau set up running fully within the EU.
 
@@ -17,8 +16,7 @@ We tested it on an [AX41](https://www.hetzner.com/dedicated-rootserver/ax41/) fr
 :::warning
 Single node, no backups, no disaster recovery, all datastores in-cluster, secrets
 derived from one master password. Don't put real data on it without adding backups
-(Velero or similar) and rotating every secret. Antivirus (ClamAV) and project
-management (OpenProject) are disabled in this setup to keep it lean.
+(Velero or similar) and rotating every secret. Antivirus (ClamAV) is disabled in this setup to keep it lean.
 :::
 
 ## Prerequisites
@@ -70,7 +68,6 @@ kubectl get secret keycloak-keycloak -n mb-keycloak \
 | Dashboard      | `https://bureaublad.DOMAIN` | Loads and shows the app tiles           |
 | Files + Office | `https://nextcloud.DOMAIN`  | Log in and upload an `.xlsx` file       |
 | Docs           | `https://docs.DOMAIN`       | Log in, create a document, type into it |
-| Grist          | `https://grist.DOMAIN`      | Create a table, import a CSV            |
 | Chat           | `https://element.DOMAIN`    | Loads and you can send a message        |
 | Video          | `https://meet.DOMAIN`       | Start a meeting, camera/mic work        |
 | SSO            | `https://id.DOMAIN`         | Keycloak login works                    |
@@ -102,7 +99,7 @@ curl -fsSL $BASE/01-deploy.sh | bash -s -- DOMAIN you@example.com 'YOUR_MASTER_P
 What this does:
 
 - Installs k3s, Helm and Helmfile, plus cert-manager and a Let's Encrypt issuer for TLS.
-- Writes the demo config: drops resource requests so the suite fits one box, sets the k3s pod/service CIDRs, pins the OIDC endpoints explicitly, and disables ClamAV, OpenProject and Ollama.
+- Writes the demo config: drops resource requests so the suite fits one box, sets the k3s pod/service CIDRs, pins the OIDC endpoints explicitly, and disables ClamAV and Ollama.
 - Runs `helmfile -e demo apply` to deploy everything.
 - Saves your domain to `/etc/mijnbureau/domain` so the later scripts reuse it.
 
@@ -173,19 +170,7 @@ What this does:
 
 View the script [here](https://github.com/MinBZK/mijn-bureau-infra/blob/main/scripts/single-vps-deploy/05-docs.sh).
 
-### 7. Grist — `06-grist.sh`
-
-```bash
-curl -fsSL $BASE/06-grist.sh | bash
-```
-
-What this does:
-
-- Pins Grist to a single replica, so a file upload and its follow-up import request hit the same pod (otherwise you get "Unknown upload").
-
-View the script [here](https://github.com/MinBZK/mijn-bureau-infra/blob/main/scripts/single-vps-deploy/06-grist.sh).
-
-### 8. Session lifetimes (optional) — `07-session-lifetimes.sh`
+### 7. Session lifetimes (optional) — `07-session-lifetimes.sh`
 
 ```bash
 curl -fsSL $BASE/07-session-lifetimes.sh | bash
@@ -203,10 +188,8 @@ View the script [here](https://github.com/MinBZK/mijn-bureau-infra/blob/main/scr
 
 - Nextcloud Office "New file" / "Save As" from inside the editor can crash on some
   versions — create files from the Files app's ➕ instead.
-- ClamAV (antivirus) and OpenProject are disabled here. To re-enable, set
-  `enabled: true` for them in the config in `01-deploy.sh`; OpenProject also needs
-  the `security.openproject` and `tls.openproject` blocks (and a `hsts-header`
-  Middleware created in its namespace).
+- ClamAV (antivirus) is disabled here. To re-enable, set
+  `enabled: true` for it in the config in `01-deploy.sh`.
 - The AI assistant (Conversations) and Drive are not exposed in this setup.
 
 ## Teardown

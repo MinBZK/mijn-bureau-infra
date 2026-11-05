@@ -9,7 +9,6 @@ global:
     keycloak: "small"
     ollama: "small"
     synapse: "small"
-    grist: "small"
     livekit: "small"
     nextcloud: "small"
     meet:
@@ -45,10 +44,6 @@ container:
     imagePullSecret: ""
 
   keycloak_cli:
-    registry: ""
-    imagePullSecret: ""
-
-  grist:
     registry: ""
     imagePullSecret: ""
 
@@ -93,10 +88,6 @@ container:
     imagePullSecret: ""
 
   nextcloud:
-    registry: ""
-    imagePullSecret: ""
-
-  openproject:
     registry: ""
     imagePullSecret: ""
 

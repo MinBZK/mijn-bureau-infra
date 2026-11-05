@@ -31,18 +31,6 @@ const COMPONENTS: ComponentLogo[] = [
     ext: "svg",
   },
   {
-    name: "Grist",
-    role: "Spreadsheets",
-    logo: "/img/logos/Grist.png",
-    ext: "png",
-  },
-  {
-    name: "OpenProject",
-    role: "Project Management",
-    logo: "/img/logos/openprojects.svg",
-    ext: "svg",
-  },
-  {
     name: "Ollama",
     role: "AI Language Models",
     logo: "/img/logos/ollama.webp",
