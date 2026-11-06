@@ -1,0 +1,19 @@
+cluster:
+  networking:
+    dns:
+      external:
+        port: 1053
+      internal:
+        port: 5353
+        namespace: test-dns
+  ingress:
+    type: traefik
+
+application:
+  nextcloud:
+    enabled: true
+  ollama:
+    enabled: true
+
+metric:
+  enabled: true

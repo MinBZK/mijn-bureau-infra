@@ -10,6 +10,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") (.Values.application.docs.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "values-postgresql.yaml.gotmpl"
 
   - name: docs-cluster-credentials
@@ -40,6 +41,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") (.Values.application.docs.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "values-redis.yaml.gotmpl"
 
   - name: docs-minio
@@ -50,6 +52,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") (.Values.application.docs.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-minio.yaml.gotmpl"
 
@@ -70,6 +73,7 @@ releases:
       - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs-minio
     {{- end }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"
 
@@ -83,6 +87,7 @@ releases:
     needs:
       - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-nginx.yaml.gotmpl"
 
@@ -94,5 +99,6 @@ releases:
     {{- end }}
     installed: {{ .Values.application.docs.enabled | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-static-nginx.yaml.gotmpl"

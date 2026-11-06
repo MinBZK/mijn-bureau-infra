@@ -1,0 +1,2 @@
+global:
+  dns: {{ .Values.cluster.networking.dns | toYaml | nindent 4 }}

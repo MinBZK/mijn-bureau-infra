@@ -9,6 +9,7 @@ releases:
     namespace: {{ .Values.application.conversations.namespace | quote }}
     {{- end }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-conversations.yaml.gotmpl"
     {{- if and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) }}
@@ -29,6 +30,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "values-postgresql.yaml.gotmpl"
 
   - name: conversations-cluster-credentials
@@ -59,6 +61,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "values-redis.yaml.gotmpl"
 
   - name: conversations-static
@@ -69,5 +72,6 @@ releases:
     {{- end }}
     installed: {{ .Values.application.conversations.enabled | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-static-nginx.yaml.gotmpl"

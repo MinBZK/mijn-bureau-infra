@@ -26,12 +26,7 @@ spec:
     {{- if .Values.yProvider.networkPolicy.allowExternalEgress }}
     - {}
     {{- else }}
-    - ports:
-        # Allow dns resolution
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
     {{- if .Values.yProvider.networkPolicy.extraEgress }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.yProvider.networkPolicy.extraEgress "context" $ ) | nindent 4 }}
     {{- end }}

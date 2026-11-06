@@ -20,6 +20,10 @@ Typical stateful components include:
 
 - Keycloak
 - Nextcloud
+<<<<<<< HEAD
+=======
+- Grist
+>>>>>>> 7c82bc9 (♻️(Refactor): autoscaling update policies to use 'Recreate' mode instead of 'Auto' across multiple configurations)
 - Databases and object stores used by platform applications
 
 ## Prerequisites
@@ -85,7 +89,11 @@ Example daily schedule:
 velero schedule create mijnbureau-daily \
   --schedule "0 2 * * *" \
   --ttl 720h \
+<<<<<<< HEAD
   --include-namespaces keycloak,nextcloud
+=======
+  --include-namespaces keycloak,nextcloud,grist
+>>>>>>> 7c82bc9 (♻️(Refactor): autoscaling update policies to use 'Recreate' mode instead of 'Auto' across multiple configurations)
 ```
 
 Example six-hour schedule for critical namespaces:

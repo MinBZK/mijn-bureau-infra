@@ -9,5 +9,6 @@ releases:
     namespace: {{ .Values.application.collabora.namespace | quote }}
     {{- end }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-collabora.yaml.gotmpl"

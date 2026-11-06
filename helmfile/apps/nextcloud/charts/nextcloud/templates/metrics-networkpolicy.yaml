@@ -23,12 +23,7 @@ spec:
     - Ingress
     - Egress
   egress:
-    # DNS resolution
-    - ports:
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
     # Egress to Nextcloud HTTP endpoint (serverinfo API)
     - ports:
         - port: {{ .Values.containerPorts.http }}

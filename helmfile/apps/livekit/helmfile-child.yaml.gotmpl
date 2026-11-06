@@ -13,6 +13,7 @@ releases:
       - {{ if .Values.application.livekit.namespace }}{{ .Values.application.livekit.namespace }}/{{ end }}livekit-redis
     {{- end }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"
 
@@ -24,4 +25,5 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.livekit.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "values-redis.yaml.gotmpl"

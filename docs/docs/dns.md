@@ -70,3 +70,31 @@ Create the following DNS records (replace `kubernetes.local` with your configure
 - `static-meet.kubernetes.local`
 - `static-docs.kubernetes.local`
 - `drive-minio.kubernetes.local`
+
+## Cluster DNS network policies
+
+DNS egress defaults to external port 53 without restricting the destination. To
+configure separate external and internal DNS ports, override the following
+settings from `helmfile/environments/default/cluster.yaml.gotmpl`:
+
+```yaml
+cluster:
+  networking:
+    dns:
+      external:
+        port: 1053
+      internal:
+        port: 5353
+        namespace: kube-system
+```
+
+The external port is allowed to any destination and defaults to 53. An internal
+DNS rule is added when its port or namespace is set; its port defaults to 53, and
+an unset namespace allows that port to any destination. A namespace matches pods
+in that namespace. Network policies are additive: if the external and internal
+ports match, the external rule also allows that port outside the internal namespace.
+
+These settings only change network policies, not the DNS resolver or its listening
+port. Leave the internal namespace unset if DNS uses node-local or host-network
+endpoints that cannot be matched by a namespace selector. The port seen by network
+policies can also depend on your CNI and service port translation.

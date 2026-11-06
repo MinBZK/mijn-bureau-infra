@@ -31,10 +31,7 @@ spec:
     - {}
   {{- else }}
   egress:
-    # Allow dns resolution
-    - ports:
-        - port: 53
-          protocol: UDP
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $ "protocols" (list "UDP")) | nindent 4 }}
     # Allow outbound connections to Minio(R) pods
     - ports:
         - port: {{ .Values.containerPorts.api }}

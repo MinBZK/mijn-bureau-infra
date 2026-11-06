@@ -25,10 +25,7 @@ spec:
   {{- else }}
   egress:
     {{- if eq .Values.architecture "replication" }}
-    # Allow dns resolution
-    - ports:
-        - port: 53
-          protocol: UDP
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $ "protocols" (list "UDP")) | nindent 4 }}
     # Allow outbound connections to other cluster pods
     - ports:
         - port: {{ .Values.master.containerPorts.redis }}

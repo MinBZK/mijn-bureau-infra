@@ -9,4 +9,5 @@ releases:
     namespace: {{ .Values.application.clamav.namespace }}
     {{- end }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "values.yaml.gotmpl"

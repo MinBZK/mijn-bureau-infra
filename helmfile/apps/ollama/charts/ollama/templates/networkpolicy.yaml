@@ -22,12 +22,7 @@ spec:
     - {}
   {{- else }}
   egress:
-    # Allow DNS resolution
-    - ports:
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
     # Allow HTTPS access for model downloads and registry access
     - ports:
         - port: 443
