@@ -25,6 +25,7 @@ releases:
       {{- end }}
     {{- end }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"
 
@@ -36,6 +37,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "values-postgresql.yaml.gotmpl"
 
   - name: meet-cluster-credentials
@@ -66,6 +68,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "values-redis.yaml.gotmpl"
 
   - name: meet-static
@@ -76,5 +79,6 @@ releases:
     {{- end }}
     installed: {{ .Values.application.meet.enabled | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-static-nginx.yaml.gotmpl"

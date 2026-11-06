@@ -27,12 +27,7 @@ spec:
     {{- if .Values.master.networkPolicy.allowExternalEgress }}
     - {}
     {{- else }}
-    - ports:
-        # Allow dns resolution
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
     {{- if eq .Values.architecture "replication" }}
     - ports:
         - port: {{ .Values.master.containerPorts.replication }}

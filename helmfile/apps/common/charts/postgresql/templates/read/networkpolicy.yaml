@@ -28,12 +28,7 @@ spec:
     - {}
   {{- else }}
   egress:
-    # Allow dns resolution
-    - ports:
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
     # Allow outbound connections to primary
     - ports:
         - port: {{ .Values.containerPorts.postgresql }}

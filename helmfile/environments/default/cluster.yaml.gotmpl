@@ -7,6 +7,14 @@ cluster:
       - "10.244.0.0/16"
     serviceSubnet:
       - "10.96.0.0/12"
+    # DNS egress in network policies.
+    dns:
+      external:
+        port: 53  # Allowed to any destination.
+      internal:
+        # Set either field to add an internal DNS rule. The port defaults to 53.
+        port: ~
+        namespace: ~  # Leave unset to allow the internal port to any destination.
 
   # routingMode selects the routing technology.
   # Allowed values: ingress, gateway-api, none.

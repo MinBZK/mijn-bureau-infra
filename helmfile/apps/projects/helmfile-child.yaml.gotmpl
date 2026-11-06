@@ -10,6 +10,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.projects.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "values-postgresql.yaml.gotmpl"
 
   - name: "projects-cluster-credentials"
@@ -40,6 +41,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.projects.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "values-redis.yaml.gotmpl"
 
   - name: projects-minio
@@ -50,6 +52,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.projects.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-minio.yaml.gotmpl"
 
@@ -70,5 +73,6 @@ releases:
       - {{ if .Values.application.projects.namespace }}{{ .Values.application.projects.namespace }}/{{ end }}projects-minio
     {{- end }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"

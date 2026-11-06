@@ -29,15 +29,14 @@ spec:
     - {}
   {{- else }}
   egress:
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
+    {{- if .Values.networkPolicy.kubeAPIServerPorts }}
+    # Allow connection to Kubernetes API servers
     - ports:
-        # Allow dns resolution
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
         {{- range $port := .Values.networkPolicy.kubeAPIServerPorts }}
         - port: {{ $port }}
         {{- end }}
+    {{- end }}
     # Allow connection to PostgreSQL
     - ports:
         - port: {{ include "keycloak.database.port" . | int }}

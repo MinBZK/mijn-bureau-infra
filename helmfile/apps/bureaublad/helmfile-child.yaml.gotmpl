@@ -10,6 +10,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") (.Values.application.bureaublad.enabled) | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "values-redis.yaml.gotmpl"
 
   - name: bureaublad
@@ -23,5 +24,6 @@ releases:
       - {{ if .Values.application.bureaublad.namespace }}{{ .Values.application.bureaublad.namespace }}/{{ end }}bureaublad-redis
     {{- end }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"

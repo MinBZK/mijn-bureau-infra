@@ -25,8 +25,5 @@ spec:
     - ports:
         - port: 5432
           protocol: TCP
-        - port: 53
-          protocol: TCP
-        - port: 53
-          protocol: UDP
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $ "protocols" (list "TCP" "UDP")) | nindent 4 }}
 {{- end }}

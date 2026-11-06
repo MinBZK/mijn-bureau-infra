@@ -18,6 +18,7 @@ releases:
       {{- end }}
     {{- end }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - keycloak.yaml.gotmpl
 
@@ -29,6 +30,7 @@ releases:
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
     values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
       - "postgresql.yaml.gotmpl"
 
   - name: keycloak-cluster-credentials
