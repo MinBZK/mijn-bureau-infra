@@ -20,10 +20,7 @@ Typical stateful components include:
 
 - Keycloak
 - Nextcloud
-<<<<<<< HEAD
-=======
-- Grist
->>>>>>> 7c82bc9 (♻️(Refactor): autoscaling update policies to use 'Recreate' mode instead of 'Auto' across multiple configurations)
+
 - Databases and object stores used by platform applications
 
 ## Prerequisites

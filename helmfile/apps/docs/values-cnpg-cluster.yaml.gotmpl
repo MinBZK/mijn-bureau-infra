@@ -25,6 +25,10 @@ cluster:
     storageClass: {{ . }}
     {{- end }}
 
+  {{- with .Values.resource.docs.postgresql }}
+  resources: {{ toYaml . | nindent 4 }}
+  {{- end }}
+
   monitoring:
     enabled: {{ .Values.metric.enabled | default false }}
     podMonitor:

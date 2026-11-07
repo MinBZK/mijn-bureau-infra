@@ -26,6 +26,9 @@ spec:
       {{- include "synapse.imagePullSecrets" . | nindent 6 }}
       restartPolicy: {{ .Values.job.restartPolicy | default "OnFailure" }}
       serviceAccountName: {{ template "synapse.serviceAccountName" . }}-keygen
+      {{- if .Values.master.podSecurityContext.enabled }}
+      securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.master.podSecurityContext "context" $) | nindent 8 }}
+      {{- end }}
       {{- if .Values.synapse.nodeSelector }}
       nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.synapse.nodeSelector "context" $) | nindent 8 }}
       {{- end }}
@@ -33,21 +36,7 @@ spec:
       tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.synapse.tolerations "context" .) | nindent 8 }}
       {{- end }}
       initContainers:
-        - name: kubectl
-          image: {{ template "synapse_job.image" . }}
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command:
-            - /bin/sh
-            - -c
-            - |
-              cp /opt/bitnami/kubectl/bin/kubectl /tmp/kubectl
-          resources:
-            {{- toYaml .Values.job.resources | nindent 12 }}
-          volumeMounts:
-            - name: empty-dir
-              mountPath: /tmp
-      containers:
-        - name: {{ include "common.names.fullname" . }}-keygen
+        - name: keygen
           image: {{ template "synapse.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.master.containerSecurityContext.enabled }}
@@ -59,22 +48,45 @@ spec:
             - |
               set -e
 
-              # Check if secret already exists
-              if /tmp/kubectl get secret synapse-signing-key >/dev/null 2>&1; then
-                echo "Secret 'synapse-signing-key' already exists, skipping creation"
-                exit 0
+              key_file=/synapse/keys/synapse_signing_key
+              if [ -f /existing/synapse_signing_key ]; then
+                echo "Secret 'synapse-signing-key' already exists, reusing signing key"
+                key_file=/existing/synapse_signing_key
+              else
+                synapse_homeserver \
+                  --config-path /synapse/config/homeserver.yaml \
+                  --config-path /synapse/secrets/secrets.yaml \
+                  --generate-keys
               fi
 
-              synapse_homeserver \
-                --config-path /synapse/config/homeserver.yaml \
-                --config-path /synapse/secrets/secrets.yaml \
-                --generate-keys
+              # Render a Secret manifest so the kubectl container does not need a shell.
+              python3 - "$key_file" "$POD_NAMESPACE" <<'PY'
+              import base64
+              import sys
 
-              /tmp/kubectl create secret generic synapse-signing-key --from-file=/synapse/keys/synapse_signing_key
-          {{- if .Values.job.resources }}
+              key_file, namespace = sys.argv[1], sys.argv[2]
+              with open(key_file, "rb") as key:
+                  encoded = base64.b64encode(key.read()).decode()
+
+              with open("/tmp/synapse-signing-key.yaml", "w") as manifest:
+                  manifest.write(
+                      "apiVersion: v1\n"
+                      "kind: Secret\n"
+                      "metadata:\n"
+                      "  name: synapse-signing-key\n"
+                      f"  namespace: {namespace}\n"
+                      "type: Opaque\n"
+                      "data:\n"
+                      f"  synapse_signing_key: {encoded}\n"
+                  )
+              PY
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
           resources:
             {{- toYaml .Values.job.resources | nindent 12 }}
-          {{- end }}
           volumeMounts:
             - mountPath: /synapse/config
               name: synapse
@@ -84,11 +96,41 @@ spec:
               readOnly: true
             - name: synapse-keys
               mountPath: /synapse/keys
+            - name: existing-signing-key
+              mountPath: /existing
+              readOnly: true
+            - name: empty-dir
+              mountPath: /tmp
+      containers:
+        - name: create-signing-key
+          image: {{ template "synapse.kubectl.image" . }}
+          imagePullPolicy: {{ .Values.job.kubectl.image.pullPolicy }}
+          {{- if .Values.master.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.master.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/kubectl
+          args:
+            - apply
+            - -f
+            - /tmp/synapse-signing-key.yaml
+          env:
+            - name: HOME
+              value: /tmp
+          {{- if .Values.job.resources }}
+          resources:
+            {{- toYaml .Values.job.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
             - name: empty-dir
               mountPath: /tmp
       volumes:
         - name: synapse-keys
           emptyDir: {}
+        - name: existing-signing-key
+          secret:
+            secretName: synapse-signing-key
+            optional: true
         - name: synapse
           configMap:
             defaultMode: 420

@@ -2,23 +2,12 @@ bases:
   - "../../bases/default.yaml.gotmpl"
 
 releases:
-  - name: drive-postgresql
-    chart: ../common/charts/postgresql
-    version: "16.7.18"
-    {{- if .Values.application.drive.namespace }}
-    namespace: {{ .Values.application.drive.namespace }}
-    {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
-    values:
-      - "../common/values-cluster-dns.yaml.gotmpl"
-      - "values-postgresql.yaml.gotmpl"
-
   - name: drive-cluster-credentials
     chart: ../common/charts/cnpg-cluster-credentials
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) | toYaml }}
     values:
       - "values-cnpg-cluster-credentials.yaml.gotmpl"
 
@@ -27,22 +16,22 @@ releases:
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) | toYaml }}
     needs:
       - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-cluster-credentials
     values:
       - "values-cnpg-cluster.yaml.gotmpl"
 
-  - name: drive-redis
-    chart: ../common/charts/redis
-    version: "21.2.6"
+  - name: drive-valkey
+    chart: ../common/charts/valkey
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) | toYaml }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
-      - "values-redis.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-valkey.yaml.gotmpl"
 
   - name: drive-minio
     chart: ../common/charts/minio
@@ -64,12 +53,8 @@ releases:
     {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) }}
     needs:
-      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
       - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-cluster
-      {{- else }}
-      - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-postgresql
-      {{- end }}
-      - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-redis
+      - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-valkey
       - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-minio
     {{- end }}
     values:
@@ -79,7 +64,6 @@ releases:
 
   - name: drive-nginx
     chart: ../common/charts/nginx
-    version: "22.0.0"
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}
@@ -93,7 +77,6 @@ releases:
 
   - name: drive-static
     chart: ../common/charts/nginx
-    version: "22.0.0"
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}

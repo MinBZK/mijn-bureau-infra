@@ -59,7 +59,7 @@ The demo environment is ideal for testing and evaluation. However, it does not i
 For production setups, you need to configure external services such as:
 
 - **Database**: PostgreSQL.
-- **Cache**: Redis.
+- **Cache**: Valkey (Redis-compatible).
 - **Object Store**: MinIO.
 
 Additionally, ensure you set up backup and restore procedures, disaster recovery, and persistent volume claim backups.

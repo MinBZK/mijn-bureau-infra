@@ -21,24 +21,23 @@ sources:
     name: "Get latest keycloak tag"
     kind: dockerimage
     spec:
-      image: "bitnamilegacy/keycloak"
+      image: "quay.io/keycloak/keycloak"
       architecture: amd64
-      tagfilter: "^[0-9.]+-debian-[0-9]+-r[0-9]+$"
+      tagfilter: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
       versionfilter:
-        kind: regex/semver
-        regex: "([0-9]+\\.[0-9]+\\.[0-9]+)-debian-[0-9]+-r[0-9]+"
+        kind: semver
         pattern: ">0.0.0"
 
   keycloakcli_latest_version:
     name: "Get latest keycloakcli tag"
     kind: dockerimage
     spec:
-      image: "bitnamilegacy/keycloak-config-cli"
+      image: "adorsys/keycloak-config-cli"
       architecture: amd64
-      tagfilter: "^[0-9.]+-debian-[0-9]+-r[0-9]+$"
+      tagfilter: "^[0-9]+\\.[0-9]+\\.[0-9]+-26\\.[0-9]+\\.[0-9]+$"
       versionfilter:
         kind: regex/semver
-        regex: "([0-9]+\\.[0-9]+\\.[0-9]+)-debian-[0-9]+-r[0-9]+"
+        regex: "([0-9]+\\.[0-9]+\\.[0-9]+-26\\.[0-9]+\\.[0-9]+)"
         pattern: ">0.0.0"
 
 targets:

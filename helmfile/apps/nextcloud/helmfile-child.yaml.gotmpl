@@ -2,23 +2,12 @@ bases:
   - "../../bases/default.yaml.gotmpl"
 
 releases:
-  - name: nextcloud-postgresql
-    chart: ../common/charts/postgresql
-    version: "16.7.18"
-    {{- if .Values.application.nextcloud.namespace }}
-    namespace: {{ .Values.application.nextcloud.namespace }}
-    {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
-    values:
-      - "../common/values-cluster-dns.yaml.gotmpl"
-      - "values-postgresql.yaml.gotmpl"
-
   - name: nextcloud-cluster-credentials
     chart: ../common/charts/cnpg-cluster-credentials
     {{- if .Values.application.nextcloud.namespace }}
     namespace: {{ .Values.application.nextcloud.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) | toYaml }}
     values:
       - "values-cnpg-cluster-credentials.yaml.gotmpl"
 
@@ -27,22 +16,22 @@ releases:
     {{- if .Values.application.nextcloud.namespace }}
     namespace: {{ .Values.application.nextcloud.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) | toYaml }}
     needs:
       - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-cluster-credentials
     values:
       - "values-cnpg-cluster.yaml.gotmpl"
 
-  - name: nextcloud-redis
-    chart: ../common/charts/redis
-    version: "21.2.6"
+  - name: nextcloud-valkey
+    chart: ../common/charts/valkey
     {{- if .Values.application.nextcloud.namespace }}
     namespace: {{ .Values.application.nextcloud.namespace }}
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) | toYaml }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
-      - "values-redis.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-valkey.yaml.gotmpl"
 
   - name: nextcloud-minio
     chart: ../common/charts/minio
@@ -64,12 +53,8 @@ releases:
     {{- end }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) }}
     needs:
-      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
       - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-cluster
-      {{- else }}
-      - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-postgresql
-      {{- end }}
-      - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-redis
+      - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-valkey
       - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-minio
     {{- end }}
     values:

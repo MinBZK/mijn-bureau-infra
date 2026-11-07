@@ -65,6 +65,10 @@ cronjob:
     registry: {{(coalesce .Values.container.kubectl.registry .Values.container.default.registry) | quote }}
     repository: {{ .Values.container.kubectl.repository | quote }}
     tag: {{ .Values.container.kubectl.tag | quote }}
+  shellImage:
+    registry: {{ coalesce .Values.container.busybox.registry .Values.container.default.registry | quote }}
+    repository: {{ .Values.container.busybox.repository | quote }}
+    tag: {{ .Values.container.busybox.tag | quote }}
 
   {{- if ne .Values.global.resourcesPreset "none" }}
   resources:

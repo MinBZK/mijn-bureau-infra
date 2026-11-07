@@ -10,7 +10,7 @@ This document describes how CPU and memory resources are managed across all Mijn
 
 Resources are managed through a three-tier system:
 
-1. **Global preset** (`global.resourcesPreset`) - a default preset applied to all applications and their dependencies (PostgreSQL, Redis, MinIO)
+1. **Global preset** (`global.resourcesPreset`) - a default preset applied to all applications and their dependencies (PostgreSQL, Valkey, MinIO)
 2. **Per-app preset** (`global.resourcesPresetPerApp`) - overrides the global preset for specific application components
 3. **Explicit resources** (`resource.<app>.<component>`) - overrides everything with exact CPU/memory values
 4. **Custom resource helpers** - for apps with hard minimum requirements, a custom `_resources.tpl` enforces a floor regardless of which preset is selected
@@ -110,11 +110,11 @@ Some applications have hard minimum resource requirements that the standard pres
 
 ### Keycloak
 
-- **File**: `helmfile/apps/keycloak/charts/keycloak/templates/_keycloak_resources.tpl`
+- **File**: `helmfile/apps/keycloak/keycloak.yaml.gotmpl`
 - **Minimum**: 1 vCPU / 1280 MiB RAM
 - **Reason**: Keycloak is JVM-based. The JVM allocates 70% of the memory limit for heap plus approximately 300 MiB for non-heap memory. A pod with realm caches and 10,000 sessions needs at least 1250 MiB.
 - **Floor**: All presets from `nano` to `medium` are overridden to 1 CPU / 1280Mi request, 2 CPU / 2Gi limit. `large` and above scale normally.
-- **Note**: The custom helper only applies to the main Keycloak container. Init containers (`prepareWriteDirs`) and the config CLI job use the standard `common.resources.preset`.
+- **Note**: The Keycloak floor only applies to the main Keycloak container. The `dbchecker` init container and the config CLI Job use the standard preset mapping.
 - **Reference**: [Keycloak Sizing Guide](https://www.keycloak.org/high-availability/multi-cluster/concepts-memory-and-cpu-sizing)
 
 ### Ollama
@@ -131,14 +131,14 @@ The table below summarizes the minimum resource requirements for each applicatio
 
 ### Apps with custom resource helpers (floor enforced)
 
-| App       | Min CPU | Min RAM  | Mechanism                         | Preset in config |
-| --------- | ------- | -------- | --------------------------------- | ---------------- |
-| ClamAV    | 1 core  | 3 GiB    | Custom `_clamav_resources.tpl`    | Global fallback  |
-| Collabora | 1 core  | 512 MiB  | Custom `_collabora_resources.tpl` | Global fallback  |
-| Keycloak  | 1 vCPU  | 1280 MiB | Custom `_keycloak_resources.tpl`  | Global fallback  |
-| Ollama    | 2 cores | 8 GiB    | Custom `_ollama_resources.tpl`    | Global fallback  |
+| App       | Min CPU | Min RAM  | Mechanism                                       | Preset in config |
+| --------- | ------- | -------- | ----------------------------------------------- | ---------------- |
+| ClamAV    | 1 core  | 3 GiB    | Custom `_clamav_resources.tpl`                  | Global fallback  |
+| Collabora | 1 core  | 512 MiB  | Custom `_collabora_resources.tpl`               | Global fallback  |
+| Keycloak  | 1 vCPU  | 1280 MiB | Keycloak preset floor in `keycloak.yaml.gotmpl` | Global fallback  |
+| Ollama    | 2 cores | 8 GiB    | Custom `_ollama_resources.tpl`                  | Global fallback  |
 
-These apps are safe at any preset -- the custom helper enforces the minimum regardless.
+These apps are safe at any preset -- the custom helper or values mapping enforces the minimum regardless.
 
 ### Apps with per-app presets
 
@@ -162,9 +162,9 @@ These apps are safe at any preset -- the custom helper enforces the minimum rega
 | Bureaublad    | backend         | `micro`  | 250m    | 256 MiB | Dashboard backend                                 |
 | Bureaublad    | frontend        | `nano`   | 100m    | 128 MiB | Dashboard frontend                                |
 
-### Dependencies (PostgreSQL, Redis, MinIO)
+### Dependencies (PostgreSQL, Valkey, MinIO)
 
-All dependency sub-charts (PostgreSQL, Redis, MinIO) use the global `resourcesPreset` value. They do not have per-app overrides. To customize their resources, use explicit values in `resource.yaml.gotmpl`:
+PostgreSQL is provided by CloudNativePG and uses explicit resources from `resource.<app>.postgresql`. Valkey uses `resource.<app>.valkey` when set, otherwise the global `resourcesPreset`. MinIO still uses the global `resourcesPreset` value. To customize PostgreSQL resources, use explicit values in `resource.yaml.gotmpl`:
 
 ```yaml
 resource:

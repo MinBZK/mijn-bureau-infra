@@ -16,12 +16,8 @@ releases:
       # ContainerCreating until meet-static catches up.
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-static
       {{- if eq .Environment.Name "demo" }}
-      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-cluster
-      {{- else }}
-      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-postgresql
-      {{- end }}
-      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-redis
+      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-valkey
       {{- end }}
     {{- end }}
     values:
@@ -29,23 +25,12 @@ releases:
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"
 
-  - name: meet-postgresql
-    chart: ../common/charts/postgresql
-    version: "16.7.18"
-    {{- if .Values.application.meet.namespace }}
-    namespace: {{ .Values.application.meet.namespace }}
-    {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
-    values:
-      - "../common/values-cluster-dns.yaml.gotmpl"
-      - "values-postgresql.yaml.gotmpl"
-
   - name: meet-cluster-credentials
     chart: ../common/charts/cnpg-cluster-credentials
     {{- if .Values.application.meet.namespace }}
     namespace: {{ .Values.application.meet.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) | toYaml }}
     values:
       - "values-cnpg-cluster-credentials.yaml.gotmpl"
 
@@ -54,26 +39,25 @@ releases:
     {{- if .Values.application.meet.namespace }}
     namespace: {{ .Values.application.meet.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) | toYaml }}
     needs:
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-cluster-credentials
     values:
       - "values-cnpg-cluster.yaml.gotmpl"
 
-  - name: meet-redis
-    chart: ../common/charts/redis
-    version: "21.2.6"
+  - name: meet-valkey
+    chart: ../common/charts/valkey
     {{- if .Values.application.meet.namespace }}
     namespace: {{ .Values.application.meet.namespace }}
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) | toYaml }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
-      - "values-redis.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-valkey.yaml.gotmpl"
 
   - name: meet-static
     chart: ../common/charts/nginx
-    version: "22.0.0"
     {{- if .Values.application.meet.namespace }}
     namespace: {{ .Values.application.meet.namespace }}
     {{- end }}

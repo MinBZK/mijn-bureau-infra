@@ -93,13 +93,8 @@ networkPolicy:
       to:
         - podSelector:
             matchLabels:
-              {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
               cnpg.io/cluster: nextcloud-cluster
               role: primary
-              {{- else }}
-              app.kubernetes.io/name: postgresql
-              app.kubernetes.io/component: primary
-              {{- end }}
       {{- end }}
     # Redis connectivity
     - ports:
@@ -109,8 +104,8 @@ networkPolicy:
       to:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/name: redis
-              app.kubernetes.io/component: master
+              app.kubernetes.io/name: valkey
+              app.kubernetes.io/component: primary
       {{- end }}
     # MinIO connectivity
     - ports:

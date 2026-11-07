@@ -93,10 +93,8 @@ spec:
     synchronous:
       {{- toYaml . | nindent 6 }}
     {{ end }}
-    {{- with .Values.cluster.postgresql.parameters }}
     parameters:
-      {{- toYaml . | nindent 6 }}
-    {{- end }}
+      {{- toYaml (.Values.cluster.postgresql.parameters | default dict) | nindent 6 }}
 
   {{- if not (and (empty .Values.cluster.roles) (empty .Values.cluster.services)) }}
   managed:

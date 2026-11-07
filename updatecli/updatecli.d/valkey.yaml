@@ -1,0 +1,70 @@
+name: "Update valkey container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump valkey version to {{ source "valkey_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  valkey_latest_version:
+    name: "Get latest valkey tag"
+    kind: dockerimage
+    spec:
+      image: "valkey/valkey"
+      architecture: amd64
+      tagfilter: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+  valkeyexporter_latest_version:
+    name: "Get latest redis exporter tag"
+    kind: dockerimage
+    spec:
+      image: "oliver006/redis_exporter"
+      architecture: amd64
+      tagfilter: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: regex/semver
+        regex: "v([0-9]+\\.[0-9]+\\.[0-9]+)"
+        pattern: ">0.0.0"
+
+targets:
+  update_valkey_tag:
+    name: "Update valkey tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.valkey.tag"
+    sourceid: valkey_latest_version
+    scmid: default
+
+  update_valkeyexporter_tag:
+    name: "Update valkey exporter tag"
+    kind: yaml
+    transformers:
+      - addprefix: "v"
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.valkey_exporter.tag"
+    sourceid: valkeyexporter_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump valkey version to {{ source "valkey_latest_version" }}

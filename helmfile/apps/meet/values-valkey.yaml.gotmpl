@@ -1,0 +1,19 @@
+fullnameOverride: meet-valkey
+
+auth:
+  aclUsers:
+    default:
+      permissions: "~* &* +@all"
+      password: {{ .Values.cache.meet.password | quote }}
+
+dataStorage:
+  enabled: true
+  requestedSize: {{ coalesce .Values.pvc.meet.valkey.size .Values.pvc.default.size "1Gi" | quote }}
+  {{- with (coalesce .Values.pvc.meet.valkey.storageClass .Values.pvc.default.storageClass) }}
+  className: {{ . | quote }}
+  {{- end }}
+  accessModes: {{ coalesce .Values.pvc.meet.valkey.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+
+{{- with .Values.resource.meet.valkey }}
+resources: {{ toYaml . | nindent 2 }}
+{{- end }}

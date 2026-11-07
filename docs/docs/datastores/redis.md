@@ -2,21 +2,29 @@
 sidebar_position: 4
 ---
 
-# Redis
+# Valkey
 
-Redis is an open-source, in-memory data structure store that serves as a database, cache, and message broker. It is widely used for its high performance, simplicity, and versatility, making it ideal for applications requiring low-latency data access.
+Valkey is the Linux Foundation fork of Redis. It is an open-source, in-memory data structure store used as a database, cache and message broker, and it remains protocol- and client-compatible with Redis.
 
-## Deploying Redis in Kubernetes
+The bundled demo environment deploys Valkey with the official [valkey-io/valkey-helm](https://github.com/valkey-io/valkey-helm) chart and the `valkey/valkey` image.
 
-Redis can be deployed in Kubernetes using various Helm charts. These charts provide secure and scalable deployment options.
+## Deploying Valkey in Kubernetes
 
-## Redis Vendors
+Each enabled app gets a standalone Valkey instance in its own namespace:
 
-Several vendors offer managed Redis services, simplifying deployment and maintenance by handling the underlying infrastructure. Check with your organization to determine the preferred Redis provider.
+- release and Service name: `<app>-valkey`
+- port: `6379`
+- authentication: ACL `default` user
+- persistence: AOF enabled, PVC sized from `pvc.<app>.valkey`
+- metrics: optional `oliver006/redis_exporter` sidecar
 
-## Integrating Redis with MijnBureau
+## Valkey Vendors
 
-Redis can be integrated into MijnBureau for purposes such as:
+Several vendors offer managed Redis/Valkey services. Check with your organization to determine the preferred provider. MijnBureau connects to any Redis-compatible endpoint.
+
+## Integrating Valkey with MijnBureau
+
+Valkey can be integrated into MijnBureau for:
 
 - Caching
 - Session management
@@ -24,34 +32,29 @@ Redis can be integrated into MijnBureau for purposes such as:
 
 The default configuration for each application is located in `helmfile/environments/default/cache.yaml.gotmpl`.
 
-### Example: Configuring Redis for MijnBureau
+### Example: Configuring Valkey for MijnBureau
 
-To configure Redis for MijnBureau, add the following to `helmfile/environments/production/mijnbureau.yaml.gotmpl`:
+To use an external Valkey/Redis endpoint, add the following to `helmfile/environments/production/mijnbureau.yaml.gotmpl`:
 
 ```yaml
 cache:
   nextcloud:
     host: yourhostname
     port: 6379
-    isInternal: true #manages networkpolicies to go outside or inside the cluster
-    password:
-      {
-        {
-          derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "redis" "password" | sha1sum | quote,
-        },
-      }
+    isInternal: true # manages network policies for internal/external access
+    password: your-valkey-password
 ```
 
-### Securing Redis Passwords
+### Securing Valkey Passwords
 
-Storing passwords directly in configuration files is not recommended. Instead, use a separate secrets file. Follow these steps to secure Redis credentials:
+Storing passwords directly in configuration files is not recommended. Instead, use a separate secrets file:
 
 1. Add the password to a secrets file:
 
    ```yaml
    cache:
      nextcloud:
-       password: your redis password
+       password: your valkey password
    ```
 
    Save this in `helmfile/environments/production/example.secrets.yaml`.
@@ -66,4 +69,4 @@ Storing passwords directly in configuration files is not recommended. Instead, u
 
 4. Ensure your CI/CD system is configured to decrypt the secrets during deployment.
 
-By following these steps, you can securely manage Redis credentials while maintaining a clean and organized configuration structure.
+By following these steps, you can securely manage Valkey credentials while maintaining a clean and organized configuration structure.

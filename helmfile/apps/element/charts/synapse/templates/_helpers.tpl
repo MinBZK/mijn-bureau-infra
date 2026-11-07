@@ -36,8 +36,8 @@ Return the proper synapse image name
   {{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global) }}
 {{- end -}}
 
-{{- define "synapse_job.image" -}}
-  {{ include "common.images.image" (dict "imageRoot" .Values.job.InitContainers.image "global" .Values.global) }}
+{{- define "synapse.kubectl.image" -}}
+  {{ include "common.images.image" (dict "imageRoot" .Values.job.kubectl.image "global" (dict)) }}
 {{- end -}}
 
 {{/*
@@ -51,7 +51,7 @@ Return the proper image name (for the init container volume-permissions image)
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "synapse.imagePullSecrets" -}}
-  {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image .Values.defaultInitContainers.volumePermissions.image) "context" $) -}}
+  {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image .Values.job.kubectl.image .Values.defaultInitContainers.volumePermissions.image) "context" $) -}}
 {{- end -}}
 
 {{/*

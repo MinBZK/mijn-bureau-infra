@@ -65,19 +65,11 @@ container:
     registry: ""
     imagePullSecret: ""
 
-  postgres:
+  valkey:
     registry: ""
     imagePullSecret: ""
 
-  postgres_exporter:
-    registry: ""
-    imagePullSecret: ""
-
-  redis:
-    registry: ""
-    imagePullSecret: ""
-
-  redis_exporter:
+  valkey_exporter:
     registry: ""
     imagePullSecret: ""
 
@@ -114,6 +106,10 @@ container:
     imagePullSecret: ""
 
   kubectl:
+    registry: ""
+    imagePullSecret: ""
+
+  busybox:
     registry: ""
     imagePullSecret: ""
 

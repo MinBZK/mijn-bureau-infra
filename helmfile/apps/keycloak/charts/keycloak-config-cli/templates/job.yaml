@@ -1,0 +1,76 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "keycloak-config-cli.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "keycloak-config-cli.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade,post-rollback
+    helm.sh/hook-delete-policy: hook-succeeded,before-hook-creation
+    helm.sh/hook-weight: {{ .Values.job.hookWeight | quote }}
+spec:
+  backoffLimit: {{ .Values.job.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "keycloak-config-cli.labels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ .Values.serviceAccountName | quote }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: keycloak-config-cli
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          env:
+            - name: KEYCLOAK_URL
+              value: {{ .Values.keycloak.url | quote }}
+            - name: KEYCLOAK_USER
+              value: {{ .Values.keycloak.user | quote }}
+            - name: KEYCLOAK_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.keycloak.existingSecret | quote }}
+                  key: {{ .Values.keycloak.existingSecretKey | quote }}
+            - name: IMPORT_FILES_LOCATIONS
+              value: {{ .Values.import.filesLocations | quote }}
+            - name: IMPORT_VARSUBSTITUTION_ENABLED
+              value: {{ .Values.import.varSubstitutionEnabled | quote }}
+            - name: KEYCLOAK_AVAILABILITYCHECK_ENABLED
+              value: {{ .Values.import.availabilityCheckEnabled | quote }}
+            {{- with .Values.import.availabilityCheckTimeout }}
+            - name: KEYCLOAK_AVAILABILITYCHECK_TIMEOUT
+              value: {{ . | quote }}
+            {{- end }}
+            - name: HOME
+              value: /tmp
+          envFrom:
+            - secretRef:
+                name: {{ include "keycloak-config-cli.fullname" . }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "keycloak-config-cli.fullname" . }}
+        - name: tmp
+          emptyDir: {}

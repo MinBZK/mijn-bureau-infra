@@ -1,4 +1,4 @@
-{{- if .Values.cluster.monitoring.instrumentation.logicalReplication }}
+{{- if and .Values.cluster.monitoring.enabled .Values.cluster.monitoring.instrumentation.logicalReplication }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

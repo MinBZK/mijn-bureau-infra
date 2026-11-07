@@ -81,7 +81,8 @@ master:
         to:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/instance: element-redis
+                app.kubernetes.io/name: valkey
+                app.kubernetes.io/component: primary
         {{- end }}
       {{- end }}
       {{- if eq .Values.database.synapse.type "psycopg2" }}
@@ -91,7 +92,8 @@ master:
         to:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/instance: element-postgresql
+                cnpg.io/cluster: element-cluster
+                role: primary
         {{- end }}
       {{- end }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
@@ -135,7 +137,8 @@ worker:
           to:
             - podSelector:
                 matchLabels:
-                  app.kubernetes.io/instance: element-redis
+                  app.kubernetes.io/name: valkey
+                  app.kubernetes.io/component: primary
           {{- end }}
         {{- end }}
         {{- if eq .Values.database.synapse.type "psycopg2" }}
@@ -145,7 +148,8 @@ worker:
           to:
             - podSelector:
                 matchLabels:
-                  app.kubernetes.io/instance: element-postgresql
+                  cnpg.io/cluster: element-cluster
+                  role: primary
           {{- end }}
         {{- end }}
     podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 6 }}
@@ -348,7 +352,7 @@ defaultInitContainers:
 
 
 job:
-  InitContainers:
+  kubectl:
     image:
       registry: {{ coalesce .Values.container.kubectl.registry .Values.container.default.registry | quote }}
       repository: {{ .Values.container.kubectl.repository }}

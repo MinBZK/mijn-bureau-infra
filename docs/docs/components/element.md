@@ -15,7 +15,7 @@ located in the folder `helmfile/environments/default`.
 | `global.hostname.synapse`          | The name of the subdomain for the Synapse Matrix home server |
 | `application.element.enabled`      | Enable Matrix chat for your MijnBureau implementation        |
 | `application.element.namespace`    | The Kubernetes namespace name                                |
-| `cache.synapse.*`                  | Connection to the Redis server                               |
+| `cache.synapse.*`                  | Connection to the Valkey server                              |
 | `authentication.client.synapse.*`  | OpenIDC configuration to connect with Keycloak               |
 | `database.synapse.*`               | Connection to the database                                   |
 | `cache.synapse.*`                  | Connection to a cache system                                 |

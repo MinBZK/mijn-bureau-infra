@@ -17,6 +17,33 @@ global:
   # Uncomment and set the real production domain before deploying.
   # domain: "REPLACE-ME.example.gov"
 
+# ── Keycloak ────────────────────────────────────────────────────────────────
+# The official Keycloak image runs as UID 1000/GID 0 and needs to write its
+# build artifacts on first start, so it cannot use the repository-wide
+# read-only root filesystem defaults.
+security:
+  keycloak:
+    containerSecurityContext:
+      enabled: true
+      seLinuxOptions: {}
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - "ALL"
+      privileged: false
+      runAsUser: 1000
+      runAsGroup: 0
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1000
+      fsGroupChangePolicy: Always
+      sysctls: []
+      supplementalGroups: []
+
 # ── cluster / ingress ───────────────────────────────────────────────────────
 cluster:
   ingress:
@@ -114,6 +141,9 @@ application:
   projects:
     enabled: false
     namespace: mijnbureau-projects
+  dictaphone:
+    enabled: false
+    namespace: mijnbureau-dictaphone
   clamav:
     enabled: true
     namespace: mijnbureau-clamav

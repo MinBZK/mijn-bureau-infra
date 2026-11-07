@@ -7,7 +7,7 @@
 #       ports so 443 (and 80) target the plain-HTTP container port 4444.
 #   6c) Migrations run as the postgres superuser, so the app role `docs` has no
 #       grants on the tables it needs and login 500s. Grant them (CloudNativePG;
-#       superuser password is in the docs-cluster-rw secret).
+#       superuser password is in the docs-cluster-superuser secret).
 set -euo pipefail
 
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
@@ -20,8 +20,8 @@ kubectl patch svc docs-y-provider -n mb-docs --type=merge -p '{
   ]}}'
 
 echo "==> [6c] Granting the docs role access to its tables"
-PGPASS=$(kubectl get secret docs-cluster-rw -n mb-docs -o jsonpath='{.data.postgres-password}' | base64 -d)
-kubectl exec -n mb-docs docs-cluster-rw-0 -- env PGPASSWORD="$PGPASS" psql -U postgres -h localhost -d docs -c "
+PGPASS=$(kubectl get secret docs-cluster-superuser -n mb-docs -o jsonpath='{.data.password}' | base64 -d)
+kubectl exec -n mb-docs docs-cluster-1 -- env PGPASSWORD="$PGPASS" psql -U postgres -h localhost -d docs -c "
   GRANT ALL ON ALL TABLES IN SCHEMA public TO docs;
   GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO docs;
   ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO docs;
