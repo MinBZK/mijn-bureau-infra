@@ -115,15 +115,21 @@ if (getenv('REDIS_HOST')) {
     'memcache.distributed' => '\OC\Memcache\Redis',
     'memcache.locking' => '\OC\Memcache\Redis',
     'redis' => array(
-      'host' => getenv('REDIS_HOST'),
+      'host' => (getenv('REDIS_HOST')[0] === '/' ? 'unix' : (getenv('REDIS_PROTOCOL') ?: 'tcp')) . "://" . getenv('REDIS_HOST'),
       'password' => getenv('REDIS_HOST_PASSWORD_FILE') ? trim(file_get_contents(getenv('REDIS_HOST_PASSWORD_FILE'))) : (string) getenv('REDIS_HOST_PASSWORD'),
     ),
   );
 
-  if (getenv('REDIS_HOST_PORT') !== false) {
+  if (getenv('REDIS_HOST')[0] === '/') {
+    $CONFIG['redis']['port'] = 0;
+  } elseif (getenv('REDIS_HOST_PORT') !== false) {
     $CONFIG['redis']['port'] = (int) getenv('REDIS_HOST_PORT');
-  } elseif (getenv('REDIS_HOST')[0] != '/') {
+  } else {
     $CONFIG['redis']['port'] = 6379;
+  }
+
+  if (getenv('REDIS_HOST_USER') !== false) {
+    $CONFIG['redis']['user'] = (string) getenv('REDIS_HOST_USER');
   }
 }
 {{- end -}}
@@ -192,7 +198,7 @@ if (getenv('OBJECTSTORE_S3_BUCKET')) {
         'autocreate' => strtolower($autocreate) !== 'false',
         'use_ssl' => strtolower($use_ssl) !== 'false',
         // required for some non Amazon S3 implementations
-        'use_path_style' => strtolower($use_path) !== 'false',
+        'use_path_style' => $use_path == true && strtolower($use_path) !== 'false',
         // required for older protocol versions
         'legacy_auth' => $use_legacyauth == true && strtolower($use_legacyauth) !== 'false'
       )

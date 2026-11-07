@@ -40,7 +40,8 @@ data:
         ]
       },
       "setting_defaults": {
-        "breadcrumbs": {{ .Values.config.setting_defaults.breadcrumbs }}
+        "breadcrumbs": {{ .Values.config.setting_defaults.breadcrumbs }},
+        "UIFeature.voip": {{ index .Values.config.setting_defaults "UIFeature.voip" | default false }}
       },
       "default_theme": "{{ .Values.config.default_theme }}",
       "brand": "{{ .Values.config.brand }} element",

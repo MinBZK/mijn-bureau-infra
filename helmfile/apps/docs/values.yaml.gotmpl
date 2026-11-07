@@ -108,9 +108,21 @@ backend:
     AWS_STORAGE_BUCKET_NAME: {{ .Values.objectstore.docs.bucket | quote }}
     AI_FEATURE_ENABLED: {{ not (empty .Values.ai.llm.model) | quote }}
     {{- if .Values.ai.llm.endpoint.host }}
+    {{- $aiEndpointBase := printf "http%s://%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host }}
+    {{- $aiEndpointIsInternal := .Values.ai.llm.endpoint.isInternal | default false }}
+    {{- $aiEndpointPort := .Values.ai.llm.endpoint.port | default 0 | int }}
+    {{- if not $aiEndpointIsInternal }}
+    {{- $aiEndpointPort = 0 }}
+    {{- end }}
+    {{- $aiEndpointPath := .Values.ai.llm.endpoint.path | default "v1" }}
+    {{- $aiEndpoint := $aiEndpointBase }}
+    {{- if gt $aiEndpointPort 0 }}
+    {{- $aiEndpoint = printf "%s:%d" $aiEndpoint $aiEndpointPort }}
+    {{- end }}
+    {{- $aiEndpoint = printf "%s/%s" $aiEndpoint $aiEndpointPath }}
     AI_ALLOW_REACH_FROM: "authenticated"
     AI_API_KEY: {{ .Values.ai.llm.apiKey | quote }}
-    AI_BASE_URL: {{ printf "http%s://%s:%d/%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.path }}
+    AI_BASE_URL: {{ $aiEndpoint }}
     AI_MODEL: {{ .Values.ai.llm.model | quote }}
     {{- end }}
     API_USERS_LIST_LIMIT: "5"

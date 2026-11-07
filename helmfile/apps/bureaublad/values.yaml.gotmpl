@@ -90,6 +90,9 @@ backend:
     {{- if .Values.application.conversations.enabled }}
     CONVERSATION_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.conversations .Values.global.domain | quote }}
     {{- end }}
+    {{- if .Values.application.projects.enabled }}
+    PROJECTS_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.projects .Values.global.domain | quote }}
+    {{- end }}
     {{- if .Values.application.docs.enabled }}
     DOCS_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.docs .Values.global.domain | quote }}
     {{- end }}
@@ -97,8 +100,20 @@ backend:
     MATRIX_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.element .Values.global.domain | quote }}
     {{- end }}
     {{- if .Values.ai.llm.endpoint.host }}
+    {{- $aiEndpointBase := printf "http%s://%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host }}
+    {{- $aiEndpointIsInternal := .Values.ai.llm.endpoint.isInternal | default false }}
+    {{- $aiEndpointPort := .Values.ai.llm.endpoint.port | default 0 | int }}
+    {{- if not $aiEndpointIsInternal }}
+    {{- $aiEndpointPort = 0 }}
+    {{- end }}
+    {{- $aiEndpointPath := .Values.ai.llm.endpoint.path | default "v1" }}
+    {{- $aiEndpoint := $aiEndpointBase }}
+    {{- if gt $aiEndpointPort 0 }}
+    {{- $aiEndpoint = printf "%s:%d" $aiEndpoint $aiEndpointPort }}
+    {{- end }}
+    {{- $aiEndpoint = printf "%s/%s" $aiEndpoint $aiEndpointPath }}
     AI_API_KEY: {{ .Values.ai.llm.apiKey | quote }}
-    AI_URL: {{ printf "http%s://%s:%d/%s" (ternary "s" "" .Values.ai.llm.endpoint.isSsl) .Values.ai.llm.endpoint.host .Values.ai.llm.endpoint.port .Values.ai.llm.endpoint.path | quote }}
+    AI_URL: {{ $aiEndpoint | quote }}
     AI_MODEL: {{ .Values.ai.llm.model | quote }}
     {{- end }}
     THEME_CSS_URL: ""
@@ -158,6 +173,10 @@ ingress:
 
 networkPolicy:
   extraEgress:
+    # Allow https egress for keycloak connection
+    - ports:
+        - port: 443
+          protocol: TCP
     # Redis connectivity
     - ports:
         - port: {{ .Values.cache.bureaublad.port }}
