@@ -75,6 +75,12 @@ global:
       backend: "micro"
       frontend: "nano"
     projects: "micro"
+    dictaphone:
+      backend: "micro"
+      frontend: "nano"
+      celery: "micro"
+      audioExtractor: "micro"
+      s3Gateway: "nano"
     bureaublad:
       backend: "micro"
       frontend: "nano"

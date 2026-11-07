@@ -1,0 +1,145 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.s3Gateway.enabled }}
+{{- $config := .Values.s3Gateway }}
+{{- $name := include "dictaphone.s3Gateway.fullname" . }}
+{{- $rules := required "s3Gateway.rules must be nonempty when enabled" $config.rules }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: s3-gateway
+  {{- if or $config.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list $config.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ $config.replicaCount }}
+  {{- if $config.strategy }}
+  strategy: {{- toYaml $config.strategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list $config.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: s3-gateway
+  template:
+    metadata:
+      {{- if $config.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" $config.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: s3-gateway
+    spec:
+      {{- include "dictaphone.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "dictaphone.serviceAccountName" . }}
+      automountServiceAccountToken: {{ $config.automountServiceAccountToken }}
+      terminationGracePeriodSeconds: {{ $config.terminationGracePeriodSeconds }}
+      {{- if $config.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" $config.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if $config.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" $config.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" $config.podAffinityPreset "component" "s3-gateway" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" $config.podAntiAffinityPreset "component" "s3-gateway" "customLabels" $podLabels "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" $config.nodeAffinityPreset.type "key" $config.nodeAffinityPreset.key "values" $config.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if $config.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" $config.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if $config.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" $config.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if $config.priorityClassName }}
+      priorityClassName: {{ $config.priorityClassName | quote }}
+      {{- end }}
+      {{- if $config.schedulerName }}
+      schedulerName: {{ $config.schedulerName | quote }}
+      {{- end }}
+      {{- if $config.runtimeClassName }}
+      runtimeClassName: {{ $config.runtimeClassName | quote }}
+      {{- end }}
+      {{- if $config.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" $config.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if $config.podSecurityContext.enabled }}
+      securityContext: {{- omit $config.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if $config.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" $config.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: s3-gateway
+          image: {{ template "dictaphone.s3Gateway.image" . }}
+          imagePullPolicy: {{ $config.image.pullPolicy }}
+          {{- if $config.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" $config.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if $config.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" $config.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if $config.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" $config.args "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: S3_GATEWAY_RULES
+              value: {{ $rules | toJson | quote }}
+            - name: S3_GATEWAY_PORT
+              value: {{ $config.service.targetPort | quote }}
+            {{- include "dictaphone.env.transformDict" $config.envVars | nindent 12 }}
+            {{- if $config.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" $config.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if $config.resources }}
+          resources: {{- toYaml $config.resources | nindent 12 }}
+          {{- else if ne $config.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" $config.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ $config.service.targetPort }}
+              protocol: TCP
+          {{- if $config.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" $config.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if $config.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit $config.livenessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /healthz
+              port: http
+          {{- end }}
+          {{- if $config.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" $config.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if $config.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit $config.readinessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /healthz
+              port: http
+          {{- end }}
+          {{- if $config.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" $config.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if $config.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit $config.startupProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /healthz
+              port: http
+          {{- end }}
+          {{- if $config.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" $config.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if $config.extraVolumeMounts }}
+          volumeMounts: {{- include "common.tplvalues.render" (dict "value" $config.extraVolumeMounts "context" $) | nindent 12 }}
+          {{- end }}
+        {{- if $config.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" $config.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      {{- if $config.extraVolumes }}
+      volumes: {{- include "common.tplvalues.render" (dict "value" $config.extraVolumes "context" $) | nindent 8 }}
+      {{- end }}
+{{- end }}

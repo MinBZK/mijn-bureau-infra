@@ -1,0 +1,81 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- range $component := list "backend" "frontend" "celery" }}
+{{- $config := index $.Values $component }}
+{{- if $config.pdb.create }}
+---
+apiVersion: {{ include "common.capabilities.policy.apiVersion" $ }}
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include (printf "dictaphone.%s.fullname" $component) $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+  {{- if $.Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $.Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $config.pdb.minAvailable }}
+  minAvailable: {{ $config.pdb.minAvailable }}
+  {{- end }}
+  {{- if or $config.pdb.maxUnavailable (not $config.pdb.minAvailable) }}
+  maxUnavailable: {{ $config.pdb.maxUnavailable | default 1 }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: {{ $component }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.audioExtractor.pdb.create }}
+---
+apiVersion: {{ include "common.capabilities.policy.apiVersion" . }}
+kind: PodDisruptionBudget
+metadata:
+  name: {{ template "dictaphone.audioExtractor.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: audio-extractor
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.audioExtractor.pdb.minAvailable }}
+  minAvailable: {{ .Values.audioExtractor.pdb.minAvailable }}
+  {{- end }}
+  {{- if or .Values.audioExtractor.pdb.maxUnavailable (not .Values.audioExtractor.pdb.minAvailable) }}
+  maxUnavailable: {{ .Values.audioExtractor.pdb.maxUnavailable | default 1 }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: audio-extractor
+{{- end }}
+
+{{- if .Values.s3Gateway.enabled }}
+{{- if .Values.s3Gateway.pdb.create }}
+---
+apiVersion: {{ include "common.capabilities.policy.apiVersion" . }}
+kind: PodDisruptionBudget
+metadata:
+  name: {{ template "dictaphone.s3Gateway.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: s3-gateway
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.s3Gateway.pdb.minAvailable }}
+  minAvailable: {{ .Values.s3Gateway.pdb.minAvailable }}
+  {{- end }}
+  {{- if or .Values.s3Gateway.pdb.maxUnavailable (not .Values.s3Gateway.pdb.minAvailable) }}
+  maxUnavailable: {{ .Values.s3Gateway.pdb.maxUnavailable | default 1 }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: s3-gateway
+{{- end }}
+{{- end }}

@@ -76,11 +76,5 @@ The list in the example assumes that the following values exist:
   {{- end -}}
 {{- end -}}
 {{- if $printMessage }}
-
-WARNING: There are "resources" sections in the chart not set. Using "resourcesPreset" is not recommended for production. For production installations, please set the following values according to your workload needs:
-{{- range $affectedSections }}
-  - {{ . }}
-{{- end }}
-+info https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
 {{- end -}}
 {{- end -}}

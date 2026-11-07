@@ -1,0 +1,99 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- $baseUrl := printf "https://%s" .Values.ingress.hostname }}
+{{- $httpUrl := printf "http://%s" .Values.ingress.hostname }}
+{{- $bucketConfiguration := dict
+  "bucket_name_env" "S3_DEFAULT_BUCKET_NAME"
+  "access_key_id_env" "S3_DEFAULT_ACCESS_KEY_ID"
+  "secret_access_key_env" "S3_DEFAULT_SECRET_ACCESS_KEY"
+  "endpoint_url_env" "S3_ENDPOINT_URL"
+  "region_name" .Values.objectstore.region
+  "signature_version" "s3v4"
+-}}
+{{- if .Values.objectstore.publicUrl }}
+{{- $_ := set $bucketConfiguration "domain_replace" .Values.objectstore.publicUrl }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: dictaphone
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  DJANGO_CONFIGURATION: "Production"
+  DJANGO_SETTINGS_MODULE: "dictaphone.settings"
+  DJANGO_ALLOWED_HOSTS: {{ printf "%s,%s,%s.%s.svc.cluster.local" .Values.ingress.hostname (include "dictaphone.backend.fullname" .) (include "dictaphone.backend.fullname" .) (include "common.names.namespace" .) | quote }}
+  DJANGO_CSRF_TRUSTED_ORIGINS: {{ printf "%s,%s" $baseUrl $httpUrl | quote }}
+  DJANGO_CORS_ALLOWED_ORIGINS: {{ printf "%s,%s" $baseUrl $httpUrl | quote }}
+  DJANGO_CORS_ALLOW_ALL_ORIGINS: "false"
+  DJANGO_SILENCED_SYSTEM_CHECKS: "security.W004,security.W008"
+  SECURE_SSL_REDIRECT: "true"
+
+  DB_ENGINE: "django.db.backends.postgresql_psycopg2"
+  DB_HOST: {{ .Values.externalDatabase.host | quote }}
+  DB_PORT: {{ .Values.externalDatabase.port | quote }}
+  DB_NAME: {{ .Values.externalDatabase.database | quote }}
+  DB_USER: {{ .Values.externalDatabase.username | quote }}
+
+  OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
+  OIDC_RP_SIGN_ALGO: "RS256"
+  OIDC_RP_SCOPES: "openid email profile"
+  OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.jwks_uri | quote }}
+  OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.authorization_endpoint | quote }}
+  OIDC_OP_TOKEN_ENDPOINT: {{ .Values.authentication.token_endpoint | quote }}
+  OIDC_OP_USER_ENDPOINT: {{ .Values.authentication.userinfo_endpoint | quote }}
+  OIDC_OP_LOGOUT_ENDPOINT: {{ .Values.authentication.end_session_endpoint | quote }}
+  {{- if .Values.authentication.introspection_endpoint }}
+  OIDC_OP_INTROSPECTION_ENDPOINT: {{ .Values.authentication.introspection_endpoint | quote }}
+  {{- end }}
+  OIDC_CREATE_USER: "true"
+  OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION: "true"
+  OIDC_USER_SUB_FIELD_IMMUTABLE: "true"
+  OIDC_REDIRECT_ALLOWED_HOSTS: {{ $baseUrl | quote }}
+  OIDC_REDIRECT_REQUIRE_HTTPS: "true"
+  OIDC_USE_NONCE: "true"
+  OIDC_STORE_ID_TOKEN: "true"
+  OIDC_USERINFO_FULLNAME_FIELDS: {{ printf "%s,%s" .Values.authentication.claims.given_name .Values.authentication.claims.family_name | quote }}
+  OIDC_USERINFO_SHORTNAME_FIELD: {{ .Values.authentication.claims.given_name | quote }}
+  ALLOW_LOGOUT_GET_METHOD: "true"
+  LOGIN_REDIRECT_URL: {{ $baseUrl | quote }}
+  LOGIN_REDIRECT_URL_FAILURE: {{ $baseUrl | quote }}
+  LOGOUT_REDIRECT_URL: {{ $baseUrl | quote }}
+
+  MEDIA_BASE_URL: {{ $baseUrl | quote }}
+  AWS_S3_UPLOAD_POLICY_EXPIRATION: "60"
+  S3_ENDPOINT_URL: {{ .Values.objectstore.endpoint | quote }}
+  S3_DEFAULT_BUCKET_NAME: {{ .Values.objectstore.bucket | quote }}
+  S3_BUCKET_CONFIGURATIONS: {{ dict "default" $bucketConfiguration | toJson | quote }}
+  DATA_POLICY_CONFIGURATIONS: '{"default":{"default":true,"bucket":"default"}}'
+
+  CELERY_TASK_DEFAULT_QUEUE: "dictaphone-backend"
+  CELERY_BROKER_TRANSPORT_OPTIONS: "{}"
+  AUDIO_JOB_TIMEOUT_SECONDS: "300"
+  AUDIO_JOB_MAX_RETRIES: "3"
+
+  {{- if .Values.application.ai.serviceUrl }}
+  AI_SERVICE_URL: {{ .Values.application.ai.serviceUrl | quote }}
+  {{- end }}
+
+  {{- if .Values.smtp.host }}
+  DJANGO_EMAIL_BACKEND: "django.core.mail.backends.smtp.EmailBackend"
+  DJANGO_EMAIL_HOST: {{ .Values.smtp.host | quote }}
+  DJANGO_EMAIL_PORT: {{ .Values.smtp.port | quote }}
+  DJANGO_EMAIL_HOST_USER: {{ .Values.smtp.username | quote }}
+  DJANGO_EMAIL_USE_TLS: {{ .Values.smtp.tls.enabled | quote }}
+  DJANGO_EMAIL_USE_SSL: "false"
+  DJANGO_EMAIL_FROM: {{ .Values.smtp.from.email | quote }}
+  DJANGO_EMAIL_BRAND_NAME: {{ .Values.smtp.from.name | quote }}
+  DJANGO_EMAIL_SUPPORT_EMAIL: {{ .Values.smtp.from.email | quote }}
+  DJANGO_EMAIL_LOGO_IMG: {{ .Values.smtp.from.logoImage | quote }}
+  DJANGO_EMAIL_DOMAIN: {{ .Values.ingress.hostname | quote }}
+  DJANGO_EMAIL_APP_BASE_URL: {{ $baseUrl | quote }}
+  {{- end }}

@@ -37,3 +37,13 @@ objectstore:
     useSSL: false
     isInternal: true
     rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "projects" | sha1sum | quote }}
+
+  dictaphone:
+    bucket: "dictaphone"
+    username: "admin"
+    endpoint: "dictaphone-minio"
+    port: 9000
+    useSSL: false
+    region: "eu-west-1"
+    isInternal: true
+    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "dictaphone" | sha1sum | quote }}

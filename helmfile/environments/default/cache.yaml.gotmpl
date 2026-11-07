@@ -44,3 +44,8 @@ cache:
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "projects" "password" | sha1sum | quote }}
+  dictaphone:
+    host: "dictaphone-redis-master"
+    port: 6379
+    isInternal: true
+    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "dictaphone" "password" | sha1sum | quote }}

@@ -87,20 +87,12 @@ projects:
   ## @param projects.serviceName Display name of the service
   ##
   serviceName: "Projecten"
-  ## @param projects.allowAllToCreateProjects Allow any authenticated user to create projects
-  ##
-  allowAllToCreateProjects: true
   ## @param projects.adminEmail Email of the default admin user seeded on first initialization
   ##
   adminEmail: ""
   ## @param projects.adminPassword Password of the default admin user seeded on first initialization
   ##
   adminPassword: ""
-  ## Object storage configuration
-  ## @param projects.s3.enabled Store uploads in S3-compatible object storage instead of local volumes
-  ##
-  s3:
-    enabled: false
   ## @param projects.replicaCount Number of Projects replicas to deploy
   ##
   replicaCount: 1
@@ -332,9 +324,6 @@ authentication:
   ## @param authentication.emailAttribute OIDC claim used as the user's email
   ##
   emailAttribute: "email"
-  ## @param authentication.enforced Require OIDC login
-  ##
-  enforced: true
   ## Client configuration
   ##
   client:
@@ -504,57 +493,6 @@ ingress:
   ## @param ingress.extraRules Additional rules to be covered with this ingress record
   ##
   extraRules: []
-
-## @section Persistence Parameters
-
-## Persistent storage for uploaded files
-##
-persistence:
-  ## User avatars volume
-  ## @param persistence.public.enabled Enable persistence for user avatars
-  ## @param persistence.public.storageClass Storage class of backing PVC
-  ## @param persistence.public.accessModes Persistent Volume Access Modes
-  ## @param persistence.public.size Size of data volume
-  ## @param persistence.public.existingClaim The name of an existing PVC to use
-  ##
-  public:
-    enabled: true
-    storageClass: ""
-    accessModes:
-      - ReadWriteOnce
-    size: 1Gi
-    annotations: {}
-    existingClaim: ""
-  ## Project background images volume
-  ## @param persistence.backgrounds.enabled Enable persistence for project background images
-  ## @param persistence.backgrounds.storageClass Storage class of backing PVC
-  ## @param persistence.backgrounds.accessModes Persistent Volume Access Modes
-  ## @param persistence.backgrounds.size Size of data volume
-  ## @param persistence.backgrounds.existingClaim The name of an existing PVC to use
-  ##
-  backgrounds:
-    enabled: true
-    storageClass: ""
-    accessModes:
-      - ReadWriteOnce
-    size: 1Gi
-    annotations: {}
-    existingClaim: ""
-  ## Attachments volume
-  ## @param persistence.attachments.enabled Enable persistence for attachments
-  ## @param persistence.attachments.storageClass Storage class of backing PVC
-  ## @param persistence.attachments.accessModes Persistent Volume Access Modes
-  ## @param persistence.attachments.size Size of data volume
-  ## @param persistence.attachments.existingClaim The name of an existing PVC to use
-  ##
-  attachments:
-    enabled: true
-    storageClass: ""
-    accessModes:
-      - ReadWriteOnce
-    size: 8Gi
-    annotations: {}
-    existingClaim: ""
 
 ## @section Other Parameters
 

@@ -1,0 +1,1273 @@
+#
+# SPDX-License-Identifier: APACHE-2.0
+
+## @section Global parameters
+
+global:
+  ## @param global.imageRegistry Global Docker image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: ""
+  imagePullSecrets: []
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: ""
+  ## Security parameters
+  ##
+  security:
+    ## @param global.security.allowInsecureImages Allows skipping image verification
+    ##
+    allowInsecureImages: true
+  ## Compatibility adaptations for Kubernetes platforms
+  ##
+  compatibility:
+    openshift:
+      ## @param global.compatibility.openshift.adaptSecurityContext Adapt the securityContext sections of the deployment to make them compatible with Openshift restricted-v2 SCC
+      ##
+      adaptSecurityContext: auto
+
+## @section Common parameters
+
+## @param kubeVersion Override Kubernetes version reported by .Capabilities
+##
+kubeVersion: ""
+## @param nameOverride String to partially override common.names.name
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: cluster.local
+## @param extraDeploy Array of extra objects to deploy with the release
+##
+extraDeploy: []
+## Diagnostic mode
+## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
+## @param diagnosticMode.command Command to override all containers in the chart release
+## @param diagnosticMode.args Args to override all containers in the chart release
+##
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section Backend parameters
+
+## Dictaphone backend (Django) configuration.
+##
+backend:
+  ## @param backend.image.registry Dictaphone backend image registry
+  ## @param backend.image.repository Dictaphone backend image repository
+  ## @param backend.image.tag Dictaphone backend image tag
+  ## @param backend.image.pullPolicy Dictaphone backend image pull policy
+  ##
+  image:
+    registry: docker.io
+    repository: lasuite/dictaphone-backend
+    tag: "v0.15.4"
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  ## @param backend.replicaCount Number of backend replicas
+  ##
+  replicaCount: 1
+  ## @param backend.containerPorts.http Backend HTTP container port
+  ##
+  containerPorts:
+    http: 8000
+  ## @param backend.extraContainerPorts Additional backend container ports
+  ##
+  extraContainerPorts: []
+  ## @param backend.livenessProbe.enabled Enable livenessProbe on backend containers
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param backend.readinessProbe.enabled Enable readinessProbe on backend containers
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param backend.startupProbe.enabled Enable startupProbe on backend containers
+  ##
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+  ## @param backend.customLivenessProbe Custom livenessProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  ## @param backend.customReadinessProbe Custom readinessProbe that overrides the default one
+  ##
+  customReadinessProbe: {}
+  ## @param backend.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customStartupProbe: {}
+  ## @param backend.resourcesPreset Set backend container resources according to one common preset
+  ##
+  resourcesPreset: "micro"
+  ## @param backend.resources Set backend container requests and limits
+  ##
+  resources: {}
+  ## @param backend.podSecurityContext Backend pods' Security Context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## @param backend.containerSecurityContext Backend container Security Context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param backend.existingConfigmap Name of an existing ConfigMap with custom configuration
+  ##
+  existingConfigmap: ""
+  ## @param backend.command Override default backend container command
+  ##
+  command: []
+  ## @param backend.args Override default backend container args
+  ##
+  args: []
+  ## @param backend.automountServiceAccountToken Mount Service Account token in backend pods
+  ##
+  automountServiceAccountToken: false
+  ## @param backend.hostAliases Backend pods host aliases
+  ##
+  hostAliases: []
+  ## @param backend.deploymentAnnotations Backend deployment annotations
+  ##
+  deploymentAnnotations: {}
+  ## @param backend.podLabels Extra labels for backend pods
+  ##
+  podLabels: {}
+  ## @param backend.podAnnotations Backend pods annotations
+  ##
+  podAnnotations: {}
+  ## @param backend.podAffinityPreset Backend pod affinity preset
+  ##
+  podAffinityPreset: ""
+  ## @param backend.podAntiAffinityPreset Backend pod anti-affinity preset
+  ##
+  podAntiAffinityPreset: soft
+  ## @param backend.nodeAffinityPreset Backend node affinity preset
+  ##
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  ## @param backend.affinity Backend pod affinity
+  ##
+  affinity: {}
+  ## @param backend.nodeSelector Backend node selector
+  ##
+  nodeSelector: {}
+  ## @param backend.tolerations Backend tolerations
+  ##
+  tolerations: []
+  ## @param backend.updateStrategy.type Backend deployment strategy type
+  ##
+  updateStrategy:
+    type: RollingUpdate
+  ## @param backend.priorityClassName Backend pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param backend.topologySpreadConstraints Backend topology spread constraints
+  ##
+  topologySpreadConstraints: []
+  ## @param backend.schedulerName Backend scheduler name
+  ##
+  schedulerName: ""
+  ## @param backend.runtimeClassName Backend runtime class name
+  ##
+  runtimeClassName: ""
+  ## @param backend.terminationGracePeriodSeconds Backend termination grace period
+  ##
+  terminationGracePeriodSeconds: 30
+  ## @param backend.lifecycleHooks Backend lifecycle hooks
+  ##
+  lifecycleHooks: {}
+  ## @param backend.extraEnvVars Extra environment variables for backend containers
+  ##
+  extraEnvVars: []
+  ## @param backend.extraEnvVarsCM Name of an existing ConfigMap with extra env vars
+  ##
+  extraEnvVarsCM: ""
+  ## @param backend.extraEnvVarsSecret Name of an existing Secret with extra env vars
+  ##
+  extraEnvVarsSecret: ""
+  ## @param backend.extraVolumes Extra volumes for backend pods
+  ##
+  extraVolumes: []
+  ## @param backend.extraVolumeMounts Extra volume mounts for backend containers
+  ##
+  extraVolumeMounts: []
+  ## @param backend.sidecars Additional sidecar containers for backend pods
+  ##
+  sidecars: []
+  ## @param backend.initContainers Additional init containers for backend pods
+  ##
+  initContainers: []
+  ## @param backend.pdb.create Enable/disable a Pod Disruption Budget for the backend
+  ## @param backend.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param backend.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
+  ##
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+  ## @param backend.autoscaling.hpa.enabled Enable HPA for backend pods
+  ## @param backend.autoscaling.hpa.minReplicas Minimum number of replicas
+  ## @param backend.autoscaling.hpa.maxReplicas Maximum number of replicas
+  ## @param backend.autoscaling.hpa.targetCPU Target CPU utilization percentage
+  ## @param backend.autoscaling.hpa.targetMemory Target Memory utilization percentage
+  ##
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+  ## Network policy configuration
+  ## @param backend.networkPolicy.enabled Enable a NetworkPolicy for the backend
+  ## @param backend.networkPolicy.allowExternal Allow connections from any pod
+  ## @param backend.networkPolicy.allowExternalEgress Allow egress to any destination
+  ##
+  networkPolicy:
+    enabled: true
+    allowExternal: true
+    allowExternalEgress: true
+    extraIngress: []
+    extraEgress: []
+
+## @section Frontend parameters
+
+## Dictaphone frontend (static SPA served by nginx) configuration.
+##
+frontend:
+  ## @param frontend.image.registry Dictaphone frontend image registry
+  ## @param frontend.image.repository Dictaphone frontend image repository
+  ## @param frontend.image.tag Dictaphone frontend image tag
+  ## @param frontend.image.pullPolicy Dictaphone frontend image pull policy
+  ##
+  image:
+    registry: docker.io
+    repository: lasuite/dictaphone-frontend
+    tag: "v0.15.4"
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  ## @param frontend.replicaCount Number of frontend replicas
+  ##
+  replicaCount: 1
+  ## @param frontend.containerPorts.http Frontend HTTP container port
+  ##
+  containerPorts:
+    http: 8080
+  ## @param frontend.extraContainerPorts Additional frontend container ports
+  ##
+  extraContainerPorts: []
+  ## @param frontend.livenessProbe.enabled Enable livenessProbe on frontend containers
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param frontend.readinessProbe.enabled Enable readinessProbe on frontend containers
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param frontend.startupProbe.enabled Enable startupProbe on frontend containers
+  ##
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 30
+    successThreshold: 1
+  ## @param frontend.customLivenessProbe Custom livenessProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  ## @param frontend.customReadinessProbe Custom readinessProbe that overrides the default one
+  ##
+  customReadinessProbe: {}
+  ## @param frontend.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customStartupProbe: {}
+  ## @param frontend.resourcesPreset Set frontend container resources according to one common preset
+  ##
+  resourcesPreset: "nano"
+  ## @param frontend.resources Set frontend container requests and limits
+  ##
+  resources: {}
+  ## @param frontend.podSecurityContext Frontend pods' Security Context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## @param frontend.containerSecurityContext Frontend container Security Context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param frontend.existingConfigmap Name of an existing ConfigMap with custom configuration
+  ##
+  existingConfigmap: ""
+  ## @param frontend.command Override default frontend container command
+  ##
+  command: []
+  ## @param frontend.args Override default frontend container args
+  ##
+  args: []
+  ## @param frontend.automountServiceAccountToken Mount Service Account token in frontend pods
+  ##
+  automountServiceAccountToken: false
+  ## @param frontend.hostAliases Frontend pods host aliases
+  ##
+  hostAliases: []
+  ## @param frontend.deploymentAnnotations Frontend deployment annotations
+  ##
+  deploymentAnnotations: {}
+  ## @param frontend.podLabels Extra labels for frontend pods
+  ##
+  podLabels: {}
+  ## @param frontend.podAnnotations Frontend pods annotations
+  ##
+  podAnnotations: {}
+  ## @param frontend.podAffinityPreset Frontend pod affinity preset
+  ##
+  podAffinityPreset: ""
+  ## @param frontend.podAntiAffinityPreset Frontend pod anti-affinity preset
+  ##
+  podAntiAffinityPreset: soft
+  ## @param frontend.nodeAffinityPreset Frontend node affinity preset
+  ##
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  ## @param frontend.affinity Frontend pod affinity
+  ##
+  affinity: {}
+  ## @param frontend.nodeSelector Frontend node selector
+  ##
+  nodeSelector: {}
+  ## @param frontend.tolerations Frontend tolerations
+  ##
+  tolerations: []
+  ## @param frontend.updateStrategy.type Frontend deployment strategy type
+  ##
+  updateStrategy:
+    type: RollingUpdate
+  ## @param frontend.priorityClassName Frontend pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param frontend.topologySpreadConstraints Frontend topology spread constraints
+  ##
+  topologySpreadConstraints: []
+  ## @param frontend.schedulerName Frontend scheduler name
+  ##
+  schedulerName: ""
+  ## @param frontend.runtimeClassName Frontend runtime class name
+  ##
+  runtimeClassName: ""
+  ## @param frontend.terminationGracePeriodSeconds Frontend termination grace period
+  ##
+  terminationGracePeriodSeconds: 30
+  ## @param frontend.lifecycleHooks Frontend lifecycle hooks
+  ##
+  lifecycleHooks: {}
+  ## @param frontend.extraEnvVars Extra environment variables for frontend containers
+  ##
+  extraEnvVars: []
+  ## @param frontend.extraEnvVarsCM Name of an existing ConfigMap with extra env vars
+  ##
+  extraEnvVarsCM: ""
+  ## @param frontend.extraEnvVarsSecret Name of an existing Secret with extra env vars
+  ##
+  extraEnvVarsSecret: ""
+  ## @param frontend.extraVolumes Extra volumes for frontend pods
+  ##
+  extraVolumes: []
+  ## @param frontend.extraVolumeMounts Extra volume mounts for frontend containers
+  ##
+  extraVolumeMounts: []
+  ## @param frontend.sidecars Additional sidecar containers for frontend pods
+  ##
+  sidecars: []
+  ## @param frontend.initContainers Additional init containers for frontend pods
+  ##
+  initContainers: []
+  ## @param frontend.pdb.create Enable/disable a Pod Disruption Budget for the frontend
+  ## @param frontend.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param frontend.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
+  ##
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+  ## @param frontend.autoscaling.hpa.enabled Enable HPA for frontend pods
+  ## @param frontend.autoscaling.hpa.minReplicas Minimum number of replicas
+  ## @param frontend.autoscaling.hpa.maxReplicas Maximum number of replicas
+  ## @param frontend.autoscaling.hpa.targetCPU Target CPU utilization percentage
+  ## @param frontend.autoscaling.hpa.targetMemory Target Memory utilization percentage
+  ##
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+  ## Network policy configuration
+  ##
+  networkPolicy:
+    enabled: true
+    allowExternal: true
+    allowExternalEgress: true
+    extraIngress: []
+    extraEgress: []
+
+## @section Celery parameters
+
+## Dictaphone Celery worker configuration.
+##
+celery:
+  ## @param celery.image.registry Celery image registry
+  ## @param celery.image.repository Celery image repository
+  ## @param celery.image.tag Celery image tag
+  ## @param celery.image.pullPolicy Celery image pull policy
+  ##
+  image:
+    registry: docker.io
+    repository: lasuite/dictaphone-backend
+    tag: "v0.15.4"
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  ## @param celery.replicaCount Number of Celery worker replicas
+  ##
+  replicaCount: 1
+  ## @param celery.containerPorts.http Celery container port (unused, kept for network policy compatibility)
+  ##
+  containerPorts:
+    http: 8000
+  ## @param celery.command Override the Celery worker command
+  ##
+  command:
+    - "celery"
+    - "-A"
+    - "dictaphone.celery_app"
+    - "worker"
+    - "--loglevel=info"
+    - "-Q"
+    - "dictaphone-backend"
+  ## @param celery.args Override the Celery worker args
+  ##
+  args: []
+  ## @param celery.resourcesPreset Set Celery container resources according to one common preset
+  ##
+  resourcesPreset: "micro"
+  ## @param celery.resources Set Celery container requests and limits
+  ##
+  resources: {}
+  ## @param celery.podSecurityContext Celery pods' Security Context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## @param celery.containerSecurityContext Celery container Security Context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param celery.automountServiceAccountToken Mount Service Account token in Celery pods
+  ##
+  automountServiceAccountToken: false
+  ## @param celery.hostAliases Celery pods host aliases
+  ##
+  hostAliases: []
+  ## @param celery.deploymentAnnotations Celery deployment annotations
+  ##
+  deploymentAnnotations: {}
+  ## @param celery.podLabels Extra labels for Celery pods
+  ##
+  podLabels: {}
+  ## @param celery.podAnnotations Celery pods annotations
+  ##
+  podAnnotations: {}
+  ## @param celery.podAffinityPreset Celery pod affinity preset
+  ##
+  podAffinityPreset: ""
+  ## @param celery.podAntiAffinityPreset Celery pod anti-affinity preset
+  ##
+  podAntiAffinityPreset: soft
+  ## @param celery.nodeAffinityPreset Celery node affinity preset
+  ##
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  ## @param celery.affinity Celery pod affinity
+  ##
+  affinity: {}
+  ## @param celery.nodeSelector Celery node selector
+  ##
+  nodeSelector: {}
+  ## @param celery.tolerations Celery tolerations
+  ##
+  tolerations: []
+  ## @param celery.updateStrategy.type Celery deployment strategy type
+  ##
+  updateStrategy:
+    type: RollingUpdate
+  ## @param celery.priorityClassName Celery pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param celery.topologySpreadConstraints Celery topology spread constraints
+  ##
+  topologySpreadConstraints: []
+  ## @param celery.schedulerName Celery scheduler name
+  ##
+  schedulerName: ""
+  ## @param celery.runtimeClassName Celery runtime class name
+  ##
+  runtimeClassName: ""
+  ## @param celery.terminationGracePeriodSeconds Celery termination grace period
+  ##
+  terminationGracePeriodSeconds: 60
+  ## @param celery.lifecycleHooks Celery lifecycle hooks
+  ##
+  lifecycleHooks: {}
+  ## @param celery.extraEnvVars Extra environment variables for Celery containers
+  ##
+  extraEnvVars: []
+  ## @param celery.extraEnvVarsCM Name of an existing ConfigMap with extra env vars
+  ##
+  extraEnvVarsCM: ""
+  ## @param celery.extraEnvVarsSecret Name of an existing Secret with extra env vars
+  ##
+  extraEnvVarsSecret: ""
+  ## @param celery.extraVolumes Extra volumes for Celery pods
+  ##
+  extraVolumes: []
+  ## @param celery.extraVolumeMounts Extra volume mounts for Celery containers
+  ##
+  extraVolumeMounts: []
+  ## @param celery.sidecars Additional sidecar containers for Celery pods
+  ##
+  sidecars: []
+  ## @param celery.initContainers Additional init containers for Celery pods
+  ##
+  initContainers: []
+  ## @param celery.pdb.create Enable/disable a Pod Disruption Budget for Celery
+  ## @param celery.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param celery.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
+  ##
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+  ## @param celery.autoscaling.hpa.enabled Enable HPA for Celery pods
+  ## @param celery.autoscaling.hpa.minReplicas Minimum number of replicas
+  ## @param celery.autoscaling.hpa.maxReplicas Maximum number of replicas
+  ## @param celery.autoscaling.hpa.targetCPU Target CPU utilization percentage
+  ## @param celery.autoscaling.hpa.targetMemory Target Memory utilization percentage
+  ##
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+  ## Network policy configuration
+  ##
+  networkPolicy:
+    enabled: true
+    allowExternal: true
+    allowExternalEgress: true
+    extraIngress: []
+    extraEgress: []
+
+## @section Audio extractor parameters
+
+## Audio extraction workers.
+##
+audioExtractor:
+  ## @param audioExtractor.image.registry Audio extractor image registry
+  ## @param audioExtractor.image.repository Audio extractor image repository
+  ## @param audioExtractor.image.tag Audio extractor image tag
+  ## @param audioExtractor.image.pullPolicy Audio extractor image pull policy
+  ##
+  image:
+    registry: docker.io
+    repository: lasuite/dictaphone-audio-extractor
+    tag: "v0.15.4"
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  ## @param audioExtractor.transcodingReplicaCount Number of transcoding worker replicas
+  ##
+  transcodingReplicaCount: 1
+  ## @param audioExtractor.validationReplicaCount Number of validation worker replicas
+  ##
+  validationReplicaCount: 1
+  ## @param audioExtractor.containerPorts.health Audio extractor health port
+  ##
+  containerPorts:
+    health: 8080
+  ## @param audioExtractor.command Override the audio worker command
+  ##
+  command:
+    - "sh"
+    - "/app/run-worker.sh"
+  ## @param audioExtractor.args Additional audio worker args
+  ##
+  args: []
+  ## @param audioExtractor.terminationGracePeriodSeconds Time for bounded cancellation and cleanup
+  ##
+  terminationGracePeriodSeconds: 45
+  ## @param audioExtractor.strategy Audio worker deployment strategy
+  ##
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  ## @param audioExtractor.resourcesPreset Set audio worker resources according to one common preset
+  ##
+  resourcesPreset: "micro"
+  ## @param audioExtractor.resources Set audio worker container requests and limits
+  ##
+  resources: {}
+  ## @param audioExtractor.podSecurityContext Audio worker pods' Security Context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## @param audioExtractor.containerSecurityContext Audio worker container Security Context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param audioExtractor.automountServiceAccountToken Mount Service Account token in audio worker pods
+  ##
+  automountServiceAccountToken: false
+  ## @param audioExtractor.hostAliases Audio worker pods host aliases
+  ##
+  hostAliases: []
+  ## @param audioExtractor.deploymentAnnotations Audio worker deployment annotations
+  ##
+  deploymentAnnotations: {}
+  ## @param audioExtractor.podLabels Extra labels for audio worker pods
+  ##
+  podLabels: {}
+  ## @param audioExtractor.podAnnotations Audio worker pods annotations
+  ##
+  podAnnotations: {}
+  ## @param audioExtractor.podAffinityPreset Audio worker pod affinity preset
+  ##
+  podAffinityPreset: ""
+  ## @param audioExtractor.podAntiAffinityPreset Audio worker pod anti-affinity preset
+  ##
+  podAntiAffinityPreset: soft
+  ## @param audioExtractor.nodeAffinityPreset Audio worker node affinity preset
+  ##
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  ## @param audioExtractor.affinity Audio worker pod affinity
+  ##
+  affinity: {}
+  ## @param audioExtractor.nodeSelector Audio worker node selector
+  ##
+  nodeSelector: {}
+  ## @param audioExtractor.tolerations Audio worker tolerations
+  ##
+  tolerations: []
+  ## @param audioExtractor.priorityClassName Audio worker pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param audioExtractor.topologySpreadConstraints Audio worker topology spread constraints
+  ##
+  topologySpreadConstraints: []
+  ## @param audioExtractor.schedulerName Audio worker scheduler name
+  ##
+  schedulerName: ""
+  ## @param audioExtractor.runtimeClassName Audio worker runtime class name
+  ##
+  runtimeClassName: ""
+  ## @param audioExtractor.lifecycleHooks Audio worker lifecycle hooks
+  ##
+  lifecycleHooks: {}
+  ## @param audioExtractor.extraEnvVars Extra environment variables for audio workers
+  ##
+  extraEnvVars: []
+  ## @param audioExtractor.extraVolumes Extra volumes for audio worker pods
+  ##
+  extraVolumes: []
+  ## @param audioExtractor.extraVolumeMounts Extra volume mounts for audio worker containers
+  ##
+  extraVolumeMounts: []
+  ## @param audioExtractor.sidecars Additional sidecar containers for audio worker pods
+  ##
+  sidecars: []
+  ## @param audioExtractor.initContainers Additional init containers for audio worker pods
+  ##
+  initContainers: []
+  ## @param audioExtractor.workVolume Volume backing the /work workspace
+  ##
+  workVolume:
+    emptyDir:
+      sizeLimit: 4Gi
+  ## @param audioExtractor.envVars Environment variables shared by both audio worker modes
+  ##
+  envVars:
+    AUDIO_EXTRACTOR_MAX_RUNTIME_SECONDS: 900
+    AUDIO_EXTRACTOR_PROCESS_TIMEOUT_SECONDS: 1200
+    AUDIO_EXTRACTOR_SHUTDOWN_GRACE_SECONDS: 30
+    AUDIO_EXTRACTOR_POLL_INTERVAL_SECONDS: 5
+    AUDIO_EXTRACTOR_JOB_TIMEOUT_SECONDS: 300
+  ## @param audioExtractor.pdb.create Enable/disable a Pod Disruption Budget for audio workers
+  ## @param audioExtractor.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param audioExtractor.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
+  ##
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+  ## Network policy configuration
+  ##
+  networkPolicy:
+    enabled: true
+    allowExternal: true
+    allowExternalEgress: true
+    extraIngress: []
+    extraEgress: []
+
+## @section S3 gateway parameters
+
+## Restricted S3 proxy used by audio extraction workers.
+##
+s3Gateway:
+  ## @param s3Gateway.enabled Enable the S3 gateway
+  ##
+  enabled: true
+  ## @param s3Gateway.image.registry S3 gateway image registry
+  ## @param s3Gateway.image.repository S3 gateway image repository
+  ## @param s3Gateway.image.tag S3 gateway image tag
+  ## @param s3Gateway.image.pullPolicy S3 gateway image pull policy
+  ##
+  image:
+    registry: docker.io
+    repository: lasuite/dictaphone-audio-extractor
+    tag: "v0.15.4"
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  ## @param s3Gateway.replicaCount Number of S3 gateway replicas
+  ##
+  replicaCount: 2
+  ## @param s3Gateway.command Override the gateway container command
+  ##
+  command:
+    - "python"
+    - "-m"
+    - "audio_extractor.s3_gateway"
+  ## @param s3Gateway.args Arguments for the gateway container
+  ##
+  args: []
+  ## @param s3Gateway.rules Provider rules for the gateway
+  ##
+  rules: []
+  ## @param s3Gateway.resourcesPreset Set gateway container resources according to one common preset
+  ##
+  resourcesPreset: "nano"
+  ## @param s3Gateway.resources Set gateway container requests and limits
+  ##
+  resources: {}
+  ## @param s3Gateway.podSecurityContext Gateway pods' Security Context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## @param s3Gateway.containerSecurityContext Gateway container Security Context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param s3Gateway.automountServiceAccountToken Mount Service Account token in gateway pods
+  ##
+  automountServiceAccountToken: false
+  ## @param s3Gateway.deploymentAnnotations Gateway deployment annotations
+  ##
+  deploymentAnnotations: {}
+  ## @param s3Gateway.podLabels Extra labels for gateway pods
+  ##
+  podLabels: {}
+  ## @param s3Gateway.podAnnotations Gateway pods annotations
+  ##
+  podAnnotations: {}
+  ## @param s3Gateway.podAffinityPreset Gateway pod affinity preset
+  ##
+  podAffinityPreset: ""
+  ## @param s3Gateway.podAntiAffinityPreset Gateway pod anti-affinity preset
+  ##
+  podAntiAffinityPreset: soft
+  ## @param s3Gateway.nodeAffinityPreset Gateway node affinity preset
+  ##
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  ## @param s3Gateway.affinity Gateway pod affinity
+  ##
+  affinity: {}
+  ## @param s3Gateway.nodeSelector Gateway node selector
+  ##
+  nodeSelector: {}
+  ## @param s3Gateway.tolerations Gateway tolerations
+  ##
+  tolerations: []
+  ## @param s3Gateway.priorityClassName Gateway pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param s3Gateway.topologySpreadConstraints Gateway topology spread constraints
+  ##
+  topologySpreadConstraints: []
+  ## @param s3Gateway.schedulerName Gateway scheduler name
+  ##
+  schedulerName: ""
+  ## @param s3Gateway.runtimeClassName Gateway runtime class name
+  ##
+  runtimeClassName: ""
+  ## @param s3Gateway.terminationGracePeriodSeconds Gateway termination grace period
+  ##
+  terminationGracePeriodSeconds: 45
+  ## @param s3Gateway.strategy Gateway deployment strategy
+  ##
+  strategy: {}
+  ## @param s3Gateway.lifecycleHooks Gateway lifecycle hooks
+  ##
+  lifecycleHooks: {}
+  ## @param s3Gateway.extraEnvVars Extra environment variables for the gateway
+  ##
+  extraEnvVars: []
+  ## @param s3Gateway.extraVolumes Extra volumes for gateway pods
+  ##
+  extraVolumes: []
+  ## @param s3Gateway.extraVolumeMounts Extra volume mounts for the gateway
+  ##
+  extraVolumeMounts: []
+  ## @param s3Gateway.sidecars Additional sidecar containers for gateway pods
+  ##
+  sidecars: []
+  ## @param s3Gateway.initContainers Additional init containers for gateway pods
+  ##
+  initContainers: []
+  ## @param s3Gateway.envVars Environment variables for the gateway
+  ##
+  envVars:
+    S3_GATEWAY_FORCE_HTTPS: "false"
+    S3_GATEWAY_MAX_UPLOAD_BYTES: "1073741824"
+    S3_GATEWAY_MAX_CONCURRENT_REQUESTS: 20
+    S3_GATEWAY_TIMEOUT_SECONDS: 3600
+    S3_GATEWAY_SHUTDOWN_GRACE_SECONDS: 30
+  ## @param s3Gateway.service.type Gateway service type
+  ## @param s3Gateway.service.ports.http Gateway service port
+  ## @param s3Gateway.service.targetPort Gateway container listening port
+  ## @param s3Gateway.service.annotations Gateway service annotations
+  ##
+  service:
+    type: ClusterIP
+    ports:
+      http: 8080
+    targetPort: 8080
+    annotations: {}
+  ## @param s3Gateway.livenessProbe.enabled Enable livenessProbe on gateway containers
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param s3Gateway.readinessProbe.enabled Enable readinessProbe on gateway containers
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param s3Gateway.startupProbe.enabled Enable startupProbe on gateway containers
+  ##
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 30
+    successThreshold: 1
+  ## @param s3Gateway.customLivenessProbe Custom livenessProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  ## @param s3Gateway.customReadinessProbe Custom readinessProbe that overrides the default one
+  ##
+  customReadinessProbe: {}
+  ## @param s3Gateway.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customStartupProbe: {}
+  ## @param s3Gateway.pdb.create Enable/disable a Pod Disruption Budget for the gateway
+  ## @param s3Gateway.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param s3Gateway.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
+  ##
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+  ## Network policy configuration
+  ##
+  networkPolicy:
+    enabled: true
+    allowExternal: true
+    allowExternalEgress: true
+    extraIngress: []
+    extraEgress: []
+
+## @section Traffic exposure parameters
+
+## @param service.backend.type Backend service type
+## @param service.backend.ports.http Backend service HTTP port
+## @param service.frontend.type Frontend service type
+## @param service.frontend.ports.http Frontend service HTTP port
+##
+service:
+  backend:
+    type: ClusterIP
+    ports:
+      http: 80
+    annotations: {}
+  frontend:
+    type: ClusterIP
+    ports:
+      http: 80
+    annotations: {}
+
+## Ingress parameters
+## @param ingress.enabled Enable ingress record generation
+## @param ingress.pathType Ingress path type
+## @param ingress.hostname Default host for the ingress record
+## @param ingress.ingressClassName IngressClass that will be used
+## @param ingress.annotations Additional annotations for the Ingress resource
+## @param ingress.tls Enable TLS configuration for the host defined at ingress.hostname
+## @param ingress.selfSigned Create a TLS secret using self-signed certificates
+##
+ingress:
+  enabled: true
+  pathType: Prefix
+  apiVersion: ""
+  hostname: dictaphone.local
+  ingressClassName: ""
+  annotations: {}
+  tls: false
+  selfSigned: false
+  extraHosts: []
+  extraPaths: []
+  extraTls: []
+  secrets: []
+  extraRules: []
+
+## External database parameters
+## @param externalDatabase.type Database type
+## @param externalDatabase.username Username to connect as
+## @param externalDatabase.password Password to use
+## @param externalDatabase.host Database host
+## @param externalDatabase.port Database port
+## @param externalDatabase.database Database name
+##
+externalDatabase:
+  type: postgresql
+  username: ""
+  password: ""
+  host: ""
+  port: 5432
+  database: ""
+
+## External Redis parameters
+## @param externalRedis.host Redis host
+## @param externalRedis.port Redis port
+## @param externalRedis.password Redis password
+##
+externalRedis:
+  host: ""
+  port: 6379
+  password: ""
+
+## Object storage parameters
+## @param objectstore.endpoint Internal S3 endpoint URL
+## @param objectstore.publicUrl Public S3 endpoint URL used in pre-signed URLs
+## @param objectstore.bucket Bucket name
+## @param objectstore.region S3 region
+## @param objectstore.accessKey S3 access key
+## @param objectstore.secretKey S3 secret key
+##
+objectstore:
+  endpoint: ""
+  publicUrl: ""
+  bucket: ""
+  region: us-east-1
+  accessKey: ""
+  secretKey: ""
+
+## OpenID Connect authentication
+## @param authentication.issuer OpenID issuer URL
+## @param authentication.authorization_endpoint OpenID authorization endpoint
+## @param authentication.token_endpoint OpenID token endpoint
+## @param authentication.introspection_endpoint OpenID introspection endpoint
+## @param authentication.userinfo_endpoint OpenID userinfo endpoint
+## @param authentication.end_session_endpoint OpenID end session endpoint
+## @param authentication.jwks_uri OpenID JWKS URI
+## @param authentication.claims.username Claim used as username
+## @param authentication.claims.display_name Claim used as display name
+## @param authentication.claims.given_name Claim used as given name
+## @param authentication.claims.family_name Claim used as family name
+## @param authentication.client.client_id OpenID client ID
+## @param authentication.client.client_secret OpenID client secret
+##
+authentication:
+  issuer: ""
+  authorization_endpoint: ""
+  token_endpoint: ""
+  introspection_endpoint: ""
+  userinfo_endpoint: ""
+  end_session_endpoint: ""
+  jwks_uri: ""
+  claims:
+    username: ""
+    display_name: ""
+    given_name: ""
+    family_name: ""
+  client:
+    client_id: ""
+    client_secret: ""
+
+## Application secrets and configuration
+## @param application.secretKey Django secret key
+## @param application.jwtSigningKey Simple JWT signing key
+## @param application.audioExtractor.transcodingToken Audio extractor transcoding token
+## @param application.audioExtractor.validationToken Audio extractor validation token
+## @param application.ai.serviceUrl External AI transcription service URL
+## @param application.ai.serviceApiKey External AI transcription service API key
+## @param application.ai.webhookApiKey External AI transcription webhook API key
+## @param application.superuser.email Django superuser email
+## @param application.superuser.password Django superuser password
+##
+application:
+  secretKey: ""
+  jwtSigningKey: ""
+  audioExtractor:
+    transcodingToken: ""
+    validationToken: ""
+  ai:
+    serviceUrl: ""
+    serviceApiKey: ""
+    webhookApiKey: ""
+  superuser:
+    email: ""
+    password: ""
+
+## SMTP parameters
+## @param smtp.host SMTP server host
+## @param smtp.port SMTP server port
+## @param smtp.username SMTP auth username
+## @param smtp.password SMTP auth password
+## @param smtp.from.email From address used on outgoing emails
+## @param smtp.from.name Brand name used on outgoing emails
+## @param smtp.from.logoImage Logo image URL used on outgoing emails
+## @param smtp.tls.enabled Use TLS when sending email
+##
+smtp:
+  host: ""
+  port: 587
+  username: ""
+  password: ""
+  from:
+    email: ""
+    name: ""
+    logoImage: ""
+  tls:
+    enabled: true
+
+## Jobs parameters
+## @param jobs.ttlSecondsAfterFinished Period to wait before removing completed jobs
+## @param jobs.backoffLimit Number of job retries
+## @param jobs.restartPolicy Job restart policy
+##
+jobs:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 6
+  restartPolicy: Never
+
+## @param cronJobs List of maintenance CronJobs
+##
+cronJobs:
+  - name: delete-original-files-data
+    schedule: "1 0 * * *"
+    command:
+      - "/bin/sh"
+      - "-c"
+      - "python manage.py delete_original_files_data"
+  - name: auto-hard-delete-files
+    schedule: "15 0 * * *"
+    command:
+      - "/bin/sh"
+      - "-c"
+      - "python manage.py auto_hard_delete_files"
+  - name: clean-pending-files
+    schedule: "30 0 * * *"
+    command:
+      - "/bin/sh"
+      - "-c"
+      - "python manage.py clean_pending_files"
+  - name: purge-deleted-files
+    schedule: "45 0 * * *"
+    command:
+      - "/bin/sh"
+      - "-c"
+      - "python manage.py purge_deleted_files"
+  - name: purge-transcription-usage
+    schedule: "0 1 * * *"
+    command:
+      - "/bin/sh"
+      - "-c"
+      - "python manage.py purge_transcription_usage"
+
+## @section Other parameters
+
+## ServiceAccount configuration
+## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+## @param serviceAccount.name The name of the ServiceAccount to use
+## @param serviceAccount.annotations Additional Service Account annotations
+## @param serviceAccount.automountServiceAccountToken Automount service account token
+##
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+## @param cluster Kubernetes cluster routing configuration (populated by shared values)
+##
+cluster:
+  routingMode: ingress
+  ingress:
+    type: nginx
+    className: ""
+  gateway:
+    name: ""
+    namespace: ""
+  tls:
+    selfSigned: false

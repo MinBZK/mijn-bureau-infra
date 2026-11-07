@@ -37,14 +37,10 @@ projects:
 
   secretKey: {{ .Values.application.projects.secretKey | quote }}
   baseUrl: {{ $baseUrl | quote }}
-  serviceName: {{ .Values.application.projects.serviceName | default "Projecten" | quote }}
-  allowAllToCreateProjects: {{ .Values.application.projects.allowAllToCreateProjects | default true }}
   adminEmail: {{ .Values.secret.projects.adminUser | quote }}
   adminPassword: {{ .Values.secret.projects.adminPassword | quote }}
-  s3:
-    enabled: {{ .Values.application.projects.objectStorage.enabled | default true }}
 
-  replicaCount: {{ .Values.application.projects.replicaCount | default 1 }}
+  replicaCount: {{ .Values.autoscaling.horizontal.projects.minReplicas | default 1 }}
   resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.projects .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.projects.projects | default dict | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
@@ -58,10 +54,8 @@ projects:
 
 authentication:
   issuer: {{ .Values.authentication.oidc.issuer | quote }}
-  fullnameAttributes: {{ .Values.application.projects.oidc.fullnameAttributes | default "name" | quote }}
-  scopes: {{ .Values.application.projects.oidc.scopes | default "openid email profile" | quote }}
+  fullnameAttributes: {{ .Values.authentication.oidc.claims.display_name | default "name" | quote }}
   emailAttribute: {{ .Values.authentication.oidc.claims.email | default "email" | quote }}
-  enforced: {{ .Values.application.projects.oidc.enforced | default true }}
   client:
     client_id: {{ .Values.authentication.client.projects.client_id | quote }}
     client_secret: {{ .Values.authentication.client.projects.client_secret | quote }}
@@ -94,23 +88,6 @@ externalMinio:
   secretKey: {{ .Values.objectstore.projects.rootPassword | quote }}
   bucket: {{ .Values.objectstore.projects.bucket | quote }}
   pathStyle: true
-
-persistence:
-  public:
-    enabled: {{ not (.Values.application.projects.objectStorage.enabled | default true) }}
-    storageClass: {{ coalesce .Values.pvc.projects.public.storageClass .Values.pvc.default.storageClass | quote }}
-    accessModes: {{ coalesce .Values.pvc.projects.public.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
-    size: {{ coalesce .Values.pvc.projects.public.size .Values.pvc.default.size "1Gi" }}
-  backgrounds:
-    enabled: {{ not (.Values.application.projects.objectStorage.enabled | default true) }}
-    storageClass: {{ coalesce .Values.pvc.projects.backgrounds.storageClass .Values.pvc.default.storageClass | quote }}
-    accessModes: {{ coalesce .Values.pvc.projects.backgrounds.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
-    size: {{ coalesce .Values.pvc.projects.backgrounds.size .Values.pvc.default.size "1Gi" }}
-  attachments:
-    enabled: {{ not (.Values.application.projects.objectStorage.enabled | default true) }}
-    storageClass: {{ coalesce .Values.pvc.projects.attachments.storageClass .Values.pvc.default.storageClass | quote }}
-    accessModes: {{ coalesce .Values.pvc.projects.attachments.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
-    size: {{ coalesce .Values.pvc.projects.attachments.size .Values.pvc.default.size "1Gi" }}
 
 service:
   type: ClusterIP

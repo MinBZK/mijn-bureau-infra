@@ -24,6 +24,12 @@ global:
       backend: "small"
       frontend: "small"
     projects: "small"
+    dictaphone:
+      backend: "small"
+      frontend: "small"
+      celery: "small"
+      audioExtractor: "small"
+      s3Gateway: "small"
     conversations:
       backend: "small"
       frontend: "small"
@@ -53,5 +59,8 @@ pvc:
     minio:
       size: "42Gi"
   projects:
+    minio:
+      size: "42Gi"
+  dictaphone:
     minio:
       size: "42Gi"

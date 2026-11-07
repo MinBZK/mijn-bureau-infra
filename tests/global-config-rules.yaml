@@ -26,6 +26,12 @@ global:
       backend: "xlarge"
       frontend: "xlarge"
     projects: "xlarge"
+    dictaphone:
+      backend: "xlarge"
+      frontend: "xlarge"
+      celery: "xlarge"
+      audioExtractor: "xlarge"
+      s3Gateway: "xlarge"
     conversations:
       backend: "xlarge"
       frontend: "xlarge"

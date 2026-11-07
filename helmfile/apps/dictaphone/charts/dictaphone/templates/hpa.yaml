@@ -1,0 +1,45 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- range $component := list "backend" "frontend" "celery" }}
+{{- $config := index $.Values $component }}
+{{- if and $config.autoscaling $config.autoscaling.hpa.enabled }}
+---
+apiVersion: {{ include "common.capabilities.hpa.apiVersion" ( dict "context" $ ) }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include (printf "dictaphone.%s.fullname" $component) $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+  {{- if $.Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $.Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+    kind: Deployment
+    name: {{ include (printf "dictaphone.%s.fullname" $component) $ }}
+  minReplicas: {{ $config.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ $config.autoscaling.hpa.maxReplicas }}
+  metrics:
+    {{- if $config.autoscaling.hpa.targetMemory }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ $config.autoscaling.hpa.targetMemory }}
+    {{- end }}
+    {{- if $config.autoscaling.hpa.targetCPU }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $config.autoscaling.hpa.targetCPU }}
+    {{- end }}
+{{- end }}
+{{- end }}

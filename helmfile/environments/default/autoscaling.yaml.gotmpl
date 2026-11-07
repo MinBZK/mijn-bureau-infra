@@ -133,6 +133,25 @@ autoscaling:
       maxReplicas: 3
       targetCPU: 80
       targetMemory: ""
+    dictaphone:
+      backend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      frontend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      celery:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
     clamav:
       enabled: true
       minReplicas: 1

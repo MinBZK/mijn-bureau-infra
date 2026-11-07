@@ -1,0 +1,172 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- define "dictaphone.audioExtractor.deployment" -}}
+{{- $root := index . 0 -}}
+{{- $mode := index . 1 -}}
+{{- $config := $root.Values.audioExtractor -}}
+{{- $replicas := ternary $config.transcodingReplicaCount $config.validationReplicaCount (eq $mode "transcoding") -}}
+{{- $tokenKey := ternary "AUDIO_EXTRACTOR_TRANSCODING_TOKEN" "AUDIO_EXTRACTOR_VALIDATION_TOKEN" (eq $mode "transcoding") -}}
+{{- $fullName := printf "%s-%s" (include "dictaphone.audioExtractor.fullname" $root) $mode | trunc 63 | trimSuffix "-" -}}
+{{- $component := "audio-extractor" -}}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" $root }}
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ include "common.names.namespace" $root | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $root.Values.commonLabels "context" $root ) | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+    dictaphone.lasuite.nl/mode: {{ $mode }}
+  {{- if or $config.deploymentAnnotations $root.Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list $config.deploymentAnnotations $root.Values.commonAnnotations) "context" $root) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $root ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ $replicas }}
+  {{- if $config.strategy }}
+  strategy: {{- toYaml $config.strategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list $config.podLabels $root.Values.commonLabels) "context" $root) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $root ) | nindent 6 }}
+      app.kubernetes.io/component: {{ $component }}
+      dictaphone.lasuite.nl/mode: {{ $mode }}
+  template:
+    metadata:
+      {{- if $config.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" $config.podAnnotations "context" $root) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $root ) | nindent 8 }}
+        app.kubernetes.io/component: {{ $component }}
+        dictaphone.lasuite.nl/mode: {{ $mode }}
+    spec:
+      {{- include "dictaphone.imagePullSecrets" $root | nindent 6 }}
+      serviceAccountName: {{ template "dictaphone.serviceAccountName" $root }}
+      automountServiceAccountToken: {{ $config.automountServiceAccountToken }}
+      terminationGracePeriodSeconds: {{ $config.terminationGracePeriodSeconds }}
+      {{- if $config.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" $config.hostAliases "context" $root) | nindent 8 }}
+      {{- end }}
+      {{- if $config.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" $config.affinity "context" $root) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" $config.podAffinityPreset "component" $component "customLabels" $podLabels "context" $root) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" $config.podAntiAffinityPreset "component" $component "customLabels" $podLabels "context" $root) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" $config.nodeAffinityPreset.type "key" $config.nodeAffinityPreset.key "values" $config.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if $config.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" $config.nodeSelector "context" $root) | nindent 8 }}
+      {{- end }}
+      {{- if $config.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" $config.tolerations "context" $root) | nindent 8 }}
+      {{- end }}
+      {{- if $config.priorityClassName }}
+      priorityClassName: {{ $config.priorityClassName | quote }}
+      {{- end }}
+      {{- if $config.schedulerName }}
+      schedulerName: {{ $config.schedulerName | quote }}
+      {{- end }}
+      {{- if $config.runtimeClassName }}
+      runtimeClassName: {{ $config.runtimeClassName | quote }}
+      {{- end }}
+      {{- if $config.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" $config.topologySpreadConstraints "context" $root) | nindent 8 }}
+      {{- end }}
+      {{- if $config.podSecurityContext.enabled }}
+      securityContext: {{- omit $config.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if $config.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" $config.initContainers "context" $root) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: dictaphone
+          image: {{ template "dictaphone.audioExtractor.image" $root }}
+          imagePullPolicy: {{ $config.image.pullPolicy }}
+          {{- if $config.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" $config.containerSecurityContext "context" $root) | nindent 12 }}
+          {{- end }}
+          {{- if $config.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" $config.command "context" $root) | nindent 12 }}
+          {{- end }}
+          {{- if $config.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" $config.args "context" $root) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: AUDIO_EXTRACTOR_MODE
+              value: {{ $mode | quote }}
+            - name: AUDIO_EXTRACTOR_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "dictaphone.secretName" $root }}
+                  key: {{ $tokenKey }}
+            - name: AUDIO_EXTRACTOR_API_URL
+              value: {{ printf "http://%s/api/internal/v1.0" (include "dictaphone.backend.fullname" $root) | quote }}
+            - name: AUDIO_EXTRACTOR_HEALTH_PORT
+              value: {{ $config.containerPorts.health | quote }}
+            {{- if $root.Values.s3Gateway.enabled }}
+            - name: S3_GATEWAY_URL
+              value: {{ printf "http://%s:%v/proxy" (include "dictaphone.s3Gateway.fullname" $root) $root.Values.s3Gateway.service.ports.http | quote }}
+            {{- end }}
+            {{- include "dictaphone.env.transformDict" $config.envVars | nindent 12 }}
+            {{- if $config.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" $config.extraEnvVars "context" $root) | nindent 12 }}
+            {{- end }}
+          {{- if $config.resources }}
+          resources: {{- toYaml $config.resources | nindent 12 }}
+          {{- else if ne $config.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" $config.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: health
+              containerPort: {{ $config.containerPorts.health }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 2
+          startupProbe:
+            httpGet:
+              path: /startupz
+              port: health
+            periodSeconds: 2
+            timeoutSeconds: 1
+            failureThreshold: 30
+          {{- if $config.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" $config.lifecycleHooks "context" $root) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: work
+              mountPath: /work
+            {{- if $config.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" $config.extraVolumeMounts "context" $root) | nindent 12 }}
+            {{- end }}
+        {{- if $config.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" $config.sidecars "context" $root) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: work
+          {{- toYaml $config.workVolume | nindent 10 }}
+        {{- if $config.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" $config.extraVolumes "context" $root) | nindent 8 }}
+        {{- end }}
+{{- end -}}
+
+{{ include "dictaphone.audioExtractor.deployment" (list . "transcoding") }}
+---
+{{ include "dictaphone.audioExtractor.deployment" (list . "validation") }}

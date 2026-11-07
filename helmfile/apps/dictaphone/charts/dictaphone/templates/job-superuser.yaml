@@ -1,0 +1,79 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "dictaphone.backend.fullname" . }}-superuser
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: backend-superuser
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-delete-policy: before-hook-creation
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.jobs.ttlSecondsAfterFinished }}
+  backoffLimit: {{ .Values.jobs.backoffLimit }}
+  template:
+    metadata:
+      {{- if .Values.backend.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.backend.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: backend-superuser
+    spec:
+      {{- include "dictaphone.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "dictaphone.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.backend.automountServiceAccountToken }}
+      restartPolicy: {{ .Values.jobs.restartPolicy }}
+      {{- if .Values.backend.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.backend.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.backend.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.backend.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: dictaphone
+          image: {{ template "dictaphone.image" . }}
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          {{- if .Values.backend.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.backend.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              while ! python manage.py check --database default > /dev/null 2>&1
+              do
+                echo "Database not ready"
+                sleep 2
+              done
+              echo "Database is ready"
+
+              python manage.py createsuperuser --email "$DJANGO_SUPERUSER_EMAIL" --password "$DJANGO_SUPERUSER_PASSWORD" || true
+          envFrom:
+            - configMapRef:
+                name: {{ template "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "dictaphone.secretName" . }}
+            - secretRef:
+                name: {{ include "dictaphone.superuserSecretName" . }}
+          {{- if .Values.backend.resources }}
+          resources: {{- toYaml .Values.backend.resources | nindent 12 }}
+          {{- else if ne .Values.backend.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.backend.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

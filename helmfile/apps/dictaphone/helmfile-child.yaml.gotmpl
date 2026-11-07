@@ -1,0 +1,78 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: dictaphone-postgresql
+    chart: ../common/charts/postgresql
+    version: "16.7.18"
+    {{- if .Values.application.dictaphone.namespace }}
+    namespace: {{ .Values.application.dictaphone.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.dictaphone.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "values-postgresql.yaml.gotmpl"
+
+  - name: dictaphone-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.dictaphone.namespace }}
+    namespace: {{ .Values.application.dictaphone.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.dictaphone.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: dictaphone-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.dictaphone.namespace }}
+    namespace: {{ .Values.application.dictaphone.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.dictaphone.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    needs:
+      - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
+
+  - name: dictaphone-redis
+    chart: ../common/charts/redis
+    version: "21.2.6"
+    {{- if .Values.application.dictaphone.namespace }}
+    namespace: {{ .Values.application.dictaphone.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.dictaphone.enabled) | toYaml }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "values-redis.yaml.gotmpl"
+
+  - name: dictaphone-minio
+    chart: ../common/charts/minio
+    version: "17.0.11"
+    {{- if .Values.application.dictaphone.namespace }}
+    namespace: {{ .Values.application.dictaphone.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.dictaphone.enabled) | toYaml }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values-minio.yaml.gotmpl"
+
+  - name: dictaphone
+    chart: charts/dictaphone
+    condition: application.dictaphone.enabled
+    {{- if .Values.application.dictaphone.namespace }}
+    namespace: {{ .Values.application.dictaphone.namespace }}
+    {{- end }}
+    {{- if and (eq .Environment.Name "demo") (.Values.application.dictaphone.enabled) }}
+    needs:
+      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
+      - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-cluster
+      {{- else }}
+      - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-postgresql
+      {{- end }}
+      - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-redis
+      - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-minio
+    {{- end }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values.yaml.gotmpl"

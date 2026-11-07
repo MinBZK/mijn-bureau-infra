@@ -1,0 +1,87 @@
+name: "Update dictaphone container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump dictaphone version to {{ source "dictaphone_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  dictaphone_latest_version:
+    name: "Get latest dictaphone tag"
+    kind: dockerimage
+    spec:
+      image: "lasuite/dictaphone-backend"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_dictaphone_tags:
+    name: "Update dictaphone container tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      keys:
+        - "$.container.dictaphone_backend.tag"
+        - "$.container.dictaphone_frontend.tag"
+        - "$.container.dictaphone_audio_extractor.tag"
+    sourceid: dictaphone_latest_version
+    scmid: default
+
+  update_values_dictaphone_tags:
+    name: "Update values dictaphone tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/dictaphone/charts/dictaphone/values.yaml"
+      keys:
+        - "$.backend.image.tag"
+        - "$.frontend.image.tag"
+        - "$.celery.image.tag"
+        - "$.audioExtractor.image.tag"
+        - "$.s3Gateway.image.tag"
+    sourceid: dictaphone_latest_version
+    scmid: default
+
+  update_chart_appVersion:
+    name: "Update dictaphone chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/dictaphone/charts/dictaphone/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: dictaphone_latest_version
+    scmid: default
+
+  update_markdowns_version:
+    name: "Update markdown files"
+    kind: file
+    spec:
+      files:
+        - "docs/docs/intro.md"
+      matchpattern: "v([0-9.]+)]\\Q(https://github.com/suitenumerique/dictaphone/releases/tag/v\\E([0-9.]+)"
+      replacepattern: '{{ source "dictaphone_latest_version" }}](https://github.com/suitenumerique/dictaphone/releases/tag/{{ source "dictaphone_latest_version" }}'
+    sourceid: dictaphone_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump dictaphone version to {{ source "dictaphone_latest_version" }}

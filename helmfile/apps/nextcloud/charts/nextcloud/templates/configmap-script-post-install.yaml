@@ -30,6 +30,11 @@ data:
     php /var/www/html/occ app:disable survey_client
     php /var/www/html/occ app:disable user_status
     php /var/www/html/occ app:disable files_reminders
+    php /var/www/html/occ app:disable activity
+    php /var/www/html/occ app:disable deck
+    php /var/www/html/occ app:disable drawio
+    php /var/www/html/occ app:disable contacts
+    php /var/www/html/occ app:disable office
 
     php /var/www/html/occ app:enable admin_audit
     php /var/www/html/occ app:enable encryption
