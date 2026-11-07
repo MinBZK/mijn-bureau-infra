@@ -122,11 +122,21 @@ authentication:
 {{- $aiHost        := .Values.ai.llm.endpoint.host        | default (ternary "ollama" "" $ollamaEnabled) }}
 {{- $aiPort        := .Values.ai.llm.endpoint.port        | default 11434 | int }}
 {{- $aiIsSsl       := ternary false .Values.ai.llm.endpoint.isSsl (and $ollamaEnabled (not .Values.ai.llm.endpoint.host)) }}
+{{- $aiEndpointIsInternal := .Values.ai.llm.endpoint.isInternal | default false }}
+{{- if not $aiEndpointIsInternal }}
+{{- $aiPort = 0 }}
+{{- end }}
 {{- $aiPath        := .Values.ai.llm.endpoint.path        | default "v1" }}
+{{- $aiEndpointBase := printf "http%s://%s" (ternary "s" "" $aiIsSsl) $aiHost }}
+{{- $aiEndpoint := $aiEndpointBase }}
+{{- if gt $aiPort 0 }}
+{{- $aiEndpoint = printf "%s:%d" $aiEndpoint $aiPort }}
+{{- end }}
+{{- $aiEndpoint = printf "%s/%s" $aiEndpoint $aiPath }}
 
 ai:
   model: {{ $aiModel | quote }}
-  endpoint: {{ printf "http%s://%s:%d/%s" (ternary "s" "" $aiIsSsl) $aiHost $aiPort $aiPath | quote }}
+  endpoint: {{ $aiEndpoint | quote }}
   apiKey: {{ .Values.ai.llm.apiKey | default "" | quote }}
 
 {{- if ne .Values.global.resourcesPreset "none" }}

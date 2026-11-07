@@ -26,5 +26,5 @@ spec:
         {{- include "common.httproute.hstsFilter" . | nindent 8 }}
       backendRefs:
         - name: {{ include "common.names.fullname" . }}
-          port: 80
+          port: 8080
 {{- end }}

@@ -45,3 +45,5 @@ data:
   FRONTEND_CSS_URL: {{ .Values.conversations_frontend.frontendCssUrl | quote }}
   FRONTEND_JS_URL: {{ .Values.conversations_frontend.frontendJsUrl | quote }}
   FRONTEND_HOMEPAGE_FEATURE_ENABLED: "false"
+  # FEATURE_FLAG_WEB_SEARCH: "false"
+  # FEATURE_FLAG_DOCUMENT_UPLOAD: "false"

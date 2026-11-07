@@ -88,7 +88,7 @@ backend:
   image:
     registry: ghcr.io
     repository: minbzk/bureaublad-api
-    tag: v0.9.3
+    tag: v1.0.1
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -536,7 +536,7 @@ frontend:
   image:
     registry: ghcr.io
     repository: minbzk/bureaublad-frontend
-    tag: v0.6.1
+    tag: v1.0.1
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images

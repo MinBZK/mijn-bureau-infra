@@ -93,6 +93,12 @@ networkPolicy:
        - port: 8080
          protocol: TCP
 
+  extraEgress:
+    # Allow https egress for keycloak connection
+    - ports:
+        - port: 443
+          protocol: TCP
+
 # Bureaublad return button: an initContainer reads the image's index.html,
 # injects a same-origin `<script src="/bureaublad-button.js">` tag before
 # `</body>`, and writes the result to an emptyDir that's mounted back over
@@ -282,8 +288,9 @@ config:
   features:
     feature_pinning: true
     feature_custom_themes: true
-    feature_element_call_video_rooms: true
-    feature_group_calls: true
+    # Hide the voice/video call buttons in the room header.
+    feature_element_call_video_rooms: false
+    feature_group_calls: false
     feature_html_topic: true
     feature_ask_to_join: true
   default_federate: true
@@ -292,6 +299,7 @@ config:
       - {{ .Values.global.hostname.synapse | default "matrix-element" }}.{{ .Values.global.domain | default "example.com" }}
   setting_defaults:
     breadcrumbs: true
+    UIFeature.voip: false
   default_theme: "light"
   disable_guests: true
   force_verification: false
