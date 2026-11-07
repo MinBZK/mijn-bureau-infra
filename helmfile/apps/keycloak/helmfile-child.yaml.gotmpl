@@ -3,8 +3,7 @@ bases:
 
 releases:
   - name: "keycloak-keycloak"
-    chart: charts/keycloak
-    version: "24.6.7"
+    chart: charts/keycloakx
     {{- if .Values.application.keycloak.namespace }}
     namespace: {{ .Values.application.keycloak.namespace }}
     {{- end }}
@@ -17,6 +16,17 @@ releases:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - keycloak.yaml.gotmpl
+
+  - name: keycloak-config-cli
+    chart: charts/keycloak-config-cli
+    {{- if .Values.application.keycloak.namespace }}
+    namespace: {{ .Values.application.keycloak.namespace }}
+    {{- end }}
+    installed: {{ .Values.application.keycloak.enabled }}
+    needs:
+      - {{ if .Values.application.keycloak.namespace }}{{ .Values.application.keycloak.namespace }}/{{ end }}keycloak-keycloak
+    values:
+      - values-keycloak-config-cli.yaml.gotmpl
 
   - name: keycloak-cluster-credentials
     chart: ../common/charts/cnpg-cluster-credentials

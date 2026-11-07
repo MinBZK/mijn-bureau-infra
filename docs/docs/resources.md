@@ -110,11 +110,11 @@ Some applications have hard minimum resource requirements that the standard pres
 
 ### Keycloak
 
-- **File**: `helmfile/apps/keycloak/charts/keycloak/templates/_keycloak_resources.tpl`
+- **File**: `helmfile/apps/keycloak/keycloak.yaml.gotmpl`
 - **Minimum**: 1 vCPU / 1280 MiB RAM
 - **Reason**: Keycloak is JVM-based. The JVM allocates 70% of the memory limit for heap plus approximately 300 MiB for non-heap memory. A pod with realm caches and 10,000 sessions needs at least 1250 MiB.
 - **Floor**: All presets from `nano` to `medium` are overridden to 1 CPU / 1280Mi request, 2 CPU / 2Gi limit. `large` and above scale normally.
-- **Note**: The custom helper only applies to the main Keycloak container. Init containers (`prepareWriteDirs`) and the config CLI job use the standard `common.resources.preset`.
+- **Note**: The Keycloak floor only applies to the main Keycloak container. The `dbchecker` init container and the config CLI Job use the standard preset mapping.
 - **Reference**: [Keycloak Sizing Guide](https://www.keycloak.org/high-availability/multi-cluster/concepts-memory-and-cpu-sizing)
 
 ### Ollama
@@ -131,14 +131,14 @@ The table below summarizes the minimum resource requirements for each applicatio
 
 ### Apps with custom resource helpers (floor enforced)
 
-| App       | Min CPU | Min RAM  | Mechanism                         | Preset in config |
-| --------- | ------- | -------- | --------------------------------- | ---------------- |
-| ClamAV    | 1 core  | 3 GiB    | Custom `_clamav_resources.tpl`    | Global fallback  |
-| Collabora | 1 core  | 512 MiB  | Custom `_collabora_resources.tpl` | Global fallback  |
-| Keycloak  | 1 vCPU  | 1280 MiB | Custom `_keycloak_resources.tpl`  | Global fallback  |
-| Ollama    | 2 cores | 8 GiB    | Custom `_ollama_resources.tpl`    | Global fallback  |
+| App       | Min CPU | Min RAM  | Mechanism                                       | Preset in config |
+| --------- | ------- | -------- | ----------------------------------------------- | ---------------- |
+| ClamAV    | 1 core  | 3 GiB    | Custom `_clamav_resources.tpl`                  | Global fallback  |
+| Collabora | 1 core  | 512 MiB  | Custom `_collabora_resources.tpl`               | Global fallback  |
+| Keycloak  | 1 vCPU  | 1280 MiB | Keycloak preset floor in `keycloak.yaml.gotmpl` | Global fallback  |
+| Ollama    | 2 cores | 8 GiB    | Custom `_ollama_resources.tpl`                  | Global fallback  |
 
-These apps are safe at any preset -- the custom helper enforces the minimum regardless.
+These apps are safe at any preset -- the custom helper or values mapping enforces the minimum regardless.
 
 ### Apps with per-app presets
 

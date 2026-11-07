@@ -237,7 +237,7 @@ What you can drill into:
 - **JVM heap memory**, GC pauses, threads
 - **Database query latency**
 
-Metric source: Keycloak's built-in `/metrics` endpoint (Micrometer + JVM), scraped via the ServiceMonitor in [keycloak's chart](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/keycloak/charts/keycloak/templates/servicemonitor.yaml) when `metric.enabled: true`.
+Metric source: Keycloak's built-in `/metrics` endpoint (Micrometer + JVM), scraped via the ServiceMonitor in [keycloakx](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/keycloak/charts/keycloakx/templates/servicemonitor.yaml) when `metric.enabled: true`.
 
 This dashboard uses a templated datasource picker (no `__inputs`) — no entry in `metric.grafanaDashboards.datasources` is required.
 

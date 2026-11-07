@@ -1,103 +1,197 @@
-global:
-  imageRegistry: ""
-  imagePullSecrets: []
-  defaultStorageClass: {{ coalesce .Values.pvc.keycloak.keycloak.storageClass .Values.pvc.default.storageClass | quote }}
-  security:
-    allowInsecureImages: true
-  compatibility:
-    openshift:
-      adaptSecurityContext: auto
+# Values for the codecentric/keycloakx chart.
+#
+# The chart runs the official Keycloak image and uses KC_* environment
+# variables. The Bitnami image, paths and scripts are no longer used.
 
+fullnameOverride: keycloak
+nameOverride: keycloak
+
+commonLabels:
+  app.kubernetes.io/component: keycloak
+  app.kubernetes.io/part-of: keycloak
+
+image:
+  repository: {{ printf "%s/%s" (coalesce .Values.container.keycloak.registry .Values.container.default.registry | default "quay.io") .Values.container.keycloak.repository | quote }}
+  tag: {{ .Values.container.keycloak.tag | default "26.8.1" | quote }}
+  pullPolicy: Always
+
+imagePullSecrets:
+  {{- with (coalesce .Values.container.keycloak.imagePullSecret .Values.container.default.imagePullSecret) }}
+  - name: {{ . | quote }}
+  {{- end }}
 
 clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
 
-extraDeploy:
-  - apiVersion: networking.k8s.io/v1
-    kind: NetworkPolicy
-    metadata:
-      namespace: {{ .Release.Namespace }}
-      labels:
-        app.kubernetes.io/component: {{ .Release.Name }}-cli
-        app.kubernetes.io/name: {{ .Release.Name }}-cli
-        app.kubernetes.io/instance: {{ .Release.Name }}
-        app.kubernetes.io/version: 1.0.0
-        app.kubernetes.io/managed-by: Helm
-      name: {{ .Release.Name }}-cli
-    spec:
-      egress:
-      - {}
-      podSelector:
-        matchLabels:
-          app.kubernetes.io/component: keycloak-config-cli
-      policyTypes:
-      - Egress
-  - apiVersion: v1
-    kind: Secret
-    metadata:
-      namespace: {{ .Release.Namespace }}
-      labels:
-        app.kubernetes.io/component: {{ .Release.Name }}-cli
-        app.kubernetes.io/name: {{ .Release.Name }}-cli
-        app.kubernetes.io/instance: {{ .Release.Name }}
-        app.kubernetes.io/version: 1.0.0
-        app.kubernetes.io/managed-by: Helm
-      name: {{ .Release.Name }}-config-cli
-    type: Opaque
-    stringData:
-      MB_CLIENT_SECRET_SYNAPSE: {{ .Values.authentication.client.synapse.client_secret | quote }}
-      MB_CLIENT_SECRET_MEET: {{ .Values.authentication.client.meet.client_secret | quote }}
-      MB_CLIENT_SECRET_CONVERSATIONS: {{ .Values.authentication.client.conversations.client_secret | quote }}
-      MB_CLIENT_SECRET_DRIVE: {{ .Values.authentication.client.drive.client_secret | quote }}
-      MB_CLIENT_SECRET_PROJECTS: {{ .Values.authentication.client.projects.client_secret | quote }}
-      MB_CLIENT_SECRET_DICTAPHONE: {{ .Values.authentication.client.dictaphone.client_secret | quote }}
-      MB_CLIENT_SECRET_NEXTCLOUD: {{ .Values.authentication.client.nextcloud.client_secret | quote }}
-      MB_CLIENT_SECRET_DOCS: {{ .Values.authentication.client.docs.client_secret | quote }}
-      MB_CLIENT_SECRET_BUREAUBLAD: {{ .Values.authentication.client.bureaublad.client_secret | quote }}
-      {{- if eq .Environment.Name "demo" }}
-      {{- range $user := .Values.user }}
-      MB_USER_PASSWORD_{{ regexReplaceAll "[^A-Z0-9_]" (upper $user.username) "_" }}: {{ $user.password | quote }}
-      {{- end }}
-      {{- end }}
+command:
+  - /opt/keycloak/bin/kc.sh
+  - start
 
-image:
-  registry: {{ coalesce .Values.container.keycloak.registry .Values.container.default.registry | default "docker.io" | quote }}
-  repository:  {{ .Values.container.keycloak.repository | default "bitnami/keycloak" | quote }}
-  tag: {{ .Values.container.keycloak.tag | default "26.2.5-debian-12-r3" | quote }}
-  pullPolicy: Always
-  {{- with (coalesce .Values.container.keycloak.imagePullSecret .Values.container.default.imagePullSecret) }}
-  pullSecrets:
-    - {{ . | quote }}
+replicas: 1
+podManagementPolicy: Parallel
+
+{{- $keycloakSecurity := dig "security" "keycloak" (dict) .Values }}
+{{- $podSecurityContext := .Values.security.default.podSecurityContext }}
+{{- if hasKey $keycloakSecurity "podSecurityContext" }}
+{{- $podSecurityContext = $keycloakSecurity.podSecurityContext }}
+{{- end }}
+{{- $containerSecurityContext := .Values.security.default.containerSecurityContext }}
+{{- if hasKey $keycloakSecurity "containerSecurityContext" }}
+{{- $containerSecurityContext = $keycloakSecurity.containerSecurityContext }}
+{{- end }}
+podSecurityContext: {{ omit $podSecurityContext "enabled" | toYaml | nindent 2 }}
+securityContext: {{ omit $containerSecurityContext "enabled" | toYaml | nindent 2 }}
+
+{{- $preset := .Values.global.resourcesPreset | default "none" }}
+{{- $perAppPreset := .Values.global.resourcesPresetPerApp.keycloak | default $preset }}
+{{- $keycloakPresets := dict
+  "nano" (dict "requests" (dict "cpu" "1" "memory" "1280Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "2" "memory" "2Gi" "ephemeral-storage" "2Gi"))
+  "micro" (dict "requests" (dict "cpu" "1" "memory" "1280Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "2" "memory" "2Gi" "ephemeral-storage" "2Gi"))
+  "small" (dict "requests" (dict "cpu" "1" "memory" "1280Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "2" "memory" "2Gi" "ephemeral-storage" "2Gi"))
+  "medium" (dict "requests" (dict "cpu" "1" "memory" "1280Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "2" "memory" "2Gi" "ephemeral-storage" "2Gi"))
+  "large" (dict "requests" (dict "cpu" "1.0" "memory" "2048Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "1.5" "memory" "3072Mi" "ephemeral-storage" "2Gi"))
+  "xlarge" (dict "requests" (dict "cpu" "1.0" "memory" "3072Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "3.0" "memory" "6144Mi" "ephemeral-storage" "2Gi"))
+  "2xlarge" (dict "requests" (dict "cpu" "1.0" "memory" "3072Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "6.0" "memory" "12288Mi" "ephemeral-storage" "2Gi"))
+}}
+{{- $standardPresets := dict
+  "nano" (dict "requests" (dict "cpu" "100m" "memory" "128Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "150m" "memory" "192Mi" "ephemeral-storage" "2Gi"))
+  "micro" (dict "requests" (dict "cpu" "250m" "memory" "256Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "375m" "memory" "384Mi" "ephemeral-storage" "2Gi"))
+  "small" (dict "requests" (dict "cpu" "500m" "memory" "512Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "750m" "memory" "768Mi" "ephemeral-storage" "2Gi"))
+  "medium" (dict "requests" (dict "cpu" "500m" "memory" "1024Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "750m" "memory" "1536Mi" "ephemeral-storage" "2Gi"))
+  "large" (dict "requests" (dict "cpu" "1.0" "memory" "2048Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "1.5" "memory" "3072Mi" "ephemeral-storage" "2Gi"))
+  "xlarge" (dict "requests" (dict "cpu" "1.0" "memory" "3072Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "3.0" "memory" "6144Mi" "ephemeral-storage" "2Gi"))
+  "2xlarge" (dict "requests" (dict "cpu" "1.0" "memory" "3072Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "6.0" "memory" "12288Mi" "ephemeral-storage" "2Gi"))
+}}
+{{- if .Values.resource.keycloak.keycloak }}
+resources: {{ toYaml .Values.resource.keycloak.keycloak | nindent 2 }}
+{{- else if and (ne $perAppPreset "none") (hasKey $keycloakPresets $perAppPreset) }}
+resources: {{ index $keycloakPresets $perAppPreset | toYaml | nindent 2 }}
+{{- else }}
+resources: {}
+{{- end }}
+
+database:
+  vendor: postgres
+  hostname: {{ .Values.database.keycloak.host | quote }}
+  port: {{ .Values.database.keycloak.port }}
+  database: {{ .Values.database.keycloak.name | quote }}
+  username: {{ .Values.database.keycloak.user | quote }}
+  {{- if eq .Environment.Name "demo" }}
+  existingSecret: keycloak-cluster-app
+  existingSecretKey: password
+  {{- else }}
+  # Production uses the externally managed database; the password comes from
+  # the environment's derived database.keycloak.password value.
+  password: {{ .Values.database.keycloak.password | quote }}
   {{- end }}
 
+dbchecker:
+  enabled: true
+  image:
+    repository: {{ printf "%s/%s" (coalesce .Values.container.busybox.registry .Values.container.default.registry | default "docker.io") .Values.container.busybox.repository | quote }}
+    tag: {{ .Values.container.busybox.tag | default "1.37.0-musl" | quote }}
+    pullPolicy: Always
+  securityContext: {{ omit .Values.security.default.containerSecurityContext "enabled" | toYaml | nindent 4 }}
+  {{- if and (ne $perAppPreset "none") (hasKey $standardPresets $perAppPreset) }}
+  resources: {{ index $standardPresets $perAppPreset | toYaml | nindent 4 }}
+  {{- else }}
+  resources: {}
+  {{- end }}
 
-auth:
-  adminUser: {{ .Values.secret.keycloak.adminUser | quote }}
-  adminPassword: {{ .Values.secret.keycloak.adminPassword | quote }}
+cache:
+  stack: default
 
+proxy:
+  enabled: true
+  mode: xforwarded
+  http:
+    enabled: true
 
+http:
+  relativePath: "/"
+  managementRelativePath: ""
 
-production: true
-proxyHeaders: "xforwarded"
-httpEnabled: true
+health:
+  enabled: true
 
-podSecurityContext:
-  {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+metrics:
+  # Enables KC_METRICS_ENABLED and the readiness probe. Scraping remains
+  # controlled by serviceMonitor.enabled.
+  enabled: true
 
-containerSecurityContext:
-  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+serviceMonitor:
+  enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
 
-resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.keycloak .Values.global.resourcesPreset | quote }}
+prometheusRule:
+  enabled: {{ .Values.metric.prometheusRule.enabled | default false }}
 
-resources: {{ .Values.resource.keycloak.keycloak | default dict | toYaml | nindent 2 }}
+autoscaling:
+  enabled: {{ .Values.autoscaling.horizontal.keycloak.enabled }}
+  minReplicas: {{ .Values.autoscaling.horizontal.keycloak.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.horizontal.keycloak.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.horizontal.keycloak.targetCPU }}
+    {{- if .Values.autoscaling.horizontal.keycloak.targetMemory }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.horizontal.keycloak.targetMemory }}
+    {{- end }}
+
+{{- if .Values.pdb.keycloak.create }}
+podDisruptionBudget:
+  minAvailable: {{ .Values.pdb.keycloak.minAvailable }}
+  {{- if hasKey .Values.pdb.keycloak "maxUnavailable" }}
+  maxUnavailable: {{ .Values.pdb.keycloak.maxUnavailable }}
+  {{- end }}
+{{- else }}
+podDisruptionBudget: {}
+{{- end }}
+
+httpRoute:
+  {{- if eq .Values.cluster.routingMode "gateway-api" }}
+  enabled: true
+  servicePort: 80
+  parentRefs:
+    - name: {{ .Values.cluster.gateway.name | quote }}
+      namespace: {{ .Values.cluster.gateway.namespace | quote }}
+      sectionName: https
+  hostnames:
+    - {{ printf "%s.%s" .Values.global.hostname.keycloak .Values.global.domain | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set:
+              - name: Strict-Transport-Security
+                value: "max-age=31536000; includeSubDomains; preload"
+  {{- else }}
+  enabled: false
+  {{- end }}
 
 ingress:
+  {{- if eq .Values.cluster.routingMode "ingress" }}
+  {{- $certificate := dig "cluster" "certificate" (dict) .Values }}
+  {{- $issuerRef := dig "issuerRef" (dict) $certificate }}
+  {{- $issuerName := dig "name" "" $issuerRef }}
   enabled: true
-  ingressClassName: {{.Values.cluster.ingress.className | quote }}
-  pathType: ImplementationSpecific
-  hostname: {{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
   annotations:
-    {{- if .Values.cluster.ingress.annotations }}
-    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- with .Values.cluster.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if $issuerName }}
+    cert-manager.io/cluster-issuer: {{ $issuerName | quote }}
     {{- end }}
     {{- if eq .Values.cluster.ingress.type "nginx" }}
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -108,518 +202,104 @@ ingress:
     haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
     {{- end }}
     {{- if eq .Values.cluster.ingress.type "traefik" }}
-    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Values.application.keycloak.namespace }}-hsts-header@kubernetescrd'
     {{- end }}
-
-  tls: {{ .Values.global.tls.enabled | default true }}
-  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
-  extraTls: {{ .Values.tls.keycloak | toYaml | nindent 4 }}
+  rules:
+    - host: {{ printf "%s.%s" .Values.global.hostname.keycloak .Values.global.domain | quote }}
+      paths:
+        - path: /
+          pathType: Prefix
+  {{- if or $issuerName .Values.tls.keycloak }}
+  tls:
+    {{- with .Values.tls.keycloak }}
+    {{- toYaml . | nindent 4 }}
+    {{- else }}
+    - hosts:
+        - {{ printf "%s.%s" .Values.global.hostname.keycloak .Values.global.domain | quote }}
+      secretName: keycloak-tls
+    {{- end }}
+  {{- end }}
+  {{- else }}
+  enabled: false
+  {{- end }}
 
 networkPolicy:
   enabled: true
-  extraIngress:
-    - from:
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: {{ .Release.Namespace }}
-      - podSelector:
-          matchLabels:
-            app.kubernetes.io/component: keycloak-config-cli
-            app.kubernetes.io/name: keycloak
-      ports:
-          - port: 7800
-          - port: 8080
-
-autoscaling:
-  enabled: {{ .Values.autoscaling.horizontal.keycloak.enabled }}
-  minReplicas: {{ .Values.autoscaling.horizontal.keycloak.minReplicas }}
-  maxReplicas: {{ .Values.autoscaling.horizontal.keycloak.maxReplicas }}
-  targetCPU: {{ .Values.autoscaling.horizontal.keycloak.targetCPU }}
-  targetMemory: {{ .Values.autoscaling.horizontal.keycloak.targetMemory }}
-
-pdb: {{ .Values.pdb.keycloak | toYaml | nindent 2 }}
-
-metrics:
-  enabled: {{ .Values.metric.enabled | default false  }}
-  serviceMonitor:
-    enabled:  {{ .Values.metric.serviceMonitor.enabled | default false  }}
-  prometheusRule:
-    enabled: {{ .Values.metric.prometheusRule.enabled | default false  }}
-
-
-keycloakConfigCli:
-  enabled: true
-  image:
-    registry: {{ coalesce .Values.container.keycloak_cli.registry .Values.container.default.registry | default "docker.io" | quote }}
-    repository:  {{ .Values.container.keycloak_cli.repository | default "bitnami/keycloak-config-cli" | quote }}
-    tag: {{ .Values.container.keycloak_cli.tag | default "6.4.0-debian-12-r8" | quote }}
-    pullPolicy: Always
-    {{- with (coalesce .Values.container.keycloak_cli.imagePullSecret .Values.container.default.imagePullSecret) }}
-    pullSecrets:
-      - {{ . | quote }}
+  {{- $gateway := dig "cluster" "gateway" (dict) .Values }}
+  {{- $gatewayNamespace := dig "namespace" "" $gateway }}
+  extraFrom:
+    {{- if and (eq .Values.cluster.routingMode "gateway-api") $gatewayNamespace }}
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ $gatewayNamespace | quote }}
     {{- end }}
-  annotations:
-    helm.sh/hook-delete-policy: "hook-succeeded,before-hook-creation"
-    helm.sh/hook-weight: "5"
-  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.keycloak .Values.global.resourcesPreset | quote }}
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.application.keycloak.namespace | quote }}
+    {{- if .Values.metric.enabled }}
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Values.metric.namespace | default "monitoring" | quote }}
+    {{- end }}
+  # Preserve the old chart's allow-all egress. Keycloak needs the database,
+  # and the DNS policy test recognizes a {} egress rule as allow-all.
+  egress:
+    - {}
 
-  resources: {{ .Values.resource.keycloak.keycloak | default dict | toYaml | nindent 4 }}
-  containerSecurityContext:
-    {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
-  podSecurityContext:
-    {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
-  extraEnvVars:
-    - name: IMPORT_VARSUBSTITUTION_ENABLED
-      value: "true"
-  extraEnvVarsSecret: {{ .Release.Name }}-config-cli
-  configuration:
-    master.json: |
-      {
-        "realm" : "master",
-        "attributes": {
-          "frontendUrl": "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}"
-        }
-      }
-    mijnbureau.json: |
-      {
-        "realm" : "mijnbureau",
-        "displayName": "Mijn Bureau",
-        "displayNameHtml": "<b>Mijn Bureau</b>",
-        "defaultSignatureAlgorithm": "RS256",
-        "enabled" : true,
-        "revokeRefreshToken": true,
-        "editUsernameAllowed": false,
-        "registrationAllowed": false,
-        "duplicateEmailsAllowed": false,
-        "rememberMe": true,
-        "loginWithEmailAllowed": true,
-        "bruteForceProtected": true,
-        "permanentLockout": false,
-        "maxTemporaryLockouts": 0,
-        "bruteForceStrategy": "LINEAR",
-        "maxFailureWaitSeconds": 900,
-        "minimumQuickLoginWaitSeconds": 60,
-        "waitIncrementSeconds": 60,
-        "quickLoginCheckMilliSeconds": 1000,
-        "maxDeltaTimeSeconds": 43200,
-        "failureFactor": 30,
-        "clients": [
-          {
-            "clientId": "{{ .Values.authentication.client.synapse.client_id }}",
-            "name": "Chat",
-            "description": "Matrix-based chat with Synapse",
-            "rootUrl": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}",
-            "adminUrl": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}",
-            "baseUrl": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}",
-            "surrogateAuthRequired": false,
-            "enabled": true,
-            "alwaysDisplayInConsole": true,
-            "clientAuthenticatorType": "client-secret",
-            "secret": "$(env:MB_CLIENT_SECRET_SYNAPSE)",
-            "redirectUris": [
-              "/_synapse/client/oidc/callback"
-            ],
-            "webOrigins": [
-              "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}"
-            ],
-            "notBefore": 0,
-            "bearerOnly": false,
-            "consentRequired": false,
-            "standardFlowEnabled": true,
-            "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": false,
-            "serviceAccountsEnabled": false,
-            "publicClient": false,
-            "frontchannelLogout": false,
-            "protocol": "openid-connect",
-            "attributes": {
-              "realm_client": "false",
-              "client.secret.creation.time": "1759388679",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}/_synapse/client/oidc/backchannel_logout",
-              "standard.token.exchange.enabled": "false",
-              "frontchannel.logout.session.required": "true",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}/*"
-            }
-          },
-          {
-            "clientId": "{{ .Values.authentication.client.meet.client_id }}",
-            "name": "Meet",
-            "description": "livekit-based video conferencing with Meet",
-            "rootUrl": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}",
-            "adminUrl": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}",
-            "baseUrl": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}",
-            "surrogateAuthRequired": false,
-            "enabled": true,
-            "alwaysDisplayInConsole": true,
-            "clientAuthenticatorType": "client-secret",
-            "secret": "$(env:MB_CLIENT_SECRET_MEET)",
-            "redirectUris": [
-              "/*"
-            ],
-            "webOrigins": [
-              "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}"
-            ],
-            "notBefore": 0,
-            "bearerOnly": false,
-            "consentRequired": false,
-            "standardFlowEnabled": true,
-            "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": false,
-            "serviceAccountsEnabled": false,
-            "publicClient": false,
-            "frontchannelLogout": true,
-            "protocol": "openid-connect",
-            "attributes": {
-              "realm_client": "false",
-              "oidc.ciba.grant.enabled": "false",
-              "client.secret.creation.time": "1759388679",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/api/v1.0/logout/",
-              "standard.token.exchange.enabled": "false",
-              "frontchannel.logout.url": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/api/v1.0/logout/",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/*",
-              "frontchannel.logout.session.required": "false",
-              "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
-            }
-          },
-          {
-            "clientId": "{{ .Values.authentication.client.conversations.client_id }}",
-            "name": "Conversations",
-            "description": "AI assistant with LaSuite conversations",
-            "rootUrl": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}",
-            "adminUrl": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}",
-            "baseUrl": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}",
-            "surrogateAuthRequired": false,
-            "enabled": true,
-            "alwaysDisplayInConsole": true,
-            "clientAuthenticatorType": "client-secret",
-            "secret": "$(env:MB_CLIENT_SECRET_CONVERSATIONS)",
-            "redirectUris": [
-              "/*"
-            ],
-            "webOrigins": [
-              "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
-            ],
-            "notBefore": 0,
-            "bearerOnly": false,
-            "consentRequired": false,
-            "standardFlowEnabled": true,
-            "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": false,
-            "serviceAccountsEnabled": false,
-            "publicClient": false,
-            "frontchannelLogout": true,
-            "protocol": "openid-connect",
-            "attributes": {
-              "realm_client": "false",
-              "oidc.ciba.grant.enabled": "false",
-              "client.secret.creation.time": "1759388679",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/api/v1.0/logout/",
-              "standard.token.exchange.enabled": "false",
-              "frontchannel.logout.url": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/api/v1.0/logout/",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/*",
-              "frontchannel.logout.session.required": "false",
-              "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
-            }
-          },
-          {
-            "clientId": "{{ .Values.authentication.client.drive.client_id }}",
-            "name": "Drive",
-            "description": "AI assistant with LaSuite drive",
-            "rootUrl": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}",
-            "adminUrl": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}",
-            "baseUrl": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}",
-            "surrogateAuthRequired": false,
-            "enabled": true,
-            "alwaysDisplayInConsole": true,
-            "clientAuthenticatorType": "client-secret",
-            "secret": "$(env:MB_CLIENT_SECRET_DRIVE)",
-            "redirectUris": [
-              "/*"
-            ],
-            "webOrigins": [
-              "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
-            ],
-            "notBefore": 0,
-            "bearerOnly": false,
-            "consentRequired": false,
-            "standardFlowEnabled": true,
-            "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": false,
-            "serviceAccountsEnabled": false,
-            "publicClient": false,
-            "frontchannelLogout": true,
-            "protocol": "openid-connect",
-            "attributes": {
-              "realm_client": "false",
-              "oidc.ciba.grant.enabled": "false",
-              "client.secret.creation.time": "1759388679",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/api/v1.0/logout/",
-              "standard.token.exchange.enabled": "false",
-              "frontchannel.logout.url": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/api/v1.0/logout/",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/*",
-              "frontchannel.logout.session.required": "false",
-              "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
-            }
-          },
-          {
-            "clientId": "{{ .Values.authentication.client.projects.client_id }}",
-            "name": "Projects",
-            "description": "Collaborative project management from LaSuite",
-            "rootUrl": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}",
-            "adminUrl": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}",
-            "baseUrl": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}",
-            "surrogateAuthRequired": false,
-            "enabled": true,
-            "alwaysDisplayInConsole": true,
-            "clientAuthenticatorType": "client-secret",
-            "secret": "$(env:MB_CLIENT_SECRET_PROJECTS)",
-            "redirectUris": [
-              "/*"
-            ],
-            "webOrigins": [
-              "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}"
-            ],
-            "notBefore": 0,
-            "bearerOnly": false,
-            "consentRequired": false,
-            "standardFlowEnabled": true,
-            "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": false,
-            "serviceAccountsEnabled": false,
-            "publicClient": false,
-            "frontchannelLogout": true,
-            "protocol": "openid-connect",
-            "attributes": {
-              "realm_client": "false",
-              "oidc.ciba.grant.enabled": "false",
-              "client.secret.creation.time": "[PHONE]",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}/oidc-callback",
-              "standard.token.exchange.enabled": "false",
-              "frontchannel.logout.url": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}/oidc-callback",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}/*",
-              "frontchannel.logout.session.required": "false",
-              "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
-            }
-          },
-          {
-            "clientId": "{{ .Values.authentication.client.dictaphone.client_id }}",
-            "name": "Assistant Transcripts",
-            "description": "Transcription and meeting workflow from LaSuite",
-            "rootUrl": "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}",
-            "adminUrl": "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}",
-            "baseUrl": "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}",
-            "surrogateAuthRequired": false,
-            "enabled": true,
-            "alwaysDisplayInConsole": true,
-            "clientAuthenticatorType": "client-secret",
-            "secret": "$(env:MB_CLIENT_SECRET_DICTAPHONE)",
-            "redirectUris": [
-              "/*"
-            ],
-            "webOrigins": [
-              "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}"
-            ],
-            "notBefore": 0,
-            "bearerOnly": false,
-            "consentRequired": false,
-            "standardFlowEnabled": true,
-            "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": false,
-            "serviceAccountsEnabled": false,
-            "publicClient": false,
-            "frontchannelLogout": false,
-            "protocol": "openid-connect",
-            "attributes": {
-              "realm_client": "false",
-              "oidc.ciba.grant.enabled": "false",
-              "client.secret.creation.time": "1735689600",
-              "standard.token.exchange.enabled": "false",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}/*",
-              "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false"
-            }
-          },
-          {
-            "clientId": "{{ .Values.authentication.client.nextcloud.client_id }}",
-            "name": "NextCloud",
-            "description": "File storage and collaboration platform",
-            "rootUrl": "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}",
-            "adminUrl": "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}",
-            "baseUrl": "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}",
-            "surrogateAuthRequired": false,
-            "enabled": true,
-            "alwaysDisplayInConsole": true,
-            "clientAuthenticatorType": "client-secret",
-            "secret": "$(env:MB_CLIENT_SECRET_NEXTCLOUD)",
-            "redirectUris": [
-              "/*"
-            ],
-            "webOrigins": [
-              "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}"
-            ],
-            "notBefore": 0,
-            "bearerOnly": false,
-            "consentRequired": false,
-            "standardFlowEnabled": true,
-            "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": false,
-            "serviceAccountsEnabled": false,
-            "publicClient": false,
-            "frontchannelLogout": false,
-            "protocol": "openid-connect",
-            "attributes": {
-              "realm_client": "false",
-              "client.secret.creation.time": "1759388679",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}/index.php/apps/user_oidc/backchannel-logout/keycloak",
-              "standard.token.exchange.enabled": "false",
-              "frontchannel.logout.session.required": "true",
-              "post.logout.redirect.uris": "+"
-            }
-          },
-          {
-            "clientId": "{{ .Values.authentication.client.docs.client_id }}",
-            "name": "Docs",
-            "description": "Docs - Eenvoudig samenwerken aan documenten",
-            "rootUrl": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}",
-            "adminUrl": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}",
-            "baseUrl": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}",
-            "enabled": true,
-            "alwaysDisplayInConsole": true,
-            "clientAuthenticatorType": "client-secret",
-            "secret": "$(env:MB_CLIENT_SECRET_DOCS)",
-            "redirectUris": [
-              "/*"
-            ],
-            "webOrigins": [
-              "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}"
-            ],
-            "notBefore": 0,
-            "bearerOnly": false,
-            "consentRequired": false,
-            "standardFlowEnabled": true,
-            "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": false,
-            "serviceAccountsEnabled": false,
-            "publicClient": false,
-            "frontchannelLogout": true,
-            "protocol": "openid-connect",
-            "attributes": {
-              "realm_client": "false",
-              "oidc.ciba.grant.enabled": "false",
-              "client.secret.creation.time": "1759388679",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/api/v1.0/logout/",
-              "standard.token.exchange.enabled": "false",
-              "frontchannel.logout.url": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/api/v1.0/logout/",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/*",
-              "frontchannel.logout.session.required": "false",
-              "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
-            }
-          },
-          {
-            "clientId": "{{ .Values.authentication.client.bureaublad.client_id }}",
-            "name": "bureaublad",
-            "description": "Mijn Bureau bureaublad",
-            "rootUrl": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
-            "adminUrl": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
-            "baseUrl": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
-            "surrogateAuthRequired": false,
-            "enabled": true,
-            "alwaysDisplayInConsole": true,
-            "clientAuthenticatorType": "client-secret",
-            "secret": "$(env:MB_CLIENT_SECRET_BUREAUBLAD)",
-            "redirectUris": [
-              "/api/v1/auth/callback"
-            ],
-            "webOrigins": [
-              "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
-            ],
-            "notBefore": 0,
-            "bearerOnly": false,
-            "consentRequired": false,
-            "standardFlowEnabled": true,
-            "implicitFlowEnabled": false,
-            "directAccessGrantsEnabled": false,
-            "serviceAccountsEnabled": false,
-            "publicClient": false,
-            "frontchannelLogout": true,
-            "protocol": "openid-connect",
-            "attributes": {
-              "realm_client": "false",
-              "oidc.ciba.grant.enabled": "false",
-              "client.secret.creation.time": "1759388679",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/api/v1/auth/logout",
-              "standard.token.exchange.enabled": "true",
-              "frontchannel.logout.url": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/api/v1/auth/logout",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/*",
-              "frontchannel.logout.session.required": "false",
-              "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
-            }
-          }
-        ],
-        "defaultRoles": ["offline_access", "uma_authorization", "tokenexchange-role"],
-        {{- if eq .Environment.Name "demo" }}
-        "users" : [
-          {{- $users := .Values.user }}
-          {{- range $index, $user := $users }}
-          {
-            "username" : {{ $user.username | quote }},
-            "firstName" : {{ $user.firstname | quote }},
-            "lastName" : {{ $user.lastname | quote }},
-            "email" : {{ $user.email | quote }},
-            "emailVerified" : true,
-            "credentials" : [ {
-              "type" : "password",
-              "value": "$(env:MB_USER_PASSWORD_{{ regexReplaceAll "[^A-Z0-9_]" (upper $user.username) "_" }})",
-              "temporary": false
-            } ],
-            "enabled" : true
-          }{{- if lt $index (sub (len $users) 1) }},{{- end }}
-          {{- end }}
-        ],
-        {{- end }}
-        "internationalizationEnabled": true,
-        "eventsEnabled": true,
-        "eventsExpiration": 86400,
-        "adminEventsEnabled": true,
-        "supportedLocales": [
-          "en",
-          "{{ .Values.global.defaultLocale }}"
-        ],
-        "defaultLocale": "{{ .Values.global.defaultLocale }}"
-      }
+extraEnv: |
+  - name: KC_BOOTSTRAP_ADMIN_USERNAME
+    value: {{ .Values.secret.keycloak.adminUser | quote }}
+  - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: keycloak-keycloak
+        key: admin-password
+  - name: KC_HOSTNAME
+    value: {{ printf "https://%s.%s/" .Values.global.hostname.keycloak .Values.global.domain | quote }}
+  - name: KC_HOSTNAME_STRICT
+    value: "false"
+  - name: KC_LOG_LEVEL
+    value: "INFO"
+  - name: KC_DB_SCHEMA
+    value: "public"
+  - name: KC_SPI_ADMIN_REALM
+    value: "master"
 
-postgresql:
-  enabled: false
-
-externalDatabase:
-  host: {{ .Values.database.keycloak.host | quote }}
-  port: {{ .StateValues.database.keycloak.port | quote }}
-  user: {{ .StateValues.database.keycloak.user | quote }}
-  database: {{ .StateValues.database.keycloak.name | quote }}
-  password: {{ .StateValues.database.keycloak.password | quote }}
-
-
-defaultInitContainers:
-  prepareWriteDirs:
-    containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 6 }}
-    resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.keycloak .Values.global.resourcesPreset | quote }}
+extraManifests:
+  # Keep the admin Secret name used by the deployment scripts and docs.
+  - |
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: keycloak-keycloak
+      namespace: {{ "{{ .Release.Namespace }}" }}
+      labels:
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/instance: keycloak-keycloak
+        app.kubernetes.io/version: {{ .Values.container.keycloak.tag | quote }}
+        app.kubernetes.io/component: keycloak
+        app.kubernetes.io/part-of: keycloak
+        app.kubernetes.io/managed-by: Helm
+    type: Opaque
+    stringData:
+      admin-password: {{ .Values.secret.keycloak.adminPassword | quote }}
+  {{- if eq .Values.cluster.ingress.type "traefik" }}
+  - |
+    apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: hsts-header
+      namespace: {{ "{{ .Release.Namespace }}" }}
+      labels:
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/instance: keycloak-keycloak
+        app.kubernetes.io/version: {{ .Values.container.keycloak.tag | quote }}
+        app.kubernetes.io/component: keycloak
+        app.kubernetes.io/part-of: keycloak
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      headers:
+        stsSeconds: 31536000
+        stsPreload: true
+        stsIncludeSubdomains: true
+  {{- end }}

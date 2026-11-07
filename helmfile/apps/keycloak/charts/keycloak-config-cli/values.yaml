@@ -1,0 +1,42 @@
+fullnameOverride: ""
+
+image:
+  registry: docker.io
+  repository: adorsys/keycloak-config-cli
+  tag: 6.5.1-26.5.5
+  pullPolicy: Always
+
+imagePullSecrets: []
+
+keycloak:
+  # Base URL of the Keycloak server. Use the headless service so the import
+  # does not depend on an ingress being ready.
+  url: http://keycloak-headless:80/
+  user: admin
+  existingSecret: keycloak-keycloak
+  existingSecretKey: admin-password
+
+import:
+  filesLocations: /config/*
+  varSubstitutionEnabled: true
+  availabilityCheckEnabled: true
+  availabilityCheckTimeout: 600s
+  files: {}
+  secrets: {}
+
+serviceAccountName: keycloak
+automountServiceAccountToken: false
+
+podSecurityContext: {}
+securityContext: {}
+resources: {}
+
+networkPolicy:
+  enabled: true
+  egress:
+    - {}
+
+job:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 300
+  hookWeight: "5"

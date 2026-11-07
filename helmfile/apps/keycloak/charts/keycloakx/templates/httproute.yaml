@@ -1,0 +1,137 @@
+{{- $httpRoute := .Values.httpRoute -}}
+{{- if $httpRoute.enabled -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "keycloak.fullname" . }}
+  namespace: {{ include "keycloak.namespace" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+    {{- range $key, $value := $httpRoute.labels }}
+    {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+    {{- end }}
+  {{- with $httpRoute.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- if $httpRoute.listenerSet.enabled }}
+    - kind: ListenerSet
+      name: {{ include "keycloak.fullname" $ }}
+      namespace: {{ include "keycloak.namespace" $ }}
+    {{- else }}
+    {{- with $httpRoute.parentRefs }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- end }}
+  {{- if $httpRoute.listenerSet.enabled }}
+  {{- $hostnames := list }}
+  {{- range $httpRoute.listenerSet.listeners }}
+  {{- if .hostname }}
+  {{- $hostnames = append $hostnames .hostname }}
+  {{- end }}
+  {{- end }}
+  {{- with $hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- else }}
+  {{- with $httpRoute.hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- end }}
+  rules:
+    {{- range $httpRoute.rules }}
+    {{- with .matches }}
+    - matches:
+      {{- range . }}
+      {{- if .path }}
+        - path:
+            type: {{ .path.type }}
+            value: {{ tpl .path.value $ }}
+        {{- end }}
+      {{- else }}
+      {{ . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- end }}
+    {{- with .filters }}
+      filters:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+      backendRefs:
+        - name: {{ include "keycloak.fullname" $ }}-http
+          port: {{ $httpRoute.servicePort }}
+    {{- end }}
+{{- end }}
+---
+{{- if and $httpRoute.enabled $httpRoute.console.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "keycloak.fullname" . }}-console
+  namespace: {{ include "keycloak.namespace" . }}
+  labels:
+    {{- include "keycloak.labels" . | nindent 4 }}
+    {{- range $key, $value := $httpRoute.labels }}
+    {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+    {{- end }}
+    {{- range $key, $value := $httpRoute.console.labels }}
+    {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
+    {{- end }}
+  {{- with $httpRoute.console.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- if $httpRoute.listenerSet.enabled }}
+    - kind: ListenerSet
+      name: {{ include "keycloak.fullname" $ }}
+      namespace: {{ include "keycloak.namespace" $ }}
+    {{- else }}
+    {{- with pluck "parentRefs" $httpRoute.console $httpRoute | first }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- end }}
+  {{- if $httpRoute.listenerSet.enabled }}
+  {{- $hostnames := list }}
+  {{- range $httpRoute.listenerSet.listeners }}
+  {{- if .hostname }}
+  {{- $hostnames = append $hostnames .hostname }}
+  {{- end }}
+  {{- end }}
+  {{- with $hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- else }}
+  {{- with pluck "hostnames" $httpRoute.console $httpRoute | first }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- end }}
+  rules:
+    {{- range $httpRoute.console.rules }}
+    {{- with .matches }}
+    - matches:
+      {{- range . }}
+      {{- if .path }}
+        - path:
+            type: {{ .path.type }}
+            value: {{ tpl .path.value $ }}
+        {{- end }}
+      {{- else }}
+      {{ . | toYaml | nindent 8 }}
+      {{- end }}
+      {{- end }}
+    {{- with .filters }}
+      filters:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+      backendRefs:
+        - name: {{ include "keycloak.fullname" $ }}-http
+          port: {{ $httpRoute.servicePort }}
+    {{- end }}
+{{- end }}

@@ -1,0 +1,509 @@
+fullnameOverride: keycloak-config-cli
+
+image:
+  registry: {{ coalesce .Values.container.keycloak_cli.registry .Values.container.default.registry | default "docker.io" | quote }}
+  repository: {{ .Values.container.keycloak_cli.repository | default "adorsys/keycloak-config-cli" | quote }}
+  tag: {{ .Values.container.keycloak_cli.tag | default "6.5.1-26.5.5" | quote }}
+  pullPolicy: Always
+
+imagePullSecrets:
+  {{- with (coalesce .Values.container.keycloak_cli.imagePullSecret .Values.container.default.imagePullSecret) }}
+  - name: {{ . | quote }}
+  {{- end }}
+
+keycloak:
+  url: "http://keycloak-headless:80/"
+  user: {{ .Values.secret.keycloak.adminUser | quote }}
+  existingSecret: keycloak-keycloak
+  existingSecretKey: admin-password
+
+serviceAccountName: keycloak
+automountServiceAccountToken: false
+
+{{- $preset := .Values.global.resourcesPreset | default "none" }}
+{{- $perAppPreset := .Values.global.resourcesPresetPerApp.keycloak | default $preset }}
+{{- $presets := dict
+  "nano" (dict "requests" (dict "cpu" "100m" "memory" "128Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "150m" "memory" "192Mi" "ephemeral-storage" "2Gi"))
+  "micro" (dict "requests" (dict "cpu" "250m" "memory" "256Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "375m" "memory" "384Mi" "ephemeral-storage" "2Gi"))
+  "small" (dict "requests" (dict "cpu" "500m" "memory" "512Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "750m" "memory" "768Mi" "ephemeral-storage" "2Gi"))
+  "medium" (dict "requests" (dict "cpu" "500m" "memory" "1024Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "750m" "memory" "1536Mi" "ephemeral-storage" "2Gi"))
+  "large" (dict "requests" (dict "cpu" "1.0" "memory" "2048Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "1.5" "memory" "3072Mi" "ephemeral-storage" "2Gi"))
+  "xlarge" (dict "requests" (dict "cpu" "1.0" "memory" "3072Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "3.0" "memory" "6144Mi" "ephemeral-storage" "2Gi"))
+  "2xlarge" (dict "requests" (dict "cpu" "1.0" "memory" "3072Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "6.0" "memory" "12288Mi" "ephemeral-storage" "2Gi"))
+}}
+{{- if .Values.resource.keycloak.keycloak }}
+resources: {{ toYaml .Values.resource.keycloak.keycloak | nindent 2 }}
+{{- else if and (ne $perAppPreset "none") (hasKey $presets $perAppPreset) }}
+resources: {{ index $presets $perAppPreset | toYaml | nindent 2 }}
+{{- else }}
+resources: {}
+{{- end }}
+
+podSecurityContext: {{ omit .Values.security.default.podSecurityContext "enabled" | toYaml | nindent 2 }}
+securityContext: {{ omit .Values.security.default.containerSecurityContext "enabled" | toYaml | nindent 2 }}
+
+networkPolicy:
+  enabled: true
+  egress:
+    - {}
+
+job:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 300
+  hookWeight: "5"
+
+import:
+  filesLocations: /config/*
+  varSubstitutionEnabled: true
+  availabilityCheckEnabled: true
+  availabilityCheckTimeout: 600s
+  secrets:
+    MB_CLIENT_SECRET_SYNAPSE: {{ .Values.authentication.client.synapse.client_secret | quote }}
+    MB_CLIENT_SECRET_MEET: {{ .Values.authentication.client.meet.client_secret | quote }}
+    MB_CLIENT_SECRET_CONVERSATIONS: {{ .Values.authentication.client.conversations.client_secret | quote }}
+    MB_CLIENT_SECRET_DRIVE: {{ .Values.authentication.client.drive.client_secret | quote }}
+    MB_CLIENT_SECRET_PROJECTS: {{ .Values.authentication.client.projects.client_secret | quote }}
+    MB_CLIENT_SECRET_DICTAPHONE: {{ .Values.authentication.client.dictaphone.client_secret | quote }}
+    MB_CLIENT_SECRET_NEXTCLOUD: {{ .Values.authentication.client.nextcloud.client_secret | quote }}
+    MB_CLIENT_SECRET_DOCS: {{ .Values.authentication.client.docs.client_secret | quote }}
+    MB_CLIENT_SECRET_BUREAUBLAD: {{ .Values.authentication.client.bureaublad.client_secret | quote }}
+    {{- if eq .Environment.Name "demo" }}
+    {{- range $user := .Values.user }}
+    MB_USER_PASSWORD_{{ regexReplaceAll "[^A-Z0-9_]" (upper $user.username) "_" }}: {{ $user.password | quote }}
+    {{- end }}
+    {{- end }}
+  files:
+    master.json: |
+      {
+        "realm" : "master",
+        "attributes": {
+          "frontendUrl": "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}"
+        }
+      }
+    mijnbureau.json: |
+      {
+        "realm" : "mijnbureau",
+        "displayName": "Mijn Bureau",
+        "displayNameHtml": "<b>Mijn Bureau</b>",
+        "defaultSignatureAlgorithm": "RS256",
+        "enabled" : true,
+        "revokeRefreshToken": true,
+        "editUsernameAllowed": false,
+        "registrationAllowed": false,
+        "duplicateEmailsAllowed": false,
+        "rememberMe": true,
+        "loginWithEmailAllowed": true,
+        "bruteForceProtected": true,
+        "permanentLockout": false,
+        "maxTemporaryLockouts": 0,
+        "bruteForceStrategy": "LINEAR",
+        "maxFailureWaitSeconds": 900,
+        "minimumQuickLoginWaitSeconds": 60,
+        "waitIncrementSeconds": 60,
+        "quickLoginCheckMilliSeconds": 1000,
+        "maxDeltaTimeSeconds": 43200,
+        "failureFactor": 30,
+        "clients": [
+          {
+            "clientId": "{{ .Values.authentication.client.synapse.client_id }}",
+            "name": "Chat",
+            "description": "Matrix-based chat with Synapse",
+            "rootUrl": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_SYNAPSE)",
+            "redirectUris": [
+              "/_synapse/client/oidc/callback"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": false,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "client.secret.creation.time": "1759388679",
+              "backchannel.logout.session.required": "true",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}/_synapse/client/oidc/backchannel_logout",
+              "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.session.required": "true",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.synapse }}.{{ .Values.global.domain }}/*"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.meet.client_id }}",
+            "name": "Meet",
+            "description": "livekit-based video conferencing with Meet",
+            "rootUrl": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_MEET)",
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "1759388679",
+              "backchannel.logout.session.required": "true",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.url": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/*",
+              "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "backchannel.logout.revoke.offline.tokens": "false"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.conversations.client_id }}",
+            "name": "Conversations",
+            "description": "AI assistant with LaSuite conversations",
+            "rootUrl": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_CONVERSATIONS)",
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "1759388679",
+              "backchannel.logout.session.required": "true",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.url": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/*",
+              "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "backchannel.logout.revoke.offline.tokens": "false"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.drive.client_id }}",
+            "name": "Drive",
+            "description": "AI assistant with LaSuite drive",
+            "rootUrl": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_DRIVE)",
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "1759388679",
+              "backchannel.logout.session.required": "true",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.url": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/*",
+              "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "backchannel.logout.revoke.offline.tokens": "false"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.projects.client_id }}",
+            "name": "Projects",
+            "description": "Collaborative project management from LaSuite",
+            "rootUrl": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_PROJECTS)",
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "[PHONE]",
+              "backchannel.logout.session.required": "true",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}/oidc-callback",
+              "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.url": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}/oidc-callback",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}/*",
+              "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "backchannel.logout.revoke.offline.tokens": "false"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.dictaphone.client_id }}",
+            "name": "Assistant Transcripts",
+            "description": "Transcription and meeting workflow from LaSuite",
+            "rootUrl": "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_DICTAPHONE)",
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": false,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "1735689600",
+              "standard.token.exchange.enabled": "false",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}/*",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.nextcloud.client_id }}",
+            "name": "NextCloud",
+            "description": "File storage and collaboration platform",
+            "rootUrl": "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_NEXTCLOUD)",
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": false,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "client.secret.creation.time": "1759388679",
+              "backchannel.logout.session.required": "true",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}/index.php/apps/user_oidc/backchannel-logout/keycloak",
+              "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.session.required": "true",
+              "post.logout.redirect.uris": "+"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.docs.client_id }}",
+            "name": "Docs",
+            "description": "Docs - Eenvoudig samenwerken aan documenten",
+            "rootUrl": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}",
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_DOCS)",
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "1759388679",
+              "backchannel.logout.session.required": "true",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.url": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/*",
+              "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "backchannel.logout.revoke.offline.tokens": "false"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.bureaublad.client_id }}",
+            "name": "bureaublad",
+            "description": "Mijn Bureau bureaublad",
+            "rootUrl": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_BUREAUBLAD)",
+            "redirectUris": [
+              "/api/v1/auth/callback"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "1759388679",
+              "backchannel.logout.session.required": "true",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/api/v1/auth/logout",
+              "standard.token.exchange.enabled": "true",
+              "frontchannel.logout.url": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/api/v1/auth/logout",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/*",
+              "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "backchannel.logout.revoke.offline.tokens": "false"
+            }
+          }
+        ],
+        "defaultRoles": ["offline_access", "uma_authorization", "tokenexchange-role"],
+        {{- if eq .Environment.Name "demo" }}
+        "users" : [
+          {{- $users := .Values.user }}
+          {{- range $index, $user := $users }}
+          {
+            "username" : {{ $user.username | quote }},
+            "firstName" : {{ $user.firstname | quote }},
+            "lastName" : {{ $user.lastname | quote }},
+            "email" : {{ $user.email | quote }},
+            "emailVerified" : true,
+            "credentials" : [ {
+              "type" : "password",
+              "value": "$(env:MB_USER_PASSWORD_{{ regexReplaceAll "[^A-Z0-9_]" (upper $user.username) "_" }})",
+              "temporary": false
+            } ],
+            "enabled" : true
+          }{{- if lt $index (sub (len $users) 1) }},{{- end }}
+          {{- end }}
+        ],
+        {{- end }}
+        "internationalizationEnabled": true,
+        "eventsEnabled": true,
+        "eventsExpiration": 86400,
+        "adminEventsEnabled": true,
+        "supportedLocales": [
+          "en",
+          "{{ .Values.global.defaultLocale }}"
+        ],
+        "defaultLocale": "{{ .Values.global.defaultLocale }}"
+      }

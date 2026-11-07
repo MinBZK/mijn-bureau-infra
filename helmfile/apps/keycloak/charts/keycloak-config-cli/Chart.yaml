@@ -1,0 +1,6 @@
+apiVersion: v2
+name: keycloak-config-cli
+description: Import Keycloak realm configuration with adorsys/keycloak-config-cli
+type: application
+version: 0.1.0
+appVersion: "6.5.1"
