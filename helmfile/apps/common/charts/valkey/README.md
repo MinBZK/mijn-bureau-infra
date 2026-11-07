@@ -8,15 +8,16 @@ A Helm chart for Kubernetes
 
 ## Maintainers
 
-| Name | Url |
-| ---- | --- |
-| raven | [https://github.com/mk-raven] |
-| sgissi | [https://github.com/sgissi] |
+| Name         | Url                               |
+| ------------ | --------------------------------- |
+| raven        | [https://github.com/mk-raven]     |
+| sgissi       | [https://github.com/sgissi]       |
 | Bloodraven21 | [https://github.com/Bloodraven21] |
+
 ## Source Code
 
-* <https://github.com/valkey-io/valkey-helm.git>
-* <https://valkey.io>
+- <https://github.com/valkey-io/valkey-helm.git>
+- <https://valkey.io>
 
 ## Deployment Modes
 
@@ -30,7 +31,7 @@ helm install valkey valkey/valkey
 
 **Services:**
 
-* `valkey`: Master/read-write service
+- `valkey`: Master/read-write service
 
 ### Replication Mode
 
@@ -48,13 +49,13 @@ This chart does not and will not support **Valkey cluster** mode. Managing a clu
 
 For cluster mode, a separate chart is being developed that uses the valkey-operator to deploy and manage clusters. The operator must be installed first.
 
-To follow progress or get involved, see the [weekly meeting wiki](https://github.com/valkey-io/valkey-operator/wiki/Weekly-meeting). 
+To follow progress or get involved, see the [weekly meeting wiki](https://github.com/valkey-io/valkey-operator/wiki/Weekly-meeting).
 
 **Services:**
 
-* `valkey`: Master/write service
-* `valkey-read`: Read service (load-balances across all pods) - optional
-* `valkey-headless`: Headless service for pod discovery
+- `valkey`: Master/write service
+- `valkey-read`: Read service (load-balances across all pods) - optional
+- `valkey-headless`: Headless service for pod discovery
 
 **Write Safety Configuration:**
 
@@ -62,8 +63,8 @@ Ensure data durability by requiring a minimum number of replicas to be in sync b
 
 ```yaml
 replica:
-  minReplicasToWrite: 1  # Require at least 1 replica
-  minReplicasMaxLag: 10  # Max 10 seconds replication lag
+  minReplicasToWrite: 1 # Require at least 1 replica
+  minReplicasMaxLag: 10 # Max 10 seconds replication lag
 ```
 
 If fewer than `minReplicasToWrite` replicas are available, the master will reject write operations.
@@ -80,7 +81,7 @@ Persistence is optional. By default, data is stored in an ephemeral volume and l
 dataStorage:
   enabled: true
   requestedSize: 10Gi
-  className: "fast-ssd"  # Optional
+  className: "fast-ssd" # Optional
 ```
 
 **Use existing PVC:**
@@ -99,8 +100,8 @@ Persistent storage is **mandatory** in replication mode. Without it, the primary
 replica:
   enabled: true
   persistence:
-    size: 10Gi  # Required
-    storageClass: "fast-ssd"  # Optional
+    size: 10Gi # Required
+    storageClass: "fast-ssd" # Optional
 ```
 
 ## Authentication
@@ -123,7 +124,7 @@ auth:
       # Password will be read from secret key "default" (defaults to username)
     readonly:
       permissions: "~* -@all +@read +ping +info"
-      passwordKey: "readonly-pwd"  # Use custom secret key name
+      passwordKey: "readonly-pwd" # Use custom secret key name
 ```
 
 ### Inline Passwords
@@ -144,7 +145,7 @@ auth:
 
 **Note:**
 
-* If `usersExistingSecret` is defined, passwords from the secret will take precedence over inline passwords.
+- If `usersExistingSecret` is defined, passwords from the secret will take precedence over inline passwords.
 
 ### Custom ACL Configuration
 
@@ -175,14 +176,14 @@ auth:
 replica:
   enabled: true
   replicas: 2
-  replicationUser: "replication-user"  # Must be defined in auth.aclUsers
+  replicationUser: "replication-user" # Must be defined in auth.aclUsers
 ```
 
 **Important Notes:**
 
-* `replica.replicationUser` specifies which ACL user replicas use to authenticate
-* This user MUST be defined in `auth.aclUsers` with appropriate permissions
-* Minimum permissions: `+psync +replconf +ping`
+- `replica.replicationUser` specifies which ACL user replicas use to authenticate
+- This user MUST be defined in `auth.aclUsers` with appropriate permissions
+- Minimum permissions: `+psync +replconf +ping`
 
 ## Metrics
 
@@ -215,7 +216,7 @@ A PodDisruptionBudget helps keep enough read-replicas available during voluntary
 ```yaml
 podDisruptionBudget:
   enabled: true
-  maxUnavailable: 1  # Allow at most 1 pod to be unavailable
+  maxUnavailable: 1 # Allow at most 1 pod to be unavailable
 ```
 
 **Or use minAvailable to guarantee a specific number of replicas:**
@@ -223,7 +224,7 @@ podDisruptionBudget:
 ```yaml
 podDisruptionBudget:
   enabled: true
-  minAvailable: 2  # Always keep at least 2 replicas running
+  minAvailable: 2 # Always keep at least 2 replicas running
 ```
 
 ## TLS
@@ -246,163 +247,163 @@ tls:
 
 ## Values
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| global.imageRegistry | string | '' |  |
-| global.imagePullSecrets | list | `[]` |  |
-| affinity | object | `{}` |  |
-| auth.aclConfig | string | `""` |  |
-| auth.aclUsers | object | `{}` | |
-| auth.enabled | bool | `false` |  |
-| auth.usersExistingSecret | string | `""` | |
-| dataStorage.accessModes[0] | string | `"ReadWriteOnce"` |  |
-| dataStorage.annotations | object | `{}` |  |
-| dataStorage.className | string | `""` |  |
-| dataStorage.enabled | bool | `false` |  |
-| dataStorage.keepPvc | bool | `false` |  |
-| dataStorage.labels | object | `{}` |  |
-| dataStorage.persistentVolumeClaimName | string | `""` |  |
-| dataStorage.requestedSize | string | `""` |  |
-| dataStorage.subPath | string | `""` |  |
-| dataStorage.volumeName | string | `"valkey-data"` |  |
-| dataStorage.hostPath | string | `""` |  |
-| deploymentStrategy | string | `"RollingUpdate"` |  |
-| env | object | `{}` |  |
-| extraSecretValkeyConfigs | bool | `false` |  |
-| extraVolumes | list | `[]` |  |
-| extraVolumeMounts | list | `[]` |  |
-| extraValkeyConfigs | list | `[]` |  |
-| extraValkeySecrets | list | `[]` |  |
-| fullnameOverride | string | `""` |  |
-| image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.registry | string | `""` |  |
-| image.repository | string | `"docker.io/valkey/valkey"` |  |
-| image.tag | string | `""` |  |
-| imagePullSecrets | list | `[]` |  |
-| initResources | object | `{}` |  |
-| livenessProbe.customProbe | object | `{}` | Full probe spec to replace the default valkey-cli ping handler and timing |
-| livenessProbe.enabled | bool | `true` |  |
-| livenessProbe.failureThreshold | int | `3` |  |
-| livenessProbe.initialDelaySeconds | int | `0` |  |
-| livenessProbe.periodSeconds | int | `10` |  |
-| livenessProbe.timeoutSeconds | int | `1` |  |
-| metrics.enabled | bool | `false` |  |
-| metrics.exporter.args | list | `[]` |  |
-| metrics.exporter.command | list | `[]` |  |
-| metrics.exporter.extraEnvs | object | `{}` |  |
-| metrics.exporter.extraVolumeMounts | list | `[]` |  |
-| metrics.exporter.image.pullPolicy | string | `"IfNotPresent"` |  |
-| metrics.exporter.image.repository | string | `"ghcr.io/oliver006/redis_exporter"` |  |
-| metrics.exporter.image.tag | string | `"v1.79.0"` |  |
-| metrics.exporter.port | int | `9121` |  |
-| metrics.exporter.resources | object | `{}` |  |
-| metrics.exporter.securityContext | object | `{}` |  |
-| metrics.podMonitor.additionalLabels | object | `{}` |  |
-| metrics.podMonitor.annotations | object | `{}` |  |
-| metrics.podMonitor.enabled | bool | `false` |  |
-| metrics.podMonitor.extraLabels | object | `{}` |  |
-| metrics.podMonitor.honorLabels | bool | `false` |  |
-| metrics.podMonitor.interval | string | `"30s"` |  |
-| metrics.podMonitor.metricRelabelings | list | `[]` |  |
-| metrics.podMonitor.podTargetLabels | list | `[]` |  |
-| metrics.podMonitor.port | string | `"metrics"` |  |
-| metrics.podMonitor.relabelings | list | `[]` |  |
-| metrics.podMonitor.sampleLimit | bool | `false` |  |
-| metrics.podMonitor.scrapeTimeout | string | `""` |  |
-| metrics.podMonitor.targetLimit | bool | `false` |  |
-| metrics.prometheusRule.enabled | bool | `false` |  |
-| metrics.prometheusRule.extraAnnotations | object | `{}` |  |
-| metrics.prometheusRule.extraLabels | object | `{}` |  |
-| metrics.prometheusRule.rules | list | `[]` |  |
-| metrics.service.annotations | object | `{}` |  |
-| metrics.service.enabled | bool | `true` |  |
-| metrics.service.extraLabels | object | `{}` |  |
-| metrics.service.ports.http | int | `9121` |  |
-| metrics.service.type | string | `"ClusterIP"` |  |
-| metrics.service.appProtocol | string | `""` |  |
-| metrics.serviceMonitor.additionalLabels | object | `{}` |  |
-| metrics.serviceMonitor.annotations | object | `{}` |  |
-| metrics.serviceMonitor.enabled | bool | `false` |  |
-| metrics.serviceMonitor.extraLabels | object | `{}` |  |
-| metrics.serviceMonitor.honorLabels | bool | `false` |  |
-| metrics.serviceMonitor.interval | string | `"30s"` |  |
-| metrics.serviceMonitor.metricRelabelings | list | `[]` |  |
-| metrics.serviceMonitor.podTargetLabels | list | `[]` |  |
-| metrics.serviceMonitor.port | string | `"metrics"` |  |
-| metrics.serviceMonitor.relabelings | list | `[]` |  |
-| metrics.serviceMonitor.sampleLimit | bool | `false` |  |
-| metrics.serviceMonitor.scrapeTimeout | string | `""` |  |
-| metrics.serviceMonitor.targetLimit | bool | `false` |  |
-| nameOverride | string | `""` |  |
-| networkPolicy | object | `{}` |  |
-| nodeSelector | object | `{}` |  |
-| podAnnotations | object | `{}` |  |
-| podLabels | object | `{}` |  |
-| commonLabels | object | `{}` |  |
-| podDisruptionBudget.enabled | bool | `false` |  |
-| podDisruptionBudget.minAvailable | int or string | `null` | Minimum pods available during disruptions |
-| podDisruptionBudget.maxUnavailable | int or string | `1` | Maximum pods unavailable during disruptions |
-| podDisruptionBudget.unhealthyPodEvictionPolicy | string | `null` | Policy for evicting unhealthy pods |
-| podSecurityContext.fsGroup | int | `1000` |  |
-| podSecurityContext.runAsGroup | int | `1000` |  |
-| podSecurityContext.runAsUser | int | `1000` |  |
-| priorityClassName | string | `""` |  |
-| runtimeClassName | string | `""` | RuntimeClassName for the pods (e.g. `gvisor`, `kata-containers`); empty uses the cluster default runtime |
-| readinessProbe.customProbe | object | `{}` | Full probe spec to replace the default valkey-cli ping handler and timing |
-| readinessProbe.enabled | bool | `false` | Opt-in; the Valkey container had no readiness probe before |
-| readinessProbe.failureThreshold | int | `3` |  |
-| readinessProbe.initialDelaySeconds | int | `0` |  |
-| readinessProbe.periodSeconds | int | `10` |  |
-| readinessProbe.successThreshold | int | `1` |  |
-| readinessProbe.timeoutSeconds | int | `1` |  |
-| replica.enabled | bool | `false` |  |
-| replica.replicas | int | `2` |  |
-| replica.replicationUser | string | `"default"` |  |
-| replica.disklessSync | bool | `false` |  |
-| replica.minReplicasToWrite | int | `0` |  |
-| replica.minReplicasMaxLag | int | `10` |  |
-| replica.service.enabled | bool | `"true"` |  |
-| replica.service.type | string | `"ClusterIP"` |  |
-| replica.service.port | int | `6379` |  |
-| replica.service.annotations | object | `{}` |  |
-| replica.service.nodePort | int | `0` |  |
-| replica.service.clusterIP | string | `""` |  |
-| replica.service.appProtocol | string | `""` |  |
-| replica.service.loadBalancerClass | string | `""` |  |
-| replica.persistence. |  | `""` |  |
-| replica.persistence.size | string | `""` | Required if replica is enabled |
-| replica.persistence.storageClass | string | `""` |  |
-| replica.persistence.accessModes | list | `""` |  |
-| resources | object | `{}` |  |
-| securityContext.capabilities.drop[0] | string | `"ALL"` |  |
-| securityContext.readOnlyRootFilesystem | bool | `true` |  |
-| securityContext.runAsNonRoot | bool | `true` |  |
-| securityContext.runAsUser | int | `1000` |  |
-| service.annotations | object | `{}` |  |
-| service.nodePort | int | `0` |  |
-| service.port | int | `6379` |  |
-| service.type | string | `"ClusterIP"` |  |
-| service.appProtocol | string | `""` |  |
-| service.loadBalancerClass | string | `""` |  |
-| serviceAccount.annotations | object | `{}` |  |
-| serviceAccount.automount | bool | `false` |  |
-| serviceAccount.create | bool | `true` |  |
-| serviceAccount.name | string | `""` |  |
-| startupProbe.customProbe | object | `{}` | Full probe spec to replace the default valkey-cli ping handler and timing |
-| startupProbe.enabled | bool | `true` |  |
-| startupProbe.failureThreshold | int | `3` |  |
-| startupProbe.initialDelaySeconds | int | `0` |  |
-| startupProbe.periodSeconds | int | `10` |  |
-| startupProbe.timeoutSeconds | int | `1` |  |
-| tls.caPublicKey | string | `"ca.crt"` |  |
-| tls.dhParamKey | string | `""` |  |
-| tls.enabled | bool | `false` |  |
-| tls.existingSecret | string | `""` |  |
-| tls.requireClientCertificate | bool | `false` |  |
-| tls.serverKey | string | `"server.key"` |  |
-| tls.serverPublicKey | string | `"server.crt"` |  |
-| tolerations | list | `[]` |  |
-| topologySpreadConstraints | list | `[]` |  |
-| valkeyConfig | string | `""` |  |
-| valkeyLogLevel | string | `"notice"` |  |
-| workloadAnnotations | object | `{}` |  |
+| Key                                            | Type          | Default                              | Description                                                                                              |
+| ---------------------------------------------- | ------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| global.imageRegistry                           | string        | ''                                   |                                                                                                          |
+| global.imagePullSecrets                        | list          | `[]`                                 |                                                                                                          |
+| affinity                                       | object        | `{}`                                 |                                                                                                          |
+| auth.aclConfig                                 | string        | `""`                                 |                                                                                                          |
+| auth.aclUsers                                  | object        | `{}`                                 |                                                                                                          |
+| auth.enabled                                   | bool          | `false`                              |                                                                                                          |
+| auth.usersExistingSecret                       | string        | `""`                                 |                                                                                                          |
+| dataStorage.accessModes[0]                     | string        | `"ReadWriteOnce"`                    |                                                                                                          |
+| dataStorage.annotations                        | object        | `{}`                                 |                                                                                                          |
+| dataStorage.className                          | string        | `""`                                 |                                                                                                          |
+| dataStorage.enabled                            | bool          | `false`                              |                                                                                                          |
+| dataStorage.keepPvc                            | bool          | `false`                              |                                                                                                          |
+| dataStorage.labels                             | object        | `{}`                                 |                                                                                                          |
+| dataStorage.persistentVolumeClaimName          | string        | `""`                                 |                                                                                                          |
+| dataStorage.requestedSize                      | string        | `""`                                 |                                                                                                          |
+| dataStorage.subPath                            | string        | `""`                                 |                                                                                                          |
+| dataStorage.volumeName                         | string        | `"valkey-data"`                      |                                                                                                          |
+| dataStorage.hostPath                           | string        | `""`                                 |                                                                                                          |
+| deploymentStrategy                             | string        | `"RollingUpdate"`                    |                                                                                                          |
+| env                                            | object        | `{}`                                 |                                                                                                          |
+| extraSecretValkeyConfigs                       | bool          | `false`                              |                                                                                                          |
+| extraVolumes                                   | list          | `[]`                                 |                                                                                                          |
+| extraVolumeMounts                              | list          | `[]`                                 |                                                                                                          |
+| extraValkeyConfigs                             | list          | `[]`                                 |                                                                                                          |
+| extraValkeySecrets                             | list          | `[]`                                 |                                                                                                          |
+| fullnameOverride                               | string        | `""`                                 |                                                                                                          |
+| image.pullPolicy                               | string        | `"IfNotPresent"`                     |                                                                                                          |
+| image.registry                                 | string        | `""`                                 |                                                                                                          |
+| image.repository                               | string        | `"docker.io/valkey/valkey"`          |                                                                                                          |
+| image.tag                                      | string        | `""`                                 |                                                                                                          |
+| imagePullSecrets                               | list          | `[]`                                 |                                                                                                          |
+| initResources                                  | object        | `{}`                                 |                                                                                                          |
+| livenessProbe.customProbe                      | object        | `{}`                                 | Full probe spec to replace the default valkey-cli ping handler and timing                                |
+| livenessProbe.enabled                          | bool          | `true`                               |                                                                                                          |
+| livenessProbe.failureThreshold                 | int           | `3`                                  |                                                                                                          |
+| livenessProbe.initialDelaySeconds              | int           | `0`                                  |                                                                                                          |
+| livenessProbe.periodSeconds                    | int           | `10`                                 |                                                                                                          |
+| livenessProbe.timeoutSeconds                   | int           | `1`                                  |                                                                                                          |
+| metrics.enabled                                | bool          | `false`                              |                                                                                                          |
+| metrics.exporter.args                          | list          | `[]`                                 |                                                                                                          |
+| metrics.exporter.command                       | list          | `[]`                                 |                                                                                                          |
+| metrics.exporter.extraEnvs                     | object        | `{}`                                 |                                                                                                          |
+| metrics.exporter.extraVolumeMounts             | list          | `[]`                                 |                                                                                                          |
+| metrics.exporter.image.pullPolicy              | string        | `"IfNotPresent"`                     |                                                                                                          |
+| metrics.exporter.image.repository              | string        | `"ghcr.io/oliver006/redis_exporter"` |                                                                                                          |
+| metrics.exporter.image.tag                     | string        | `"v1.79.0"`                          |                                                                                                          |
+| metrics.exporter.port                          | int           | `9121`                               |                                                                                                          |
+| metrics.exporter.resources                     | object        | `{}`                                 |                                                                                                          |
+| metrics.exporter.securityContext               | object        | `{}`                                 |                                                                                                          |
+| metrics.podMonitor.additionalLabels            | object        | `{}`                                 |                                                                                                          |
+| metrics.podMonitor.annotations                 | object        | `{}`                                 |                                                                                                          |
+| metrics.podMonitor.enabled                     | bool          | `false`                              |                                                                                                          |
+| metrics.podMonitor.extraLabels                 | object        | `{}`                                 |                                                                                                          |
+| metrics.podMonitor.honorLabels                 | bool          | `false`                              |                                                                                                          |
+| metrics.podMonitor.interval                    | string        | `"30s"`                              |                                                                                                          |
+| metrics.podMonitor.metricRelabelings           | list          | `[]`                                 |                                                                                                          |
+| metrics.podMonitor.podTargetLabels             | list          | `[]`                                 |                                                                                                          |
+| metrics.podMonitor.port                        | string        | `"metrics"`                          |                                                                                                          |
+| metrics.podMonitor.relabelings                 | list          | `[]`                                 |                                                                                                          |
+| metrics.podMonitor.sampleLimit                 | bool          | `false`                              |                                                                                                          |
+| metrics.podMonitor.scrapeTimeout               | string        | `""`                                 |                                                                                                          |
+| metrics.podMonitor.targetLimit                 | bool          | `false`                              |                                                                                                          |
+| metrics.prometheusRule.enabled                 | bool          | `false`                              |                                                                                                          |
+| metrics.prometheusRule.extraAnnotations        | object        | `{}`                                 |                                                                                                          |
+| metrics.prometheusRule.extraLabels             | object        | `{}`                                 |                                                                                                          |
+| metrics.prometheusRule.rules                   | list          | `[]`                                 |                                                                                                          |
+| metrics.service.annotations                    | object        | `{}`                                 |                                                                                                          |
+| metrics.service.enabled                        | bool          | `true`                               |                                                                                                          |
+| metrics.service.extraLabels                    | object        | `{}`                                 |                                                                                                          |
+| metrics.service.ports.http                     | int           | `9121`                               |                                                                                                          |
+| metrics.service.type                           | string        | `"ClusterIP"`                        |                                                                                                          |
+| metrics.service.appProtocol                    | string        | `""`                                 |                                                                                                          |
+| metrics.serviceMonitor.additionalLabels        | object        | `{}`                                 |                                                                                                          |
+| metrics.serviceMonitor.annotations             | object        | `{}`                                 |                                                                                                          |
+| metrics.serviceMonitor.enabled                 | bool          | `false`                              |                                                                                                          |
+| metrics.serviceMonitor.extraLabels             | object        | `{}`                                 |                                                                                                          |
+| metrics.serviceMonitor.honorLabels             | bool          | `false`                              |                                                                                                          |
+| metrics.serviceMonitor.interval                | string        | `"30s"`                              |                                                                                                          |
+| metrics.serviceMonitor.metricRelabelings       | list          | `[]`                                 |                                                                                                          |
+| metrics.serviceMonitor.podTargetLabels         | list          | `[]`                                 |                                                                                                          |
+| metrics.serviceMonitor.port                    | string        | `"metrics"`                          |                                                                                                          |
+| metrics.serviceMonitor.relabelings             | list          | `[]`                                 |                                                                                                          |
+| metrics.serviceMonitor.sampleLimit             | bool          | `false`                              |                                                                                                          |
+| metrics.serviceMonitor.scrapeTimeout           | string        | `""`                                 |                                                                                                          |
+| metrics.serviceMonitor.targetLimit             | bool          | `false`                              |                                                                                                          |
+| nameOverride                                   | string        | `""`                                 |                                                                                                          |
+| networkPolicy                                  | object        | `{}`                                 |                                                                                                          |
+| nodeSelector                                   | object        | `{}`                                 |                                                                                                          |
+| podAnnotations                                 | object        | `{}`                                 |                                                                                                          |
+| podLabels                                      | object        | `{}`                                 |                                                                                                          |
+| commonLabels                                   | object        | `{}`                                 |                                                                                                          |
+| podDisruptionBudget.enabled                    | bool          | `false`                              |                                                                                                          |
+| podDisruptionBudget.minAvailable               | int or string | `null`                               | Minimum pods available during disruptions                                                                |
+| podDisruptionBudget.maxUnavailable             | int or string | `1`                                  | Maximum pods unavailable during disruptions                                                              |
+| podDisruptionBudget.unhealthyPodEvictionPolicy | string        | `null`                               | Policy for evicting unhealthy pods                                                                       |
+| podSecurityContext.fsGroup                     | int           | `1000`                               |                                                                                                          |
+| podSecurityContext.runAsGroup                  | int           | `1000`                               |                                                                                                          |
+| podSecurityContext.runAsUser                   | int           | `1000`                               |                                                                                                          |
+| priorityClassName                              | string        | `""`                                 |                                                                                                          |
+| runtimeClassName                               | string        | `""`                                 | RuntimeClassName for the pods (e.g. `gvisor`, `kata-containers`); empty uses the cluster default runtime |
+| readinessProbe.customProbe                     | object        | `{}`                                 | Full probe spec to replace the default valkey-cli ping handler and timing                                |
+| readinessProbe.enabled                         | bool          | `false`                              | Opt-in; the Valkey container had no readiness probe before                                               |
+| readinessProbe.failureThreshold                | int           | `3`                                  |                                                                                                          |
+| readinessProbe.initialDelaySeconds             | int           | `0`                                  |                                                                                                          |
+| readinessProbe.periodSeconds                   | int           | `10`                                 |                                                                                                          |
+| readinessProbe.successThreshold                | int           | `1`                                  |                                                                                                          |
+| readinessProbe.timeoutSeconds                  | int           | `1`                                  |                                                                                                          |
+| replica.enabled                                | bool          | `false`                              |                                                                                                          |
+| replica.replicas                               | int           | `2`                                  |                                                                                                          |
+| replica.replicationUser                        | string        | `"default"`                          |                                                                                                          |
+| replica.disklessSync                           | bool          | `false`                              |                                                                                                          |
+| replica.minReplicasToWrite                     | int           | `0`                                  |                                                                                                          |
+| replica.minReplicasMaxLag                      | int           | `10`                                 |                                                                                                          |
+| replica.service.enabled                        | bool          | `"true"`                             |                                                                                                          |
+| replica.service.type                           | string        | `"ClusterIP"`                        |                                                                                                          |
+| replica.service.port                           | int           | `6379`                               |                                                                                                          |
+| replica.service.annotations                    | object        | `{}`                                 |                                                                                                          |
+| replica.service.nodePort                       | int           | `0`                                  |                                                                                                          |
+| replica.service.clusterIP                      | string        | `""`                                 |                                                                                                          |
+| replica.service.appProtocol                    | string        | `""`                                 |                                                                                                          |
+| replica.service.loadBalancerClass              | string        | `""`                                 |                                                                                                          |
+| replica.persistence.                           |               | `""`                                 |                                                                                                          |
+| replica.persistence.size                       | string        | `""`                                 | Required if replica is enabled                                                                           |
+| replica.persistence.storageClass               | string        | `""`                                 |                                                                                                          |
+| replica.persistence.accessModes                | list          | `""`                                 |                                                                                                          |
+| resources                                      | object        | `{}`                                 |                                                                                                          |
+| securityContext.capabilities.drop[0]           | string        | `"ALL"`                              |                                                                                                          |
+| securityContext.readOnlyRootFilesystem         | bool          | `true`                               |                                                                                                          |
+| securityContext.runAsNonRoot                   | bool          | `true`                               |                                                                                                          |
+| securityContext.runAsUser                      | int           | `1000`                               |                                                                                                          |
+| service.annotations                            | object        | `{}`                                 |                                                                                                          |
+| service.nodePort                               | int           | `0`                                  |                                                                                                          |
+| service.port                                   | int           | `6379`                               |                                                                                                          |
+| service.type                                   | string        | `"ClusterIP"`                        |                                                                                                          |
+| service.appProtocol                            | string        | `""`                                 |                                                                                                          |
+| service.loadBalancerClass                      | string        | `""`                                 |                                                                                                          |
+| serviceAccount.annotations                     | object        | `{}`                                 |                                                                                                          |
+| serviceAccount.automount                       | bool          | `false`                              |                                                                                                          |
+| serviceAccount.create                          | bool          | `true`                               |                                                                                                          |
+| serviceAccount.name                            | string        | `""`                                 |                                                                                                          |
+| startupProbe.customProbe                       | object        | `{}`                                 | Full probe spec to replace the default valkey-cli ping handler and timing                                |
+| startupProbe.enabled                           | bool          | `true`                               |                                                                                                          |
+| startupProbe.failureThreshold                  | int           | `3`                                  |                                                                                                          |
+| startupProbe.initialDelaySeconds               | int           | `0`                                  |                                                                                                          |
+| startupProbe.periodSeconds                     | int           | `10`                                 |                                                                                                          |
+| startupProbe.timeoutSeconds                    | int           | `1`                                  |                                                                                                          |
+| tls.caPublicKey                                | string        | `"ca.crt"`                           |                                                                                                          |
+| tls.dhParamKey                                 | string        | `""`                                 |                                                                                                          |
+| tls.enabled                                    | bool          | `false`                              |                                                                                                          |
+| tls.existingSecret                             | string        | `""`                                 |                                                                                                          |
+| tls.requireClientCertificate                   | bool          | `false`                              |                                                                                                          |
+| tls.serverKey                                  | string        | `"server.key"`                       |                                                                                                          |
+| tls.serverPublicKey                            | string        | `"server.crt"`                       |                                                                                                          |
+| tolerations                                    | list          | `[]`                                 |                                                                                                          |
+| topologySpreadConstraints                      | list          | `[]`                                 |                                                                                                          |
+| valkeyConfig                                   | string        | `""`                                 |                                                                                                          |
+| valkeyLogLevel                                 | string        | `"notice"`                           |                                                                                                          |
+| workloadAnnotations                            | object        | `{}`                                 |                                                                                                          |

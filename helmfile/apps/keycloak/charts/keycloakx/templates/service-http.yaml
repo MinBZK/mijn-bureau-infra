@@ -10,11 +10,15 @@ metadata:
     {{- end }}
   {{- end }}
   labels:
+    {{- $commonLabels := .Values.commonLabels | default dict }}
+    {{- $serviceLabels := .Values.service.labels | default dict }}
     {{- include "keycloak.labels" . | nindent 4 }}
     {{- range $key, $value := .Values.service.labels }}
     {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
     {{- end }}
+    {{- if and (not (hasKey $commonLabels "app.kubernetes.io/component")) (not (hasKey $serviceLabels "app.kubernetes.io/component")) }}
     app.kubernetes.io/component: http
+    {{- end }}
 spec:
   type: {{ .Values.service.type }}
   {{- if and (eq "LoadBalancer" .Values.service.type) .Values.service.loadBalancerIP }}

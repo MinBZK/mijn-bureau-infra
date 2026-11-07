@@ -27,10 +27,10 @@ This repository hosts the Helm charts for deploying [Valkey](https://valkey.io)
 (an open-source, high-performance key/value datastore and Redis alternative) on
 Kubernetes. It contains two charts:
 
-| Chart            | Path               | Description                                              |
-| ---------------- | ------------------ | -------------------------------------------------------- |
-| `valkey`         | `./valkey`         | A lightweight chart for deploying Valkey to Kubernetes.  |
-| `valkey-operator`| `./valkey-operator`| A chart for deploying the Valkey operator.               |
+| Chart             | Path                | Description                                             |
+| ----------------- | ------------------- | ------------------------------------------------------- |
+| `valkey`          | `./valkey`          | A lightweight chart for deploying Valkey to Kubernetes. |
+| `valkey-operator` | `./valkey-operator` | A chart for deploying the Valkey operator.              |
 
 This guide focuses on the **`valkey`** chart.
 
@@ -203,7 +203,7 @@ helm uninstall valkey
 
 - Write clear, imperative commit subjects (e.g. "Add TLS support to
   StatefulSet", not "added tls").
-- Keep the subject concise; use the body to explain the *why* when it is not
+- Keep the subject concise; use the body to explain the _why_ when it is not
   obvious.
 - Group related changes into logical commits.
 

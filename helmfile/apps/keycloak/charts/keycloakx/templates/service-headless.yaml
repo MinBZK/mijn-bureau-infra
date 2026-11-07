@@ -10,11 +10,15 @@ metadata:
     {{- end }}
   {{- end }}
   labels:
+    {{- $commonLabels := .Values.commonLabels | default dict }}
+    {{- $serviceHeadlessLabels := .Values.serviceHeadless.labels | default dict }}
     {{- include "keycloak.labels" . | nindent 4 }}
     {{- range $key, $value := .Values.serviceHeadless.labels }}
     {{- printf "%s: %s" $key (tpl $value $ | quote) | nindent 4 }}
     {{- end }}
+    {{- if and (not (hasKey $commonLabels "app.kubernetes.io/component")) (not (hasKey $serviceHeadlessLabels "app.kubernetes.io/component")) }}
     app.kubernetes.io/component: headless
+    {{- end }}
 spec:
   type: ClusterIP
   clusterIP: None

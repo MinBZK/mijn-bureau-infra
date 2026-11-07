@@ -1,9 +1,7 @@
 {
   "$schema": "http://json-schema.org/schema#",
   "type": "object",
-  "required": [
-    "image"
-  ],
+  "required": ["image"],
   "definitions": {
     "httpRoute": {
       "type": "object",
@@ -64,10 +62,7 @@
     },
     "image": {
       "type": "object",
-      "required": [
-        "repository",
-        "tag"
-      ],
+      "required": ["repository", "tag"],
       "properties": {
         "pullPolicy": {
           "type": "string",

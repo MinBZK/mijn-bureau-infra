@@ -225,4 +225,3 @@ enabled, so callers should guard with `with`.
 {{- toYaml $probes -}}
 {{- end -}}
 {{- end -}}
-
