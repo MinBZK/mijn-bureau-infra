@@ -1,0 +1,135 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- range $component := list "backend" "frontend" "celery" }}
+{{- $config := index $.Values $component }}
+{{- if $config.networkPolicy.enabled }}
+---
+apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" $ }}
+kind: NetworkPolicy
+metadata:
+  name: {{ include (printf "dictaphone.%s.fullname" $component) $ }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+  {{- if $.Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $.Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list $config.podLabels $.Values.commonLabels ) "context" . ) }}
+  podSelector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: {{ $component }}
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    {{- if $config.networkPolicy.allowExternalEgress }}
+    - {}
+    {{- else }}
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
+    {{- if $config.networkPolicy.extraEgress }}
+    {{- include "common.tplvalues.render" ( dict "value" $config.networkPolicy.extraEgress "context" $ ) | nindent 4 }}
+    {{- end }}
+    {{- end }}
+  ingress:
+    - ports:
+        - port: {{ $config.containerPorts.http }}
+      {{- if not $config.networkPolicy.allowExternal }}
+      from:
+        - podSelector:
+            matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 14 }}
+      {{- end }}
+    {{- if $config.networkPolicy.extraIngress }}
+    {{- include "common.tplvalues.render" ( dict "value" $config.networkPolicy.extraIngress "context" $ ) | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.audioExtractor.networkPolicy.enabled }}
+---
+apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" . }}
+kind: NetworkPolicy
+metadata:
+  name: {{ template "dictaphone.audioExtractor.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: audio-extractor
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.audioExtractor.podLabels .Values.commonLabels ) "context" . ) }}
+  podSelector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: audio-extractor
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    {{- if .Values.audioExtractor.networkPolicy.allowExternalEgress }}
+    - {}
+    {{- else }}
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
+    {{- if .Values.audioExtractor.networkPolicy.extraEgress }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.audioExtractor.networkPolicy.extraEgress "context" $ ) | nindent 4 }}
+    {{- end }}
+    {{- end }}
+  ingress:
+    - ports:
+        - port: {{ .Values.audioExtractor.containerPorts.health }}
+      {{- if not .Values.audioExtractor.networkPolicy.allowExternal }}
+      from:
+        - podSelector:
+            matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 14 }}
+      {{- end }}
+    {{- if .Values.audioExtractor.networkPolicy.extraIngress }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.audioExtractor.networkPolicy.extraIngress "context" $ ) | nindent 4 }}
+    {{- end }}
+{{- end }}
+
+{{- if .Values.s3Gateway.enabled }}
+{{- if .Values.s3Gateway.networkPolicy.enabled }}
+---
+apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" . }}
+kind: NetworkPolicy
+metadata:
+  name: {{ template "dictaphone.s3Gateway.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: s3-gateway
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.s3Gateway.podLabels .Values.commonLabels ) "context" . ) }}
+  podSelector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: s3-gateway
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    {{- if .Values.s3Gateway.networkPolicy.allowExternalEgress }}
+    - {}
+    {{- else }}
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
+    {{- if .Values.s3Gateway.networkPolicy.extraEgress }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.s3Gateway.networkPolicy.extraEgress "context" $ ) | nindent 4 }}
+    {{- end }}
+    {{- end }}
+  ingress:
+    - ports:
+        - port: {{ .Values.s3Gateway.service.targetPort }}
+      {{- if not .Values.s3Gateway.networkPolicy.allowExternal }}
+      from:
+        - podSelector:
+            matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 14 }}
+      {{- end }}
+    {{- if .Values.s3Gateway.networkPolicy.extraIngress }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.s3Gateway.networkPolicy.extraIngress "context" $ ) | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}

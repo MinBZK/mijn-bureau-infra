@@ -1,0 +1,68 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- range .Values.cronJobs }}
+---
+apiVersion: {{ include "common.capabilities.cronjob.apiVersion" $ }}
+kind: CronJob
+metadata:
+  name: {{ printf "%s-%s" (include "dictaphone.backend.fullname" $) .name | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: backend
+  {{- if $.Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $.Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ .schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 12 }}
+            app.kubernetes.io/component: backend
+        spec:
+          {{- include "dictaphone.imagePullSecrets" $ | nindent 10 }}
+          serviceAccountName: {{ template "dictaphone.serviceAccountName" $ }}
+          automountServiceAccountToken: {{ $.Values.backend.automountServiceAccountToken }}
+          restartPolicy: {{ $.Values.jobs.restartPolicy }}
+          {{- if $.Values.backend.podSecurityContext.enabled }}
+          securityContext: {{- omit $.Values.backend.podSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if $.Values.backend.nodeSelector }}
+          nodeSelector: {{- include "common.tplvalues.render" ( dict "value" $.Values.backend.nodeSelector "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if $.Values.backend.tolerations }}
+          tolerations: {{- include "common.tplvalues.render" (dict "value" $.Values.backend.tolerations "context" $) | nindent 12 }}
+          {{- end }}
+          containers:
+            - name: dictaphone
+              image: {{ template "dictaphone.image" $ }}
+              imagePullPolicy: {{ $.Values.backend.image.pullPolicy }}
+              {{- if $.Values.backend.containerSecurityContext.enabled }}
+              securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" $.Values.backend.containerSecurityContext "context" $) | nindent 16 }}
+              {{- end }}
+              command:
+                {{- toYaml .command | nindent 16 }}
+              envFrom:
+                - configMapRef:
+                    name: {{ template "common.names.fullname" $ }}
+                - secretRef:
+                    name: {{ include "dictaphone.secretName" $ }}
+              {{- if $.Values.backend.resources }}
+              resources: {{- toYaml $.Values.backend.resources | nindent 16 }}
+              {{- else if ne $.Values.backend.resourcesPreset "none" }}
+              resources: {{- include "common.resources.preset" (dict "type" $.Values.backend.resourcesPreset) | nindent 16 }}
+              {{- end }}
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: tmp
+              emptyDir: {}
+{{- end }}

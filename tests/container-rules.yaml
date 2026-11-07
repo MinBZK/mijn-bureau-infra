@@ -26,6 +26,12 @@ global:
     conversations:
       backend: "small"
       frontend: "small"
+    dictaphone:
+      backend: "small"
+      frontend: "small"
+      celery: "small"
+      audioExtractor: "small"
+      s3Gateway: "small"
     bureaublad:
       backend: "small"
       frontend: "small"
@@ -136,6 +142,18 @@ container:
     imagePullSecret: ""
 
   projects:
+    registry: ""
+    imagePullSecret: ""
+
+  dictaphone_backend:
+    registry: ""
+    imagePullSecret: ""
+
+  dictaphone_frontend:
+    registry: ""
+    imagePullSecret: ""
+
+  dictaphone_audio_extractor:
     registry: ""
     imagePullSecret: ""
 

@@ -1,0 +1,137 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "dictaphone.celery.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: celery
+  {{- if or .Values.celery.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.celery.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.celery.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.celery.replicaCount }}
+  {{- end }}
+  {{- if .Values.celery.updateStrategy }}
+  strategy: {{- toYaml .Values.celery.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.celery.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: celery
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.celery.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.celery.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: celery
+    spec:
+      {{- include "dictaphone.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "dictaphone.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.celery.automountServiceAccountToken }}
+      {{- if .Values.celery.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.celery.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.celery.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.celery.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.celery.podAffinityPreset "component" "celery" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.celery.podAntiAffinityPreset "component" "celery" "customLabels" $podLabels "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.celery.nodeAffinityPreset.type "key" .Values.celery.nodeAffinityPreset.key "values" .Values.celery.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.celery.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.celery.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.celery.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.celery.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.celery.priorityClassName }}
+      priorityClassName: {{ .Values.celery.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.celery.schedulerName }}
+      schedulerName: {{ .Values.celery.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.celery.runtimeClassName }}
+      runtimeClassName: {{ .Values.celery.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.celery.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.celery.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.celery.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.celery.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.celery.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.celery.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.celery.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" .Values.celery.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: dictaphone
+          image: {{ template "dictaphone.image" . }}
+          imagePullPolicy: {{ .Values.celery.image.pullPolicy }}
+          {{- if .Values.celery.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.celery.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.celery.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.celery.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.celery.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.celery.args "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            {{- if .Values.celery.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.celery.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ template "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "dictaphone.secretName" . }}
+            {{- if .Values.celery.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.celery.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.celery.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.celery.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.celery.resources }}
+          resources: {{- toYaml .Values.celery.resources | nindent 12 }}
+          {{- else if ne .Values.celery.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.celery.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.celery.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.celery.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.celery.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.celery.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.celery.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.celery.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.celery.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.celery.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

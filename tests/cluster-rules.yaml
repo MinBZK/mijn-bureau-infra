@@ -25,6 +25,12 @@ global:
       backend: "small"
       frontend: "small"
     projects: "small"
+    dictaphone:
+      backend: "small"
+      frontend: "small"
+      celery: "small"
+      audioExtractor: "small"
+      s3Gateway: "small"
     conversations:
       backend: "small"
       frontend: "small"

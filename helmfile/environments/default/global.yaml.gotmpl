@@ -37,6 +37,12 @@ global:
       backend: "micro"
       frontend: "nano"
     projects: "micro"
+    dictaphone:
+      backend: "micro"
+      frontend: "nano"
+      celery: "micro"
+      audioExtractor: "micro"
+      s3Gateway: "nano"
     bureaublad:
       backend: "micro"
       frontend: "nano"
@@ -56,6 +62,8 @@ global:
     drive: "drive"
     projects: "projects"
     projects-minio: "projects-minio"
+    dictaphone: "dictaphone"
+    dictaphone-minio: "dictaphone-minio"
     # static nginx sidecar hostnames — gateway picks these up automatically
     conversations-static: "static-conversations"
     drive-static: "static-drive"

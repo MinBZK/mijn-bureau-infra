@@ -45,3 +45,6 @@ authentication:
     projects:
       client_id: "projects"
       client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "projects_client_secret" | sha1sum | quote}}
+    dictaphone:
+      client_id: "dictaphone"
+      client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "dictaphone_client_secret" | sha1sum | quote}}

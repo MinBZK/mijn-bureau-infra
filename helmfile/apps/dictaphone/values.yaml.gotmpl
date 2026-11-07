@@ -1,0 +1,207 @@
+{{- $hostname := printf "%s.%s" .Values.global.hostname.dictaphone .Values.global.domain }}
+{{- $baseUrl := printf "https://%s" $hostname }}
+{{- $minioHostname := printf "%s.%s" (index .Values.global.hostname "dictaphone-minio") .Values.global.domain }}
+{{- $minioEndpoint := printf "http://%s:%d" .Values.objectstore.dictaphone.endpoint .Values.objectstore.dictaphone.port }}
+{{- $minioPublicUrl := printf "https://%s" $minioHostname }}
+
+global:
+  ## Global Docker image parameters
+  ##
+  imageRegistry: ""
+  {{- with (coalesce .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - name: {{ . | quote }}
+  {{- end }}
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+  ## Security parameters
+  ##
+  security:
+    allowInsecureImages: true
+  compatibility:
+    openshift:
+      adaptSecurityContext: auto
+
+commonLabels:
+  app.kubernetes.io/part-of: dictaphone
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+backend:
+  image:
+    registry: {{ (coalesce .Values.container.dictaphone_backend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.dictaphone_backend.repository | quote }}
+    tag: {{ .Values.container.dictaphone_backend.tag | quote }}
+  replicaCount: 1
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.dictaphone.backend .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.dictaphone.backend | default dict | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.dictaphone.backend | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.dictaphone.backend | toYaml | nindent 4 }}
+
+frontend:
+  image:
+    registry: {{ (coalesce .Values.container.dictaphone_frontend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.dictaphone_frontend.repository | quote }}
+    tag: {{ .Values.container.dictaphone_frontend.tag | quote }}
+  replicaCount: 1
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.dictaphone.frontend .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.dictaphone.frontend | default dict | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.dictaphone.frontend | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.dictaphone.frontend | toYaml | nindent 4 }}
+
+celery:
+  image:
+    registry: {{ (coalesce .Values.container.dictaphone_backend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.dictaphone_backend.repository | quote }}
+    tag: {{ .Values.container.dictaphone_backend.tag | quote }}
+  replicaCount: 1
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.dictaphone.celery .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.dictaphone.celery | default dict | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.dictaphone.celery | toYaml | nindent 6 }}
+  pdb: {{ .Values.pdb.dictaphone.celery | toYaml | nindent 4 }}
+
+audioExtractor:
+  image:
+    registry: {{ (coalesce .Values.container.dictaphone_audio_extractor.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.dictaphone_audio_extractor.repository | quote }}
+    tag: {{ .Values.container.dictaphone_audio_extractor.tag | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.dictaphone.audioExtractor .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.dictaphone.audioExtractor | default dict | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  pdb: {{ .Values.pdb.dictaphone.audioExtractor | toYaml | nindent 4 }}
+
+s3Gateway:
+  enabled: true
+  image:
+    registry: {{ (coalesce .Values.container.dictaphone_audio_extractor.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.dictaphone_audio_extractor.repository | quote }}
+    tag: {{ .Values.container.dictaphone_audio_extractor.tag | quote }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.dictaphone.s3Gateway .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.dictaphone.s3Gateway | default dict | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  envVars:
+    S3_GATEWAY_FORCE_HTTPS: "false"
+  rules:
+    - endpoint: {{ $minioEndpoint | quote }}
+      addressing_style: path
+      buckets:
+        {{ .Values.objectstore.dictaphone.bucket | quote }}:
+          GET:
+            - "files/"
+          PUT:
+            - "files/"
+  pdb: {{ .Values.pdb.dictaphone.s3Gateway | toYaml | nindent 4 }}
+
+service:
+  backend:
+    type: ClusterIP
+    ports:
+      http: 80
+  frontend:
+    type: ClusterIP
+    ports:
+      http: 80
+
+ingress:
+  enabled: true
+  hostname: {{ $hostname }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.dictaphone | default list | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+
+externalDatabase:
+  type: {{ .Values.database.dictaphone.type | default "postgresql" | quote }}
+  database: {{ .Values.database.dictaphone.name | quote }}
+  username: {{ .Values.database.dictaphone.user | quote }}
+  host: {{ .Values.database.dictaphone.host | quote }}
+  password: {{ .Values.database.dictaphone.password | quote }}
+  port: {{ .Values.database.dictaphone.port | quote }}
+
+externalRedis:
+  host: {{ .Values.cache.dictaphone.host | quote }}
+  port: {{ .Values.cache.dictaphone.port | quote }}
+  password: {{ .Values.cache.dictaphone.password | quote }}
+
+objectstore:
+  endpoint: {{ $minioEndpoint | quote }}
+  publicUrl: {{ $minioPublicUrl | quote }}
+  bucket: {{ .Values.objectstore.dictaphone.bucket | quote }}
+  region: {{ .Values.objectstore.dictaphone.region | default "eu-west-1" | quote }}
+  accessKey: {{ .Values.objectstore.dictaphone.username | quote }}
+  secretKey: {{ .Values.objectstore.dictaphone.rootPassword | quote }}
+
+authentication:
+  issuer: {{ .Values.authentication.oidc.issuer | quote }}
+  authorization_endpoint: {{ .Values.authentication.oidc.authorization_endpoint | quote }}
+  token_endpoint: {{ .Values.authentication.oidc.token_endpoint | quote }}
+  introspection_endpoint: {{ .Values.authentication.oidc.introspection_endpoint | quote }}
+  userinfo_endpoint: {{ .Values.authentication.oidc.userinfo_endpoint | quote }}
+  end_session_endpoint: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
+  jwks_uri: {{ .Values.authentication.oidc.jwks_uri | quote }}
+  claims:
+    username: {{ .Values.authentication.oidc.claims.username | quote }}
+    display_name: {{ .Values.authentication.oidc.claims.display_name | quote }}
+    given_name: {{ .Values.authentication.oidc.claims.given_name | quote }}
+    family_name: {{ .Values.authentication.oidc.claims.family_name | quote }}
+  client:
+    client_id: {{ .Values.authentication.client.dictaphone.client_id | quote }}
+    client_secret: {{ .Values.authentication.client.dictaphone.client_secret | quote }}
+
+application:
+  secretKey: {{ .Values.application.dictaphone.secretKey | quote }}
+  jwtSigningKey: {{ .Values.application.dictaphone.jwtSigningKey | quote }}
+  audioExtractor:
+    transcodingToken: {{ .Values.application.dictaphone.audioExtractor.transcodingToken | quote }}
+    validationToken: {{ .Values.application.dictaphone.audioExtractor.validationToken | quote }}
+  ai:
+    serviceUrl: {{ .Values.ai.dictaphone.serviceUrl | default "" | quote }}
+    serviceApiKey: {{ .Values.ai.dictaphone.serviceApiKey | quote }}
+    webhookApiKey: {{ .Values.ai.dictaphone.webhookApiKey | quote }}
+  superuser:
+    email: {{ .Values.secret.dictaphone.adminUser | quote }}
+    password: {{ .Values.secret.dictaphone.adminPassword | quote }}
+
+smtp:
+  host: {{ .Values.smtp.host | quote }}
+  port: {{ .Values.smtp.port | quote }}
+  username: {{ .Values.smtp.username | quote }}
+  password: {{ .Values.smtp.password | quote }}
+  from:
+    email: {{ .Values.smtp.from.email | quote }}
+    name: {{ .Values.smtp.from.name | quote }}
+    logoImage: {{ .Values.smtp.from.logoImage | quote }}
+  tls:
+    enabled: {{ .Values.smtp.tls.enabled | quote }}

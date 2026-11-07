@@ -103,15 +103,16 @@ application:
     enabled: true
     namespace: ~
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "projects" "secretkey" | sha1sum | quote }}
-    serviceName: "Projecten"
-    allowAllToCreateProjects: true
-    replicaCount: 1
-    objectStorage:
-      enabled: true
-    oidc:
-      fullnameAttributes: "name"
-      scopes: "openid email profile"
-      enforced: true
+
+  # dictaphone is the Assistant Transcripts transcription and meeting workflow from LaSuite
+  dictaphone:
+    enabled: true
+    namespace: ~
+    secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "dictaphone" "secretkey" | sha1sum | quote }}
+    jwtSigningKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "dictaphone" "jwtSigningKey" | sha1sum | quote }}
+    audioExtractor:
+      transcodingToken: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "dictaphone" "audioExtractorTranscodingToken" | sha1sum | quote }}
+      validationToken: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "dictaphone" "audioExtractorValidationToken" | sha1sum | quote }}
 
   # Clam AV is a virus toolkit
   clamav:

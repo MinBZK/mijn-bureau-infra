@@ -10,3 +10,10 @@ ai:
       isSsl: true
       isInternal: false
     apiKey: ~
+
+  # Dictaphone transcription service. Point `serviceUrl` at a service
+  # compatible with the LaSuite Meeting Summary API.
+  dictaphone:
+    serviceUrl: ~
+    serviceApiKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "dictaphone" "aiServiceApiKey" | sha1sum | quote }}
+    webhookApiKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "dictaphone" "aiWebhookApiKey" | sha1sum | quote }}

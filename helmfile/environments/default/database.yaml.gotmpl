@@ -79,3 +79,14 @@ database:
     isInternal: true
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "projects" "database" | sha1sum | quote}}
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "projects" "database_admin" | sha1sum | quote}}
+
+  dictaphone:
+    engine: django.db.backends.postgresql_psycopg2
+    type: postgresql
+    host: dictaphone-cluster-rw
+    name: dictaphone
+    user: dictaphone
+    port: 5432
+    isInternal: true
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "dictaphone" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "dictaphone" "database_admin" | sha1sum | quote}}

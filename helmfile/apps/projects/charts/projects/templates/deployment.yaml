@@ -176,26 +176,11 @@ spec:
         - name: app-tmp
           emptyDir: {}
         - name: public
-        {{- if .Values.persistence.public.enabled }}
-          persistentVolumeClaim:
-            claimName: {{ default (printf "%s-public" (include "common.names.fullname" .)) .Values.persistence.public.existingClaim }}
-        {{- else }}
           emptyDir: {}
-        {{- end }}
         - name: backgrounds
-        {{- if .Values.persistence.backgrounds.enabled }}
-          persistentVolumeClaim:
-            claimName: {{ default (printf "%s-backgrounds" (include "common.names.fullname" .)) .Values.persistence.backgrounds.existingClaim }}
-        {{- else }}
           emptyDir: {}
-        {{- end }}
         - name: attachments
-        {{- if .Values.persistence.attachments.enabled }}
-          persistentVolumeClaim:
-            claimName: {{ default (printf "%s-attachments" (include "common.names.fullname" .)) .Values.persistence.attachments.existingClaim }}
-        {{- else }}
           emptyDir: {}
-        {{- end }}
         {{- if .Values.projects.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.projects.extraVolumes "context" $) | nindent 8 }}
         {{- end }}

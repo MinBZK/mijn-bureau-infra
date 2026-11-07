@@ -126,18 +126,20 @@ pvc:
       accessModes: []
 
   projects:
-    public:
+    postgresql:
       storageClass: ~
       size: ~
       accessModes: []
-    backgrounds:
+    redis:
       storageClass: ~
       size: ~
       accessModes: []
-    attachments:
+    minio:
       storageClass: ~
-      size: ~
+      size: "8Gi"
       accessModes: []
+
+  dictaphone:
     postgresql:
       storageClass: ~
       size: ~

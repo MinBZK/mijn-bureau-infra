@@ -4,7 +4,7 @@ import rego.v1
 # Redis in these Helmfile environments is standalone and has no DNS rule.
 # Policies allowing all egress also intentionally have no individual DNS rule.
 dns_charts := {
-  "bureaublad", "clamav", "collabora", "conversations", "docs", "drive",
+  "bureaublad", "clamav", "collabora", "conversations", "dictaphone", "docs", "drive",
   "element-web", "keycloak", "livekit-server", "meet", "minio", "nextcloud",
   "nginx", "ollama", "postgresql", "projects", "synapse",
 }
