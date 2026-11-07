@@ -64,7 +64,6 @@ releases:
 
   - name: drive-nginx
     chart: ../common/charts/nginx
-    version: "22.0.0"
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}
@@ -78,7 +77,6 @@ releases:
 
   - name: drive-static
     chart: ../common/charts/nginx
-    version: "22.0.0"
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}

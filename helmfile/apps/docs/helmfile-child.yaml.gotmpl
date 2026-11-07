@@ -64,7 +64,6 @@ releases:
 
   - name: docs-nginx
     chart: ../common/charts/nginx
-    version: "22.0.0"
     {{- if .Values.application.docs.namespace }}
     namespace: {{ .Values.application.docs.namespace }}
     {{- end }}
@@ -78,7 +77,6 @@ releases:
 
   - name: docs-static
     chart: ../common/charts/nginx
-    version: "22.0.0"
     {{- if .Values.application.docs.namespace }}
     namespace: {{ .Values.application.docs.namespace }}
     {{- end }}

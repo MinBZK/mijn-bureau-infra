@@ -231,8 +231,8 @@ diagnosticMode:
 
 ## @section NGINX parameters
 
-## Bitnami NGINX image version
-## ref: https://hub.docker.com/r/bitnami/nginx/tags/
+## NGINX unprivileged image version
+## ref: https://hub.docker.com/r/nginx/nginx-unprivileged/tags/
 ## @param image.registry [default: REGISTRY_NAME] NGINX image registry
 ## @param image.repository [default: REPOSITORY_NAME/nginx] NGINX image repository
 ## @skip image.tag NGINX image tag (immutable tags are recommended)
@@ -243,8 +243,8 @@ diagnosticMode:
 ##
 image:
   registry: {{ (coalesce .Values.container.nginx.registry .Values.container.default.registry) | quote }}
-  repository: {{ .Values.container.nginx.repository | default "bitnami/nginx" | quote }}
-  tag: {{ .Values.container.nginx.tag | default "1.29.1-debian-12-r0" | quote }}
+  repository: {{ .Values.container.nginx.repository | default "nginx/nginx-unprivileged" | quote }}
+  tag: {{ .Values.container.nginx.tag | default "1.30.6-alpine-slim" | quote }}
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -620,48 +620,6 @@ pdb:
 
 ## @section Custom NGINX application parameters
 
-## Get the server static content from a git repository
-## NOTE: This will override staticSiteConfigmap and staticSitePVC
-##
-cloneStaticSiteFromGit:
-  ## @param cloneStaticSiteFromGit.enabled Get the server static content from a Git repository
-  ##
-  enabled: false
-  ## Bitnami Git image version
-  ## ref: https://hub.docker.com/r/bitnami/git/tags/
-  ##
-  image:
-    registry: docker.io
-    repository: bitnami/git
-    tag: 2.51.0-debian-12-r0
-    digest: ""
-    pullPolicy: IfNotPresent
-    pullSecrets: []
-  ## @param cloneStaticSiteFromGit.repository Git Repository to clone static content from
-  ##
-  repository: ""
-  ## @param cloneStaticSiteFromGit.branch Git branch to checkout
-  ##
-  branch: ""
-  ## @param cloneStaticSiteFromGit.interval Interval for sidecar container pull from the Git repository
-  ##
-  interval: 60
-  ## Additional configuration for git-clone-repository initContainer
-  ##
-  gitClone:
-    command: []
-    args: []
-  ## Additional configuration for the git-repo-syncer container
-  ##
-  gitSync:
-    command: []
-    args: []
-    resourcesPreset: "nano"
-    resources: {}
-  extraEnvVars: []
-  extraEnvVarsSecret: ""
-  extraVolumeMounts: []
-
 ## @param serverBlock Custom server block to be added to NGINX configuration
 ## This configuration serves static CSS files from /static directory with a /health endpoint for Kubernetes probes
 ##
@@ -935,13 +893,13 @@ metrics:
   ## @param metrics.enabled Start a Prometheus exporter sidecar container
   ##
   enabled: {{ .Values.metric.enabled | default false }}
-  ## Bitnami NGINX Prometheus Exporter image
-  ## ref: https://hub.docker.com/r/bitnami/nginx-exporter/tags/
+  ## NGINX Prometheus Exporter image
+  ## ref: https://hub.docker.com/r/nginx/nginx-prometheus-exporter/tags/
   ##
   image:
     registry: docker.io
-    repository: bitnami/nginx-exporter
-    tag: 1.4.2-debian-12-r9
+    repository: nginx/nginx-prometheus-exporter
+    tag: 1.5.3
     digest: ""
     pullPolicy: Always
     pullSecrets: []
