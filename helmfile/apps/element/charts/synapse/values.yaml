@@ -1900,11 +1900,11 @@ rbac:
   ##
   rules: []
 job:
-  InitContainers:
+  kubectl:
     image:
-      registry: docker.io
-      repository: bitnamilegacy/kubectl
-      tag: 1.33.3
+      registry: registry.k8s.io
+      repository: kubectl
+      tag: v1.33.4
       digest: ""
       pullPolicy: Always
   backoffLimit: 20

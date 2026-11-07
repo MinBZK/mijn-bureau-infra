@@ -352,7 +352,7 @@ defaultInitContainers:
 
 
 job:
-  InitContainers:
+  kubectl:
     image:
       registry: {{ coalesce .Values.container.kubectl.registry .Values.container.default.registry | quote }}
       repository: {{ .Values.container.kubectl.repository }}

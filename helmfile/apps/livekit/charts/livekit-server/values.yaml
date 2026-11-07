@@ -459,8 +459,8 @@ livekit:
 
 cronjob:
   create: true
-  ## Bitnami cronjob image
-  ## ref: https://hub.docker.com/r/bitnami/%%IMAGE_NAME%%/tags/
+  ## kubectl image used to read the Service and update the Deployment
+  ## ref: https://kubernetes.io/docs/tasks/tools/
   ## @param cronjob.image.registry [default: REGISTRY_NAME] cronjob image registry
   ## @param cronjob.image.repository [default: REPOSITORY_NAME/%%IMAGE_NAME%%] cronjob image repository
   ## @skip cronjob.image.tag cronjob image tag (immutable tags are recommended)
@@ -469,9 +469,9 @@ cronjob:
   ## @param cronjob.image.pullSecrets cronjob image pull secrets
   ##
   image:
-    registry: docker.io
-    repository: bitnamilegacy/kubectl
-    tag: latest
+    registry: registry.k8s.io
+    repository: kubectl
+    tag: v1.33.4
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -486,9 +486,20 @@ cronjob:
     pullSecrets: []
     debug: false
 
+  ## The official kubectl image is distroless; this shell image provides
+  ## /bin/sh and BusyBox for the command substitution in the script below.
+  ## Use the static musl build: the glibc/uclibc variants need a loader
+  ## that is not present in the distroless kubectl image.
+  shellImage:
+    registry: docker.io
+    repository: busybox
+    tag: "1.37.0-musl"
+    pullPolicy: Always
+
   command:
-    - /bin/sh
+    - /tmp/busybox
   args:
+    - sh
     - -c
     - |
       ip=$(kubectl get service livekit-livekit-server -o yaml -o jsonpath="{.status.loadBalancer.ingress[0].ip}")

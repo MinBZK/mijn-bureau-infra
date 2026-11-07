@@ -109,6 +109,10 @@ container:
     registry: ""
     imagePullSecret: ""
 
+  busybox:
+    registry: ""
+    imagePullSecret: ""
+
   meet_backend:
     registry: ""
     imagePullSecret: ""

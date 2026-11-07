@@ -14,7 +14,14 @@ Return the proper livekit image name
 Return the proper cronjob image name
 */}}
 {{- define "cronjob.image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.cronjob.image "global" .Values.global) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.cronjob.image "global" (dict)) }}
+{{- end -}}
+
+{{/*
+Return the proper cronjob shell image name
+*/}}
+{{- define "cronjob.shellImage" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.cronjob.shellImage "global" (dict)) }}
 {{- end -}}
 
 {{/*
@@ -35,7 +42,7 @@ Return the proper Docker Image Registry Secret Names
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "cronjob.imagePullSecrets" -}}
-{{- include "common.images.renderPullSecrets" (dict "images" (list .Values.cronjob.image) "context" $) -}}
+{{- include "common.images.renderPullSecrets" (dict "images" (list .Values.cronjob.image .Values.cronjob.shellImage) "context" $) -}}
 {{- end -}}
 
 {{/*

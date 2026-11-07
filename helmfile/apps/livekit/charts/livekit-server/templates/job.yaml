@@ -28,15 +28,36 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
-      {{- include "livekit_server.imagePullSecrets" . | nindent 6 }}
+      {{- include "cronjob.imagePullSecrets" . | nindent 6 }}
       restartPolicy: {{ .Values.cronjob.restartPolicy | default "OnFailure" }}
       serviceAccountName: {{ template "livekit_server.serviceAccountName" . }}
+      {{- if .Values.livekit.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.livekit.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
       {{- if .Values.livekit.nodeSelector }}
       nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.livekit.nodeSelector "context" $) | nindent 8 }}
       {{- end }}
       {{- if .Values.livekit.tolerations }}
       tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.livekit.tolerations "context" .) | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: shell
+          image: {{ template "cronjob.shellImage" . }}
+          imagePullPolicy: {{ .Values.cronjob.shellImage.pullPolicy }}
+          {{- if .Values.livekit.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.livekit.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - cp /bin/busybox /tmp/busybox && chmod 0755 /tmp/busybox
+          {{- with .Values.cronjob.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
       containers:
         - name: {{ include "common.names.fullname" . }}-cronjob
           image: {{ template "cronjob.image" . }}
@@ -46,7 +67,16 @@ spec:
           {{- end }}
           command: {{- include "common.tplvalues.render" (dict "value" .Values.cronjob.command "context" $) | nindent 10 }}
           args: {{- include "common.tplvalues.render" (dict "value" .Values.cronjob.args "context" $) | nindent 10 }}
+          env:
+            - name: HOME
+              value: /tmp
           {{- if .Values.cronjob.resources }}
           resources:
             {{- toYaml .Values.cronjob.resources | nindent 12 }}
           {{- end }}
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
