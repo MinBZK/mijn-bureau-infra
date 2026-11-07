@@ -34,11 +34,7 @@ spec:
           port: {{ .containerPort }}
         {{- end }}
     {{- end }}
-    - from:
-        - podSelector:
-            matchLabels:
-              {{- include "keycloak.selectorLabels" . | nindent 14 }}
-      ports:
+    - ports:
         - protocol: TCP
           port: 8080
         - protocol: TCP

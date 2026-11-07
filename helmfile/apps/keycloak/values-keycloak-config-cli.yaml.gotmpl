@@ -12,7 +12,7 @@ imagePullSecrets:
   {{- end }}
 
 keycloak:
-  url: "http://keycloak-headless:80/"
+  url: "http://keycloak-http:80/"
   user: {{ .Values.secret.keycloak.adminUser | quote }}
   existingSecret: keycloak-keycloak
   existingSecretKey: admin-password
@@ -56,7 +56,7 @@ import:
   filesLocations: /config/*
   varSubstitutionEnabled: true
   availabilityCheckEnabled: true
-  availabilityCheckTimeout: 600s
+  availabilityCheckTimeout: 300s
   secrets:
     MB_CLIENT_SECRET_SYNAPSE: {{ .Values.authentication.client.synapse.client_secret | quote }}
     MB_CLIENT_SECRET_MEET: {{ .Values.authentication.client.meet.client_secret | quote }}
@@ -474,6 +474,14 @@ import:
               "display.on.consent.screen": "false",
               "backchannel.logout.revoke.offline.tokens": "false"
             }
+          },
+          {
+            "clientId": "account",
+            "enabled": false
+          },
+          {
+            "clientId": "account-console",
+            "enabled": false
           }
         ],
         "defaultRoles": ["offline_access", "uma_authorization", "tokenexchange-role"],
