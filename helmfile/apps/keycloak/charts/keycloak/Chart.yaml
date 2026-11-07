@@ -10,10 +10,6 @@ annotations:
 apiVersion: v2
 appVersion: 26.3.3
 dependencies:
-- condition: postgresql.enabled
-  name: postgresql
-  repository: file://../../../common/charts/postgresql
-  version: 16.x.x
 - name: common
   repository: file://../../../common/charts/common
   tags:

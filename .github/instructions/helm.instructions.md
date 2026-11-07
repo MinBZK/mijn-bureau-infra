@@ -9,7 +9,7 @@ This document provides guidance for creating and managing Helm charts and Helmfi
 ### Guiding Principles
 
 1.  **Start from the Template**: When creating a new application, always start by copying the contents of the `template/` directory. This provides a consistent starting point.
-2.  **Leverage Bitnami Charts**: Whenever possible, use existing [Bitnami charts](https://github.com/bitnami/charts) as dependencies for common components like databases (PostgreSQL, Redis) or storage (MinIO). This reduces maintenance overhead. See `helmfile/apps/projects/helmfile-child.yaml.gotmpl` for an example.
+2.  **Use CloudNativePG for PostgreSQL**: Bundled PostgreSQL databases are provided by CloudNativePG `Cluster` resources (`helmfile/apps/common/charts/cluster`). Do not add Bitnami PostgreSQL charts or values files. See `helmfile/apps/projects/helmfile-child.yaml.gotmpl` for the pattern.
 3.  **Concise and Focused Charts**: Our custom Helm charts, located in `helmfile/apps/<app-name>/charts/<chart-name>`, should be minimal. They should primarily focus on creating the Kubernetes `Deployment` or `StatefulSet` and any necessary `Service` or `Ingress` objects. Configuration and dependencies are handled by Helmfile.
 4.  **Configuration via Helmfile**: All environment-specific configuration, secrets, and dependencies between charts are managed at the Helmfile level. The `values.yaml.gotmpl` files within the charts should expose configuration options, but the actual values are injected from `helmfile/environments/`.
 
@@ -37,4 +37,5 @@ This document provides guidance for creating and managing Helm charts and Helmfi
 - `helmfile/apps/projects/helmfile-child.yaml.gotmpl`: Defines the `projects` release and its dependencies on PostgreSQL, Redis, and MinIO.
 - `helmfile/apps/projects/charts/projects/`: The custom chart for the Projects application itself.
 - `helmfile/apps/projects/charts/projects/values.yaml.gotmpl`: Exposes configuration for the Projects deployment.
-- `helmfile/apps/projects/values-postgresql.yaml.gotmpl`: Values file for the PostgreSQL dependency, used by the Helmfile.
+- `helmfile/apps/projects/values-cnpg-cluster.yaml.gotmpl`: Values for the CloudNativePG `Cluster`.
+- `helmfile/apps/projects/values-cnpg-cluster-credentials.yaml.gotmpl`: Credentials Secret for the CNPG cluster.

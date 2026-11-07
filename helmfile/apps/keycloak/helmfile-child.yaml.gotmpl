@@ -11,34 +11,19 @@ releases:
     installed: {{ .Values.application.keycloak.enabled }}
     {{- if and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) }}
     needs:
-      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
       - {{ if .Values.application.keycloak.namespace }}{{ .Values.application.keycloak.namespace }}/{{ end }}keycloak-cluster
-      {{- else }}
-      - {{ if .Values.application.keycloak.namespace }}{{ .Values.application.keycloak.namespace }}/{{ end }}keycloak-postgresql
-      {{- end }}
     {{- end }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - keycloak.yaml.gotmpl
 
-  - name: "keycloak-postgresql"
-    chart: ../common/charts/postgresql
-    version: " 16.7.18"
-    {{- if .Values.application.keycloak.namespace }}
-    namespace: {{ .Values.application.keycloak.namespace }}
-    {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
-    values:
-      - "../common/values-cluster-dns.yaml.gotmpl"
-      - "postgresql.yaml.gotmpl"
-
   - name: keycloak-cluster-credentials
     chart: ../common/charts/cnpg-cluster-credentials
     {{- if .Values.application.keycloak.namespace }}
     namespace: {{ .Values.application.keycloak.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) | toYaml }}
     values:
       - "values-cnpg-cluster-credentials.yaml.gotmpl"
 
@@ -47,7 +32,7 @@ releases:
     {{- if .Values.application.keycloak.namespace }}
     namespace: {{ .Values.application.keycloak.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) | toYaml }}
     needs:
       - {{ if .Values.application.keycloak.namespace }}{{ .Values.application.keycloak.namespace }}/{{ end }}keycloak-cluster-credentials
     values:

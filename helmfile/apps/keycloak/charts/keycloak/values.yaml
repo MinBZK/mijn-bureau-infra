@@ -1257,7 +1257,9 @@ defaultInitContainers:
 ## @param postgresql.architecture PostgreSQL architecture (`standalone` or `replication`)
 ##
 postgresql:
-  enabled: true
+  # The Bitnami PostgreSQL subchart was removed; Keycloak always uses the
+  # external database configured under externalDatabase (CloudNativePG).
+  enabled: false
   auth:
     postgresPassword: ""
     username: bn_keycloak

@@ -11,8 +11,8 @@ Folder layout:
   dashboards/<subdir>/<name>.json         -> Grafana folder: title-cased <subdir>
 
 CR naming reflects the path so subfolder dashboards do not collide with
-top-level ones: dashboards/datastore/postgresql.json becomes
-<release>-datastore-postgresql.
+top-level ones: dashboards/datastore/cloudnative-pg.json becomes
+<release>-datastore-cloudnative-pg.
 */}}
 {{- $defaultFolder := .Values.dashboard.folder -}}
 {{- range $path, $_ := .Files.Glob "dashboards/**.json" }}

@@ -67,6 +67,14 @@ Install and prepare Helmfile and Helm. Refer to their respective documentation f
 - [Helmfile Installation Guide](https://helmfile.readthedocs.io/en/latest/#installation)
 - [Helm Installation Guide](https://helm.sh/docs/intro/install/)
 
+The bundled demo databases use [CloudNativePG](https://cloudnative-pg.io/). Install the operator and its CRDs once per cluster before running Helmfile:
+
+```bash
+kubectl apply --server-side -f \
+  https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.27/releases/cnpg-1.27.4.yaml
+kubectl rollout status deployment -n cnpg-system cnpg-controller-manager
+```
+
 Once installed, initialize Helmfile:
 
 ```bash

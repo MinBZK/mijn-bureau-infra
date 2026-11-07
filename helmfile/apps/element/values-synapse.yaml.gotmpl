@@ -91,7 +91,8 @@ master:
         to:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/instance: element-postgresql
+                cnpg.io/cluster: element-cluster
+                role: primary
         {{- end }}
       {{- end }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
@@ -145,7 +146,8 @@ worker:
           to:
             - podSelector:
                 matchLabels:
-                  app.kubernetes.io/instance: element-postgresql
+                  cnpg.io/cluster: element-cluster
+                  role: primary
           {{- end }}
         {{- end }}
     podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 6 }}

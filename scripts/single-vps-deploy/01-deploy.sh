@@ -17,7 +17,7 @@ echo "${DOMAIN}" > /etc/mijnbureau/domain
 
 HELMFILE_V=1.1.7
 
-echo "==> [1/4] Installing k3s, Helm, Helmfile"
+echo "==> [1/5] Installing k3s, Helm, Helmfile"
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--write-kubeconfig-mode 644" sh -
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
@@ -26,7 +26,7 @@ curl -fsSL "https://github.com/helmfile/helmfile/releases/download/v${HELMFILE_V
   | tar -xz -C /usr/local/bin helmfile
 helm plugin install https://github.com/databus23/helm-diff
 
-echo "==> [2/4] Installing cert-manager and ClusterIssuer"
+echo "==> [2/5] Installing cert-manager and ClusterIssuer"
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
 kubectl -n cert-manager rollout status deploy/cert-manager-webhook --timeout=180s
 
@@ -42,7 +42,7 @@ spec:
     solvers: [{ http01: { ingress: { class: traefik } } }]
 YAML
 
-echo "==> [3/4] Cloning repo and writing config"
+echo "==> [3/5] Cloning repo and writing config"
 cd /root
 git clone https://github.com/MinBZK/mijn-bureau-infra
 cd mijn-bureau-infra
@@ -108,7 +108,13 @@ authentication:
 
 YAML
 
-echo "==> [4/4] Deploying (this takes 10-20 minutes)"
+echo "==> [4/5] Installing the CloudNativePG operator"
+kubectl apply --server-side -f \
+  https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.27/releases/cnpg-1.27.4.yaml
+kubectl rollout status deployment \
+  -n cnpg-system cnpg-controller-manager --timeout=180s
+
+echo "==> [5/5] Deploying (this takes 10-20 minutes)"
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 export MIJNBUREAU_MASTER_PASSWORD="${MASTER_PASSWORD}"
 export MIJNBUREAU_CREATE_NAMESPACES=true

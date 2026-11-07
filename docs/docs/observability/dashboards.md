@@ -72,14 +72,13 @@ Three dashboards giving a **cluster → pod → host** drill-down. They work on 
 
 ### `Datastore` folder — shared backing services
 
-Four dashboards covering the data stores that almost every MijnBureau app depends on: PostgreSQL, Redis, MinIO, and CloudNativePG (the CNPG-based PostgreSQL alternative). All require [`metric.enabled: true`](./metrics.md) so the exporter sidecars are running and producing the metrics each dashboard queries.
+Three dashboards covering the data stores that almost every MijnBureau app depends on: CloudNativePG, Redis, and MinIO. All require [`metric.enabled: true`](./metrics.md) so the exporter sidecars are running and producing the metrics each dashboard queries.
 
-| Dashboard           | Source                                                             | Use it to answer                                       |
-| ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------ |
-| PostgreSQL Database | [grafana.com #9628](https://grafana.com/grafana/dashboards/9628)   | "Is any app's bitnami Postgres misbehaving?"           |
-| CloudNativePG       | [grafana.com #20417](https://grafana.com/grafana/dashboards/20417) | Same question, for apps running on CNPG instead.       |
-| Redis Dashboard     | [grafana.com #11835](https://grafana.com/grafana/dashboards/11835) | "Why is the cache slow / memory blowing up?"           |
-| MinIO Dashboard     | [grafana.com #13502](https://grafana.com/grafana/dashboards/13502) | "How healthy is object storage (uploads, throughput)?" |
+| Dashboard       | Source                                                             | Use it to answer                                       |
+| --------------- | ------------------------------------------------------------------ | ------------------------------------------------------ |
+| CloudNativePG   | [grafana.com #20417](https://grafana.com/grafana/dashboards/20417) | "Is any app's Postgres cluster healthy?"               |
+| Redis Dashboard | [grafana.com #11835](https://grafana.com/grafana/dashboards/11835) | "Why is the cache slow / memory blowing up?"           |
+| MinIO Dashboard | [grafana.com #13502](https://grafana.com/grafana/dashboards/13502) | "How healthy is object storage (uploads, throughput)?" |
 
 ### `Apps` folder — application-level
 
@@ -91,7 +90,7 @@ Three dashboards covering individual MijnBureau apps that expose their own Prome
 | Synapse                    | [element-hq/synapse](https://github.com/element-hq/synapse/blob/develop/contrib/grafana/synapse.json)                          | "Is the Matrix homeserver healthy — federation, request volume?"  |
 | Nextcloud                  | [xperimental/nextcloud-exporter](https://github.com/xperimental/nextcloud-exporter/blob/master/contrib/grafana-dashboard.json) | "How is Nextcloud doing — users, files, free space?"              |
 
-Every panel uses metrics included in [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) (platform-level dashboards), in the bitnami / CNPG exporter sidecars (datastore dashboards), or in the app's own `/metrics` endpoint (apps dashboards). No additional exporters or tools required.
+Every panel uses metrics included in [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) (platform-level dashboards), in the CNPG and Redis exporter sidecars (datastore dashboards), or in the app's own `/metrics` endpoint (apps dashboards). No additional exporters or tools required.
 
 ### General overview
 
@@ -160,28 +159,6 @@ curl -sSL 'https://grafana.com/api/dashboards/1860/revisions/latest/download' \
 
 This dashboard uses an internal datasource picker (no `__inputs`), so it does not require an entry in `metric.grafanaDashboards.datasources` — Grafana will offer a Prometheus datasource dropdown the first time you open it.
 
-### PostgreSQL Database
-
-[dashboards/datastore/postgresql.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/postgresql.json) — works against the `postgres-exporter` sidecar that ships in the bitnami `postgresql` subchart. Multiple MijnBureau apps run their own Postgres instance (nextcloud, meet, docs, drive, conversations, …); this single dashboard covers all of them via the `namespace` and `pod` dropdowns at the top.
-
-What you can drill into:
-
-- **Connections** — active, idle, waiting, max
-- **Transactions** — commits / rollbacks per second
-- **Cache hit ratio** — should sit above 99% on a healthy DB
-- **Disk I/O** — blocks read from disk vs from cache
-- **Locks** held and lock waits
-- **Replication lag** if any read replicas exist
-
-Metric source: [`postgres-exporter`](https://github.com/prometheus-community/postgres_exporter), enabled per app by `metric.enabled: true` (see [Metrics](./metrics.md)).
-
-To refresh the JSON when a newer revision is published on grafana.com:
-
-```bash
-curl -sSL 'https://grafana.com/api/dashboards/9628/revisions/latest/download' \
-  > helmfile/apps/observability/charts/observability/dashboards/datastore/postgresql.json
-```
-
 ### Redis Dashboard
 
 [dashboards/datastore/redis.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/redis.json) — works against the `redis-exporter` sidecar that ships in the bitnami `redis` subchart. Used by almost every app for caching and session storage (nextcloud, meet, element, docs, drive, conversations, bureaublad, livekit).
@@ -229,7 +206,7 @@ curl -sSL 'https://grafana.com/api/dashboards/13502/revisions/latest/download' \
 
 ### CloudNativePG
 
-[dashboards/datastore/cloudnative-pg.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/cloudnative-pg.json) — the **official CNPG team dashboard**. Use this whenever an app's `database.default.provider` is set to `cnpg` instead of the bitnami `postgresql` subchart. The metrics families are completely different (`cnpg_*` vs `pg_*`) so the bitnami PostgreSQL dashboard would show no data for these clusters.
+[dashboards/datastore/cloudnative-pg.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/cloudnative-pg.json) — the **official CNPG team dashboard**. Every bundled MijnBureau app database runs on CloudNativePG.
 
 What you can drill into:
 
@@ -335,7 +312,7 @@ The chart auto-discovers every `*.json` file under [dashboards/](https://github.
 | `dashboards/<name>.json`          | `Mijn Bureau` (default) |
 | `dashboards/<subdir>/<name>.json` | Title-cased `<subdir>`  |
 
-For example, `dashboards/datastore/postgresql.json` lands in the **Datastore** folder. Create a new subfolder to start a new group; no template changes needed.
+For example, `dashboards/datastore/cloudnative-pg.json` lands in the **Datastore** folder. Create a new subfolder to start a new group; no template changes needed.
 
 To add a new dashboard:
 

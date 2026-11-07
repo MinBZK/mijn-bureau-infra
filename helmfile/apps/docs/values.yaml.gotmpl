@@ -43,13 +43,8 @@ backend:
         to:
           - podSelector:
               matchLabels:
-                {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
                 cnpg.io/cluster: docs-cluster
                 role: primary
-                {{- else }}
-                app.kubernetes.io/name: postgresql
-                app.kubernetes.io/component: primary
-                {{- end }}
         {{- end }}
       # Redis connectivity
       - ports:
@@ -377,13 +372,8 @@ backend:
           to:
             - podSelector:
                 matchLabels:
-                  {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
                   cnpg.io/cluster: docs-cluster
                   role: primary
-                  {{- else }}
-                  app.kubernetes.io/name: postgresql
-                  app.kubernetes.io/component: primary
-                  {{- end }}
           {{- end }}
         # Redis connectivity
         - ports:
@@ -469,13 +459,8 @@ yProvider:
         to:
           - podSelector:
               matchLabels:
-                {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
                 cnpg.io/cluster: docs-cluster
                 role: primary
-                {{- else }}
-                app.kubernetes.io/name: postgresql
-                app.kubernetes.io/component: primary
-                {{- end }}
         {{- end }}
       # Redis connectivity
       - ports:

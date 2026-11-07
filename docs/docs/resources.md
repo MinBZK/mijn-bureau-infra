@@ -164,7 +164,7 @@ These apps are safe at any preset -- the custom helper enforces the minimum rega
 
 ### Dependencies (PostgreSQL, Redis, MinIO)
 
-All dependency sub-charts (PostgreSQL, Redis, MinIO) use the global `resourcesPreset` value. They do not have per-app overrides. To customize their resources, use explicit values in `resource.yaml.gotmpl`:
+PostgreSQL is provided by CloudNativePG and uses explicit resources from `resource.<app>.postgresql`. Redis and MinIO still use the global `resourcesPreset` value. To customize PostgreSQL resources, use explicit values in `resource.yaml.gotmpl`:
 
 ```yaml
 resource:

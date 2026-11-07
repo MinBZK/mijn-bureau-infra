@@ -14,31 +14,16 @@ releases:
       - "values-conversations.yaml.gotmpl"
     {{- if and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) }}
     needs:
-      - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-redis
-      {{- if eq (.Values.database.default.provider | default "bitnami") "cnpg" }}
       - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-cluster
-      {{- else }}
-      - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-postgresql
-      {{- end }}
+      - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-redis
     {{- end }}
-
-  - name: conversations-postgresql
-    chart: ../common/charts/postgresql
-    version: "16.7.18"
-    {{- if .Values.application.conversations.namespace }}
-    namespace: {{ .Values.application.conversations.namespace }}
-    {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) (ne (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
-    values:
-      - "../common/values-cluster-dns.yaml.gotmpl"
-      - "values-postgresql.yaml.gotmpl"
 
   - name: conversations-cluster-credentials
     chart: ../common/charts/cnpg-cluster-credentials
     {{- if .Values.application.conversations.namespace }}
     namespace: {{ .Values.application.conversations.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) | toYaml }}
     values:
       - "values-cnpg-cluster-credentials.yaml.gotmpl"
 
@@ -47,7 +32,7 @@ releases:
     {{- if .Values.application.conversations.namespace }}
     namespace: {{ .Values.application.conversations.namespace }}
     {{- end }}
-    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) (eq (.Values.database.default.provider | default "bitnami") "cnpg") | toYaml }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) | toYaml }}
     needs:
       - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-cluster-credentials
     values:

@@ -1,9 +1,6 @@
 dependencies:
-- name: postgresql
-  repository: file://../../../common/charts/postgresql
-  version: 16.7.18
 - name: common
   repository: file://../../../common/charts/common
   version: 2.31.1
-digest: sha256:6431f09c25dcc7f04cf73976cadc879227fc094d525cd0fed52df4107834267a
-generated: "2025-09-18T09:57:13.399009+02:00"
+digest: sha256:dd872999587782c9230b73b4d6aa6140e44692b399bd844906670b6ea13654c9
+generated: "2026-11-07T12:33:25.785367+01:00"
