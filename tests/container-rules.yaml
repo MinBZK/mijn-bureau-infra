@@ -65,11 +65,11 @@ container:
     registry: ""
     imagePullSecret: ""
 
-  redis:
+  valkey:
     registry: ""
     imagePullSecret: ""
 
-  redis_exporter:
+  valkey_exporter:
     registry: ""
     imagePullSecret: ""
 

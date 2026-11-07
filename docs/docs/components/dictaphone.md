@@ -21,13 +21,13 @@ defaults are located in the folder `helmfile/environments/default`.
 | `application.dictaphone.secretKey`        | Django secret key                                       |
 | `application.dictaphone.jwtSigningKey`    | JWT signing key                                         |
 | `application.dictaphone.audioExtractor.*` | Internal audio worker tokens                            |
-| `ai.dictaphone.*`                          | Optional external transcription service                 |
+| `ai.dictaphone.*`                         | Optional external transcription service                 |
 | `authentication.client.dictaphone.*`      | OIDC client credentials                                 |
 | `database.dictaphone.*`                   | PostgreSQL connection details                           |
-| `cache.dictaphone.*`                      | Redis connection details                                |
+| `cache.dictaphone.*`                      | Valkey connection details                               |
 | `objectstore.dictaphone.*`                | MinIO bucket and credentials                            |
 | `tls.dictaphone.*`                        | TLS settings                                            |
-| `pvc.dictaphone.*`                        | Storage requirements for PostgreSQL, Redis and MinIO    |
+| `pvc.dictaphone.*`                        | Storage requirements for PostgreSQL, Valkey and MinIO   |
 | `resource.dictaphone.*`                   | Resources for each component                            |
 | `autoscaling.horizontal.dictaphone.*`     | Autoscaling for the backend, frontend and Celery worker |
 | `container.dictaphone_*`                  | Container image selection                               |

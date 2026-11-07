@@ -1,0 +1,92 @@
+global:
+  imageRegistry: {{ (coalesce .Values.container.valkey.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.valkey.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+
+image:
+  registry: {{ (coalesce .Values.container.valkey.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.valkey.repository | default "valkey/valkey" | quote }}
+  tag: {{ .Values.container.valkey.tag | default "9.1.3" | quote }}
+  pullPolicy: Always
+
+{{- $preset := .Values.global.resourcesPreset | default "none" }}
+{{- $presets := dict
+  "nano" (dict "requests" (dict "cpu" "100m" "memory" "128Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "150m" "memory" "192Mi" "ephemeral-storage" "2Gi"))
+  "micro" (dict "requests" (dict "cpu" "250m" "memory" "256Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "375m" "memory" "384Mi" "ephemeral-storage" "2Gi"))
+  "small" (dict "requests" (dict "cpu" "500m" "memory" "512Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "750m" "memory" "768Mi" "ephemeral-storage" "2Gi"))
+  "medium" (dict "requests" (dict "cpu" "500m" "memory" "1024Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "750m" "memory" "1536Mi" "ephemeral-storage" "2Gi"))
+  "large" (dict "requests" (dict "cpu" "1.0" "memory" "2048Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "1.5" "memory" "3072Mi" "ephemeral-storage" "2Gi"))
+  "xlarge" (dict "requests" (dict "cpu" "1.0" "memory" "3072Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "3.0" "memory" "6144Mi" "ephemeral-storage" "2Gi"))
+  "2xlarge" (dict "requests" (dict "cpu" "1.0" "memory" "3072Mi" "ephemeral-storage" "50Mi") "limits" (dict "cpu" "6.0" "memory" "12288Mi" "ephemeral-storage" "2Gi"))
+}}
+
+podLabels:
+  app.kubernetes.io/component: primary
+  app.kubernetes.io/version: {{ .Values.container.valkey.tag | default "9.1.3" | quote }}
+
+runtimeClassName: {{ .Values.cluster.runtimeClassName | default "" | quote }}
+
+{{- if and (ne $preset "none") (hasKey $presets $preset) }}
+resources: {{ index $presets $preset | toYaml | nindent 2 }}
+initResources: {{ index $presets $preset | toYaml | nindent 2 }}
+{{- end }}
+
+podSecurityContext:
+  fsGroup: {{ .Values.security.default.podSecurityContext.fsGroup }}
+  fsGroupChangePolicy: {{ .Values.security.default.podSecurityContext.fsGroupChangePolicy | quote }}
+  supplementalGroups: {{ .Values.security.default.podSecurityContext.supplementalGroups | toYaml | nindent 4 }}
+  sysctls: {{ .Values.security.default.podSecurityContext.sysctls | toYaml | nindent 4 }}
+  runAsUser: {{ .Values.security.default.containerSecurityContext.runAsUser }}
+  runAsGroup: {{ .Values.security.default.containerSecurityContext.runAsGroup }}
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: {{ .Values.security.default.containerSecurityContext.allowPrivilegeEscalation }}
+  capabilities:
+    drop:
+      {{- range .Values.security.default.containerSecurityContext.capabilities.drop }}
+      - {{ . }}
+      {{- end }}
+  readOnlyRootFilesystem: {{ .Values.security.default.containerSecurityContext.readOnlyRootFilesystem }}
+  runAsNonRoot: {{ .Values.security.default.containerSecurityContext.runAsNonRoot }}
+  runAsUser: {{ .Values.security.default.containerSecurityContext.runAsUser }}
+  runAsGroup: {{ .Values.security.default.containerSecurityContext.runAsGroup }}
+
+deploymentStrategy: Recreate
+
+auth:
+  enabled: true
+
+valkeyConfig: |-
+  appendonly yes
+  save ""
+
+readinessProbe:
+  enabled: true
+
+metrics:
+  enabled: {{ .Values.metric.enabled | default false }}
+  exporter:
+    image:
+      registry: {{ coalesce .Values.container.valkey_exporter.registry .Values.container.default.registry | default "ghcr.io" | quote }}
+      repository: {{ .Values.container.valkey_exporter.repository | default "oliver006/redis_exporter" | quote }}
+      tag: {{ .Values.container.valkey_exporter.tag | default "v1.88.0" | quote }}
+      pullPolicy: Always
+    securityContext:
+      allowPrivilegeEscalation: {{ .Values.security.default.containerSecurityContext.allowPrivilegeEscalation }}
+      capabilities:
+        drop:
+          {{- range .Values.security.default.containerSecurityContext.capabilities.drop }}
+          - {{ . }}
+          {{- end }}
+      readOnlyRootFilesystem: {{ .Values.security.default.containerSecurityContext.readOnlyRootFilesystem }}
+      runAsNonRoot: {{ .Values.security.default.containerSecurityContext.runAsNonRoot }}
+      runAsUser: {{ .Values.security.default.containerSecurityContext.runAsUser }}
+      runAsGroup: {{ .Values.security.default.containerSecurityContext.runAsGroup }}
+  serviceMonitor:
+    enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
+  prometheusRule:
+    enabled: {{ .Values.metric.prometheusRule.enabled | default false }}

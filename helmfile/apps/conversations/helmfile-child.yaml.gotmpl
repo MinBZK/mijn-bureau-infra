@@ -15,7 +15,7 @@ releases:
     {{- if and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) }}
     needs:
       - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-cluster
-      - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-redis
+      - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-valkey
     {{- end }}
 
   - name: conversations-cluster-credentials
@@ -38,16 +38,16 @@ releases:
     values:
       - "values-cnpg-cluster.yaml.gotmpl"
 
-  - name: conversations-redis
-    chart: ../common/charts/redis
-    version: "21.2.6"
+  - name: conversations-valkey
+    chart: ../common/charts/valkey
     {{- if .Values.application.conversations.namespace }}
     namespace: {{ .Values.application.conversations.namespace }}
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) | toYaml }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
-      - "values-redis.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-valkey.yaml.gotmpl"
 
   - name: conversations-static
     chart: ../common/charts/nginx

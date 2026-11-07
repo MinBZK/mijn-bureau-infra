@@ -1,51 +1,51 @@
 cache:
   synapse:
-    host: "element-redis-master"
+    host: "element-valkey"
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "synapse" "password" | sha1sum | quote }}
   nextcloud:
-    host: "nextcloud-redis-headless"
+    host: "nextcloud-valkey"
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "nextcloud" "password" | sha1sum | quote }}
   livekit:
-    host: "livekit-redis-master"
+    host: "livekit-valkey"
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "livekit" "password" | sha1sum | quote }}
   meet:
-    host: "meet-redis-master"
+    host: "meet-valkey"
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "meet" "password" | sha1sum | quote }}
   conversations:
-    host: "conversations-redis-master"
+    host: "conversations-valkey"
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "conversations" "password" | sha1sum | quote }}
   docs:
-    host: "docs-redis-master"
+    host: "docs-valkey"
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "docs" "password" | sha1sum | quote }}
   drive:
-    host: "drive-redis-master"
+    host: "drive-valkey"
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "drive" "password" | sha1sum | quote }}
   bureaublad:
-    host: "bureaublad-redis-master"
+    host: "bureaublad-valkey"
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "bureaublad" "password" | sha1sum | quote }}
   projects:
-    host: "projects-redis-master"
+    host: "projects-valkey"
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "projects" "password" | sha1sum | quote }}
   dictaphone:
-    host: "dictaphone-redis-master"
+    host: "dictaphone-valkey"
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "dictaphone" "password" | sha1sum | quote }}

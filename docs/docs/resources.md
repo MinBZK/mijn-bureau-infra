@@ -10,7 +10,7 @@ This document describes how CPU and memory resources are managed across all Mijn
 
 Resources are managed through a three-tier system:
 
-1. **Global preset** (`global.resourcesPreset`) - a default preset applied to all applications and their dependencies (PostgreSQL, Redis, MinIO)
+1. **Global preset** (`global.resourcesPreset`) - a default preset applied to all applications and their dependencies (PostgreSQL, Valkey, MinIO)
 2. **Per-app preset** (`global.resourcesPresetPerApp`) - overrides the global preset for specific application components
 3. **Explicit resources** (`resource.<app>.<component>`) - overrides everything with exact CPU/memory values
 4. **Custom resource helpers** - for apps with hard minimum requirements, a custom `_resources.tpl` enforces a floor regardless of which preset is selected
@@ -162,9 +162,9 @@ These apps are safe at any preset -- the custom helper enforces the minimum rega
 | Bureaublad    | backend         | `micro`  | 250m    | 256 MiB | Dashboard backend                                 |
 | Bureaublad    | frontend        | `nano`   | 100m    | 128 MiB | Dashboard frontend                                |
 
-### Dependencies (PostgreSQL, Redis, MinIO)
+### Dependencies (PostgreSQL, Valkey, MinIO)
 
-PostgreSQL is provided by CloudNativePG and uses explicit resources from `resource.<app>.postgresql`. Redis and MinIO still use the global `resourcesPreset` value. To customize PostgreSQL resources, use explicit values in `resource.yaml.gotmpl`:
+PostgreSQL is provided by CloudNativePG and uses explicit resources from `resource.<app>.postgresql`. Valkey uses `resource.<app>.valkey` when set, otherwise the global `resourcesPreset`. MinIO still uses the global `resourcesPreset` value. To customize PostgreSQL resources, use explicit values in `resource.yaml.gotmpl`:
 
 ```yaml
 resource:

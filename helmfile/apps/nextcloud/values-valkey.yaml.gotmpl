@@ -1,0 +1,19 @@
+fullnameOverride: nextcloud-valkey
+
+auth:
+  aclUsers:
+    default:
+      permissions: "~* &* +@all"
+      password: {{ .Values.cache.nextcloud.password | quote }}
+
+dataStorage:
+  enabled: true
+  requestedSize: {{ coalesce .Values.pvc.nextcloud.valkey.size .Values.pvc.default.size "1Gi" | quote }}
+  {{- with (coalesce .Values.pvc.nextcloud.valkey.storageClass .Values.pvc.default.storageClass) }}
+  className: {{ . | quote }}
+  {{- end }}
+  accessModes: {{ coalesce .Values.pvc.nextcloud.valkey.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+
+{{- with .Values.resource.nextcloud.valkey }}
+resources: {{ toYaml . | nindent 2 }}
+{{- end }}

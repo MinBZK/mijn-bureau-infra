@@ -72,13 +72,13 @@ Three dashboards giving a **cluster → pod → host** drill-down. They work on 
 
 ### `Datastore` folder — shared backing services
 
-Three dashboards covering the data stores that almost every MijnBureau app depends on: CloudNativePG, Redis, and MinIO. All require [`metric.enabled: true`](./metrics.md) so the exporter sidecars are running and producing the metrics each dashboard queries.
+Three dashboards covering the data stores that almost every MijnBureau app depends on: CloudNativePG, Valkey, and MinIO. All require [`metric.enabled: true`](./metrics.md) so the exporter sidecars are running and producing the metrics each dashboard queries.
 
-| Dashboard       | Source                                                             | Use it to answer                                       |
-| --------------- | ------------------------------------------------------------------ | ------------------------------------------------------ |
-| CloudNativePG   | [grafana.com #20417](https://grafana.com/grafana/dashboards/20417) | "Is any app's Postgres cluster healthy?"               |
-| Redis Dashboard | [grafana.com #11835](https://grafana.com/grafana/dashboards/11835) | "Why is the cache slow / memory blowing up?"           |
-| MinIO Dashboard | [grafana.com #13502](https://grafana.com/grafana/dashboards/13502) | "How healthy is object storage (uploads, throughput)?" |
+| Dashboard        | Source                                                             | Use it to answer                                       |
+| ---------------- | ------------------------------------------------------------------ | ------------------------------------------------------ |
+| CloudNativePG    | [grafana.com #20417](https://grafana.com/grafana/dashboards/20417) | "Is any app's Postgres cluster healthy?"               |
+| Valkey Dashboard | [grafana.com #11835](https://grafana.com/grafana/dashboards/11835) | "Why is the cache slow / memory blowing up?"           |
+| MinIO Dashboard  | [grafana.com #13502](https://grafana.com/grafana/dashboards/13502) | "How healthy is object storage (uploads, throughput)?" |
 
 ### `Apps` folder — application-level
 
@@ -90,7 +90,7 @@ Three dashboards covering individual MijnBureau apps that expose their own Prome
 | Synapse                    | [element-hq/synapse](https://github.com/element-hq/synapse/blob/develop/contrib/grafana/synapse.json)                          | "Is the Matrix homeserver healthy — federation, request volume?"  |
 | Nextcloud                  | [xperimental/nextcloud-exporter](https://github.com/xperimental/nextcloud-exporter/blob/master/contrib/grafana-dashboard.json) | "How is Nextcloud doing — users, files, free space?"              |
 
-Every panel uses metrics included in [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) (platform-level dashboards), in the CNPG and Redis exporter sidecars (datastore dashboards), or in the app's own `/metrics` endpoint (apps dashboards). No additional exporters or tools required.
+Every panel uses metrics included in [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) (platform-level dashboards), in the CNPG and Valkey exporter sidecars (datastore dashboards), or in the app's own `/metrics` endpoint (apps dashboards). No additional exporters or tools required.
 
 ### General overview
 
@@ -159,9 +159,9 @@ curl -sSL 'https://grafana.com/api/dashboards/1860/revisions/latest/download' \
 
 This dashboard uses an internal datasource picker (no `__inputs`), so it does not require an entry in `metric.grafanaDashboards.datasources` — Grafana will offer a Prometheus datasource dropdown the first time you open it.
 
-### Redis Dashboard
+### Valkey Dashboard
 
-[dashboards/datastore/redis.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/redis.json) — works against the `redis-exporter` sidecar that ships in the bitnami `redis` subchart. Used by almost every app for caching and session storage (nextcloud, meet, element, docs, drive, conversations, bureaublad, livekit).
+[dashboards/datastore/redis.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/redis.json) — works against the `redis-exporter` sidecar shipped by the Valkey chart. Used by almost every app for caching and session storage (nextcloud, meet, element, docs, drive, conversations, bureaublad, livekit).
 
 What you can drill into:
 

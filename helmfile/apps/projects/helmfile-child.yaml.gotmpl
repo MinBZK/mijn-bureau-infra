@@ -22,16 +22,16 @@ releases:
     values:
       - "values-cnpg-cluster.yaml.gotmpl"
 
-  - name: projects-redis
-    chart: ../common/charts/redis
-    version: "21.2.6"
+  - name: projects-valkey
+    chart: ../common/charts/valkey
     {{- if .Values.application.projects.namespace }}
     namespace: {{ .Values.application.projects.namespace }}
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.projects.enabled) | toYaml }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
-      - "values-redis.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-valkey.yaml.gotmpl"
 
   - name: projects-minio
     chart: ../common/charts/minio
@@ -54,7 +54,7 @@ releases:
     {{- if and (eq .Environment.Name "demo") ( .Values.application.projects.enabled) }}
     needs:
       - {{ if .Values.application.projects.namespace }}{{ .Values.application.projects.namespace }}/{{ end }}projects-cluster
-      - {{ if .Values.application.projects.namespace }}{{ .Values.application.projects.namespace }}/{{ end }}projects-redis
+      - {{ if .Values.application.projects.namespace }}{{ .Values.application.projects.namespace }}/{{ end }}projects-valkey
       - {{ if .Values.application.projects.namespace }}{{ .Values.application.projects.namespace }}/{{ end }}projects-minio
     {{- end }}
     values:

@@ -22,16 +22,16 @@ releases:
     values:
       - "values-cnpg-cluster.yaml.gotmpl"
 
-  - name: dictaphone-redis
-    chart: ../common/charts/redis
-    version: "21.2.6"
+  - name: dictaphone-valkey
+    chart: ../common/charts/valkey
     {{- if .Values.application.dictaphone.namespace }}
     namespace: {{ .Values.application.dictaphone.namespace }}
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") (.Values.application.dictaphone.enabled) | toYaml }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
-      - "values-redis.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-valkey.yaml.gotmpl"
 
   - name: dictaphone-minio
     chart: ../common/charts/minio
@@ -54,7 +54,7 @@ releases:
     {{- if and (eq .Environment.Name "demo") (.Values.application.dictaphone.enabled) }}
     needs:
       - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-cluster
-      - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-redis
+      - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-valkey
       - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-minio
     {{- end }}
     values:

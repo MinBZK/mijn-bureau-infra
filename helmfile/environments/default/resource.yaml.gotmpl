@@ -9,7 +9,7 @@ resource:
   element:
     elementweb:
     postgresql:
-    redis:
+    valkey:
 
   collabora:
 
@@ -21,30 +21,30 @@ resource:
   nextcloud:
     nextcloud:
     postgresql:
-    redis:
+    valkey:
     minio:
 
   livekit:
     livekit:
-    redis:
+    valkey:
 
   meet:
     postgresql:
-    redis:
+    valkey:
     meetFrontend:
     meetBackend:
     nginx:
 
   conversations:
     postgresql:
-    redis:
+    valkey:
     conversationsFrontend:
     conversationsBackend:
     nginx:
 
   docs:
     postgresql:
-    redis:
+    valkey:
     minio:
     nginx:
     backend:
@@ -56,13 +56,13 @@ resource:
   bureaublad:
     backend:
     frontend:
-    redis:
+    valkey:
 
   drive:
     driveFrontend:
     driveBackend:
     postgresql:
-    redis:
+    valkey:
     minio:
     celery:
     celeryBeat:
@@ -71,7 +71,7 @@ resource:
   projects:
     projects:
     postgresql:
-    redis:
+    valkey:
     minio:
 
   dictaphone:
@@ -81,7 +81,7 @@ resource:
     audioExtractor:
     s3Gateway:
     postgresql:
-    redis:
+    valkey:
     minio:
 
   clamav:

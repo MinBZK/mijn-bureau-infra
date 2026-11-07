@@ -81,7 +81,8 @@ master:
         to:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/instance: element-redis
+                app.kubernetes.io/name: valkey
+                app.kubernetes.io/component: primary
         {{- end }}
       {{- end }}
       {{- if eq .Values.database.synapse.type "psycopg2" }}
@@ -136,7 +137,8 @@ worker:
           to:
             - podSelector:
                 matchLabels:
-                  app.kubernetes.io/instance: element-redis
+                  app.kubernetes.io/name: valkey
+                  app.kubernetes.io/component: primary
           {{- end }}
         {{- end }}
         {{- if eq .Values.database.synapse.type "psycopg2" }}

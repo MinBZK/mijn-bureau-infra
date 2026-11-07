@@ -22,16 +22,16 @@ releases:
     values:
       - "values-cnpg-cluster.yaml.gotmpl"
 
-  - name: nextcloud-redis
-    chart: ../common/charts/redis
-    version: "21.2.6"
+  - name: nextcloud-valkey
+    chart: ../common/charts/valkey
     {{- if .Values.application.nextcloud.namespace }}
     namespace: {{ .Values.application.nextcloud.namespace }}
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) | toYaml }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
-      - "values-redis.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-valkey.yaml.gotmpl"
 
   - name: nextcloud-minio
     chart: ../common/charts/minio
@@ -54,7 +54,7 @@ releases:
     {{- if and (eq .Environment.Name "demo") ( .Values.application.nextcloud.enabled) }}
     needs:
       - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-cluster
-      - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-redis
+      - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-valkey
       - {{ if .Values.application.nextcloud.namespace }}{{ .Values.application.nextcloud.namespace }}/{{ end }}nextcloud-minio
     {{- end }}
     values:

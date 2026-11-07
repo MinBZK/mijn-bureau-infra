@@ -104,8 +104,8 @@ networkPolicy:
       to:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/name: redis
-              app.kubernetes.io/component: master
+              app.kubernetes.io/name: valkey
+              app.kubernetes.io/component: primary
       {{- end }}
     # MinIO connectivity
     - ports:

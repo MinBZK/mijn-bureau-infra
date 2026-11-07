@@ -17,7 +17,7 @@ releases:
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-static
       {{- if eq .Environment.Name "demo" }}
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-cluster
-      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-redis
+      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-valkey
       {{- end }}
     {{- end }}
     values:
@@ -45,16 +45,16 @@ releases:
     values:
       - "values-cnpg-cluster.yaml.gotmpl"
 
-  - name: meet-redis
-    chart: ../common/charts/redis
-    version: "21.2.6"
+  - name: meet-valkey
+    chart: ../common/charts/valkey
     {{- if .Values.application.meet.namespace }}
     namespace: {{ .Values.application.meet.namespace }}
     {{- end }}
     installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) | toYaml }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
-      - "values-redis.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-valkey.yaml.gotmpl"
 
   - name: meet-static
     chart: ../common/charts/nginx
