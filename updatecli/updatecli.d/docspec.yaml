@@ -1,0 +1,56 @@
+name: "Update docspec container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump docspec version to {{ source "docspec_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  docspec_latest_version:
+    name: "Get latest docspec tag"
+    kind: dockerimage
+    spec:
+      image: "ghcr.io/docspecio/api"
+      architecture: amd64
+      tagfilter: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_docspec_tag:
+    name: "Update docspec container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.docspec.tag"
+    sourceid: docspec_latest_version
+    scmid: default
+
+  update_values_docspec_tag:
+    name: "Update values docspec tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/docs/charts/docs/values.yaml"
+      key: "$.docspec.image.tag"
+    sourceid: docspec_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump docspec version to {{ source "docspec_latest_version" }}

@@ -1,7 +1,7 @@
 # for backup to work, you need to have the velero kubernetes operator installed and configured in your cluster.
 # we currenlty support backups to s3 compatible object storage, such as minio. but there are other options available, see https://velero.io/docs/v1.18/supported-providers/ for more information.
 backup:
-  enabled: true
+  enabled: false
   schedule: "0 0 * * *"
   retention: 720h0m0s
   namespace: velero

@@ -2,7 +2,7 @@ name: container-update
 
 on:
   schedule:
-    - cron: "0 8 * * 1" # Every Monday at 08:00 UTC
+    - cron: "0 6 * * *" # Every Day at 06:00 UTC
   workflow_dispatch:
 
 permissions:

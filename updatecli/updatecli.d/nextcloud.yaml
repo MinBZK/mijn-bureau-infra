@@ -29,6 +29,17 @@ sources:
         regex: "([0-9]+\\.[0-9]+\\.[0-9]+)-apache"
         pattern: ">0.0.0"
 
+  nextcloudexporter_latest_version:
+    name: "Get latest nextcloud exporter tag"
+    kind: dockerimage
+    spec:
+      image: "xperimental/nextcloud-exporter"
+      architecture: amd64
+      tagfilter: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
 targets:
   update_nextcloud_tag:
     name: "Update nextcloud tag"
@@ -38,6 +49,26 @@ targets:
       file: "helmfile/environments/default/container.yaml.gotmpl"
       key: "$.container.nextcloud.tag"
     sourceid: nextcloud_latest_version
+    scmid: default
+
+  update_nextcloudexporter_tag:
+    name: "Update nextcloud exporter tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.nextcloud_exporter.tag"
+    sourceid: nextcloudexporter_latest_version
+    scmid: default
+
+  update_values_nextcloudexporter_tag:
+    name: "Update values nextcloud exporter tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/nextcloud/charts/nextcloud/values.yaml"
+      key: "$.metrics.image.tag"
+    sourceid: nextcloudexporter_latest_version
     scmid: default
 
 actions:
