@@ -25,6 +25,12 @@ global:
       worker: "small"
       frontend: "small"
       caldav: "small"
+    messages:
+      backend: "small"
+      worker: "small"
+      frontend: "small"
+      mta: "small"
+      opensearch: "small"
     conversations:
       backend: "small"
       frontend: "small"

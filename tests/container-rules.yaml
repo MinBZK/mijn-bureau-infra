@@ -158,6 +158,22 @@ container:
     registry: ""
     imagePullSecret: ""
 
+  messages_backend:
+    registry: ""
+    imagePullSecret: ""
+
+  messages_frontend:
+    registry: ""
+    imagePullSecret: ""
+
+  messages_mta:
+    registry: ""
+    imagePullSecret: ""
+
+  opensearch:
+    registry: ""
+    imagePullSecret: ""
+
   dictaphone_backend:
     registry: ""
     imagePullSecret: ""

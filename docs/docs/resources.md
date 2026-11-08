@@ -81,6 +81,12 @@ global:
       celery: "micro"
       audioExtractor: "micro"
       s3Gateway: "nano"
+    messages:
+      backend: "micro"
+      worker: "micro"
+      frontend: "nano"
+      mta: "small"
+      opensearch: "medium"
     bureaublad:
       backend: "micro"
       frontend: "nano"
@@ -142,33 +148,42 @@ These apps are safe at any preset -- the custom helper or values mapping enforce
 
 ### Apps with per-app presets
 
-| App           | Component       | Preset   | Min CPU | Min RAM | Notes                                             |
-| ------------- | --------------- | -------- | ------- | ------- | ------------------------------------------------- |
-| Element Web   | -               | `nano`   | 50m     | 64 MiB  | Static SPA served by nginx                        |
-| Synapse       | master + worker | `large`  | 1 core  | 2 GiB   | Matrix homeserver, memory scales with rooms/users |
-| LiveKit       | -               | `medium` | 500m    | 512 MiB | WebRTC SFU, scales heavily with participants      |
-| Nextcloud     | -               | `medium` | 500m    | 512 MiB | PHP memory limit is 512 MiB per process           |
-| Meet          | backend         | `micro`  | 250m    | 256 MiB | Lightweight Django app                            |
-| Meet          | frontend        | `nano`   | 100m    | 128 MiB | Static React/Next.js                              |
-| Docs          | backend         | `micro`  | 250m    | 256 MiB | Django app                                        |
-| Docs          | frontend        | `nano`   | 100m    | 128 MiB | Static React/Next.js                              |
-| Docs          | celery          | `micro`  | 250m    | 256 MiB | Background task worker                            |
-| Docs          | yProvider       | `micro`  | 250m    | 256 MiB | Yjs collaboration WebSocket server                |
-| Docs          | docspec         | `micro`  | 250m    | 256 MiB | Document conversion service                       |
-| Drive         | backend         | `micro`  | 250m    | 256 MiB | Django app                                        |
-| Drive         | frontend        | `nano`   | 100m    | 128 MiB | Static React/Next.js                              |
-| Conversations | backend         | `micro`  | 250m    | 256 MiB | Django app                                        |
-| Conversations | frontend        | `nano`   | 100m    | 128 MiB | Static React/Next.js                              |
-| Bureaublad    | backend         | `micro`  | 250m    | 256 MiB | Dashboard backend                                 |
-| Bureaublad    | frontend        | `nano`   | 100m    | 128 MiB | Dashboard frontend                                |
-| Calendars     | backend         | `micro`  | 250m    | 256 MiB | Django app                                        |
-| Calendars     | worker          | `micro`  | 250m    | 256 MiB | Dramatiq background worker                        |
-| Calendars     | frontend        | `nano`   | 100m    | 128 MiB | Static React/Vite                                 |
-| Calendars     | caldav          | `micro`  | 250m    | 256 MiB | SabreDAV PHP server                               |
+| App           | Component       | Preset   | Min CPU | Min RAM  | Notes                                             |
+| ------------- | --------------- | -------- | ------- | -------- | ------------------------------------------------- |
+| Element Web   | -               | `nano`   | 50m     | 64 MiB   | Static SPA served by nginx                        |
+| Synapse       | master + worker | `large`  | 1 core  | 2 GiB    | Matrix homeserver, memory scales with rooms/users |
+| LiveKit       | -               | `medium` | 500m    | 512 MiB  | WebRTC SFU, scales heavily with participants      |
+| Nextcloud     | -               | `medium` | 500m    | 512 MiB  | PHP memory limit is 512 MiB per process           |
+| Meet          | backend         | `micro`  | 250m    | 256 MiB  | Lightweight Django app                            |
+| Meet          | frontend        | `nano`   | 100m    | 128 MiB  | Static React/Next.js                              |
+| Docs          | backend         | `micro`  | 250m    | 256 MiB  | Django app                                        |
+| Docs          | frontend        | `nano`   | 100m    | 128 MiB  | Static React/Next.js                              |
+| Docs          | celery          | `micro`  | 250m    | 256 MiB  | Background task worker                            |
+| Docs          | yProvider       | `micro`  | 250m    | 256 MiB  | Yjs collaboration WebSocket server                |
+| Docs          | docspec         | `micro`  | 250m    | 256 MiB  | Document conversion service                       |
+| Drive         | backend         | `micro`  | 250m    | 256 MiB  | Django app                                        |
+| Drive         | frontend        | `nano`   | 100m    | 128 MiB  | Static React/Next.js                              |
+| Conversations | backend         | `micro`  | 250m    | 256 MiB  | Django app                                        |
+| Conversations | frontend        | `nano`   | 100m    | 128 MiB  | Static React/Next.js                              |
+| Bureaublad    | backend         | `micro`  | 250m    | 256 MiB  | Dashboard backend                                 |
+| Bureaublad    | frontend        | `nano`   | 100m    | 128 MiB  | Dashboard frontend                                |
+| Calendars     | backend         | `micro`  | 250m    | 256 MiB  | Django app                                        |
+| Calendars     | worker          | `micro`  | 250m    | 256 MiB  | Dramatiq background worker                        |
+| Calendars     | frontend        | `nano`   | 100m    | 128 MiB  | Static React/Vite                                 |
+| Calendars     | caldav          | `micro`  | 250m    | 256 MiB  | SabreDAV PHP server                               |
+| Messages      | backend         | `micro`  | 250m    | 256 MiB  | Django app and email API                          |
+| Messages      | worker          | `micro`  | 250m    | 256 MiB  | Celery worker and beat scheduler                  |
+| Messages      | frontend        | `nano`   | 100m    | 128 MiB  | Static React/Vite                                 |
+| Messages      | mta             | `small`  | 500m    | 512 MiB  | Inbound SMTP server                               |
+| Messages      | opensearch      | `medium` | 500m    | 1024 MiB | Full-text search index                            |
 
-### Dependencies (PostgreSQL, Valkey, MinIO)
+### Dependencies (PostgreSQL, Valkey, MinIO, OpenSearch)
 
-PostgreSQL is provided by CloudNativePG and uses explicit resources from `resource.<app>.postgresql`. Valkey uses `resource.<app>.valkey` when set, otherwise the global `resourcesPreset`. MinIO still uses the global `resourcesPreset` value. To customize PostgreSQL resources, use explicit values in `resource.yaml.gotmpl`:
+PostgreSQL is provided by CloudNativePG and uses explicit resources from `resource.<app>.postgresql`.
+Valkey uses `resource.<app>.valkey` when set, otherwise the global `resourcesPreset`. MinIO still
+uses the global `resourcesPreset` value. OpenSearch uses `resource.<app>.opensearch` when set,
+otherwise the per-app preset. To customize PostgreSQL resources, use explicit values in
+`resource.yaml.gotmpl`:
 
 ```yaml
 resource:

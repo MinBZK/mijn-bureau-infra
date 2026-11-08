@@ -367,9 +367,34 @@ chart:
     password: ~
 ```
 
-## Email Configuration
+## Email Application (Messages)
 
-Configure SMTP settings for transactional emails:
+Enable the Messages collaborative inbox and optionally create a mail domain during
+installation:
+
+```yaml
+application:
+  messages:
+    enabled: true
+    namespace: mijnbureau-messages
+    # Create this domain on install and give every OIDC user a mailbox.
+    mailDomain: "example.com"
+    # Hostname used in MX and SPF records. Defaults to mail.<global.domain>.
+    technicalDomain: "mail.example.com"
+    # Optional: pin the public SMTP address.
+    loadBalancerIP: "203.0.113.10"
+    # Optional: send outbound mail through a relay instead of direct MX delivery.
+    relayHost: "smtp.example.com:587"
+    relayUsername: "messages@example.com"
+```
+
+Set `MESSAGES_MTA_RELAY_PASSWORD` when rendering Helmfile, or configure
+`secret.messages.mtaRelayPassword` in an environment values file. Add the MX, SPF, DKIM and
+DMARC records described in [DNS](../dns.md#email-messages).
+
+## Transactional Email (SMTP)
+
+Configure SMTP settings for transactional emails sent by the other applications:
 
 ```yaml
 smtp:

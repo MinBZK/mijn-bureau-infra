@@ -1,18 +1,31 @@
 # Email
 
-The Email feature is not yet available in MijnBureau. It is currently under active development and will be introduced in a future release.
+MijnBureau includes **Messages**, the collaborative inbox from LaSuite. It provides a
+webmail interface, shared and personal mailboxes, threading, full-text search, attachments,
+message imports and outbound delivery.
 
-Below are previews of two products we are evaluating:
+- [Messages component documentation](../components/messages.md)
+- [DNS and MX records](../dns.md#email-messages)
 
-- Open-XChange — an enterprise‑ready mail platform used by many organizations; mature and proven in large deployments.
-- LaSuite Messages — an incubating project from the French government with promising collaborative email capabilities that could add new workflows.
+## What you need
 
-Feedback on which option to prioritize is welcome.
+Messages is not only a web application. It also runs an inbound SMTP server and an outbound
+delivery worker, so you need:
 
-## Open-XChange
+- control over the MX, SPF, DKIM and DMARC records of every mail domain;
+- an SMTP load balancer address with inbound TCP port 25;
+- outbound TCP port 25, or an SMTP relay;
+- a public PTR record for the outbound address.
 
-![Email Preview 1](/img/features/email.png)
+The default demo environment includes PostgreSQL, Valkey, OpenSearch, MinIO and the inbound
+MTA. Production deployments can use external services.
 
-### LaSuite messages
+## Mailboxes
 
-![Email Preview 2](/img/features/email2.png)
+Log in through Keycloak at `https://messages.<domain>`. A mail domain with **OIDC autojoin**
+creates a mailbox for each user on first login. Administrators can also create shared
+mailboxes and grant access to individual users.
+
+## Opening the web app
+
+![Messages](/img/features/email2.png)

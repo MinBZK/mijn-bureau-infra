@@ -1,0 +1,19 @@
+fullnameOverride: messages-valkey
+
+auth:
+  aclUsers:
+    default:
+      permissions: "~* &* +@all"
+      password: {{ .Values.cache.messages.password | quote }}
+
+dataStorage:
+  enabled: true
+  requestedSize: {{ coalesce .Values.pvc.messages.valkey.size .Values.pvc.default.size "1Gi" | quote }}
+  {{- with (coalesce .Values.pvc.messages.valkey.storageClass .Values.pvc.default.storageClass) }}
+  className: {{ . | quote }}
+  {{- end }}
+  accessModes: {{ coalesce .Values.pvc.messages.valkey.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+
+{{- with .Values.resource.messages.valkey }}
+resources: {{ toYaml . | nindent 2 }}
+{{- end }}

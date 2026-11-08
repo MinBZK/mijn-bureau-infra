@@ -103,6 +103,22 @@ pdb:
     s3Gateway:
       create: true
       maxUnavailable: 1
+  messages:
+    backend:
+      create: true
+      maxUnavailable: 1
+    worker:
+      create: true
+      maxUnavailable: 1
+    frontend:
+      create: true
+      maxUnavailable: 1
+    mta:
+      create: true
+      maxUnavailable: 1
+    opensearch:
+      create: true
+      maxUnavailable: 1
   clamav:
     create: true
     maxUnavailable: 1

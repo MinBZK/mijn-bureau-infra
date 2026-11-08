@@ -1,0 +1,193 @@
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+## @section Global parameters
+
+global:
+  ## Global Docker image parameters
+  ##
+  imageRegistry: ""
+  imagePullSecrets: []
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: ""
+  security:
+    allowInsecureImages: true
+
+## @section Common parameters
+
+kubeVersion: ""
+apiVersions: []
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+clusterDomain: cluster.local
+extraDeploy: []
+## @param runtimeClassName RuntimeClassName for the OpenSearch pods
+##
+runtimeClassName: ""
+
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section OpenSearch parameters
+
+image:
+  registry: docker.io
+  repository: opensearchproject/opensearch
+  tag: "2.19.2"
+  digest: ""
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+## @param replicaCount Number of OpenSearch replicas. Only one is supported by this chart (single-node).
+##
+replicaCount: 1
+
+## @param javaOpts JVM options for OpenSearch
+##
+javaOpts: "-Xms512m -Xmx512m"
+
+## @param extraEnvVars Additional environment variables for OpenSearch
+##
+extraEnvVars:
+  - name: discovery.type
+    value: single-node
+  - name: DISABLE_SECURITY_PLUGIN
+    value: "true"
+  - name: DISABLE_INSTALL_DEMO_CONFIG
+    value: "true"
+  - name: bootstrap.memory_lock
+    value: "false"
+
+containerPorts:
+  http: 9200
+  metrics: 9600
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+  successThreshold: 1
+customLivenessProbe: {}
+customReadinessProbe: {}
+customStartupProbe: {}
+
+resourcesPreset: "small"
+resources: {}
+
+podSecurityContext:
+  enabled: true
+  fsGroupChangePolicy: Always
+  sysctls: []
+  supplementalGroups: []
+  fsGroup: 1001
+
+containerSecurityContext:
+  enabled: true
+  seLinuxOptions: {}
+  runAsUser: 1001
+  runAsGroup: 1001
+  runAsNonRoot: true
+  readOnlyRootFilesystem: true
+  privileged: false
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - "ALL"
+  seccompProfile:
+    type: "RuntimeDefault"
+
+## @param command Override the container command
+##
+command: []
+## @param args Override the container args
+##
+args: []
+## @param extraEnvVarsCM Name of an existing ConfigMap with extra environment variables
+##
+extraEnvVarsCM: ""
+## @param extraEnvVarsSecret Name of an existing Secret with extra environment variables
+##
+extraEnvVarsSecret: ""
+
+deploymentAnnotations: {}
+podLabels: {}
+podAnnotations: {}
+podAffinityPreset: ""
+podAntiAffinityPreset: soft
+nodeAffinityPreset:
+  type: ""
+  key: ""
+  values: []
+affinity: {}
+nodeSelector: {}
+tolerations: []
+topologySpreadConstraints: []
+priorityClassName: ""
+terminationGracePeriodSeconds: 120
+lifecycleHooks: {}
+extraVolumes: []
+extraVolumeMounts: []
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+pdb:
+  create: true
+  minAvailable: ""
+  maxUnavailable: 1
+
+## @section Persistence parameters
+
+persistence:
+  enabled: true
+  mountPath: /usr/share/opensearch/data
+  storageClass: ""
+  annotations: {}
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  existingClaim: ""
+
+## @section Traffic exposure parameters
+
+service:
+  type: ClusterIP
+  ports:
+    http: 9200
+  annotations: {}
+
+## @section Network policy parameters
+
+networkPolicy:
+  enabled: true
+  allowExternal: false
+  allowExternalEgress: true
+  extraIngress: []
+  extraEgress: []

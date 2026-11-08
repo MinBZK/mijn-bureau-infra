@@ -36,6 +36,12 @@ global:
       celery: "small"
       audioExtractor: "small"
       s3Gateway: "small"
+    messages:
+      backend: "small"
+      worker: "small"
+      frontend: "small"
+      mta: "small"
+      opensearch: "small"
     conversations:
       backend: "small"
       frontend: "small"

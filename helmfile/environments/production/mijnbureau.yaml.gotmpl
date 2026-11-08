@@ -147,6 +147,11 @@ application:
   dictaphone:
     enabled: false
     namespace: mijnbureau-dictaphone
+  messages:
+    # Email requires MX records, a public SMTP load balancer and outbound
+    # port 25 or a relay. Enable after configuring application.messages.
+    enabled: false
+    namespace: mijnbureau-messages
   clamav:
     enabled: true
     namespace: mijnbureau-clamav

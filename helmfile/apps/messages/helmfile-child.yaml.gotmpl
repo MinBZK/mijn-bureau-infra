@@ -1,0 +1,75 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: messages-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.messages.enabled) | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: messages-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.messages.enabled) | toYaml }}
+    needs:
+      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
+
+  - name: messages-valkey
+    chart: ../common/charts/valkey
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.messages.enabled) | toYaml }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-valkey.yaml.gotmpl"
+
+  - name: messages-minio
+    chart: ../common/charts/minio
+    version: "17.0.11"
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.messages.enabled) | toYaml }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values-minio.yaml.gotmpl"
+
+  - name: messages-opensearch
+    chart: ../common/charts/opensearch
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.messages.enabled) (not .Values.search.messages.url) | toYaml }}
+    values:
+      - "values-opensearch.yaml.gotmpl"
+
+  - name: messages
+    chart: charts/messages
+    condition: application.messages.enabled
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    {{- if and (eq .Environment.Name "demo") (.Values.application.messages.enabled) }}
+    needs:
+      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-cluster
+      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-valkey
+      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-minio
+      {{- if not .Values.search.messages.url }}
+      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-opensearch
+      {{- end }}
+    {{- end }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values.yaml.gotmpl"

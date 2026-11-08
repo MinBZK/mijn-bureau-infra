@@ -64,6 +64,7 @@ global:
     docs: { backend: "none", frontend: "none", celery: "none", yProvider: "none", docspec: "none" }
     drive: { backend: "none", frontend: "none" }
     conversations: { backend: "none", frontend: "none" }
+    messages: { backend: "none", worker: "none", frontend: "none", mta: "none", opensearch: "none" }
     bureaublad: { backend: "none", frontend: "none" }
   tls:
     enabled: true
@@ -94,6 +95,7 @@ application:
   livekit:     { namespace: mb-livekit }
   meet:        { namespace: mb-meet }
   docs:        { namespace: mb-docs }
+  messages:    { namespace: mb-messages }
   bureaublad:  { namespace: mb-bureaublad }
 
 authentication:

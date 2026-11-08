@@ -65,6 +65,7 @@ import:
     MB_CLIENT_SECRET_PROJECTS: {{ .Values.authentication.client.projects.client_secret | quote }}
     MB_CLIENT_SECRET_CALENDARS: {{ .Values.authentication.client.calendars.client_secret | quote }}
     MB_CLIENT_SECRET_DICTAPHONE: {{ .Values.authentication.client.dictaphone.client_secret | quote }}
+    MB_CLIENT_SECRET_MESSAGES: {{ .Values.authentication.client.messages.client_secret | quote }}
     MB_CLIENT_SECRET_NEXTCLOUD: {{ .Values.authentication.client.nextcloud.client_secret | quote }}
     MB_CLIENT_SECRET_DOCS: {{ .Values.authentication.client.docs.client_secret | quote }}
     MB_CLIENT_SECRET_BUREAUBLAD: {{ .Values.authentication.client.bureaublad.client_secret | quote }}
@@ -514,6 +515,48 @@ import:
               "frontchannel.logout.url": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/api/v1/auth/logout",
               "post.logout.redirect.uris": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/*",
               "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "backchannel.logout.revoke.offline.tokens": "false"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.messages.client_id }}",
+            "name": "Messages",
+            "description": "Collaborative inbox and email from LaSuite",
+            "rootUrl": "https://{{ .Values.global.hostname.messages }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.messages }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.messages }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_MESSAGES)",
+            "redirectUris": [
+              "https://{{ .Values.global.hostname.messages }}.{{ .Values.global.domain }}/api/v1.0/callback/",
+              "https://{{ .Values.global.hostname.messages }}.{{ .Values.global.domain }}/api/v1.0/logout-callback/"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.messages }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "[PHONE]",
+              "backchannel.logout.session.required": "false",
+              "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.session.required": "false",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.messages }}.{{ .Values.global.domain }}/*",
               "oauth2.device.authorization.grant.enabled": "false",
               "display.on.consent.screen": "false",
               "backchannel.logout.revoke.offline.tokens": "false"

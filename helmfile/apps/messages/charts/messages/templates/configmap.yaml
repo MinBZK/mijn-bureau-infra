@@ -1,0 +1,145 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- $fullname := include "common.names.fullname" . -}}
+{{- $hostname := .Values.ingress.hostname | default (printf "%s.%s" $fullname .Values.clusterDomain) -}}
+{{- $baseUrl := .Values.backend.baseUrl | default (printf "https://%s" $hostname) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullname }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: messages
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  ## Django
+  ##
+  DJANGO_CONFIGURATION: Production
+  DJANGO_SETTINGS_MODULE: messages.settings
+  DJANGO_ALLOWED_HOSTS: {{ printf "%s,%s-backend" (.Values.backend.allowedHosts | default $hostname) $fullname | quote }}
+  DJANGO_CSRF_TRUSTED_ORIGINS: {{ .Values.backend.csrfTrustedOrigins | default $baseUrl | quote }}
+  CSRF_TRUSTED_ORIGINS: {{ .Values.backend.csrfTrustedOrigins | default $baseUrl | quote }}
+  DJANGO_ADMIN_URL: {{ .Values.frontend.adminUrl | default "admin" | quote }}
+  INSTANCE_URL: {{ .Values.backend.instanceUrl | default $baseUrl | quote }}
+  LANGUAGE_CODE: {{ .Values.backend.languageCode | default "en-us" | quote }}
+  USE_X_FORWARDED_FOR: {{ ternary "true" "false" .Values.backend.useXForwardedFor | quote }}
+  DJANGO_DATA_DIR: "/data"
+
+  ## Database
+  ##
+  DB_HOST: {{ .Values.externalDatabase.host | quote }}
+  DB_NAME: {{ .Values.externalDatabase.database | quote }}
+  DB_USER: {{ .Values.externalDatabase.username | quote }}
+  DB_PORT: {{ .Values.externalDatabase.port | quote }}
+  DB_ENGINE: "django.db.backends.postgresql_psycopg2"
+
+  ## OpenSearch
+  ##
+  OPENSEARCH_URL: {{ .Values.externalOpenSearch.url | quote }}
+  OPENSEARCH_INDEX_THREADS: {{ ternary "true" "false" .Values.externalOpenSearch.indexThreads | quote }}
+
+  ## OIDC
+  ##
+  OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
+  OIDC_CREATE_USER: "true"
+  OIDC_RP_SIGN_ALGO: "RS256"
+  OIDC_RP_SCOPES: "openid email"
+  OIDC_STORE_ID_TOKEN: "true"
+  OIDC_REDIRECT_REQUIRE_HTTPS: "true"
+  OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.jwks_uri | quote }}
+  OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.authorization_endpoint | quote }}
+  OIDC_OP_TOKEN_ENDPOINT: {{ .Values.authentication.token_endpoint | quote }}
+  OIDC_OP_USER_ENDPOINT: {{ .Values.authentication.userinfo_endpoint | quote }}
+  {{- if .Values.authentication.end_session_endpoint }}
+  OIDC_OP_LOGOUT_ENDPOINT: {{ .Values.authentication.end_session_endpoint | quote }}
+  {{- end }}
+  OIDC_REDIRECT_ALLOWED_HOSTS: {{ $hostname | quote }}
+  OIDC_USERINFO_FULLNAME_FIELDS: {{ printf "%s,%s" .Values.authentication.claims.given_name .Values.authentication.claims.family_name | quote }}
+  LOGIN_REDIRECT_URL: {{ $baseUrl | quote }}
+  LOGIN_REDIRECT_URL_FAILURE: {{ $baseUrl | quote }}
+  LOGOUT_REDIRECT_URL: {{ $baseUrl | quote }}
+
+  ## Mail
+  ##
+  MAX_INCOMING_EMAIL_SIZE: {{ .Values.backend.maxIncomingEmailSize | quote }}
+  MAX_OUTGOING_ATTACHMENT_SIZE: {{ .Values.backend.maxOutgoingAttachmentSize | quote }}
+  MESSAGES_TECHNICAL_DOMAIN: {{ .Values.backend.technicalDomain | quote }}
+  MESSAGES_DNS_RECORDS: {{ .Values.backend.dnsRecords | quote }}
+  MESSAGES_DKIM_DEFAULT_SELECTOR: {{ .Values.backend.dkimSelector | quote }}
+  MTA_OUT_MODE: {{ .Values.backend.mtaOutMode | quote }}
+  {{- if .Values.backend.mtaOutRelayHost }}
+  MTA_OUT_RELAY_HOST: {{ .Values.backend.mtaOutRelayHost | quote }}
+  {{- end }}
+  {{- if .Values.backend.mtaOutRelayUsername }}
+  MTA_OUT_RELAY_USERNAME: {{ .Values.backend.mtaOutRelayUsername | quote }}
+  {{- end }}
+  MTA_OUT_SMTP_TLS_SECURITY_LEVEL: {{ .Values.backend.mtaOutSmtpTlsSecurityLevel | quote }}
+  MDA_API_BASE_URL: {{ printf "%s/api/v1.0/" (include "messages.backendUrl" .) | quote }}
+  MDA_API_TIMEOUT: "30"
+
+  ## Inbound MTA (pymta)
+  ##
+  PYMTA_SMTP_BIND_HOST: "0.0.0.0"
+  PYMTA_SMTP_BIND_PORT: {{ .Values.mta.containerPorts.smtp | quote }}
+  PYMTA_SMTP_HOSTNAME: {{ .Values.mta.hostname | quote }}
+  PYMTA_MAX_INCOMING_EMAIL_SIZE: {{ .Values.backend.maxIncomingEmailSize | quote }}
+  PYMTA_MAX_CONCURRENT_DATA: {{ .Values.mta.maxConcurrentData | quote }}
+  {{- if .Values.mta.metrics.enabled }}
+  PYMTA_METRICS_BIND_PORT: {{ .Values.mta.containerPorts.metrics | quote }}
+  {{- else }}
+  PYMTA_METRICS_BIND_PORT: "0"
+  {{- end }}
+
+  ## Object storage
+  ##
+  AWS_S3_ENDPOINT_URL: {{ .Values.externalObjectStore.endpoint | quote }}
+  AWS_S3_ACCESS_KEY_ID: {{ .Values.externalObjectStore.accessKey | quote }}
+  AWS_S3_SIGNATURE_VERSION: "s3v4"
+  AWS_S3_REGION_NAME: {{ .Values.externalObjectStore.region | quote }}
+  AWS_STORAGE_BUCKET_NAME: {{ .Values.externalObjectStore.buckets.media | quote }}
+  AWS_S3_UPLOAD_POLICY_EXPIRATION: "86400"
+  {{- if .Values.externalObjectStore.publicUrl }}
+  AWS_S3_DOMAIN_REPLACE: {{ .Values.externalObjectStore.publicUrl | quote }}
+  {{- end }}
+  STORAGE_MESSAGE_IMPORTS_ENDPOINT_URL: {{ .Values.externalObjectStore.endpoint | quote }}
+  STORAGE_MESSAGE_IMPORTS_BUCKET_NAME: {{ .Values.externalObjectStore.buckets.imports | quote }}
+  STORAGE_MESSAGE_IMPORTS_ACCESS_KEY: {{ .Values.externalObjectStore.accessKey | quote }}
+  STORAGE_MESSAGE_IMPORTS_REGION_NAME: {{ .Values.externalObjectStore.region | quote }}
+  STORAGE_MESSAGE_IMPORTS_EXPIRE_POLICY: "3600"
+  STORAGE_MESSAGE_BLOBS_ENDPOINT_URL: {{ .Values.externalObjectStore.endpoint | quote }}
+  STORAGE_MESSAGE_BLOBS_BUCKET_NAME: {{ .Values.externalObjectStore.buckets.blobs | quote }}
+  STORAGE_MESSAGE_BLOBS_ACCESS_KEY: {{ .Values.externalObjectStore.accessKey | quote }}
+  STORAGE_MESSAGE_BLOBS_REGION_NAME: {{ .Values.externalObjectStore.region | quote }}
+  STORAGE_MESSAGE_EXPORTS_ENDPOINT_URL: {{ .Values.externalObjectStore.endpoint | quote }}
+  STORAGE_MESSAGE_EXPORTS_BUCKET_NAME: {{ .Values.externalObjectStore.buckets.exports | quote }}
+  STORAGE_MESSAGE_EXPORTS_ACCESS_KEY: {{ .Values.externalObjectStore.accessKey | quote }}
+  STORAGE_MESSAGE_EXPORTS_REGION_NAME: {{ .Values.externalObjectStore.region | quote }}
+
+  ## Optional integrations
+  ##
+  {{- if .Values.backend.driveBaseUrl }}
+  DRIVE_BASE_URL: {{ .Values.backend.driveBaseUrl | quote }}
+  {{- end }}
+  {{- if .Values.backend.identityProvider }}
+  IDENTITY_PROVIDER: {{ .Values.backend.identityProvider | quote }}
+  KEYCLOAK_URL: {{ .Values.backend.keycloakUrl | quote }}
+  KEYCLOAK_REALM: {{ .Values.backend.keycloakRealm | quote }}
+  KEYCLOAK_CLIENT_ID: {{ .Values.backend.keycloakClientId | quote }}
+  KEYCLOAK_GROUP_PATH_PREFIX: {{ .Values.backend.keycloakGroupPathPrefix | quote }}
+  {{- end }}
+  {{- if .Values.backend.aiBaseUrl }}
+  AI_BASE_URL: {{ .Values.backend.aiBaseUrl | quote }}
+  AI_MODEL: {{ .Values.backend.aiModel | quote }}
+  FEATURE_AI_SUMMARY: {{ ternary "true" "false" .Values.backend.featureAiSummary | quote }}
+  FEATURE_AI_AUTOLABELS: {{ ternary "true" "false" .Values.backend.featureAiAutolabels | quote }}
+  {{- end }}
+  PUSH_ENABLED: {{ ternary "true" "false" .Values.backend.pushEnabled | quote }}
+  {{- if .Values.bootstrap.mailDomain }}
+  MESSAGES_BOOTSTRAP_MAIL_DOMAIN: {{ .Values.bootstrap.mailDomain | quote }}
+  MESSAGES_BOOTSTRAP_MAIL_DOMAIN_OIDC_AUTOJOIN: {{ ternary "true" "false" .Values.bootstrap.oidcAutojoin | quote }}
+  {{- end }}

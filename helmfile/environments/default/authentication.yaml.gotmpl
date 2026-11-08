@@ -52,3 +52,6 @@ authentication:
     dictaphone:
       client_id: "dictaphone"
       client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "dictaphone_client_secret" | sha1sum | quote}}
+    messages:
+      client_id: "messages"
+      client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "messages_client_secret" | sha1sum | quote}}

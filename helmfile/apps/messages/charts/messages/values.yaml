@@ -1,0 +1,589 @@
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+## @section Global parameters
+
+global:
+  ## Global Docker image parameters
+  ##
+  imageRegistry: ""
+  imagePullSecrets: []
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: ""
+  security:
+    allowInsecureImages: true
+
+## @section Common parameters
+
+kubeVersion: ""
+apiVersions: []
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+clusterDomain: cluster.local
+extraDeploy: []
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section Cluster parameters
+
+## Cluster routing configuration. Helmfile overrides these values through
+## values-cluster-ingress.yaml.gotmpl.
+##
+cluster:
+  routingMode: ingress
+  ingress:
+    type: nginx
+    className: ""
+    annotations: {}
+  gateway: {}
+  tls:
+    selfSigned: false
+
+## @section Messages backend parameters
+
+## Django REST API (gunicorn)
+##
+backend:
+  image:
+    registry: ghcr.io
+    repository: suitenumerique/messages-backend
+    tag: main
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  replicaCount: 1
+  containerPorts:
+    http: 8000
+  extraContainerPorts: []
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  customStartupProbe: {}
+  resourcesPreset: "micro"
+  resources: {}
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - "ALL"
+    privileged: false
+    runAsUser: 1001
+    runAsGroup: 1001
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+  runtimeClassName: ""
+  deploymentAnnotations: {}
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  command: []
+  args: []
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  extraVolumeMounts: []
+  extraVolumes: []
+  secretKey: ""
+  saltKey: ""
+  mdaApiSecret: ""
+  baseUrl: ""
+  allowedHosts: ""
+  csrfTrustedOrigins: ""
+  instanceUrl: ""
+  languageCode: "nl-nl"
+  useXForwardedFor: true
+  technicalDomain: ""
+  dkimSelector: "stmessages"
+  dnsRecords: '[{"target":"","type":"mx","value":"10 mx1.{technical_domain}."},{"target":"","type":"mx","value":"20 mx2.{technical_domain}."},{"target":"","type":"txt","value":"v=spf1 include:_spf.{technical_domain} -all"},{"target":"_dmarc","type":"txt","value":"v=DMARC1; p=reject; adkim=s; aspf=s;"}]'
+  maxIncomingEmailSize: 10485760
+  maxOutgoingAttachmentSize: 20971520
+  mtaOutMode: direct
+  mtaOutRelayHost: ""
+  mtaOutRelayUsername: ""
+  mtaOutRelayPassword: ""
+  mtaOutSmtpTlsSecurityLevel: may
+  opensearchUrl: ""
+  opensearchIndexThreads: true
+  driveBaseUrl: ""
+  featureAiSummary: false
+  featureAiAutolabels: false
+  aiBaseUrl: ""
+  aiApiKey: ""
+  aiModel: ""
+  identityProvider: ""
+  keycloakUrl: ""
+  keycloakRealm: ""
+  keycloakClientId: ""
+  keycloakClientSecret: ""
+  keycloakGroupPathPrefix: ""
+  pushEnabled: false
+
+## @section Messages worker parameters
+
+## Celery worker and beat scheduler
+##
+worker:
+  image:
+    registry: ghcr.io
+    repository: suitenumerique/messages-backend
+    tag: main
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  replicaCount: 1
+  command: []
+  args:
+    - worker.py
+    - --loglevel=INFO
+    - --concurrency=2
+  livenessProbe:
+    enabled: false
+  readinessProbe:
+    enabled: false
+  startupProbe:
+    enabled: false
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  customStartupProbe: {}
+  resourcesPreset: "micro"
+  resources: {}
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - "ALL"
+    privileged: false
+    runAsUser: 1001
+    runAsGroup: 1001
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 1
+      targetCPU: 80
+      targetMemory: ""
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+  runtimeClassName: ""
+  deploymentAnnotations: {}
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  extraVolumeMounts: []
+  extraVolumes: []
+  terminationGracePeriodSeconds: 620
+
+## @section Messages frontend parameters
+
+## React single-page application and Caddy reverse proxy
+##
+frontend:
+  image:
+    registry: ghcr.io
+    repository: suitenumerique/messages-frontend
+    tag: main
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  replicaCount: 1
+  containerPorts:
+    http: 8080
+  extraContainerPorts: []
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  customStartupProbe: {}
+  resourcesPreset: "nano"
+  resources: {}
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - "ALL"
+    privileged: false
+    runAsUser: 1001
+    runAsGroup: 1001
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+  runtimeClassName: ""
+  deploymentAnnotations: {}
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  command: []
+  args: []
+  extraEnvVars:
+    - name: HOME
+      value: /tmp
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  extraVolumeMounts: []
+  extraVolumes: []
+  backendServer: ""
+  adminUrl: "admin"
+  adminIpAllowlist: "0.0.0.0/0 ::/0"
+  trustedProxies: ""
+
+## @section Inbound MTA parameters
+
+## Pure-Python SMTP server that validates recipients and delivers mail to the API
+##
+mta:
+  image:
+    registry: ghcr.io
+    repository: suitenumerique/messages-mta-in-py
+    tag: main
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  replicaCount: 1
+  containerPorts:
+    smtp: 2525
+    metrics: 9100
+  extraContainerPorts: []
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  startupProbe:
+    enabled: false
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  customStartupProbe: {}
+  resourcesPreset: "micro"
+  resources: {}
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - "ALL"
+    privileged: false
+    runAsUser: 65532
+    runAsGroup: 65532
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 1
+      targetCPU: 80
+      targetMemory: ""
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+  runtimeClassName: ""
+  deploymentAnnotations: {}
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  extraVolumeMounts: []
+  extraVolumes: []
+  hostname: ""
+  ## Keep this in line with the container memory limit. pymta holds each
+  ## message in memory; the upstream sizing rule is roughly
+  ## maxConcurrentData * maxIncomingEmailSize * 2.2 + 64 MiB.
+  ## 20 is the safe default for the 512 MiB "small" preset.
+  maxConcurrentData: 20
+  metrics:
+    enabled: false
+  ## SMTP service exposed to the internet. MX records point at this address.
+  ##
+  service:
+    type: LoadBalancer
+    port: 25
+    annotations: {}
+    loadBalancerIP: ""
+    externalTrafficPolicy: Local
+
+## @section Database jobs
+
+job:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 300
+  restartPolicy: OnFailure
+  podAnnotations: {}
+  resources: {}
+  commandMigrate:
+    - /bin/sh
+  argsMigrate:
+    - -c
+    - |
+      while ! python manage.py check --database default > /dev/null 2>&1
+      do
+        echo "Database not ready"
+        sleep 2
+      done
+      echo "Database is ready"
+      python manage.py migrate --noinput
+  commandSuperuser:
+    - /bin/sh
+  argsSuperuser:
+    - -c
+    - |
+      set -e
+      python manage.py createsuperuser --email "$DJANGO_SUPERUSER_EMAIL" --password "$DJANGO_SUPERUSER_PASSWORD"
+      python manage.py shell -c "
+      import os
+      from core.models import MailDomain
+      name = os.environ.get('MESSAGES_BOOTSTRAP_MAIL_DOMAIN', '').strip()
+      if name:
+          domain, created = MailDomain.objects.get_or_create(
+              name=name,
+              defaults={'oidc_autojoin': os.environ.get('MESSAGES_BOOTSTRAP_MAIL_DOMAIN_OIDC_AUTOJOIN', 'true').lower() == 'true'},
+          )
+          print(('Created' if created else 'Existing'), 'mail domain', domain.name)
+      "
+      python manage.py bucket_cors --storage default --set
+      python manage.py bucket_cors --storage message-imports --set
+      python manage.py bucket_cors --storage message-blobs --set
+      python manage.py bucket_cors --storage message-exports --set
+  migrate:
+    weight: "-20"
+  superuser:
+    weight: "0"
+
+## @section Traffic exposure parameters
+
+service:
+  type: ClusterIP
+  ports:
+    http: 80
+  annotations: {}
+
+ingress:
+  enabled: true
+  pathType: Prefix
+  hostname: ""
+  ingressClassName: ""
+  annotations: {}
+  tls: true
+  selfSigned: false
+  extraHosts: []
+  extraPaths: []
+  extraTls: []
+  secrets: []
+  extraRules: []
+
+## @section Network policy parameters
+
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: true
+  extraIngress: []
+  extraEgress: []
+
+## @section Service account parameters
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+## @section External Redis parameters
+
+externalRedis:
+  host: ""
+  port: 6379
+  password: ""
+
+## @section External database parameters
+
+externalDatabase:
+  type: postgresql
+  username: ""
+  password: ""
+  host: ""
+  port: 5432
+  database: ""
+
+## @section External OpenSearch parameters
+
+externalOpenSearch:
+  url: ""
+  indexThreads: true
+
+## @section External object storage parameters
+
+externalObjectStore:
+  endpoint: ""
+  port: 9000
+  useSSL: false
+  region: "eu-west-1"
+  accessKey: ""
+  secretKey: ""
+  buckets:
+    media: ""
+    imports: ""
+    blobs: ""
+    exports: ""
+  ## Public endpoint used to rewrite presigned URLs for the browser.
+  ##
+  publicUrl: ""
+
+## @section Authentication parameters
+
+authentication:
+  issuer: ""
+  authorization_endpoint: ""
+  token_endpoint: ""
+  userinfo_endpoint: ""
+  end_session_endpoint: ""
+  jwks_uri: ""
+  claims:
+    username: preferred_username
+    display_name: name
+    given_name: given_name
+    family_name: family_name
+  client:
+    client_id: messages
+    client_secret: ""
+
+## @section Superuser parameters
+
+superuser:
+  email: ""
+  password: ""
+
+## @section Bootstrap parameters
+
+bootstrap:
+  ## Create this mail domain on install and enable oidc_autojoin so users
+  ## receive a mailbox on first login. Leave empty to manage domains in
+  ## the Django admin.
+  ##
+  mailDomain: ""
+  oidcAutojoin: true

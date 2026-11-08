@@ -15,6 +15,7 @@ In the Demo environment, MijnBureau deploys all required datastores, including:
 - **PostgreSQL Databases**
 - **Valkey Caches**
 - **MinIO Object Stores**
+- **OpenSearch Search Index**
 
 > **Note**: The Demo environment is intended for testing and evaluation purposes, but if done correctly can be configured for production usage.
 
@@ -35,7 +36,7 @@ Every organization handles data differently. While some may use Kubernetes-manag
 
 Before deploying a production environment, ensure the following:
 
-1. **Datastores**: Set up and configure external datastores (e.g., PostgreSQL, Valkey, MinIO).
+1. **Datastores**: Set up and configure external datastores (e.g., PostgreSQL, Valkey, MinIO, OpenSearch).
 2. **Persistent Volume Claims (PVCs)**: MijnBureau uses PVCs to store important data. Ensure these are backed up regularly.
 
 > **Recommendation**: Use a tool like [Velero](https://velero.io/) to manage PVC backups effectively.

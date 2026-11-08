@@ -1,0 +1,9 @@
+CHART NAME: {{ .Chart.Name }}
+CHART VERSION: {{ .Chart.Version }}
+APP VERSION: {{ .Chart.AppVersion }}
+
+OpenSearch is available at:
+
+  http://{{ include "common.names.fullname" . }}.{{ include "common.names.namespace" . }}:{{ .Values.service.ports.http }}
+
+{{- include "opensearch.validateValues" . }}

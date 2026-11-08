@@ -37,6 +37,12 @@ global:
       celery: "xlarge"
       audioExtractor: "xlarge"
       s3Gateway: "xlarge"
+    messages:
+      backend: "xlarge"
+      worker: "xlarge"
+      frontend: "xlarge"
+      mta: "xlarge"
+      opensearch: "xlarge"
     conversations:
       backend: "xlarge"
       frontend: "xlarge"

@@ -1,0 +1,37 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "common.names.fullname" . }}-mta
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: messages-mta
+  {{- if or .Values.mta.service.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.mta.service.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.mta.service.type }}
+  {{- if ne .Values.mta.service.type "ClusterIP" }}
+  externalTrafficPolicy: {{ .Values.mta.service.externalTrafficPolicy | default "Local" }}
+  {{- end }}
+  {{- if and (eq .Values.mta.service.type "LoadBalancer") .Values.mta.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.mta.service.loadBalancerIP | quote }}
+  {{- end }}
+  ports:
+    - name: smtp
+      port: {{ .Values.mta.service.port }}
+      targetPort: smtp
+      protocol: TCP
+    {{- if .Values.mta.metrics.enabled }}
+    - name: metrics
+      port: {{ .Values.mta.containerPorts.metrics }}
+      targetPort: metrics
+      protocol: TCP
+    {{- end }}
+  selector: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: messages-mta
