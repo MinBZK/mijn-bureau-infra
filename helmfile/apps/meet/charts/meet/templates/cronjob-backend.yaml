@@ -1,0 +1,127 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.meet_backend.cronjobs }}
+{{- $backend := .Values.meet_backend }}
+{{- $envVars := include "meet.common.env" (list . $backend) }}
+{{- range $cronjob := $backend.cronjobs }}
+---
+apiVersion: {{ include "common.capabilities.cronjob.apiVersion" $ }}
+kind: CronJob
+metadata:
+  name: {{ include "common.names.fullname" $ }}-backend-{{ $cronjob.name }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: meet-backend
+  {{- if or $backend.deploymentAnnotations $.Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list $backend.deploymentAnnotations $.Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  schedule: {{ $cronjob.schedule | quote }}
+  concurrencyPolicy: {{ $cronjob.concurrencyPolicy | default "Forbid" }}
+  successfulJobsHistoryLimit: {{ $cronjob.successfulJobsHistoryLimit | default 3 }}
+  failedJobsHistoryLimit: {{ $cronjob.failedJobsHistoryLimit | default 1 }}
+  {{- if $cronjob.startingDeadlineSeconds }}
+  startingDeadlineSeconds: {{ $cronjob.startingDeadlineSeconds }}
+  {{- end }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ $cronjob.backoffLimit | default 6 }}
+      ttlSecondsAfterFinished: {{ $cronjob.ttlSecondsAfterFinished | default 3600 }}
+      template:
+        metadata:
+          {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list $backend.podLabels $.Values.commonLabels) "context" .) }}
+          labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 12 }}
+            app.kubernetes.io/component: meet-backend
+          {{- if $backend.podAnnotations }}
+          annotations: {{- include "common.tplvalues.render" (dict "value" $backend.podAnnotations "context" $) | nindent 12 }}
+          {{- end }}
+        spec:
+          {{- include "meet_backend.imagePullSecrets" $ | nindent 10 }}
+          serviceAccountName: {{ include "meet.serviceAccountName" $ }}
+          automountServiceAccountToken: {{ $backend.automountServiceAccountToken }}
+          restartPolicy: {{ $cronjob.restartPolicy | default "Never" }}
+          {{- if $backend.affinity }}
+          affinity: {{- include "common.tplvalues.render" ( dict "value" $backend.affinity "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if $backend.nodeSelector }}
+          nodeSelector: {{- include "common.tplvalues.render" ( dict "value" $backend.nodeSelector "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if $backend.tolerations }}
+          tolerations: {{- include "common.tplvalues.render" (dict "value" $backend.tolerations "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if $backend.priorityClassName }}
+          priorityClassName: {{ $backend.priorityClassName | quote }}
+          {{- end }}
+          {{- if $backend.schedulerName }}
+          schedulerName: {{ $backend.schedulerName | quote }}
+          {{- end }}
+          {{- if $backend.runtimeClassName }}
+          runtimeClassName: {{ $backend.runtimeClassName | quote }}
+          {{- end }}
+          {{- if $backend.topologySpreadConstraints }}
+          topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" $backend.topologySpreadConstraints "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if $backend.podSecurityContext.enabled }}
+          securityContext: {{- omit $backend.podSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if $backend.terminationGracePeriodSeconds }}
+          terminationGracePeriodSeconds: {{ $backend.terminationGracePeriodSeconds }}
+          {{- end }}
+          containers:
+            - name: {{ include "common.names.fullname" $ }}-backend-{{ $cronjob.name }}
+              image: {{ template "meet_backend.image" $ }}
+              imagePullPolicy: {{ $backend.image.pullPolicy }}
+              {{- if $backend.containerSecurityContext.enabled }}
+              securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" $backend.containerSecurityContext "context" $) | nindent 16 }}
+              {{- end }}
+              {{- with $cronjob.command }}
+              command: {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- with $cronjob.args }}
+              args: {{- toYaml . | nindent 16 }}
+              {{- end }}
+              {{- if or $envVars $backend.extraEnvVars }}
+              env:
+                {{- if $envVars }}
+                {{- $envVars | nindent 16 }}
+                {{- end }}
+                {{- if $backend.extraEnvVars }}
+                {{- include "common.tplvalues.render" (dict "value" $backend.extraEnvVars "context" $) | nindent 16 }}
+                {{- end }}
+              {{- end }}
+              envFrom:
+                - configMapRef:
+                    name: {{ include "common.names.fullname" $ }}
+                - secretRef:
+                    name: {{ include "meet.secretName" $ }}
+                {{- if $backend.extraEnvVarsCM }}
+                - configMapRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" $backend.extraEnvVarsCM "context" $) }}
+                {{- end }}
+                {{- if $backend.extraEnvVarsSecret }}
+                - secretRef:
+                    name: {{ include "common.tplvalues.render" (dict "value" $backend.extraEnvVarsSecret "context" $) }}
+                {{- end }}
+              {{- if $backend.resources }}
+              resources: {{- toYaml $backend.resources | nindent 16 }}
+              {{- else if ne $backend.resourcesPreset "none" }}
+              resources: {{- include "common.resources.preset" (dict "type" $backend.resourcesPreset) | nindent 16 }}
+              {{- end }}
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+                {{- if $backend.extraVolumeMounts }}
+                {{- include "common.tplvalues.render" (dict "value" $backend.extraVolumeMounts "context" $) | nindent 16 }}
+                {{- end }}
+          volumes:
+            - name: tmp
+              emptyDir: {}
+            {{- if $backend.extraVolumes }}
+            {{- include "common.tplvalues.render" (dict "value" $backend.extraVolumes "context" $) | nindent 12 }}
+            {{- end }}
+{{- end }}
+{{- end }}

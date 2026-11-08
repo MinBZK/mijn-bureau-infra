@@ -23,6 +23,14 @@ autoscaling:
       maxReplicas: 3
       targetCPU: 60
       targetMemory: ""
+    livekitEgress:
+      # Egress is busy for the duration of a recording, so CPU based HPA is
+      # of limited use. Scale replicas based on concurrent recordings instead.
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 60
+      targetMemory: ""
     nextcloud:
       enabled: true
       minReplicas: 1
@@ -51,6 +59,12 @@ autoscaling:
         targetMemory: ""
     conversations:
       backend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      celery:
         enabled: true
         minReplicas: 1
         maxReplicas: 3

@@ -1,0 +1,45 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.networkPolicy.enabled }}
+{{- $components := list
+  (dict "name" "agent-metadata" "enabled" .Values.agent_metadata.enabled "fullname" (include "meet.agentMetadata.fullname" .) "component" "meet-agent-metadata" "podLabels" .Values.agent_metadata.podLabels)
+  (dict "name" "agent-subtitles" "enabled" .Values.agent_subtitles.enabled "fullname" (include "meet.agentSubtitles.fullname" .) "component" "meet-agent-subtitles" "podLabels" .Values.agent_subtitles.podLabels)
+  (dict "name" "celery-backend" "enabled" .Values.celery_backend.enabled "fullname" (include "meet.celeryBackend.fullname" .) "component" "meet-celery-backend" "podLabels" .Values.celery_backend.podLabels)
+  (dict "name" "celery-summarize" "enabled" .Values.celery_summarize.enabled "fullname" (include "meet.celerySummarize.fullname" .) "component" "meet-celery-summarize" "podLabels" .Values.celery_summarize.podLabels)
+  (dict "name" "celery-transcribe" "enabled" .Values.celery_transcribe.enabled "fullname" (include "meet.celeryTranscribe.fullname" .) "component" "meet-celery-transcribe" "podLabels" .Values.celery_transcribe.podLabels)
+-}}
+{{- range $component := $components }}
+{{- if $component.enabled }}
+---
+apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" $ }}
+kind: NetworkPolicy
+metadata:
+  name: {{ $component.fullname }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ $component.component }}
+  {{- if $.Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $.Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list $component.podLabels $.Values.commonLabels ) "context" $ ) }}
+  podSelector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: {{ $component.component }}
+  policyTypes:
+    - Egress
+  egress:
+    {{- if $.Values.networkPolicy.allowExternalEgress }}
+    - {}
+    {{- else }}
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
+    {{- if $.Values.networkPolicy.extraEgress }}
+    {{- include "common.tplvalues.render" ( dict "value" $.Values.networkPolicy.extraEgress "context" $ ) | nindent 4 }}
+    {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

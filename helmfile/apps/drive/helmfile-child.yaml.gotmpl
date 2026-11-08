@@ -67,7 +67,7 @@ releases:
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}
-    installed: {{ and .Values.application.drive.enabled (or (eq .Values.cluster.ingress.type "haproxy-openshift") (eq .Values.cluster.ingress.type "traefik")) | toYaml }}
+    installed: {{ .Values.application.drive.enabled | toYaml }}
     needs:
       - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive
     values:
@@ -80,7 +80,7 @@ releases:
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}
-    installed: {{ and .Values.application.drive.enabled (or (eq .Values.cluster.ingress.type "haproxy-openshift") (eq .Values.cluster.ingress.type "traefik")) | toYaml }}
+    installed: {{ .Values.application.drive.enabled | toYaml }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"

@@ -67,6 +67,14 @@ data:
   DEFAULT_FROM_EMAIL: {{ .Values.smtp.from | quote }}
   CALENDAR_INVITATION_FROM_EMAIL: {{ .Values.smtp.from | quote }}
 
+  ## Messages integration (mailbox calendars and mailbox invitations)
+  ##
+  {{- if .Values.backend.messagesIntegration.enabled }}
+  FEATURE_MESSAGES_INTEGRATION: "true"
+  MESSAGES_API_URL: {{ .Values.backend.messagesIntegration.apiUrl | quote }}
+  MESSAGES_CHANNEL_ID: {{ .Values.backend.messagesIntegration.channelId | quote }}
+  {{- end }}
+
   ## CalDAV (Django proxies /caldav to this service)
   ##
   CALDAV_URL: {{ .Values.caldav.url | default (printf "http://%s:80" $caldavHost) | quote }}

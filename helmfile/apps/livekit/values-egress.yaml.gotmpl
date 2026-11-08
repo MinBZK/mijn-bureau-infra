@@ -1,0 +1,87 @@
+{{- $livekitKeys := deepCopy .Values.application.livekit.keys -}}
+{{- $firstKeyName := $livekitKeys | keys | first -}}
+{{- $livekitKeyName := $firstKeyName -}}
+{{- if and .Values.livekit.meet.apiKey .Values.livekit.meet.apiSecret -}}
+{{- $livekitKeyName = .Values.livekit.meet.apiKey -}}
+{{- $_ := set $livekitKeys $livekitKeyName .Values.livekit.meet.apiSecret -}}
+{{- else if .Values.livekit.meet.apiSecret -}}
+{{- $_ := set $livekitKeys $firstKeyName .Values.livekit.meet.apiSecret -}}
+{{- end -}}
+{{- $livekitSecret := index $livekitKeys $livekitKeyName -}}
+{{- $meet := .Values.objectstore.meet -}}
+{{- $clusterDomain := .Values.cluster.networking.domain | default "cluster.local" -}}
+{{- $meetNamespace := .Values.application.meet.namespace | default "default" -}}
+{{- $meetS3Host := $meet.endpoint -}}
+{{- if (dig "isInternal" false $meet) -}}
+{{- $meetS3Host = printf "%s.%s.svc.%s" $meet.endpoint $meetNamespace $clusterDomain -}}
+{{- end -}}
+{{- $meetS3Scheme := ternary "https" "http" (eq (toString $meet.useSSL) "true") -}}
+{{- $meetS3Url := printf "%s://%s:%v" $meetS3Scheme $meetS3Host $meet.port -}}
+{{- $egressSecurity := .Values.security.livekit_egress | default dict -}}
+{{- $egressPodSecurity := $egressSecurity.podSecurityContext | default .Values.security.default.podSecurityContext -}}
+{{- $egressContainerSecurity := $egressSecurity.containerSecurityContext | default .Values.security.default.containerSecurityContext -}}
+global:
+  ## Global Docker image parameters
+  ##
+  imageRegistry: {{ (coalesce .Values.container.livekit_egress.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.livekit_egress.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - name: {{ . | quote }}
+  {{- end }}
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+
+commonLabels:
+  app.kubernetes.io/part-of: livekit
+
+clusterDomain: {{ $clusterDomain | quote }}
+
+egress:
+  image:
+    registry: {{ (coalesce .Values.container.livekit_egress.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.livekit_egress.repository | quote }}
+    tag: {{ .Values.container.livekit_egress.tag | quote }}
+    pullPolicy: Always
+
+  # The egress image entrypoint does `rm -rf` on /var/run, /var/lib/pulse etc.
+  # Mounting emptyDir volumes at those paths makes rm fail (cannot remove a
+  # mountpoint). The container runs with a writable root filesystem instead
+  # (security.livekit_egress.containerSecurityContext.readOnlyRootFilesystem=false).
+  writableDirs:
+    enabled: false
+
+  dirsInitContainer:
+    image:
+      registry: {{ (coalesce .Values.container.busybox.registry .Values.container.default.registry) | quote }}
+      repository: {{ .Values.container.busybox.repository | quote }}
+      tag: {{ .Values.container.busybox.tag | quote }}
+      pullPolicy: Always
+
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.livekitEgress .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.livekit.egress | default dict | toYaml | nindent 4 }}
+
+  podSecurityContext: {{ $egressPodSecurity | toYaml | nindent 4 }}
+  containerSecurityContext: {{ $egressContainerSecurity | toYaml | nindent 4 }}
+
+  autoscaling:
+    hpa: {{ coalesce .Values.autoscaling.horizontal.livekitEgress (dict "enabled" false) | toYaml | nindent 6 }}
+
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | default "" | quote }}
+
+  config:
+    api_key: {{ $livekitKeyName | quote }}
+    api_secret: {{ $livekitSecret | quote }}
+    redis:
+      address: {{ printf "%s:%v" .Values.cache.livekit.host .Values.cache.livekit.port | quote }}
+      username: "default"
+      password: {{ .Values.cache.livekit.password | quote }}
+    s3:
+      access_key: {{ $meet.username | quote }}
+      secret: {{ $meet.rootPassword | quote }}
+      region: {{ $meet.region | default "eu-west-1" | quote }}
+      bucket: {{ $meet.bucket | quote }}
+      endpoint: {{ $meetS3Url | quote }}
+    # Room-composite (web) egress loads the recorder page from HTTPS
+    # (recorder.livekit.io); Chrome blocks plaintext ws:// upgrades from an HTTPS
+    # page, so connect over the public wss endpoint, not the cluster service.
+    ws_url: {{ if and .Values.application.livekit.enabled .Values.livekit.meet.apiURL }}{{ .Values.livekit.meet.apiURL | replace "https://" "wss://" | replace "http://" "wss://" | quote }}{{ else if .Values.application.livekit.enabled }}{{ printf "wss://%s.%s" .Values.global.hostname.livekit .Values.global.domain | quote }}{{ else }}{{ fail "egress web source needs a public livekit wss url" }}{{ end }}
+    insecure: false

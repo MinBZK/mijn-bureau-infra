@@ -2,6 +2,9 @@
 {{- $presetPerApp := .Values.global.resourcesPresetPerApp | default dict }}
 {{- $resources := .Values.resource | default dict }}
 {{- $pdb := .Values.pdb | default dict }}
+{{- /* The official opensearchproject/opensearch image runs as UID/GID 1000. */ -}}
+{{- $podSecurityContext := mergeOverwrite (dict) .Values.security.default.podSecurityContext (dict "fsGroup" 1000) }}
+{{- $containerSecurityContext := mergeOverwrite (dict) .Values.security.default.containerSecurityContext (dict "runAsUser" 1000 "runAsGroup" 1000) }}
 
 global:
   imageRegistry: {{ (coalesce .Values.container.opensearch.registry .Values.container.default.registry) | quote }}
@@ -28,8 +31,8 @@ image:
 
 resourcesPreset: {{ dig "messages" "opensearch" $preset $presetPerApp | quote }}
 resources: {{ dig "messages" "opensearch" (dict) $resources | toYaml | nindent 2 }}
-podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
-containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
+podSecurityContext: {{ $podSecurityContext | toYaml | nindent 2 }}
+containerSecurityContext: {{ $containerSecurityContext | toYaml | nindent 2 }}
 pdb: {{ dig "messages" "opensearch" (dict) $pdb | toYaml | nindent 2 }}
 {{- if .Values.cluster.runtimeClassName }}
 runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}

@@ -110,6 +110,9 @@ conversations:
   superuserEmail: "admin@example.com"
   superuserPassword: "admin_password"
   baseUrl: ""
+  ## @param conversations.docsBaseUrl Base URL of the Docs application used by the "Edit in Docs" integration
+  ##
+  docsBaseUrl: ""
   llm:
     systemPrompt: |
       You are MijnBureau AI, a conversational assistant deployed by the MijnBureau
@@ -599,6 +602,346 @@ conversations:
       maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
+  ## Celery worker configuration
+  ##
+  celery:
+    ## @param conversations.celery.enabled Enable the Celery worker
+    ##
+    enabled: true
+    ## @param conversations.celery.replicaCount Number of Celery worker replicas to deploy
+    ##
+    replicaCount: 1
+    ## @param conversations.celery.command Override the Celery worker container command
+    ##
+    command: []
+    ## @param conversations.celery.args Override the Celery worker container args
+    ##
+    args: ["celery", "-A", "conversations.celery_app", "worker", "-l", "INFO", "-n", "conversations@%h"]
+    ## @param conversations.celery.concurrency Number of Celery worker processes
+    ##
+    concurrency: 2
+    ## Configure extra options for Celery worker containers' liveness and readiness probes
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+    ## @param conversations.celery.livenessProbe.enabled Enable livenessProbe on Celery worker containers
+    ## @param conversations.celery.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+    ## @param conversations.celery.livenessProbe.periodSeconds Period seconds for livenessProbe
+    ## @param conversations.celery.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+    ## @param conversations.celery.livenessProbe.failureThreshold Failure threshold for livenessProbe
+    ## @param conversations.celery.livenessProbe.successThreshold Success threshold for livenessProbe
+    ##
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      timeoutSeconds: 15
+      failureThreshold: 3
+      successThreshold: 1
+    ## @param conversations.celery.readinessProbe.enabled Enable readinessProbe on Celery worker containers
+    ## @param conversations.celery.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+    ## @param conversations.celery.readinessProbe.periodSeconds Period seconds for readinessProbe
+    ## @param conversations.celery.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+    ## @param conversations.celery.readinessProbe.failureThreshold Failure threshold for readinessProbe
+    ## @param conversations.celery.readinessProbe.successThreshold Success threshold for readinessProbe
+    ##
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 20
+      periodSeconds: 30
+      timeoutSeconds: 15
+      failureThreshold: 3
+      successThreshold: 1
+    ## @param conversations.celery.startupProbe.enabled Enable startupProbe on Celery worker containers
+    ## @param conversations.celery.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+    ## @param conversations.celery.startupProbe.periodSeconds Period seconds for startupProbe
+    ## @param conversations.celery.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+    ## @param conversations.celery.startupProbe.failureThreshold Failure threshold for startupProbe
+    ## @param conversations.celery.startupProbe.successThreshold Success threshold for startupProbe
+    ##
+    startupProbe:
+      enabled: false
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 30
+      successThreshold: 1
+    ## @param conversations.celery.customLivenessProbe Custom livenessProbe that overrides the default one
+    ##
+    customLivenessProbe: {}
+    ## @param conversations.celery.customReadinessProbe Custom readinessProbe that overrides the default one
+    ##
+    customReadinessProbe: {}
+    ## @param conversations.celery.customStartupProbe Custom startupProbe that overrides the default one
+    ##
+    customStartupProbe: {}
+    ## @param conversations.celery.resourcesPreset Set Celery worker container resources according to one common preset
+    ##
+    resourcesPreset: "micro"
+    ## @param conversations.celery.resources Set Celery worker container requests and limits
+    ##
+    resources: {}
+    ## @param conversations.celery.podSecurityContext.enabled Enable Celery worker pods' Security Context
+    ## @param conversations.celery.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy for Celery worker pods
+    ## @param conversations.celery.podSecurityContext.sysctls Set kernel settings using the sysctl interface for Celery worker pods
+    ## @param conversations.celery.podSecurityContext.supplementalGroups Set filesystem extra groups for Celery worker pods
+    ## @param conversations.celery.podSecurityContext.fsGroup Set fsGroup in Celery worker pods' Security Context
+    ##
+    podSecurityContext:
+      enabled: true
+      fsGroupChangePolicy: Always
+      sysctls: []
+      supplementalGroups: []
+      fsGroup: 1001
+    ## @param conversations.celery.containerSecurityContext.enabled Enable Celery worker container Security Context
+    ## @param conversations.celery.containerSecurityContext.seLinuxOptions Set SELinux options in Celery worker container
+    ## @param conversations.celery.containerSecurityContext.runAsUser Set runAsUser in Celery worker container
+    ## @param conversations.celery.containerSecurityContext.runAsGroup Set runAsGroup in Celery worker container
+    ## @param conversations.celery.containerSecurityContext.runAsNonRoot Set runAsNonRoot in Celery worker container
+    ## @param conversations.celery.containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in Celery worker container
+    ## @param conversations.celery.containerSecurityContext.privileged Set privileged in Celery worker container
+    ## @param conversations.celery.containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in Celery worker container
+    ## @param conversations.celery.containerSecurityContext.capabilities.drop Set capabilities to drop in Celery worker container
+    ## @param conversations.celery.containerSecurityContext.seccompProfile.type Set seccomp profile in Celery worker container
+    ##
+    containerSecurityContext:
+      enabled: true
+      seLinuxOptions: {}
+      runAsUser: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      readOnlyRootFilesystem: true
+      privileged: false
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: "RuntimeDefault"
+    ## @param conversations.celery.automountServiceAccountToken Mount Service Account token in Celery worker pods
+    ##
+    automountServiceAccountToken: false
+    ## @param conversations.celery.hostAliases Celery worker pods host aliases
+    ##
+    hostAliases: []
+    ## @param conversations.celery.deploymentAnnotations Annotations for Celery worker deployment
+    ##
+    deploymentAnnotations: {}
+    ## @param conversations.celery.podLabels Extra labels for Celery worker pods
+    ##
+    podLabels: {}
+    ## @param conversations.celery.podAnnotations Annotations for Celery worker pods
+    ##
+    podAnnotations: {}
+    ## @param conversations.celery.nodeSelector Node labels for Celery worker pods assignment
+    ##
+    nodeSelector: {}
+    ## @param conversations.celery.tolerations Tolerations for Celery worker pods assignment
+    ##
+    tolerations: []
+    ## @param conversations.celery.affinity Affinity for Celery worker pods assignment
+    ##
+    affinity: {}
+    ## @param conversations.celery.priorityClassName Celery worker pods' priorityClassName
+    ##
+    priorityClassName: ""
+    ## @param conversations.celery.schedulerName Name of the k8s scheduler for Celery worker pods
+    ##
+    schedulerName: ""
+    ## @param conversations.celery.topologySpreadConstraints Topology Spread Constraints for Celery worker pods
+    ##
+    topologySpreadConstraints: []
+    ## @param conversations.celery.runtimeClassName Runtime class name for Celery worker pods
+    ##
+    runtimeClassName: ""
+    ## @param conversations.celery.terminationGracePeriodSeconds Seconds Celery worker pods need to terminate gracefully
+    ##
+    terminationGracePeriodSeconds: 620
+    ## @param conversations.celery.extraEnvVars Array with extra environment variables for Celery worker containers
+    ##
+    extraEnvVars: []
+    ## @param conversations.celery.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for Celery worker containers
+    ##
+    extraEnvVarsCM: ""
+    ## @param conversations.celery.extraEnvVarsSecret Name of existing Secret containing extra env vars for Celery worker containers
+    ##
+    extraEnvVarsSecret: ""
+    ## @param conversations.celery.extraVolumeMounts Optionally specify extra volume mounts for Celery worker containers
+    ##
+    extraVolumeMounts: []
+    ## @param conversations.celery.extraVolumes Optionally specify extra volumes for Celery worker pods
+    ##
+    extraVolumes: []
+    ## Pod Disruption Budget configuration
+    ## @param conversations.celery.pdb.create Enable/disable a Pod Disruption Budget for the Celery worker
+    ## @param conversations.celery.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+    ## @param conversations.celery.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
+    ##
+    pdb:
+      create: true
+      minAvailable: ""
+      maxUnavailable: 1
+    ## Autoscaling configuration
+    ## @param conversations.celery.autoscaling.hpa.enabled Enable HPA for Celery worker pods
+    ## @param conversations.celery.autoscaling.hpa.minReplicas Minimum number of replicas
+    ## @param conversations.celery.autoscaling.hpa.maxReplicas Maximum number of replicas
+    ## @param conversations.celery.autoscaling.hpa.targetCPU Target CPU utilization percentage
+    ## @param conversations.celery.autoscaling.hpa.targetMemory Target Memory utilization percentage
+    ##
+    autoscaling:
+      hpa:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 75
+        targetMemory: ""
+  ## Celery beat configuration
+  ##
+  celeryBeat:
+    ## @param conversations.celeryBeat.enabled Enable the Celery beat scheduler
+    ##
+    enabled: true
+    ## @param conversations.celeryBeat.command Override the Celery beat container command
+    ##
+    command: []
+    ## @param conversations.celeryBeat.args Override the Celery beat container args
+    ##
+    args: ["celery", "-A", "conversations.celery_app", "beat", "-l", "INFO", "--schedule=/tmp/celerybeat-schedule"]
+    ## @param conversations.celeryBeat.livenessProbe.enabled Enable livenessProbe on the Celery beat container
+    ## @param conversations.celeryBeat.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+    ## @param conversations.celeryBeat.livenessProbe.periodSeconds Period seconds for livenessProbe
+    ## @param conversations.celeryBeat.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+    ## @param conversations.celeryBeat.livenessProbe.failureThreshold Failure threshold for livenessProbe
+    ## @param conversations.celeryBeat.livenessProbe.successThreshold Success threshold for livenessProbe
+    ##
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+      successThreshold: 1
+    ## @param conversations.celeryBeat.readinessProbe.enabled Enable readinessProbe on the Celery beat container
+    ## @param conversations.celeryBeat.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+    ## @param conversations.celeryBeat.readinessProbe.periodSeconds Period seconds for readinessProbe
+    ## @param conversations.celeryBeat.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+    ## @param conversations.celeryBeat.readinessProbe.failureThreshold Failure threshold for readinessProbe
+    ## @param conversations.celeryBeat.readinessProbe.successThreshold Success threshold for readinessProbe
+    ##
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 20
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+      successThreshold: 1
+    ## @param conversations.celeryBeat.startupProbe.enabled Enable startupProbe on the Celery beat container
+    ## @param conversations.celeryBeat.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+    ## @param conversations.celeryBeat.startupProbe.periodSeconds Period seconds for startupProbe
+    ## @param conversations.celeryBeat.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+    ## @param conversations.celeryBeat.startupProbe.failureThreshold Failure threshold for startupProbe
+    ## @param conversations.celeryBeat.startupProbe.successThreshold Success threshold for startupProbe
+    ##
+    startupProbe:
+      enabled: false
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 30
+      successThreshold: 1
+    ## @param conversations.celeryBeat.resourcesPreset Set Celery beat container resources according to one common preset
+    ##
+    resourcesPreset: "micro"
+    ## @param conversations.celeryBeat.resources Set Celery beat container requests and limits
+    ##
+    resources: {}
+    ## @param conversations.celeryBeat.podSecurityContext.enabled Enable Celery beat pods' Security Context
+    ## @param conversations.celeryBeat.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy for Celery beat pods
+    ## @param conversations.celeryBeat.podSecurityContext.sysctls Set kernel settings using the sysctl interface for Celery beat pods
+    ## @param conversations.celeryBeat.podSecurityContext.supplementalGroups Set filesystem extra groups for Celery beat pods
+    ## @param conversations.celeryBeat.podSecurityContext.fsGroup Set fsGroup in Celery beat pods' Security Context
+    ##
+    podSecurityContext:
+      enabled: true
+      fsGroupChangePolicy: Always
+      sysctls: []
+      supplementalGroups: []
+      fsGroup: 1001
+    ## @param conversations.celeryBeat.containerSecurityContext.enabled Enable Celery beat container Security Context
+    ## @param conversations.celeryBeat.containerSecurityContext.seLinuxOptions Set SELinux options in Celery beat container
+    ## @param conversations.celeryBeat.containerSecurityContext.runAsUser Set runAsUser in Celery beat container
+    ## @param conversations.celeryBeat.containerSecurityContext.runAsGroup Set runAsGroup in Celery beat container
+    ## @param conversations.celeryBeat.containerSecurityContext.runAsNonRoot Set runAsNonRoot in Celery beat container
+    ## @param conversations.celeryBeat.containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in Celery beat container
+    ## @param conversations.celeryBeat.containerSecurityContext.privileged Set privileged in Celery beat container
+    ## @param conversations.celeryBeat.containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in Celery beat container
+    ## @param conversations.celeryBeat.containerSecurityContext.capabilities.drop Set capabilities to drop in Celery beat container
+    ## @param conversations.celeryBeat.containerSecurityContext.seccompProfile.type Set seccomp profile in Celery beat container
+    ##
+    containerSecurityContext:
+      enabled: true
+      seLinuxOptions: {}
+      runAsUser: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      readOnlyRootFilesystem: true
+      privileged: false
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: "RuntimeDefault"
+    ## @param conversations.celeryBeat.automountServiceAccountToken Mount Service Account token in Celery beat pods
+    ##
+    automountServiceAccountToken: false
+    ## @param conversations.celeryBeat.hostAliases Celery beat pods host aliases
+    ##
+    hostAliases: []
+    ## @param conversations.celeryBeat.deploymentAnnotations Annotations for Celery beat deployment
+    ##
+    deploymentAnnotations: {}
+    ## @param conversations.celeryBeat.podLabels Extra labels for Celery beat pods
+    ##
+    podLabels: {}
+    ## @param conversations.celeryBeat.podAnnotations Annotations for Celery beat pods
+    ##
+    podAnnotations: {}
+    ## @param conversations.celeryBeat.nodeSelector Node labels for Celery beat pods assignment
+    ##
+    nodeSelector: {}
+    ## @param conversations.celeryBeat.tolerations Tolerations for Celery beat pods assignment
+    ##
+    tolerations: []
+    ## @param conversations.celeryBeat.affinity Affinity for Celery beat pods assignment
+    ##
+    affinity: {}
+    ## @param conversations.celeryBeat.priorityClassName Celery beat pods' priorityClassName
+    ##
+    priorityClassName: ""
+    ## @param conversations.celeryBeat.schedulerName Name of the k8s scheduler for Celery beat pods
+    ##
+    schedulerName: ""
+    ## @param conversations.celeryBeat.topologySpreadConstraints Topology Spread Constraints for Celery beat pods
+    ##
+    topologySpreadConstraints: []
+    ## @param conversations.celeryBeat.runtimeClassName Runtime class name for Celery beat pods
+    ##
+    runtimeClassName: ""
+    ## @param conversations.celeryBeat.terminationGracePeriodSeconds Seconds Celery beat pods need to terminate gracefully
+    ##
+    terminationGracePeriodSeconds: 620
+    ## @param conversations.celeryBeat.extraEnvVars Array with extra environment variables for Celery beat containers
+    ##
+    extraEnvVars: []
+    ## @param conversations.celeryBeat.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for Celery beat containers
+    ##
+    extraEnvVarsCM: ""
+    ## @param conversations.celeryBeat.extraEnvVarsSecret Name of existing Secret containing extra env vars for Celery beat containers
+    ##
+    extraEnvVarsSecret: ""
+    ## @param conversations.celeryBeat.extraVolumeMounts Optionally specify extra volume mounts for Celery beat containers
+    ##
+    extraVolumeMounts: []
+    ## @param conversations.celeryBeat.extraVolumes Optionally specify extra volumes for Celery beat pods
+    ##
+    extraVolumes: []
 conversations_frontend:
   ## @param conversations_frontend.frontendCssUrl URL to external CSS file for frontend customization
   ##
@@ -1372,6 +1715,18 @@ externalDatabase:
   port: ""
   database: ""
   logging: false
+## Object storage
+## @param externalObjectStore.endpoint S3 endpoint
+## @param externalObjectStore.region S3 region
+## @param externalObjectStore.accessKey S3 access key
+## @param externalObjectStore.secretKey S3 secret key
+## @param externalObjectStore.bucket S3 bucket name
+externalObjectStore:
+  endpoint: ""
+  region: ""
+  accessKey: ""
+  secretKey: ""
+  bucket: ""
 ## OpenID connect authentication setup
 ## @param authentication.issuer OpenID issuer URL
 ## @param authentication.authorization_endpoint OpenID authorization endpoint

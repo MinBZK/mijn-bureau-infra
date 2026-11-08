@@ -17,6 +17,23 @@ releases:
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values.yaml.gotmpl"
 
+  - name: livekit-egress
+    chart: charts/livekit-egress
+    installed: {{ and .Values.application.livekit.enabled .Values.application.livekit.egress.enabled | toYaml }}
+    {{- if .Values.application.livekit.namespace }}
+    namespace: {{ .Values.application.livekit.namespace }}
+    {{- end }}
+    {{- if .Values.application.livekit.enabled }}
+    needs:
+      - {{ if .Values.application.livekit.namespace }}{{ .Values.application.livekit.namespace }}/{{ end }}livekit-server
+      {{- if eq .Environment.Name "demo" }}
+      - {{ if .Values.application.livekit.namespace }}{{ .Values.application.livekit.namespace }}/{{ end }}livekit-valkey
+      {{- end }}
+    {{- end }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "values-egress.yaml.gotmpl"
+
   - name: livekit-valkey
     chart: ../common/charts/valkey
     {{- if .Values.application.livekit.namespace }}

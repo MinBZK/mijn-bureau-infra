@@ -7,22 +7,49 @@ MijnBureau supplies an installation of [livekit](https://livekit.io/). Livekit i
 To configure this solution, you can override the default settings for your environment. The defaults are
 located in the folder `helmfile/environments/default`.
 
-| Name                                   | Description                                                                                |
-| -------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `global.domain`                        | The domain name of your MijnBureau instance                                                |
-| `global.hostname.livekit`              | The subdomain name                                                                         |
-| `application.livekit.enabled`          | Enable Livekit                                                                             |
-| `application.livekit.namespace`        | The Kubernetes namespace name                                                              |
-| `application.livekit.loadBalancerIP`   | External IP of the loadbalancer                                                            |
-| `application.livekit.port_range_start` | Loadbalancer UDP port range start                                                          |
-| `application.livekit.port_range_end`   | Loadbalancer UDP port range end                                                            |
-| `application.livekit.keys.*`           | Keys that are allowed to connect to livekit, you often want a key per external application |
-| `tls.livekit.*`                        | The TLS settings                                                                           |
-| `autoscaling.horizontal.livekit.*`     | Scaling settings                                                                           |
-| `container.livekit.*`                  | Container settings to overwrite                                                            |
-| `pvc.livekit.*`                        | Storage configuration                                                                      |
-| `resources.livekit.*`                  | Resource configuration                                                                     |
-| `cache.livekit.*`                      | Cache configuration                                                                        |
+| Name                                     | Description                                                                                                     |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `global.domain`                          | The domain name of your MijnBureau instance                                                                     |
+| `global.hostname.livekit`                | The subdomain name                                                                                              |
+| `application.livekit.enabled`            | Enable Livekit                                                                                                  |
+| `application.livekit.namespace`          | The Kubernetes namespace name                                                                                   |
+| `application.livekit.loadBalancerIP`     | External IP of the loadbalancer                                                                                 |
+| `application.livekit.port_range_start`   | Loadbalancer UDP port range start                                                                               |
+| `application.livekit.port_range_end`     | Loadbalancer UDP port range end                                                                                 |
+| `application.livekit.keys.*`             | Keys that are allowed to connect to livekit, you often want a key per external application                      |
+| `livekit.meet.apiKey`                    | Optional key name Meet uses; when combined with `livekit.meet.apiSecret` it is added to the LiveKit server keys |
+| `livekit.meet.apiSecret`                 | Optional secret for the Meet key; overrides the generated key secret on the LiveKit server                      |
+| `application.livekit.egress.enabled`     | Deploy LiveKit Egress for recording and streaming                                                               |
+| `tls.livekit.*`                          | The TLS settings                                                                                                |
+| `autoscaling.horizontal.livekit.*`       | Scaling settings                                                                                                |
+| `autoscaling.horizontal.livekitEgress.*` | Scaling settings for egress                                                                                     |
+| `container.livekit.*`                    | Container settings to overwrite                                                                                 |
+| `container.livekit_egress.*`             | Container settings for egress                                                                                   |
+| `pvc.livekit.*`                          | Storage configuration                                                                                           |
+| `resources.livekit.*`                    | Resource configuration                                                                                          |
+| `cache.livekit.*`                        | Cache configuration                                                                                             |
+
+## Egress
+
+LiveKit Egress is deployed together with the LiveKit server when
+`application.livekit.egress.enabled` is `true`. It connects to the local
+LiveKit server and the local Valkey instance and uploads recordings to the
+Meet MinIO bucket configured in `objectstore.meet`. Meet enables its recording
+feature automatically when egress is enabled.
+
+Egress records one room per replica. Increase `egress.replicaCount`
+(or enable `autoscaling.horizontal.livekitEgress`) if multiple rooms should be
+recorded at the same time. Room composite recordings need roughly 2-4 CPUs;
+tune `egress.config.cpu_cost.*` in the chart when a worker runs on smaller nodes,
+otherwise egress refuses to schedule the recording.
+
+Egress needs temporary disk space while a recording is finalized. The built-in
+resource presets cap `ephemeral-storage` at 2Gi; set `resource.livekit.egress`
+with an `ephemeral-storage` limit large enough for your longest recording.
+
+Chrome sandboxing is disabled by default because it requires the `clone` and
+`unshare` syscalls. Set `egress.config.enable_chrome_sandbox: true` in the chart
+only when the cluster allows those syscalls.
 
 ## Setup
 

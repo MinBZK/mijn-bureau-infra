@@ -78,6 +78,10 @@ meet:
   ## @param meet.frontendCssUrl URL to external CSS file for frontend customization
   ##
   frontendCssUrl: ""
+  frontendExternalHomeUrl: ""
+  ## @param meet.frontendTranscriptionDestination URL where users can send transcriptions
+  ##
+  frontendTranscriptionDestination: ""
   ## Bitnami %%MAIN_CONTAINER%% image
   ## ref: https://hub.docker.com/r/bitnami/%%IMAGE_NAME%%/tags/
   ## @param meet.image.registry [default: REGISTRY_NAME] %%MAIN_CONTAINER%% image registry
@@ -460,6 +464,31 @@ meet_backend:
     pullSecrets: []
     debug: false
   secretKey: ""
+  ## @param meet_backend.email SMTP settings for outgoing mail (invitations, etc.)
+  ## When host is empty, no DJANGO_EMAIL_* variables are rendered and Django
+  ## falls back to its default email backend.
+  ##
+  email:
+    backend: "django.core.mail.backends.smtp.EmailBackend"
+    host: ""
+    port: 587
+    hostUser: ""
+    hostPassword: ""
+    useTls: "true"
+    useSsl: "false"
+    from: ""
+    brandName: ""
+    logoImg: ""
+  ## @param meet_backend.summaryServiceEndpoint URL of the summary/transcription service
+  ## When empty, the chart points at the in-chart summary service name.
+  ##
+  summaryServiceEndpoint: ""
+  ## @param meet_backend.recordingDownloadBaseUrl Base URL used for recording downloads
+  ##
+  recordingDownloadBaseUrl: ""
+  ## @param meet_backend.recordingEnable Enable LiveKit Egress based room recording
+  ##
+  recordingEnable: false
   languageCode: "en-us"
   CSRFTrustedOrigins: ""
   CORSAllowedOrigins: ""
@@ -789,6 +818,37 @@ meet_backend:
       maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
+  ## @param meet_backend.cronjobs List of CronJobs to run with the backend image
+  ## Each entry creates a separate CronJob. The CronJob uses the backend
+  ## ConfigMap and Secret, so every backend environment variable is available.
+  ## @param meet_backend.cronjobs[0].name CronJob name suffix
+  ## @param meet_backend.cronjobs[0].schedule Cron schedule expression
+  ## @param meet_backend.cronjobs[0].command Command to execute
+  ## @param meet_backend.cronjobs[0].args Optional arguments to execute
+  ## @param meet_backend.cronjobs[0].concurrencyPolicy CronJob concurrency policy
+  ## @param meet_backend.cronjobs[0].restartPolicy Pod restart policy
+  ## @param meet_backend.cronjobs[0].backoffLimit Number of retries before marking the job failed
+  ## @param meet_backend.cronjobs[0].ttlSecondsAfterFinished Time to live for finished jobs
+  ##
+  cronjobs:
+    - name: clean-pending-files
+      schedule: "30 0 * * *"
+      command:
+        - /bin/sh
+        - -c
+        - python manage.py clean_pending_files
+    - name: purge-deleted-files
+      schedule: "45 0 * * *"
+      command:
+        - /bin/sh
+        - -c
+        - python manage.py purge_deleted_files
+    - name: purge-inactive-rooms
+      schedule: "0 1 * * *"
+      command:
+        - /bin/sh
+        - -c
+        - python manage.py purge_inactive_rooms
 job:
   command:
     - /bin/sh
@@ -813,6 +873,648 @@ job:
   ttlSecondsAfterFinished: 3600
   podAnnotations: {}
   resources: {}
+## @section Meet agents Parameters
+##
+
+## LiveKit metadata collector agent
+##
+agent_metadata:
+  ## @param agent_metadata.enabled Enable the metadata collector agent
+  ##
+  enabled: true
+  ## @param agent_metadata.image.registry Metadata collector image registry
+  ## @param agent_metadata.image.repository Metadata collector image repository
+  ## @param agent_metadata.image.tag Metadata collector image tag
+  ## @param agent_metadata.image.digest Metadata collector image digest
+  ## @param agent_metadata.image.pullPolicy Metadata collector image pull policy
+  ## @param agent_metadata.image.pullSecrets Metadata collector image pull secrets
+  ##
+  image:
+    registry: docker.io
+    repository: lasuite/meet-agents
+    tag: v1.37.0
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  ## @param agent_metadata.replicaCount Number of metadata collector replicas
+  ##
+  replicaCount: 1
+  ## @param agent_metadata.command Override the metadata collector command
+  ##
+  command:
+    - python
+    - metadata_collector.py
+    - start
+  ## @param agent_metadata.args Override the metadata collector arguments
+  ##
+  args: []
+  ## @param agent_metadata.envVars Environment variables as a map. Values can be plain strings or
+  ## Kubernetes EnvVarSource maps such as `secretKeyRef` or `configMapKeyRef`.
+  ##
+  envVars: {}
+  ## @param agent_metadata.envFrom Additional ConfigMaps or Secrets to import environment variables from
+  ##
+  envFrom: []
+  ## @param agent_metadata.extraEnvVars Extra environment variables as a list of EnvVar objects
+  ##
+  extraEnvVars: []
+  ## @param agent_metadata.extraEnvVarsCM Name of an existing ConfigMap containing extra environment variables
+  ##
+  extraEnvVarsCM: ""
+  ## @param agent_metadata.extraEnvVarsSecret Name of an existing Secret containing extra environment variables
+  ##
+  extraEnvVarsSecret: ""
+  ## @param agent_metadata.resourcesPreset Resource preset for the metadata collector
+  ##
+  resourcesPreset: "micro"
+  ## @param agent_metadata.resources Resource requests and limits for the metadata collector
+  ##
+  resources: {}
+  ## @param agent_metadata.podSecurityContext Metadata collector pod security context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## @param agent_metadata.containerSecurityContext Metadata collector container security context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param agent_metadata.automountServiceAccountToken Mount Service Account token in the metadata collector pods
+  ##
+  automountServiceAccountToken: false
+  ## @param agent_metadata.deploymentAnnotations Annotations for the metadata collector Deployment
+  ##
+  deploymentAnnotations: {}
+  ## @param agent_metadata.podAnnotations Annotations for the metadata collector pods
+  ##
+  podAnnotations: {}
+  ## @param agent_metadata.podLabels Extra labels for the metadata collector pods
+  ##
+  podLabels: {}
+  ## @param agent_metadata.affinity Affinity for the metadata collector pods
+  ##
+  affinity: {}
+  ## @param agent_metadata.nodeSelector Node labels for the metadata collector pods
+  ##
+  nodeSelector: {}
+  ## @param agent_metadata.tolerations Tolerations for the metadata collector pods
+  ##
+  tolerations: []
+  ## @param agent_metadata.priorityClassName Metadata collector pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param agent_metadata.topologySpreadConstraints Topology spread constraints for the metadata collector pods
+  ##
+  topologySpreadConstraints: []
+  ## @param agent_metadata.schedulerName Scheduler name for the metadata collector pods
+  ##
+  schedulerName: ""
+  ## @param agent_metadata.runtimeClassName Runtime class name for the metadata collector pods
+  ##
+  runtimeClassName: ""
+  ## @param agent_metadata.terminationGracePeriodSeconds Termination grace period for the metadata collector pods
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param agent_metadata.extraVolumes Extra volumes for the metadata collector pods
+  ##
+  extraVolumes: []
+  ## @param agent_metadata.extraVolumeMounts Extra volume mounts for the metadata collector container
+  ##
+  extraVolumeMounts: []
+  ## @param agent_metadata.sidecars Extra sidecar containers for the metadata collector pods
+  ##
+  sidecars: []
+  ## @param agent_metadata.initContainers Extra init containers for the metadata collector pods
+  ##
+  initContainers: []
+## LiveKit subtitles agent
+##
+agent_subtitles:
+  ## @param agent_subtitles.enabled Enable the subtitles agent
+  ##
+  enabled: false
+  ## @param agent_subtitles.image.registry Subtitles agent image registry
+  ## @param agent_subtitles.image.repository Subtitles agent image repository
+  ## @param agent_subtitles.image.tag Subtitles agent image tag
+  ## @param agent_subtitles.image.digest Subtitles agent image digest
+  ## @param agent_subtitles.image.pullPolicy Subtitles agent image pull policy
+  ## @param agent_subtitles.image.pullSecrets Subtitles agent image pull secrets
+  ##
+  image:
+    registry: docker.io
+    repository: lasuite/meet-agents
+    tag: v1.37.0
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  ## @param agent_subtitles.replicaCount Number of subtitles agent replicas
+  ##
+  replicaCount: 1
+  ## @param agent_subtitles.command Override the subtitles agent command
+  ##
+  command: []
+  ## @param agent_subtitles.args Override the subtitles agent arguments
+  ##
+  args: []
+  ## @param agent_subtitles.envVars Environment variables as a map. Values can be plain strings or
+  ## Kubernetes EnvVarSource maps such as `secretKeyRef` or `configMapKeyRef`.
+  ##
+  envVars: {}
+  ## @param agent_subtitles.envFrom Additional ConfigMaps or Secrets to import environment variables from
+  ##
+  envFrom: []
+  ## @param agent_subtitles.extraEnvVars Extra environment variables as a list of EnvVar objects
+  ##
+  extraEnvVars: []
+  ## @param agent_subtitles.extraEnvVarsCM Name of an existing ConfigMap containing extra environment variables
+  ##
+  extraEnvVarsCM: ""
+  ## @param agent_subtitles.extraEnvVarsSecret Name of an existing Secret containing extra environment variables
+  ##
+  extraEnvVarsSecret: ""
+  ## @param agent_subtitles.resourcesPreset Resource preset for the subtitles agent
+  ##
+  resourcesPreset: "micro"
+  ## @param agent_subtitles.resources Resource requests and limits for the subtitles agent
+  ##
+  resources: {}
+  ## @param agent_subtitles.podSecurityContext Subtitles agent pod security context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## @param agent_subtitles.containerSecurityContext Subtitles agent container security context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param agent_subtitles.automountServiceAccountToken Mount Service Account token in the subtitles agent pods
+  ##
+  automountServiceAccountToken: false
+  ## @param agent_subtitles.deploymentAnnotations Annotations for the subtitles agent Deployment
+  ##
+  deploymentAnnotations: {}
+  ## @param agent_subtitles.podAnnotations Annotations for the subtitles agent pods
+  ##
+  podAnnotations: {}
+  ## @param agent_subtitles.podLabels Extra labels for the subtitles agent pods
+  ##
+  podLabels: {}
+  ## @param agent_subtitles.affinity Affinity for the subtitles agent pods
+  ##
+  affinity: {}
+  ## @param agent_subtitles.nodeSelector Node labels for the subtitles agent pods
+  ##
+  nodeSelector: {}
+  ## @param agent_subtitles.tolerations Tolerations for the subtitles agent pods
+  ##
+  tolerations: []
+  ## @param agent_subtitles.priorityClassName Subtitles agent pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param agent_subtitles.topologySpreadConstraints Topology spread constraints for the subtitles agent pods
+  ##
+  topologySpreadConstraints: []
+  ## @param agent_subtitles.schedulerName Scheduler name for the subtitles agent pods
+  ##
+  schedulerName: ""
+  ## @param agent_subtitles.runtimeClassName Runtime class name for the subtitles agent pods
+  ##
+  runtimeClassName: ""
+  ## @param agent_subtitles.terminationGracePeriodSeconds Termination grace period for the subtitles agent pods
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param agent_subtitles.extraVolumes Extra volumes for the subtitles agent pods
+  ##
+  extraVolumes: []
+  ## @param agent_subtitles.extraVolumeMounts Extra volume mounts for the subtitles agent container
+  ##
+  extraVolumeMounts: []
+  ## @param agent_subtitles.sidecars Extra sidecar containers for the subtitles agent pods
+  ##
+  sidecars: []
+  ## @param agent_subtitles.initContainers Extra init containers for the subtitles agent pods
+  ##
+  initContainers: []
+## @section Celery workers Parameters
+##
+
+## Celery worker for the meet backend
+##
+celery_backend:
+  ## @param celery_backend.enabled Enable the backend Celery worker
+  ##
+  enabled: true
+  ## @param celery_backend.image.registry Celery backend image registry
+  ## @param celery_backend.image.repository Celery backend image repository
+  ## @param celery_backend.image.tag Celery backend image tag
+  ## @param celery_backend.image.digest Celery backend image digest
+  ## @param celery_backend.image.pullPolicy Celery backend image pull policy
+  ## @param celery_backend.image.pullSecrets Celery backend image pull secrets
+  ##
+  image:
+    registry: docker.io
+    repository: lasuite/meet-backend
+    tag: v1.37.0
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  ## @param celery_backend.replicaCount Number of backend Celery worker replicas
+  ##
+  replicaCount: 1
+  ## @param celery_backend.command Override the backend Celery worker command
+  ##
+  command:
+    - celery
+    - -A
+    - meet.celery_app
+    - worker
+    - --pool=solo
+    - --loglevel=info
+    - -Q
+    - meet-backend
+  ## @param celery_backend.args Override the backend Celery worker arguments
+  ##
+  args: []
+  ## @param celery_backend.envVars Extra environment variables as a map
+  ##
+  envVars: {}
+  ## @param celery_backend.envFrom Additional ConfigMaps or Secrets to import environment variables from
+  ##
+  envFrom: []
+  ## @param celery_backend.extraEnvVars Extra environment variables as a list of EnvVar objects
+  ##
+  extraEnvVars: []
+  ## @param celery_backend.extraEnvVarsCM Name of an existing ConfigMap containing extra environment variables
+  ##
+  extraEnvVarsCM: ""
+  ## @param celery_backend.extraEnvVarsSecret Name of an existing Secret containing extra environment variables
+  ##
+  extraEnvVarsSecret: ""
+  ## @param celery_backend.resourcesPreset Resource preset for the backend Celery worker
+  ##
+  resourcesPreset: "micro"
+  ## @param celery_backend.resources Resource requests and limits for the backend Celery worker
+  ##
+  resources: {}
+  ## @param celery_backend.podSecurityContext Backend Celery worker pod security context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## @param celery_backend.containerSecurityContext Backend Celery worker container security context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param celery_backend.automountServiceAccountToken Mount Service Account token in the backend Celery worker pods
+  ##
+  automountServiceAccountToken: false
+  ## @param celery_backend.deploymentAnnotations Annotations for the backend Celery worker Deployment
+  ##
+  deploymentAnnotations: {}
+  ## @param celery_backend.podAnnotations Annotations for the backend Celery worker pods
+  ##
+  podAnnotations: {}
+  ## @param celery_backend.podLabels Extra labels for the backend Celery worker pods
+  ##
+  podLabels: {}
+  ## @param celery_backend.affinity Affinity for the backend Celery worker pods
+  ##
+  affinity: {}
+  ## @param celery_backend.nodeSelector Node labels for the backend Celery worker pods
+  ##
+  nodeSelector: {}
+  ## @param celery_backend.tolerations Tolerations for the backend Celery worker pods
+  ##
+  tolerations: []
+  ## @param celery_backend.priorityClassName Backend Celery worker pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param celery_backend.topologySpreadConstraints Topology spread constraints for the backend Celery worker pods
+  ##
+  topologySpreadConstraints: []
+  ## @param celery_backend.schedulerName Scheduler name for the backend Celery worker pods
+  ##
+  schedulerName: ""
+  ## @param celery_backend.runtimeClassName Runtime class name for the backend Celery worker pods
+  ##
+  runtimeClassName: ""
+  ## @param celery_backend.terminationGracePeriodSeconds Termination grace period for the backend Celery worker pods
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param celery_backend.extraVolumes Extra volumes for the backend Celery worker pods
+  ##
+  extraVolumes: []
+  ## @param celery_backend.extraVolumeMounts Extra volume mounts for the backend Celery worker container
+  ##
+  extraVolumeMounts: []
+  ## @param celery_backend.sidecars Extra sidecar containers for the backend Celery worker pods
+  ##
+  sidecars: []
+  ## @param celery_backend.initContainers Extra init containers for the backend Celery worker pods
+  ##
+  initContainers: []
+## Celery worker for transcript summarization
+##
+celery_summarize:
+  ## @param celery_summarize.enabled Enable the summarize Celery worker
+  ##
+  enabled: true
+  ## @param celery_summarize.image.registry Summarize worker image registry
+  ## @param celery_summarize.image.repository Summarize worker image repository
+  ## @param celery_summarize.image.tag Summarize worker image tag
+  ## @param celery_summarize.image.digest Summarize worker image digest
+  ## @param celery_summarize.image.pullPolicy Summarize worker image pull policy
+  ## @param celery_summarize.image.pullSecrets Summarize worker image pull secrets
+  ##
+  image:
+    registry: docker.io
+    repository: lasuite/meet-summary
+    tag: v1.37.0
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  ## @param celery_summarize.replicaCount Number of summarize worker replicas
+  ##
+  replicaCount: 1
+  ## @param celery_summarize.command Override the summarize worker command
+  ##
+  command:
+    - celery
+    - -A
+    - summary.core.celery_worker
+    - worker
+    - --pool=solo
+    - --loglevel=info
+    - -Q
+    - summarize-queue,summarize-queue-v2
+  ## @param celery_summarize.args Override the summarize worker arguments
+  ##
+  args: []
+  ## @param celery_summarize.envVars Environment variables as a map. Values can be plain strings or
+  ## Kubernetes EnvVarSource maps such as `secretKeyRef` or `configMapKeyRef`.
+  ##
+  envVars: {}
+  ## @param celery_summarize.envFrom Additional ConfigMaps or Secrets to import environment variables from
+  ##
+  envFrom: []
+  ## @param celery_summarize.extraEnvVars Extra environment variables as a list of EnvVar objects
+  ##
+  extraEnvVars: []
+  ## @param celery_summarize.extraEnvVarsCM Name of an existing ConfigMap containing extra environment variables
+  ##
+  extraEnvVarsCM: ""
+  ## @param celery_summarize.extraEnvVarsSecret Name of an existing Secret containing extra environment variables
+  ##
+  extraEnvVarsSecret: ""
+  ## @param celery_summarize.resourcesPreset Resource preset for the summarize worker
+  ##
+  resourcesPreset: "micro"
+  ## @param celery_summarize.resources Resource requests and limits for the summarize worker
+  ##
+  resources: {}
+  ## @param celery_summarize.podSecurityContext Summarize worker pod security context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## @param celery_summarize.containerSecurityContext Summarize worker container security context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param celery_summarize.automountServiceAccountToken Mount Service Account token in the summarize worker pods
+  ##
+  automountServiceAccountToken: false
+  ## @param celery_summarize.deploymentAnnotations Annotations for the summarize worker Deployment
+  ##
+  deploymentAnnotations: {}
+  ## @param celery_summarize.podAnnotations Annotations for the summarize worker pods
+  ##
+  podAnnotations: {}
+  ## @param celery_summarize.podLabels Extra labels for the summarize worker pods
+  ##
+  podLabels: {}
+  ## @param celery_summarize.affinity Affinity for the summarize worker pods
+  ##
+  affinity: {}
+  ## @param celery_summarize.nodeSelector Node labels for the summarize worker pods
+  ##
+  nodeSelector: {}
+  ## @param celery_summarize.tolerations Tolerations for the summarize worker pods
+  ##
+  tolerations: []
+  ## @param celery_summarize.priorityClassName Summarize worker pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param celery_summarize.topologySpreadConstraints Topology spread constraints for the summarize worker pods
+  ##
+  topologySpreadConstraints: []
+  ## @param celery_summarize.schedulerName Scheduler name for the summarize worker pods
+  ##
+  schedulerName: ""
+  ## @param celery_summarize.runtimeClassName Runtime class name for the summarize worker pods
+  ##
+  runtimeClassName: ""
+  ## @param celery_summarize.terminationGracePeriodSeconds Termination grace period for the summarize worker pods
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param celery_summarize.extraVolumes Extra volumes for the summarize worker pods
+  ##
+  extraVolumes: []
+  ## @param celery_summarize.extraVolumeMounts Extra volume mounts for the summarize worker container
+  ##
+  extraVolumeMounts: []
+  ## @param celery_summarize.sidecars Extra sidecar containers for the summarize worker pods
+  ##
+  sidecars: []
+  ## @param celery_summarize.initContainers Extra init containers for the summarize worker pods
+  ##
+  initContainers: []
+## Celery worker for audio transcription
+##
+celery_transcribe:
+  ## @param celery_transcribe.enabled Enable the transcribe Celery worker
+  ##
+  enabled: true
+  ## @param celery_transcribe.image.registry Transcribe worker image registry
+  ## @param celery_transcribe.image.repository Transcribe worker image repository
+  ## @param celery_transcribe.image.tag Transcribe worker image tag
+  ## @param celery_transcribe.image.digest Transcribe worker image digest
+  ## @param celery_transcribe.image.pullPolicy Transcribe worker image pull policy
+  ## @param celery_transcribe.image.pullSecrets Transcribe worker image pull secrets
+  ##
+  image:
+    registry: docker.io
+    repository: lasuite/meet-summary
+    tag: v1.37.0
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  ## @param celery_transcribe.replicaCount Number of transcribe worker replicas
+  ##
+  replicaCount: 1
+  ## @param celery_transcribe.command Override the transcribe worker command
+  ##
+  command:
+    - celery
+    - -A
+    - summary.core.celery_worker
+    - worker
+    - --pool=solo
+    - --loglevel=info
+    - -Q
+    - transcribe-queue,transcribe-queue-v2
+  ## @param celery_transcribe.args Override the transcribe worker arguments
+  ##
+  args: []
+  ## @param celery_transcribe.envVars Environment variables as a map. Values can be plain strings or
+  ## Kubernetes EnvVarSource maps such as `secretKeyRef` or `configMapKeyRef`.
+  ##
+  envVars: {}
+  ## @param celery_transcribe.envFrom Additional ConfigMaps or Secrets to import environment variables from
+  ##
+  envFrom: []
+  ## @param celery_transcribe.extraEnvVars Extra environment variables as a list of EnvVar objects
+  ##
+  extraEnvVars: []
+  ## @param celery_transcribe.extraEnvVarsCM Name of an existing ConfigMap containing extra environment variables
+  ##
+  extraEnvVarsCM: ""
+  ## @param celery_transcribe.extraEnvVarsSecret Name of an existing Secret containing extra environment variables
+  ##
+  extraEnvVarsSecret: ""
+  ## @param celery_transcribe.resourcesPreset Resource preset for the transcribe worker
+  ##
+  resourcesPreset: "micro"
+  ## @param celery_transcribe.resources Resource requests and limits for the transcribe worker
+  ##
+  resources: {}
+  ## @param celery_transcribe.podSecurityContext Transcribe worker pod security context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## @param celery_transcribe.containerSecurityContext Transcribe worker container security context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param celery_transcribe.automountServiceAccountToken Mount Service Account token in the transcribe worker pods
+  ##
+  automountServiceAccountToken: false
+  ## @param celery_transcribe.deploymentAnnotations Annotations for the transcribe worker Deployment
+  ##
+  deploymentAnnotations: {}
+  ## @param celery_transcribe.podAnnotations Annotations for the transcribe worker pods
+  ##
+  podAnnotations: {}
+  ## @param celery_transcribe.podLabels Extra labels for the transcribe worker pods
+  ##
+  podLabels: {}
+  ## @param celery_transcribe.affinity Affinity for the transcribe worker pods
+  ##
+  affinity: {}
+  ## @param celery_transcribe.nodeSelector Node labels for the transcribe worker pods
+  ##
+  nodeSelector: {}
+  ## @param celery_transcribe.tolerations Tolerations for the transcribe worker pods
+  ##
+  tolerations: []
+  ## @param celery_transcribe.priorityClassName Transcribe worker pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param celery_transcribe.topologySpreadConstraints Topology spread constraints for the transcribe worker pods
+  ##
+  topologySpreadConstraints: []
+  ## @param celery_transcribe.schedulerName Scheduler name for the transcribe worker pods
+  ##
+  schedulerName: ""
+  ## @param celery_transcribe.runtimeClassName Runtime class name for the transcribe worker pods
+  ##
+  runtimeClassName: ""
+  ## @param celery_transcribe.terminationGracePeriodSeconds Termination grace period for the transcribe worker pods
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param celery_transcribe.extraVolumes Extra volumes for the transcribe worker pods
+  ##
+  extraVolumes: []
+  ## @param celery_transcribe.extraVolumeMounts Extra volume mounts for the transcribe worker container
+  ##
+  extraVolumeMounts: []
+  ## @param celery_transcribe.sidecars Extra sidecar containers for the transcribe worker pods
+  ##
+  sidecars: []
+  ## @param celery_transcribe.initContainers Extra init containers for the transcribe worker pods
+  ##
+  initContainers: []
 ## meet service parameters
 ##
 service:
@@ -1268,6 +1970,8 @@ externalRedis:
 ## @param externalMinio.secretKey MinIO password
 ## @param externalMinio.bucket MinIO bucket name
 ## @param externalMinio.useSSL If set to 1 will use SSL.
+## @param externalMinio.publicUrl Public MinIO URL used for presigned download URLs
+## @param externalMinio.region MinIO region used for SigV4 signing
 externalMinio:
   endpoint: ""
   port: ""
@@ -1275,6 +1979,8 @@ externalMinio:
   secretKey: ""
   bucket: ""
   useSSL: 0
+  publicUrl: ""
+  region: "eu-west-1"
 ## Database
 ## @param externalDatabase.type Set to 'sqlite' or 'postgres'
 ## @param externalDatabase.username Username to connect as

@@ -17,6 +17,11 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 data:
+  ## Home directory for the unprivileged runtime user. The root filesystem is
+  ## read-only, so tools that write under $HOME (e.g. gunicorn's control socket
+  ## at $HOME/.gunicorn) must be pointed at the writable /tmp emptyDir.
+  HOME: "/tmp"
+
   ## Django
   ##
   DJANGO_CONFIGURATION: Production
@@ -124,6 +129,10 @@ data:
   ##
   {{- if .Values.backend.driveBaseUrl }}
   DRIVE_BASE_URL: {{ .Values.backend.driveBaseUrl | quote }}
+  OIDC_STORE_ACCESS_TOKEN: {{ ternary "true" "false" .Values.backend.oidcStoreTokens | quote }}
+  {{- if .Values.backend.oidcStoreRefreshTokenKey }}
+  OIDC_STORE_REFRESH_TOKEN: "true"
+  {{- end }}
   {{- end }}
   {{- if .Values.backend.identityProvider }}
   IDENTITY_PROVIDER: {{ .Values.backend.identityProvider | quote }}

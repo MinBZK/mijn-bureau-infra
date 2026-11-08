@@ -1,3 +1,124 @@
+{{- $meetHostname := printf "%s.%s" .Values.global.hostname.meet .Values.global.domain -}}
+{{- $meetScheme := ternary "https" "http" (.Values.global.tls.enabled | default true) -}}
+{{- $meetBaseUrl := printf "%s://%s" $meetScheme $meetHostname -}}
+{{- $summaryRedisUrl := printf "redis://default:%s@%s:%v/2" .Values.cache.meet.password .Values.cache.meet.host .Values.cache.meet.port -}}
+{{- $meetS3Endpoint := dig "objectstore" "meet" "endpoint" "" .Values -}}
+{{- $meetS3Port := dig "objectstore" "meet" "port" 9000 .Values -}}
+{{- $meetS3Ssl := dig "objectstore" "meet" "useSSL" false .Values -}}
+{{- $meetS3HostPort := "" -}}
+{{- $meetS3Url := "" -}}
+{{- if $meetS3Endpoint -}}
+{{- $meetS3HostPort = printf "%s:%v" $meetS3Endpoint $meetS3Port -}}
+{{- $meetS3Url = printf "http%s://%s:%v" (ternary "s" "" (eq (toString $meetS3Ssl) "true")) $meetS3Endpoint $meetS3Port -}}
+{{- end -}}
+{{- $livekitKey := .Values.livekit.meet.apiKey | default "" -}}
+{{- $livekitSecret := .Values.livekit.meet.apiSecret | default "" -}}
+{{- $livekitUrl := .Values.livekit.meet.apiURL | default "" -}}
+{{- if .Values.application.livekit.enabled -}}
+{{- $keyName := .Values.application.livekit.keys | keys | first -}}
+{{- $livekitKey = $keyName -}}
+{{- $livekitSecret = index .Values.application.livekit.keys $keyName -}}
+{{- if and .Values.livekit.meet.apiKey .Values.livekit.meet.apiSecret -}}
+{{- $livekitKey = .Values.livekit.meet.apiKey -}}
+{{- $livekitSecret = .Values.livekit.meet.apiSecret -}}
+{{- else if .Values.livekit.meet.apiSecret -}}
+{{- $livekitSecret = .Values.livekit.meet.apiSecret -}}
+{{- end -}}
+{{- $livekitUrl = coalesce .Values.livekit.meet.apiURL (printf "https://%s.%s" .Values.global.hostname.livekit .Values.global.domain) -}}
+{{- end -}}
+{{- $summaryApiToken := .Values.secret.meet.summaryApiToken | default .Values.application.meet.secretKey -}}
+{{- $summaryWebhookApiToken := .Values.secret.meet.summaryWebhookApiToken | default .Values.application.meet.secretKey -}}
+{{- $whisperx := .Values.ai.whisperx | default dict -}}
+{{- $llmReady := and (not (empty .Values.ai.llm.endpoint.host)) (not (empty .Values.ai.llm.model)) -}}
+{{- $whisperxReady := not (empty $whisperx.baseUrl) -}}
+{{- $summaryEnv := dict
+  "APP_NAME" "summary-microservice"
+  "AWS_S3_ENDPOINT_URL" $meetS3Url
+  "AWS_S3_SECURE_ACCESS" (ternary "True" "False" (eq (toString $meetS3Ssl) "true"))
+  "AWS_S3_REGION_NAME" (dig "objectstore" "meet" "region" "eu-west-1" .Values)
+  "AWS_S3_ACCESS_KEY_ID" (dig "objectstore" "meet" "username" "" .Values)
+  "AWS_S3_SECRET_ACCESS_KEY" (dig "objectstore" "meet" "rootPassword" "" .Values)
+  "AWS_STORAGE_BUCKET_NAME" (dig "objectstore" "meet" "bucket" "" .Values)
+  "CELERY_BROKER_URL" $summaryRedisUrl
+  "CELERY_RESULT_BACKEND" $summaryRedisUrl
+  "TASK_TRACKER_REDIS_URL" $summaryRedisUrl
+  "IS_DOCS_INTEGRATION_ENABLED" "True"
+  "IS_SUMMARY_ENABLED" "True"
+  "LLM_API_KEY" ""
+  "LLM_BASE_URL" ""
+  "LLM_MODEL" ""
+  "POSTHOG_ENABLED" "False"
+  "WHISPERX_API_KEY" ($whisperx.apiKey | default "")
+  "WHISPERX_DEFAULT_LANGUAGE" ($whisperx.defaultLanguage | default .Values.global.defaultLocale | default "en")
+-}}
+{{- with $whisperx.baseUrl -}}
+{{- $_ := set $summaryEnv "WHISPERX_BASE_URL" . -}}
+{{- end -}}
+{{- with $whisperx.asrModel -}}
+{{- $_ := set $summaryEnv "WHISPERX_ASR_MODEL" . -}}
+{{- end -}}
+{{- $summaryTenant := dict
+  "id" "meet"
+  "api_key" $summaryApiToken
+  "webhook_url" (printf "%s/api/v1.0/recordings/external-process-hook/" $meetBaseUrl)
+  "webhook_api_key" $summaryWebhookApiToken
+  "allowed_push_to_docs" false
+-}}
+{{- $_ := set $summaryEnv "AUTHORIZED_TENANTS" (list $summaryTenant | toJson) -}}
+{{- $llmHost := .Values.ai.llm.endpoint.host | default "" -}}
+{{- if $llmHost -}}
+{{- $llmSsl := true -}}
+{{- if hasKey .Values.ai.llm.endpoint "isSsl" -}}
+{{- $llmSsl = .Values.ai.llm.endpoint.isSsl -}}
+{{- end -}}
+{{- $llmScheme := ternary "https" "http" $llmSsl -}}
+{{- $llmPort := .Values.ai.llm.endpoint.port | default 0 | int -}}
+{{- $llmPath := .Values.ai.llm.endpoint.path | default "v1" -}}
+{{- $llmBaseUrl := printf "%s://%s" $llmScheme $llmHost -}}
+{{- if gt $llmPort 0 -}}
+{{- $llmBaseUrl = printf "%s:%d" $llmBaseUrl $llmPort -}}
+{{- end -}}
+{{- $llmBaseUrl = printf "%s/%s" $llmBaseUrl $llmPath -}}
+{{- $_ := set $summaryEnv "LLM_BASE_URL" $llmBaseUrl -}}
+{{- $_ := set $summaryEnv "LLM_API_KEY" (.Values.ai.llm.apiKey | default "") -}}
+{{- $_ := set $summaryEnv "LLM_MODEL" .Values.ai.llm.model -}}
+{{- end -}}
+{{- $userSummaryEnv := dig "application" "meet" "summary" "envVars" dict .Values -}}
+{{- $summaryEnv = mergeOverwrite $summaryEnv $userSummaryEnv -}}
+{{- $agentEnv := dict
+  "LIVEKIT_URL" $livekitUrl
+  "LIVEKIT_API_KEY" $livekitKey
+  "LIVEKIT_API_SECRET" $livekitSecret
+  "AWS_S3_ENDPOINT_URL" $meetS3HostPort
+  "AWS_S3_SECURE_ACCESS" (ternary "True" "False" (eq (toString $meetS3Ssl) "true"))
+  "AWS_S3_REGION_NAME" (dig "objectstore" "meet" "region" "eu-west-1" .Values)
+  "AWS_S3_ACCESS_KEY_ID" (dig "objectstore" "meet" "username" "" .Values)
+  "AWS_S3_SECRET_ACCESS_KEY" (dig "objectstore" "meet" "rootPassword" "" .Values)
+  "AWS_STORAGE_BUCKET_NAME" (dig "objectstore" "meet" "bucket" "" .Values)
+-}}
+{{- $stt := .Values.ai.stt | default dict -}}
+{{- $sttProvider := $stt.provider | default "deepgram" -}}
+{{- $_ := set $agentEnv "STT_PROVIDER" $sttProvider -}}
+{{- if eq $sttProvider "deepgram" -}}
+{{- $deepgram := $stt.deepgram | default dict -}}
+{{- $_ := set $agentEnv "DEEPGRAM_API_KEY" ($deepgram.apiKey | default "") -}}
+{{- $_ := set $agentEnv "DEEPGRAM_STT_MODEL" ($deepgram.model | default "nova-3") -}}
+{{- $_ := set $agentEnv "DEEPGRAM_STT_LANGUAGE" ($deepgram.language | default "multi") -}}
+{{- else if eq $sttProvider "kyutai" -}}
+{{- $kyutai := $stt.kyutai | default dict -}}
+{{- $_ := set $agentEnv "KYUTAI_STT_BASE_URL" ($kyutai.baseUrl | default "") -}}
+{{- $_ := set $agentEnv "KYUTAI_API_KEY" ($kyutai.apiKey | default "") -}}
+{{- else if eq $sttProvider "voxtral-vllm" -}}
+{{- $voxtral := $stt.voxtral | default dict -}}
+{{- $_ := set $agentEnv "VOXTRAL_VLLM_BASE_URL" ($voxtral.baseUrl | default "") -}}
+{{- $_ := set $agentEnv "VOXTRAL_VLLM_API_KEY" ($voxtral.apiKey | default "") -}}
+{{- $_ := set $agentEnv "VOXTRAL_VLLM_MODEL" ($voxtral.model | default "voxtral-mini-4b-realtime-2602") -}}
+{{- $_ := set $agentEnv "VOXTRAL_VLLM_TARGET_STREAMING_DELAY_MS" (toString ($voxtral.targetStreamingDelayMs | default 480)) -}}
+{{- end -}}
+{{- $userAgentEnv := dig "application" "meet" "agents" "envVars" dict .Values -}}
+{{- $agentEnv = mergeOverwrite $agentEnv $userAgentEnv -}}
+{{- $metadataEnv := mergeOverwrite (dict "ENABLE_SILERO_VAD" "false" "AWS_S3_OUTPUT_FOLDER" "metadata") (deepCopy $agentEnv) -}}
+
 global:
   ## Global Docker image parameters
   ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
@@ -33,6 +154,8 @@ meet:
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
   frontendCssUrl: "https://static-{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/iframe-hide.css"
+  frontendExternalHomeUrl: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
+  frontendTranscriptionDestination: "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}"
 
   # Init containers don't inherit resourcesPreset from the chart, so we mirror
   # Bitnami's common.resources.preset values and select by .Values.global.resourcesPreset.
@@ -102,6 +225,10 @@ meet_backend:
     repository: {{ .Values.container.meet_backend.repository | quote }}
     tag: {{ .Values.container.meet_backend.tag | quote }}
 
+  # The backend needs the S3 credentials from the meet secret for presigned
+  # uploads (backgrounds, recordings); the chart does not reference them itself.
+  extraEnvVarsSecret: meet
+
   resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.meet.backend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.meet.meetFrontend | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
@@ -113,6 +240,18 @@ meet_backend:
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
   secretKey: {{ .Values.application.meet.secretKey | quote }}
+  email:
+    host: {{ .Values.smtp.host | quote }}
+    port: {{ .Values.smtp.port | quote }}
+    hostUser: {{ .Values.smtp.username | quote }}
+    hostPassword: {{ .Values.smtp.password | quote }}
+    useTls: {{ .Values.smtp.tls.enabled | default true | quote }}
+    useSsl: "false"
+    from: {{ .Values.smtp.from.email | quote }}
+    brandName: {{ .Values.smtp.from.name | quote }}
+    logoImg: {{ .Values.smtp.from.logoImage | quote }}
+  recordingEnable: {{ and .Values.application.livekit.enabled .Values.application.livekit.egress.enabled | toYaml }}
+  recordingDownloadBaseUrl: "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/recording"
 
   {{- if eq .Values.global.defaultLocale "nl" }}
   languageCode: nl-nl
@@ -150,10 +289,9 @@ ingress:
     {{- end }}
 externalLivekit:
   {{- if .Values.application.livekit.enabled }}
-  {{- $keyName := .Values.application.livekit.keys | keys | first }}
-  apiKey: {{ coalesce .Values.livekit.meet.apiKey $keyName | quote }}
-  apiSecret: {{ coalesce .Values.livekit.meet.apiSecret (index .Values.application.livekit.keys $keyName) | quote }}
-  apiUrl: {{ coalesce .Values.livekit.meet.apiURL (printf "https://%s.%s" .Values.global.hostname.livekit .Values.global.domain) | quote }}
+  apiKey: {{ $livekitKey | quote }}
+  apiSecret: {{ $livekitSecret | quote }}
+  apiUrl: {{ $livekitUrl | quote }}
   {{- else }}
   apiKey: {{ .Values.livekit.meet.apiKey | quote }}
   apiSecret: {{ .Values.livekit.meet.apiSecret | quote }}
@@ -164,6 +302,18 @@ externalRedis:
   host: {{ .Values.cache.meet.host | quote }}
   port: {{ .Values.cache.meet.port | quote }}
   password: {{ .Values.cache.meet.password | quote }}
+
+externalMinio:
+  # This endpoint is also used in-cluster from other namespaces (livekit-egress
+  # uploads recordings), so expand internal minio names to the cluster FQDN.
+  endpoint: {{ if (dig "objectstore" "meet" "isInternal" false .Values) }}{{ printf "%s.%s.svc.%s" .Values.objectstore.meet.endpoint (.Values.application.meet.namespace | default "default") (.Values.cluster.networking.domain | default "cluster.local") | quote }}{{ else }}{{ .Values.objectstore.meet.endpoint | quote }}{{ end }}
+  port: {{ .Values.objectstore.meet.port | quote }}
+  accessKey: {{ .Values.objectstore.meet.username | quote }}
+  secretKey: {{ .Values.objectstore.meet.rootPassword | quote }}
+  bucket: {{ .Values.objectstore.meet.bucket | quote }}
+  useSSL: {{ .Values.objectstore.meet.useSSL | quote }}
+  publicUrl: "https://{{ index .Values.global.hostname "meet-minio" }}.{{ .Values.global.domain }}"
+  region: {{ .Values.objectstore.meet.region | default "eu-west-1" | quote }}
 
 externalDatabase:
   database: {{ .Values.database.meet.name | quote }}
@@ -203,3 +353,98 @@ job:
       memory: 512Mi
       cpu: 200m
 {{- end }}
+
+{{ $agentsEnabled := dig "application" "meet" "agents" "enabled" true .Values -}}
+{{ $subtitlesAgentEnabled := dig "application" "meet" "agents" "subtitles" "enabled" false .Values -}}
+{{ $summaryEnabled := dig "application" "meet" "summary" "enabled" true .Values -}}
+{{ $celeryBackendEnabled := dig "application" "meet" "celeryBackend" "enabled" true .Values -}}
+
+agent_metadata:
+  enabled: {{ $agentsEnabled }}
+  image:
+    registry: {{ (coalesce .Values.container.meet_agents.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.meet_agents.repository | quote }}
+    tag: {{ .Values.container.meet_agents.tag | default .Values.container.meet_backend.tag | quote }}
+    {{- with (coalesce .Values.container.meet_agents.imagePullSecret .Values.container.default.imagePullSecret) }}
+    pullSecrets:
+      - name: {{ . | quote }}
+    {{- end }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.meet.agents .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.meet.agents | default dict | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  envVars:
+    {{- $metadataEnv | toYaml | nindent 4 }}
+
+agent_subtitles:
+  enabled: {{ and $agentsEnabled $subtitlesAgentEnabled }}
+  image:
+    registry: {{ (coalesce .Values.container.meet_agents.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.meet_agents.repository | quote }}
+    tag: {{ .Values.container.meet_agents.tag | default .Values.container.meet_backend.tag | quote }}
+    {{- with (coalesce .Values.container.meet_agents.imagePullSecret .Values.container.default.imagePullSecret) }}
+    pullSecrets:
+      - name: {{ . | quote }}
+    {{- end }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.meet.agents .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.meet.agents | default dict | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  envVars:
+    {{- $agentEnv | toYaml | nindent 4 }}
+
+celery_backend:
+  enabled: {{ $celeryBackendEnabled }}
+  image:
+    registry: {{ (coalesce .Values.container.meet_backend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.meet_backend.repository | quote }}
+    tag: {{ .Values.container.meet_backend.tag | quote }}
+    {{- with (coalesce .Values.container.meet_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
+    pullSecrets:
+      - name: {{ . | quote }}
+    {{- end }}
+  # Same Django app: needs the S3 credentials from the meet secret.
+  extraEnvVarsSecret: meet
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.meet.celeryBackend .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.meet.celeryBackend | default dict | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+
+celery_summarize:
+  enabled: {{ and $summaryEnabled $llmReady }}
+  image:
+    registry: {{ (coalesce .Values.container.meet_summary.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.meet_summary.repository | quote }}
+    tag: {{ .Values.container.meet_summary.tag | default .Values.container.meet_backend.tag | quote }}
+    {{- with (coalesce .Values.container.meet_summary.imagePullSecret .Values.container.default.imagePullSecret) }}
+    pullSecrets:
+      - name: {{ . | quote }}
+    {{- end }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.meet.summary .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.meet.summary | default dict | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  envVars:
+    {{- $summaryEnv | toYaml | nindent 4 }}
+
+celery_transcribe:
+  enabled: {{ and $summaryEnabled $whisperxReady }}
+  image:
+    registry: {{ (coalesce .Values.container.meet_summary.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.meet_summary.repository | quote }}
+    tag: {{ .Values.container.meet_summary.tag | default .Values.container.meet_backend.tag | quote }}
+    {{- with (coalesce .Values.container.meet_summary.imagePullSecret .Values.container.default.imagePullSecret) }}
+    pullSecrets:
+      - name: {{ . | quote }}
+    {{- end }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.meet.summary .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.meet.summary | default dict | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  envVars:
+    {{- $summaryEnv | toYaml | nindent 4 }}

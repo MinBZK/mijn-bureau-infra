@@ -27,12 +27,17 @@ resource:
   livekit:
     livekit:
     valkey:
+    egress:
 
   meet:
     postgresql:
     valkey:
     meetFrontend:
     meetBackend:
+    celeryBackend:
+    agents:
+    summary:
+    minio:
     nginx:
 
   conversations:
@@ -40,6 +45,9 @@ resource:
     valkey:
     conversationsFrontend:
     conversationsBackend:
+    celery:
+    celeryBeat:
+    minio:
     nginx:
 
   docs:

@@ -560,7 +560,21 @@ import:
               "oauth2.device.authorization.grant.enabled": "false",
               "display.on.consent.screen": "false",
               "backchannel.logout.revoke.offline.tokens": "false"
-            }
+            },
+            "protocolMappers": [
+              {
+                "name": "audience-messages",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-audience-mapper",
+                "consentRequired": false,
+                "config": {
+                  "included.client.audience": "{{ .Values.authentication.client.messages.client_id }}",
+                  "access.token.claim": "true",
+                  "id.token.claim": "false",
+                  "userinfo.token.claim": "false"
+                }
+              }
+            ]
           },
           {
             "clientId": "account",

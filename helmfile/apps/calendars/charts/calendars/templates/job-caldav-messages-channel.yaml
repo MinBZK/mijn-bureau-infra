@@ -1,0 +1,76 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if and .Values.messagesChannel.enabled .Values.messagesChannel.id .Values.messagesChannel.token }}
+{{- /* Provision the global "caldav" Channel the messages app authenticates
+  with. Idempotent: update_or_create on a deterministic id keeps an existing
+  channel in sync. Runs after the migrate (weight -10) and superuser (weight
+  0) hook jobs. */ -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "common.names.fullname" . }}-caldav-messages-channel
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: calendars-caldav-messages-channel
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list (dict "helm.sh/hook" "post-install,post-upgrade" "helm.sh/hook-delete-policy" "before-hook-creation" "helm.sh/hook-weight" .Values.job.caldavMessagesChannel.weight) .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
+  backoffLimit: {{ .Values.job.backoffLimit }}
+  template:
+    metadata:
+      labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: calendars-caldav-messages-channel
+      {{- if .Values.job.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.job.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- include "calendars.imagePullSecrets" . | nindent 6 }}
+      restartPolicy: {{ .Values.job.restartPolicy }}
+      serviceAccountName: {{ template "calendars.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.backend.runtimeClassName }}
+      runtimeClassName: {{ .Values.backend.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.backend.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.backend.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.backend.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.backend.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "common.names.fullname" . }}-caldav-messages-channel
+          image: {{ template "calendars.backend.image" . }}
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          {{- if .Values.backend.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.backend.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+          args:
+            - -c
+            - |
+              python manage.py shell -c "import base64, os, uuid; from core.models import Channel; cid=os.environ['CALDAV_MESSAGES_CHANNEL_ID']; raw=base64.urlsafe_b64decode(cid + '=' * (-len(cid) % 4)); Channel.objects.update_or_create(id=uuid.UUID(bytes=raw), defaults=dict(name='Messages (platform integration)', type='caldav', scope_level='global', is_active=True, settings={'scopes': ['calendars:read', 'calendars:write', 'events:read', 'events:write']}, encrypted_settings={'token': os.environ['CALDAV_MESSAGES_CHANNEL_TOKEN']}))" && echo "CalDAV messages channel provisioned"
+          envFrom:
+            - configMapRef:
+                name: {{ template "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "calendars.secretName" . }}
+            - secretRef:
+                name: {{ include "common.names.fullname" . }}-caldav-messages-channel
+          {{- if .Values.job.resources }}
+          resources: {{- toYaml .Values.job.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{- end }}

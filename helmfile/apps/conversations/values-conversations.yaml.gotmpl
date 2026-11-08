@@ -37,9 +37,29 @@ conversations:
   CORSAllowedOrigins: "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
   AllowedHosts: "{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
   baseUrl: "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
+  {{- if .Values.application.docs.enabled }}
+  docsBaseUrl: "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}"
+  {{- end }}
 
   superuserEmail: {{  .Values.secret.conversations.adminUser | quote }}
   superuserPassword: {{  .Values.secret.conversations.adminPassword | quote }}
+
+  celery:
+    resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.conversations.celery .Values.global.resourcesPreset | quote }}
+    resources: {{ .Values.resource.conversations.celery | default dict | toYaml | nindent 6 }}
+    podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 6 }}
+    containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 6 }}
+    autoscaling:
+      hpa: {{ .Values.autoscaling.horizontal.conversations.celery | toYaml | nindent 8 }}
+    pdb: {{ .Values.pdb.conversations.celery | toYaml | nindent 6 }}
+    runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+
+  celeryBeat:
+    resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.conversations.celeryBeat .Values.global.resourcesPreset | quote }}
+    resources: {{ .Values.resource.conversations.celeryBeat | default dict | toYaml | nindent 6 }}
+    podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 6 }}
+    containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 6 }}
+    runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
 conversations_frontend:
   frontendCssUrl: "https://static-{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/iframe-hide.css"
@@ -96,6 +116,13 @@ externalDatabase:
   port: {{ .Values.database.conversations.port | quote }}
   type: {{ .Values.database.conversations.type | quote }}
   logging: true
+
+externalObjectStore:
+  endpoint: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.conversations.useSSL) .Values.objectstore.conversations.endpoint .Values.objectstore.conversations.port | quote }}
+  region: {{ .Values.objectstore.conversations.region | quote }}
+  accessKey: {{ .Values.objectstore.conversations.username | quote }}
+  secretKey: {{ .Values.objectstore.conversations.rootPassword | quote }}
+  bucket: {{ .Values.objectstore.conversations.bucket | quote }}
 
 
 authentication:

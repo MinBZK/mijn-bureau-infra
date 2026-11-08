@@ -1,0 +1,7 @@
+{{- /*
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.extraDeploy }}
+{{- include "common.tplvalues.render" (dict "value" .Values.extraDeploy "context" $) }}
+{{- end }}

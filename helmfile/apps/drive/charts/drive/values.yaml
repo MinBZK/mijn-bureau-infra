@@ -545,6 +545,22 @@ drive:
   wopiClients: ""
   collaborDiscoveryUrl: ""
   externalMinioAPI: ""
+  ## @param drive.email SMTP settings for outgoing mail (invitations, etc.)
+  ## When host is empty, no DJANGO_EMAIL_* variables are rendered.
+  ##
+  email:
+    backend: "django.core.mail.backends.smtp.EmailBackend"
+    host: ""
+    port: 587
+    hostUser: ""
+    hostPassword: ""
+    useTls: "true"
+    useSsl: "false"
+    from: ""
+    brandName: ""
+    logoImg: ""
+    urlApp: ""
+  frontendExternalHomeUrl: ""
 ## %%SECONDARY_CONTAINER/POD_DESCRIPTION%%
 ##
 drive_frontend:

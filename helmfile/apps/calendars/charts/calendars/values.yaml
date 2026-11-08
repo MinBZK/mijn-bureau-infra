@@ -149,6 +149,11 @@ backend:
   frontendTheme: "default"
   frontendSilentLoginEnabled: true
   meetBaseUrl: ""
+  messagesIntegration:
+    enabled: false
+    apiUrl: ""
+    channelId: ""
+    apiKey: ""
 
 ## @section Calendars worker parameters
 
@@ -423,6 +428,17 @@ job:
     weight: "-10"
   superuser:
     weight: "0"
+  caldavMessagesChannel:
+    weight: "1"
+
+## @section Messages-app CalDAV channel
+## Global "caldav" channel provisioned for the LaSuite messages app.
+## Password seen by messages = "<id><token>" (concatenated, no separator).
+##
+messagesChannel:
+  enabled: false
+  id: ""
+  token: ""
 
 ## @section Traffic exposure parameters
 

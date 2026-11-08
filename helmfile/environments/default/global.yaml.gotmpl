@@ -17,9 +17,15 @@ global:
     ollama: "small"
     synapse: "large"
     livekit: "medium"
+    # Egress needs ~4 CPUs per room composite recording. The preset still
+    # caps it at 3 CPUs; set resource.livekit.egress for production sizing.
+    livekitEgress: "xlarge"
     meet:
       backend: "micro"
       frontend: "nano"
+      celeryBackend: "micro"
+      agents: "micro"
+      summary: "micro"
     nextcloud: "medium"
     docs:
       backend: "micro"
@@ -33,6 +39,8 @@ global:
     conversations:
       backend: "micro"
       frontend: "nano"
+      celery: "micro"
+      celeryBeat: "micro"
     projects: "micro"
     calendars:
       backend: "micro"
@@ -64,6 +72,7 @@ global:
     nextcloud: "nextcloud"
     livekit: "livekit"
     meet: "meet"
+    meet-minio: "meet-minio"
     conversations: "conversations"
     docs: "docs"
     bureaublad: "bureaublad"

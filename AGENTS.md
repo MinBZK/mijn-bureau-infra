@@ -119,3 +119,23 @@ When you change docs files:
 - If `helmfile` fails on secrets, provide `-s "$SOPS_AGE_KEY"` to `./scripts/test.sh`.
 - If `conftest` is missing, install it and rerun the script.
 - If docs commands fail, run `yarn` again in `docs/`.
+
+## Kubernetes
+
+Everything is deploy on fundement, an NDSCloud based on gardener and metalstack. You can use kubectl commands to investigate how the applications run.
+
+## Products used
+
+We use allow of opensource products. Also allot from LaSuite. For deetails information about the lasuite products you can investigate the git repostitory on github. it often contains a helmchart you can use as example.
+
+LaSuite Docs: <https://github.com/suitenumerique/docs/tree/main/src/helm/impress>
+LaSuite Drive: <https://github.com/suitenumerique/drive/tree/main/src/helm/drive>
+LaSuite Messages: <https://github.com/suitenumerique/messages>
+LaSuite Calendar: <https://github.com/suitenumerique/calendars/>
+LaSuite Meet: <https://github.com/suitenumerique/meet/tree/main/src/helm/meet>
+LaSuite Projects: <https://github.com/suitenumerique/projects>
+LaSuite conversations: <https://github.com/suitenumerique/conversations/tree/main/src/helm/conversations>
+LaSuite Dictaphone: <https://github.com/suitenumerique/dictaphone/tree/main/src/helm/dictaphone>
+Bureaublad: <https://github.com/MinBZK/bureaublad>
+Element Synaps and web: <https://github.com/element-hq/element-docker-demo>
+Livekit: <https://github.com/livekit/livekit>

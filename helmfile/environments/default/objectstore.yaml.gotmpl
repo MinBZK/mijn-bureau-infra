@@ -29,6 +29,16 @@ objectstore:
     isInternal: true
     rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "drive" | sha1sum | quote }}
 
+  meet:
+    bucket: "meet-media-storage"
+    username: "admin"
+    endpoint: "meet-minio"
+    port: 9000
+    useSSL: false
+    region: "eu-west-1"
+    isInternal: true
+    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "meet" | sha1sum | quote }}
+
   projects:
     bucket: "projects"
     username: "admin"
@@ -47,6 +57,16 @@ objectstore:
     region: "eu-west-1"
     isInternal: true
     rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "dictaphone" | sha1sum | quote }}
+
+  conversations:
+    bucket: "conversations-media-storage"
+    username: "admin"
+    endpoint: "conversations-minio"
+    port: 9000
+    useSSL: false
+    region: "eu-west-1"
+    isInternal: true
+    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "conversations" | sha1sum | quote }}
 
   messages:
     username: "admin"

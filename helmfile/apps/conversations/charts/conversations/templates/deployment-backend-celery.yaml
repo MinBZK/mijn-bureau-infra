@@ -1,0 +1,219 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.conversations.celery.enabled }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}-backend-celery
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: conversations-backend-celery
+  {{- if or .Values.conversations.celery.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.conversations.celery.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.conversations.celery.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.conversations.celery.replicaCount | default 1 }}
+  {{- end }}
+  {{- if .Values.conversations.updateStrategy }}
+  strategy: {{- toYaml .Values.conversations.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.conversations.celery.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: conversations-backend-celery
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      {{- if .Values.conversations.celery.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.conversations.celery.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: conversations-backend-celery
+    spec:
+      {{- include "conversations.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "conversations.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.conversations.celery.automountServiceAccountToken }}
+      {{- if .Values.conversations.celery.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.conversations.celery.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.conversations.celery.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.conversations.celery.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.conversations.podAffinityPreset "component" "conversations" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.conversations.podAntiAffinityPreset "component" "conversations" "customLabels" $podLabels "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.conversations.nodeAffinityPreset.type "key" .Values.conversations.nodeAffinityPreset.key "values" .Values.conversations.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.conversations.celery.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.conversations.celery.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.conversations.celery.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.conversations.celery.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.conversations.celery.priorityClassName }}
+      priorityClassName: {{ .Values.conversations.celery.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.conversations.celery.schedulerName }}
+      schedulerName: {{ .Values.conversations.celery.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.conversations.celery.runtimeClassName }}
+      runtimeClassName: {{ .Values.conversations.celery.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.conversations.celery.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.conversations.celery.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.conversations.celery.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.conversations.celery.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.conversations.celery.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.conversations.celery.terminationGracePeriodSeconds }}
+      {{- end }}
+      containers:
+        - name: conversations-celery
+          image: {{ template "conversations.image" . }}
+          imagePullPolicy: {{ .Values.conversations.image.pullPolicy }}
+          {{- if .Values.conversations.celery.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.conversations.celery.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.conversations.celery.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.conversations.celery.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.conversations.celery.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.conversations.celery.args "context" $) | nindent 12 }}
+            {{- if .Values.conversations.celery.concurrency }}
+            - {{ printf "--concurrency=%d" (int .Values.conversations.celery.concurrency) }}
+            {{- end }}
+          {{- end }}
+          env:
+            - name: COLLABORATION_SERVER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: COLLABORATION_SERVER_SECRET
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: DJANGO_SECRET_KEY
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: DB_PASSWORD
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: REDIS_URL
+            - name: CELERY_BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: CELERY_BROKER_URL
+            - name: CELERY_RESULT_BACKEND
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: CELERY_RESULT_BACKEND
+            - name: AWS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: AWS_S3_SECRET_ACCESS_KEY
+            - name: OIDC_RP_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: OIDC_RP_CLIENT_SECRET
+            - name: AI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: AI_API_KEY
+            {{- if .Values.conversations.celery.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.conversations.celery.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ template "common.names.fullname" . }}
+            {{- if .Values.conversations.celery.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.conversations.celery.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.conversations.celery.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.conversations.celery.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.conversations.celery.resources }}
+          resources: {{- toYaml .Values.conversations.celery.resources | nindent 12 }}
+          {{- else if ne .Values.conversations.celery.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.conversations.celery.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.conversations.celery.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.conversations.celery.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.conversations.celery.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.conversations.celery.livenessProbe "enabled") "context" $) | nindent 12 }}
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - celery -A conversations.celery_app inspect ping -d conversations@$HOSTNAME
+          {{- end }}
+          {{- if .Values.conversations.celery.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.conversations.celery.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.conversations.celery.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.conversations.celery.readinessProbe "enabled") "context" $) | nindent 12 }}
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - celery -A conversations.celery_app inspect ping -d conversations@$HOSTNAME
+          {{- end }}
+          {{- if .Values.conversations.celery.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.conversations.celery.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.conversations.celery.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.conversations.celery.startupProbe "enabled") "context" $) | nindent 12 }}
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - celery -A conversations.celery_app inspect ping -d conversations@$HOSTNAME
+          {{- end }}
+          {{- end }}
+          {{- if .Values.conversations.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.conversations.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: llm-config
+              mountPath: /configuration/llm
+              readOnly: true
+          {{- if .Values.conversations.celery.extraVolumeMounts }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.conversations.celery.extraVolumeMounts "context" $) | nindent 12 }}
+          {{- end }}
+        {{- if .Values.conversations.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.conversations.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: llm-config
+          configMap:
+            name: {{ template "common.names.fullname" . }}-llm-config
+        {{- if .Values.conversations.celery.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.conversations.celery.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}
+{{- end }}

@@ -15,6 +15,7 @@ located in the folder `helmfile/environments/default`.
 | `application.conversations.namespace`    | The Kubernetes namespace name                           |
 | `authorization.conversations.enabled`    | Enable conversations for your MijnBureau implementation |
 | `tls.conversations.*`                    | The TLS settings for conversations                      |
+| `objectstore.conversations.*`            | Object store (S3/MinIO) configuration                   |
 | `pvc.conversations.*`                    | storage requirements                                    |
 | `resources.conversations.*`              | Resources for conversations                             |
 | `autoscaling.horizontal.conversations.*` | Autoscaling for conversations.                          |

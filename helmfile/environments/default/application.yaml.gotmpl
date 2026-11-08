@@ -50,12 +50,31 @@ application:
     turnTLSecretName: ~
     keys:
       apikey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "livekit" "apikey" | sha1sum | quote }}
+    # LiveKit Egress records rooms and streams them to S3/RTMP. Meet uses it
+    # for room recordings; the upload target is objectstore.meet. All other
+    # egress settings have sane defaults in the livekit-egress chart.
+    egress:
+      enabled: true
 
   # meet is a video conferencing frontend for livekit
   meet:
     enabled: true
     namespace: ~
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "meet" "secretkey" | sha1sum | quote }}
+    # Optional LiveKit agents; they need object storage and an STT provider.
+    agents:
+      enabled: false
+      # The subtitles agent is opt-in and additionally needs ai.stt.
+      subtitles:
+        enabled: false
+      envVars: {}
+    # Summarization only needs ai.llm. Transcription additionally needs
+    # ai.whisperx.baseUrl and is enabled automatically when that is set.
+    summary:
+      enabled: true
+      envVars: {}
+    celeryBackend:
+      enabled: true
 
   # conversations is an prototype AI assistant from LaSuite
   conversations:
@@ -93,10 +112,14 @@ application:
     secrettoServerKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secrettoServerKey" | sha1sum | quote }}
 
   # projects is a collaborative project management system from LaSuite
+  # theme overrides branding (favicon, colors, fonts, header/footer, feedback
+  # widgets) and is passed to the Projects THEME env var. Empty keeps nothing
+  # of the built-in LaSuite default theme.
   projects:
     enabled: true
     namespace: ~
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "projects" "secretkey" | sha1sum | quote }}
+    theme: ~
 
   # calendars is a calendar and scheduling application from LaSuite
   calendars:
@@ -111,7 +134,7 @@ application:
 
   # dictaphone is the Assistant Transcripts transcription and meeting workflow from LaSuite
   dictaphone:
-    enabled: true
+    enabled: false
     namespace: ~
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "dictaphone" "secretkey" | sha1sum | quote }}
     jwtSigningKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "dictaphone" "jwtSigningKey" | sha1sum | quote }}

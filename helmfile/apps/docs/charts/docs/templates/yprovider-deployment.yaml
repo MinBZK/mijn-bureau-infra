@@ -15,7 +15,9 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
+  {{- if not .Values.yProvider.autoscaling.hpa.enabled }}
   replicas: {{ .Values.yProvider.replicaCount }}
+  {{- end }}
   {{- if .Values.yProvider.updateStrategy }}
   strategy: {{- toYaml .Values.yProvider.updateStrategy | nindent 4 }}
   {{- end }}

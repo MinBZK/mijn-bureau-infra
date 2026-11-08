@@ -20,6 +20,29 @@ security:
       sysctls: []
       supplementalGroups: []
 
+  livekit_egress:
+    # The livekit/egress image runs as its own `egress` user (uid 1000).
+    # Writable paths are provided as emptyDir volumes by the chart.
+    containerSecurityContext:
+      enabled: true
+      seLinuxOptions: {}
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - "ALL"
+      privileged: false
+      runAsUser: 1000
+      runAsGroup: 1000
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1000
+      fsGroupChangePolicy: Always
+      sysctls: []
+      supplementalGroups: []
+
   collabora:
     containerSecurityContext:
       enabled: true
