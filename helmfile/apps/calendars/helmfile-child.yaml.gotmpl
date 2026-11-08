@@ -1,0 +1,50 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: calendars-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.calendars.namespace }}
+    namespace: {{ .Values.application.calendars.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.calendars.enabled) | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: calendars-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.calendars.namespace }}
+    namespace: {{ .Values.application.calendars.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.calendars.enabled) | toYaml }}
+    needs:
+      - {{ if .Values.application.calendars.namespace }}{{ .Values.application.calendars.namespace }}/{{ end }}calendars-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
+
+  - name: calendars-valkey
+    chart: ../common/charts/valkey
+    {{- if .Values.application.calendars.namespace }}
+    namespace: {{ .Values.application.calendars.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.calendars.enabled) | toYaml }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-valkey.yaml.gotmpl"
+
+  - name: calendars
+    chart: charts/calendars
+    condition: application.calendars.enabled
+    {{- if .Values.application.calendars.namespace }}
+    namespace: {{ .Values.application.calendars.namespace }}
+    {{- end }}
+    {{- if and (eq .Environment.Name "demo") ( .Values.application.calendars.enabled) }}
+    needs:
+      - {{ if .Values.application.calendars.namespace }}{{ .Values.application.calendars.namespace }}/{{ end }}calendars-cluster
+      - {{ if .Values.application.calendars.namespace }}{{ .Values.application.calendars.namespace }}/{{ end }}calendars-valkey
+    {{- end }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values.yaml.gotmpl"

@@ -63,6 +63,7 @@ import:
     MB_CLIENT_SECRET_CONVERSATIONS: {{ .Values.authentication.client.conversations.client_secret | quote }}
     MB_CLIENT_SECRET_DRIVE: {{ .Values.authentication.client.drive.client_secret | quote }}
     MB_CLIENT_SECRET_PROJECTS: {{ .Values.authentication.client.projects.client_secret | quote }}
+    MB_CLIENT_SECRET_CALENDARS: {{ .Values.authentication.client.calendars.client_secret | quote }}
     MB_CLIENT_SECRET_DICTAPHONE: {{ .Values.authentication.client.dictaphone.client_secret | quote }}
     MB_CLIENT_SECRET_NEXTCLOUD: {{ .Values.authentication.client.nextcloud.client_secret | quote }}
     MB_CLIENT_SECRET_DOCS: {{ .Values.authentication.client.docs.client_secret | quote }}
@@ -315,6 +316,49 @@ import:
             }
           },
           {
+            "clientId": "{{ .Values.authentication.client.calendars.client_id }}",
+            "name": "Calendars",
+            "description": "Calendar and scheduling from LaSuite",
+            "rootUrl": "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_CALENDARS)",
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "[PHONE]",
+              "backchannel.logout.session.required": "true",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}/api/v1.0/backchannel-logout/",
+              "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.url": "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}/*",
+              "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "backchannel.logout.revoke.offline.tokens": "false"
+            }
+          },
+          {
             "clientId": "{{ .Values.authentication.client.dictaphone.client_id }}",
             "name": "Assistant Transcripts",
             "description": "Transcription and meeting workflow from LaSuite",
@@ -484,7 +528,7 @@ import:
             "enabled": false
           }
         ],
-        "defaultRoles": ["offline_access", "uma_authorization", "tokenexchange-role"],
+        "defaultRoles": ["offline_access", "uma_authorization"],
         {{- if eq .Environment.Name "demo" }}
         "users" : [
           {{- $users := .Values.user }}

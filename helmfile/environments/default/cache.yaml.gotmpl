@@ -44,6 +44,11 @@ cache:
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "projects" "password" | sha1sum | quote }}
+  calendars:
+    host: "calendars-valkey"
+    port: 6379
+    isInternal: true
+    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "calendars" "password" | sha1sum | quote }}
   dictaphone:
     host: "dictaphone-valkey"
     port: 6379

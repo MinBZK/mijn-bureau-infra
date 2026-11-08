@@ -26,6 +26,11 @@ global:
       backend: "xlarge"
       frontend: "xlarge"
     projects: "xlarge"
+    calendars:
+      backend: "xlarge"
+      worker: "xlarge"
+      frontend: "xlarge"
+      caldav: "xlarge"
     dictaphone:
       backend: "xlarge"
       frontend: "xlarge"

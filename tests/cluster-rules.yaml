@@ -25,6 +25,11 @@ global:
       backend: "small"
       frontend: "small"
     projects: "small"
+    calendars:
+      backend: "small"
+      worker: "small"
+      frontend: "small"
+      caldav: "small"
     dictaphone:
       backend: "small"
       frontend: "small"

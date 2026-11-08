@@ -1,0 +1,517 @@
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+## @section Global parameters
+
+global:
+  ## Global Docker image parameters
+  ##
+  imageRegistry: ""
+  imagePullSecrets: []
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: ""
+  ## Security parameters
+  ##
+  security:
+    allowInsecureImages: false
+  ## Compatibility adaptations for Kubernetes platforms
+  ##
+  compatibility:
+    openshift:
+      adaptSecurityContext: auto
+    omitEmptySeLinuxOptions: false
+
+## @section Common parameters
+
+kubeVersion: ""
+apiVersions: []
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+clusterDomain: cluster.local
+extraDeploy: []
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section Cluster parameters
+
+## Cluster routing configuration. Helmfile overrides these values through
+## values-cluster-ingress.yaml.gotmpl.
+##
+cluster:
+  routingMode: ingress
+  ingress:
+    type: nginx
+    className: ""
+    annotations: {}
+  gateway: {}
+  tls:
+    selfSigned: false
+
+## @section Calendars backend parameters
+
+## Django API server (gunicorn)
+##
+backend:
+  image:
+    registry: ghcr.io
+    repository: suitenumerique/calendars-backend
+    tag: main
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  replicaCount: 1
+  containerPorts:
+    http: 8000
+  extraContainerPorts: []
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  customStartupProbe: {}
+  resourcesPreset: "micro"
+  resources: {}
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - "ALL"
+    privileged: false
+    runAsUser: 1001
+    runAsGroup: 1001
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+  runtimeClassName: ""
+  deploymentAnnotations: {}
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  command: []
+  args: []
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  extraVolumeMounts: []
+  extraVolumes: []
+  secretKey: ""
+  saltKey: ""
+  baseUrl: ""
+  allowedHosts: ""
+  csrfTrustedOrigins: ""
+  languageCode: "nl-nl"
+  frontendTheme: "default"
+  frontendSilentLoginEnabled: true
+  meetBaseUrl: ""
+
+## @section Calendars worker parameters
+
+## Dramatiq background worker
+##
+worker:
+  replicaCount: 1
+  command:
+    - python
+    - worker.py
+  args:
+    - --concurrency
+    - "2"
+  resourcesPreset: "micro"
+  resources: {}
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - "ALL"
+    privileged: false
+    runAsUser: 1001
+    runAsGroup: 1001
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+  runtimeClassName: ""
+  deploymentAnnotations: {}
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  extraVolumeMounts: []
+  extraVolumes: []
+  terminationGracePeriodSeconds: 620
+
+## @section Calendars frontend parameters
+
+## Static React single-page application served by Caddy
+##
+frontend:
+  image:
+    registry: ghcr.io
+    repository: suitenumerique/calendars-frontend
+    tag: main
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  replicaCount: 1
+  containerPorts:
+    http: 8080
+  extraContainerPorts: []
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  customStartupProbe: {}
+  resourcesPreset: "nano"
+  resources: {}
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - "ALL"
+    privileged: false
+    runAsUser: 1001
+    runAsGroup: 1001
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+  runtimeClassName: ""
+  deploymentAnnotations: {}
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  command: []
+  args: []
+  extraEnvVars:
+    - name: HOME
+      value: /tmp
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  extraVolumeMounts: []
+  extraVolumes: []
+
+## @section CalDAV server parameters
+
+## SabreDAV CalDAV server. The Django backend proxies /caldav to this service.
+##
+caldav:
+  image:
+    registry: ghcr.io
+    repository: suitenumerique/calendars-caldav
+    tag: main
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  replicaCount: 1
+  containerPorts:
+    http: 8080
+  extraContainerPorts: []
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  customStartupProbe: {}
+  resourcesPreset: "micro"
+  resources: {}
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - "ALL"
+    privileged: false
+    runAsUser: 1001
+    runAsGroup: 1001
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+  runtimeClassName: ""
+  deploymentAnnotations: {}
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  command: []
+  args: []
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  extraVolumeMounts: []
+  extraVolumes: []
+  ## Internal URLs. Helmfile fills these from the release name.
+  ##
+  url: ""
+  callbackBaseUrl: ""
+  dbSchema: "sabre"
+  baseUri: "/caldav/"
+  inboundApiKey: ""
+  outboundApiKey: ""
+  internalApiKey: ""
+  sanitizerStripBinaryAttachments: true
+  sanitizerMaxDescriptionBytes: 102400
+  sanitizerMaxResourceSize: 1048576
+
+## @section Database jobs
+
+job:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 300
+  restartPolicy: OnFailure
+  podAnnotations: {}
+  resources: {}
+  commandMigrate:
+    - /bin/sh
+  argsMigrate:
+    - -c
+    - |
+      while ! python manage.py check --database default > /dev/null 2>&1
+      do
+        echo "Database not ready"
+        sleep 2
+      done
+      echo "Database is ready"
+      python manage.py migrate --noinput
+  commandSuperuser:
+    - /bin/sh
+  argsSuperuser:
+    - -c
+    - |
+      python manage.py createsuperuser --email "$DJANGO_SUPERUSER_EMAIL" --password "$DJANGO_SUPERUSER_PASSWORD"
+  migrate:
+    weight: "-10"
+  superuser:
+    weight: "0"
+
+## @section Traffic exposure parameters
+
+service:
+  type: ClusterIP
+  ports:
+    http: 80
+  annotations: {}
+
+ingress:
+  enabled: true
+  pathType: Prefix
+  hostname: ""
+  ingressClassName: ""
+  annotations: {}
+  tls: true
+  selfSigned: false
+  extraHosts: []
+  extraPaths: []
+  extraTls: []
+  secrets: []
+  extraRules: []
+
+## @section Network policy parameters
+
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: true
+  addExternalClientAccess: true
+  extraIngress: []
+  extraEgress: []
+
+## @section Service account parameters
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+## @section External Redis parameters
+
+externalRedis:
+  host: ""
+  port: 6379
+  password: ""
+
+## @section External database parameters
+
+externalDatabase:
+  type: postgresql
+  username: ""
+  password: ""
+  host: ""
+  port: 5432
+  database: ""
+  logging: false
+
+## @section SMTP parameters
+
+smtp:
+  host: ""
+  port: 587
+  secure: false
+  username: ""
+  password: ""
+  from: ""
+
+## @section Authentication parameters
+
+authentication:
+  issuer: ""
+  authorization_endpoint: ""
+  token_endpoint: ""
+  userinfo_endpoint: ""
+  end_session_endpoint: ""
+  jwks_uri: ""
+  claims:
+    username: preferred_username
+    display_name: name
+    given_name: given_name
+    family_name: family_name
+  client:
+    client_id: calendars
+    client_secret: ""
+
+## @section Superuser parameters
+
+superuser:
+  email: ""
+  password: ""

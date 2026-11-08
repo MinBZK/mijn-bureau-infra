@@ -1,0 +1,119 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}-worker
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: calendars-worker
+  {{- if or .Values.worker.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.worker.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.worker.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.worker.replicaCount }}
+  {{- end }}
+  {{- if .Values.worker.updateStrategy }}
+  strategy: {{- toYaml .Values.worker.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.worker.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: calendars-worker
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.worker.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.worker.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: calendars-worker
+    spec:
+      {{- include "calendars.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "calendars.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.worker.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.worker.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.worker.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.worker.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.worker.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.worker.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.worker.priorityClassName }}
+      priorityClassName: {{ .Values.worker.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.worker.runtimeClassName }}
+      runtimeClassName: {{ .Values.worker.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.worker.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.worker.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.worker.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.worker.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.worker.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.worker.terminationGracePeriodSeconds }}
+      {{- end }}
+      containers:
+        - name: calendars-worker
+          image: {{ template "calendars.backend.image" . }}
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          {{- if .Values.worker.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.worker.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.worker.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.worker.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.worker.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.worker.args "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.worker.extraEnvVars }}
+          env:
+            {{- include "common.tplvalues.render" (dict "value" .Values.worker.extraEnvVars "context" $) | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ template "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "calendars.secretName" . }}
+            {{- if .Values.worker.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.worker.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.worker.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.worker.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.worker.resources }}
+          resources: {{- toYaml .Values.worker.resources | nindent 12 }}
+          {{- else if ne .Values.worker.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.worker.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.worker.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.worker.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.worker.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.worker.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.worker.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.worker.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

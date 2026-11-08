@@ -1,0 +1,196 @@
+{{- $hostname := printf "%s.%s" .Values.global.hostname.calendars .Values.global.domain }}
+{{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
+{{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
+{{- $preset := .Values.global.resourcesPreset | default "none" }}
+{{- $presetPerApp := .Values.global.resourcesPresetPerApp | default dict }}
+{{- $resources := .Values.resource | default dict }}
+{{- $autoscaling := .Values.autoscaling.horizontal | default dict }}
+{{- $pdb := .Values.pdb | default dict }}
+
+global:
+  ## Global Docker image parameters
+  ##
+  imageRegistry: {{ (coalesce .Values.container.calendars_backend.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.calendars_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+  ## Security parameters
+  ##
+  security:
+    allowInsecureImages: true
+
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels:
+  app.kubernetes.io/part-of: calendars
+
+backend:
+  image:
+    registry: {{ (coalesce .Values.container.calendars_backend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.calendars_backend.repository | quote }}
+    tag: {{ .Values.container.calendars_backend.tag | quote }}
+    pullPolicy: Always
+
+  resourcesPreset: {{ dig "calendars" "backend" $preset $presetPerApp | quote }}
+  resources: {{ dig "calendars" "backend" (dict) $resources | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ dig "calendars" "backend" (dict) $autoscaling | toYaml | nindent 6 }}
+  pdb: {{ dig "calendars" "backend" (dict) $pdb | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+  secretKey: {{ .Values.application.calendars.secretKey | quote }}
+  saltKey: {{ .Values.application.calendars.saltKey | quote }}
+  baseUrl: {{ $baseUrl | quote }}
+  allowedHosts: {{ $hostname | quote }}
+  csrfTrustedOrigins: {{ $baseUrl | quote }}
+  languageCode: {{ ternary "nl-nl" "en-us" (eq (.Values.global.defaultLocale | default "nl") "nl") | quote }}
+  frontendTheme: "default"
+  frontendSilentLoginEnabled: true
+  {{- if .Values.application.meet.enabled }}
+  meetBaseUrl: {{ printf "https://%s.%s" .Values.global.hostname.meet .Values.global.domain | quote }}
+  {{- end }}
+
+worker:
+  resourcesPreset: {{ dig "calendars" "worker" $preset $presetPerApp | quote }}
+  resources: {{ dig "calendars" "worker" (dict) $resources | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ dig "calendars" "worker" (dict) $autoscaling | toYaml | nindent 6 }}
+  pdb: {{ dig "calendars" "worker" (dict) $pdb | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+
+frontend:
+  image:
+    registry: {{ (coalesce .Values.container.calendars_frontend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.calendars_frontend.repository | quote }}
+    tag: {{ .Values.container.calendars_frontend.tag | quote }}
+    pullPolicy: Always
+
+  resourcesPreset: {{ dig "calendars" "frontend" $preset $presetPerApp | quote }}
+  resources: {{ dig "calendars" "frontend" (dict) $resources | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ dig "calendars" "frontend" (dict) $autoscaling | toYaml | nindent 6 }}
+  pdb: {{ dig "calendars" "frontend" (dict) $pdb | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+
+caldav:
+  image:
+    registry: {{ (coalesce .Values.container.calendars_caldav.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.calendars_caldav.repository | quote }}
+    tag: {{ .Values.container.calendars_caldav.tag | quote }}
+    pullPolicy: Always
+
+  resourcesPreset: {{ dig "calendars" "caldav" $preset $presetPerApp | quote }}
+  resources: {{ dig "calendars" "caldav" (dict) $resources | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ dig "calendars" "caldav" (dict) $autoscaling | toYaml | nindent 6 }}
+  pdb: {{ dig "calendars" "caldav" (dict) $pdb | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+  inboundApiKey: {{ .Values.application.calendars.caldav.inboundApiKey | quote }}
+  outboundApiKey: {{ .Values.application.calendars.caldav.outboundApiKey | quote }}
+  internalApiKey: {{ .Values.application.calendars.caldav.internalApiKey | quote }}
+
+ingress:
+  enabled: true
+  hostname: {{ $hostname | quote }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.calendars | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+    {{- if and (hasKey .Values.cluster "certificate") (hasKey .Values.cluster.certificate "issuerRef") }}
+    {{- if eq .Values.cluster.certificate.issuerRef.kind "ClusterIssuer" }}
+    cert-manager.io/cluster-issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- else if eq .Values.cluster.certificate.issuerRef.kind "Issuer" }}
+    cert-manager.io/issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- end }}
+    {{- end }}
+
+externalRedis:
+  host: {{ .Values.cache.calendars.host | quote }}
+  port: {{ .Values.cache.calendars.port | quote }}
+  password: {{ .Values.cache.calendars.password | quote }}
+
+externalDatabase:
+  database: {{ .Values.database.calendars.name | quote }}
+  username: {{ .Values.database.calendars.user | quote }}
+  host: {{ .Values.database.calendars.host | quote }}
+  password: {{ .Values.database.calendars.password | quote }}
+  port: {{ .Values.database.calendars.port | quote }}
+  type: {{ .Values.database.calendars.type | default "postgresql" | quote }}
+  logging: false
+
+authentication:
+  issuer: {{ .Values.authentication.oidc.issuer | quote }}
+  authorization_endpoint: {{ .Values.authentication.oidc.authorization_endpoint | quote }}
+  token_endpoint: {{ .Values.authentication.oidc.token_endpoint | quote }}
+  userinfo_endpoint: {{ .Values.authentication.oidc.userinfo_endpoint | quote }}
+  end_session_endpoint: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
+  jwks_uri: {{ .Values.authentication.oidc.jwks_uri | quote }}
+  claims:
+    username: {{ .Values.authentication.oidc.claims.username | default "preferred_username" | quote }}
+    display_name: {{ .Values.authentication.oidc.claims.display_name | default "name" | quote }}
+    given_name: {{ .Values.authentication.oidc.claims.given_name | default "given_name" | quote }}
+    family_name: {{ .Values.authentication.oidc.claims.family_name | default "family_name" | quote }}
+  client:
+    client_id: {{ .Values.authentication.client.calendars.client_id | quote }}
+    client_secret: {{ .Values.authentication.client.calendars.client_secret | quote }}
+
+smtp:
+  host: {{ .Values.smtp.host | quote }}
+  port: {{ .Values.smtp.port | default 587 }}
+  secure: {{ .Values.smtp.tls.enabled | default false }}
+  username: {{ .Values.smtp.username | quote }}
+  password: {{ .Values.smtp.password | quote }}
+  from: {{ printf "%s <%s>" .Values.smtp.from.name .Values.smtp.from.email | quote }}
+
+superuser:
+  email: {{ .Values.secret.calendars.adminUser | quote }}
+  password: {{ .Values.secret.calendars.adminPassword | quote }}
+
+{{- if ne .Values.global.resourcesPreset "none" }}
+job:
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+{{- end }}

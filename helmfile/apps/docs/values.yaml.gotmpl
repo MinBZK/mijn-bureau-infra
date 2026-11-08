@@ -88,6 +88,20 @@ backend:
       # Allow https egress for keycloak connection and external AI
       - ports:
           - port: 443
+      # Keycloak OIDC connectivity (internal service and pod ports)
+      - ports:
+          - port: 80
+            protocol: TCP
+          - port: 8080
+            protocol: TCP
+        to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: {{ .Values.application.keycloak.namespace | default "mijnbureau-keycloak" | quote }}
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/instance: keycloak-keycloak
+                app.kubernetes.io/name: keycloak
       # Allow http egress for yProvider connection
       - ports:
           - port: 4444

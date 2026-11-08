@@ -26,6 +26,11 @@ global:
     conversations:
       backend: "small"
       frontend: "small"
+    calendars:
+      backend: "small"
+      worker: "small"
+      frontend: "small"
+      caldav: "small"
     dictaphone:
       backend: "small"
       frontend: "small"
@@ -138,6 +143,18 @@ container:
     imagePullSecret: ""
 
   projects:
+    registry: ""
+    imagePullSecret: ""
+
+  calendars_backend:
+    registry: ""
+    imagePullSecret: ""
+
+  calendars_frontend:
+    registry: ""
+    imagePullSecret: ""
+
+  calendars_caldav:
     registry: ""
     imagePullSecret: ""
 

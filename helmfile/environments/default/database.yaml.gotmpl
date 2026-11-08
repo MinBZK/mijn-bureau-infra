@@ -77,6 +77,16 @@ database:
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "projects" "database" | sha1sum | quote}}
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "projects" "database_admin" | sha1sum | quote}}
 
+  calendars:
+    type: postgresql
+    host: calendars-cluster-rw
+    name: calendars
+    user: calendars
+    port: 5432
+    isInternal: true
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "calendars" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "calendars" "database_admin" | sha1sum | quote}}
+
   dictaphone:
     engine: django.db.backends.postgresql_psycopg2
     type: postgresql

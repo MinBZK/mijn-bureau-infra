@@ -48,6 +48,7 @@ Organizations often use external identity providers. To integrate them with Mijn
 authentication:
   oidc:
     issuer: "https://id.example.com/realms/mijnbureau"
+    discovery_endpoint: "https://id.example.com/realms/mijnbureau/.well-known/openid-configuration"
     authorization_endpoint: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/auth"
     token_endpoint: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/token"
     introspection_endpoint: "https://id.example.com/realms/mijnbureau/protocol/openid-connect/token/introspect"
@@ -99,6 +100,7 @@ global:
 authentication:
   oidc:
     issuer: "https://id.mijnbureau.internal/realms/mijnbureau"
+    discovery_endpoint: "https://id.mijnbureau.internal/realms/mijnbureau/.well-known/openid-configuration"
     authorization_endpoint: "https://id.mijnbureau.internal/realms/mijnbureau/protocol/openid-connect/auth"
     token_endpoint: "https://id.mijnbureau.internal/realms/mijnbureau/protocol/openid-connect/token"
     introspection_endpoint: "https://id.mijnbureau.internal/realms/mijnbureau/protocol/openid-connect/token/introspect"

@@ -39,6 +39,7 @@ global:
     bureaublad: "bureaublad"
     drive: "drive"
     projects: "projects"
+    calendars: "calendars"
     projects-minio: "projects-minio"
     dictaphone: "dictaphone"
     dictaphone-minio: "dictaphone-minio"
@@ -66,6 +67,7 @@ Create the following DNS records (replace `kubernetes.local` with your configure
 - `bureaublad.kubernetes.local`
 - `drive.kubernetes.local`
 - `projects.kubernetes.local`
+- `calendars.kubernetes.local`
 - `projects-minio.kubernetes.local`
 - `dictaphone.kubernetes.local`
 - `dictaphone-minio.kubernetes.local`

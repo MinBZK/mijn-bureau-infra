@@ -1,0 +1,25 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "common.names.fullname" . }}-caldav
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: calendars-caldav
+  {{- if or .Values.service.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.service.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.ports.http }}
+      targetPort: {{ .Values.caldav.containerPorts.http }}
+      protocol: TCP
+  selector: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: calendars-caldav

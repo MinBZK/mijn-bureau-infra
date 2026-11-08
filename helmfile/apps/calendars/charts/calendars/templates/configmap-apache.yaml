@@ -1,0 +1,45 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}-apache
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: calendars-caldav
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  ## The CalDAV container must run as a non-root user, so Apache listens on an
+  ## unprivileged port. Mount these files over the image configuration.
+  ##
+  ports.conf: |
+    Listen {{ .Values.caldav.containerPorts.http }}
+    ServerName localhost
+  sabredav.conf: |
+    <VirtualHost *:{{ .Values.caldav.containerPorts.http }}>
+        ServerName localhost
+        DocumentRoot /var/www/sabredav
+
+        <Directory /var/www/sabredav>
+            AllowOverride All
+            Require all granted
+            Options -Indexes +FollowSymLinks
+        </Directory>
+
+        RewriteEngine On
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteRule ^(.*)$ server.php [QSA,L]
+
+        RewriteRule ^\.well-known/caldav / [R=301,L]
+
+        ErrorLog /proc/self/fd/2
+
+        SetEnvIf Request_URI "^/caldav/healthz$" no_access_log
+        CustomLog /proc/self/fd/1 vhost_combined env=!no_access_log
+    </VirtualHost>
