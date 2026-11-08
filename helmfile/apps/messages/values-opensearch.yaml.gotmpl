@@ -1,0 +1,55 @@
+{{- $preset := .Values.global.resourcesPreset | default "none" }}
+{{- $presetPerApp := .Values.global.resourcesPresetPerApp | default dict }}
+{{- $resources := .Values.resource | default dict }}
+{{- $pdb := .Values.pdb | default dict }}
+
+global:
+  imageRegistry: {{ (coalesce .Values.container.opensearch.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.opensearch.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+  security:
+    allowInsecureImages: true
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+fullnameOverride: "messages-opensearch"
+
+commonLabels:
+  app.kubernetes.io/part-of: messages
+
+image:
+  registry: {{ (coalesce .Values.container.opensearch.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.opensearch.repository | quote }}
+  tag: {{ .Values.container.opensearch.tag | quote }}
+  pullPolicy: Always
+
+resourcesPreset: {{ dig "messages" "opensearch" $preset $presetPerApp | quote }}
+resources: {{ dig "messages" "opensearch" (dict) $resources | toYaml | nindent 2 }}
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
+pdb: {{ dig "messages" "opensearch" (dict) $pdb | toYaml | nindent 2 }}
+{{- if .Values.cluster.runtimeClassName }}
+runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+{{- end }}
+javaOpts: {{ dig "messages" "opensearch" "javaOpts" "-Xms512m -Xmx512m" .Values.application | quote }}
+
+persistence:
+  enabled: true
+  size: {{ coalesce .Values.pvc.messages.opensearch.size .Values.pvc.default.size "10Gi" | quote }}
+  {{- with (coalesce .Values.pvc.messages.opensearch.storageClass .Values.pvc.default.storageClass) }}
+  storageClass: {{ . | quote }}
+  {{- end }}
+  accessModes: {{ coalesce .Values.pvc.messages.opensearch.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+
+service:
+  type: ClusterIP
+  ports:
+    http: 9200
+
+networkPolicy:
+  enabled: true
+  allowExternal: false
+  allowExternalEgress: true

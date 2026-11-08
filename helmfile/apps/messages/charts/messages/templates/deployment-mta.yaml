@@ -1,0 +1,145 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-mta
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: messages-mta
+  {{- if or .Values.mta.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.mta.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.mta.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.mta.replicaCount }}
+  {{- end }}
+  {{- if .Values.mta.updateStrategy }}
+  strategy: {{- toYaml .Values.mta.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.mta.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: messages-mta
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.mta.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.mta.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: messages-mta
+    spec:
+      {{- include "messages.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "messages.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.mta.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.mta.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mta.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.mta.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mta.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.mta.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mta.priorityClassName }}
+      priorityClassName: {{ .Values.mta.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.mta.runtimeClassName }}
+      runtimeClassName: {{ .Values.mta.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.mta.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.mta.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mta.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.mta.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.mta.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.mta.terminationGracePeriodSeconds }}
+      {{- end }}
+      containers:
+        - name: messages-mta
+          image: {{ include "messages.mta.image" . }}
+          imagePullPolicy: {{ .Values.mta.image.pullPolicy }}
+          {{- if .Values.mta.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.mta.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.mta.extraEnvVars }}
+          env:
+            {{- include "common.tplvalues.render" (dict "value" .Values.mta.extraEnvVars "context" $) | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "messages.secretName" . }}
+            {{- if .Values.mta.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.mta.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.mta.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.mta.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.mta.resources }}
+          resources: {{- toYaml .Values.mta.resources | nindent 12 }}
+          {{- else if ne .Values.mta.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.mta.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: smtp
+              containerPort: {{ .Values.mta.containerPorts.smtp }}
+              protocol: TCP
+            {{- if .Values.mta.metrics.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.mta.containerPorts.metrics }}
+              protocol: TCP
+            {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.mta.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.mta.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.mta.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.mta.livenessProbe "enabled") "context" $) | nindent 12 }}
+            tcpSocket:
+              port: smtp
+          {{- end }}
+          {{- if .Values.mta.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.mta.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.mta.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.mta.readinessProbe "enabled") "context" $) | nindent 12 }}
+            tcpSocket:
+              port: smtp
+          {{- end }}
+          {{- if .Values.mta.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.mta.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.mta.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.mta.startupProbe "enabled") "context" $) | nindent 12 }}
+            tcpSocket:
+              port: smtp
+          {{- end }}
+          {{- end }}
+          {{- if .Values.mta.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.mta.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.mta.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.mta.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.mta.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.mta.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

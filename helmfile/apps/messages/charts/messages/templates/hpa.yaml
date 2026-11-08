@@ -1,0 +1,45 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- $components := dict "backend" .Values.backend "worker" .Values.worker "frontend" .Values.frontend "mta" .Values.mta -}}
+{{- range $componentName, $component := $components }}
+{{- if $component.autoscaling.hpa.enabled }}
+---
+apiVersion: {{ include "common.capabilities.hpa.apiVersion" ( dict "context" $ ) }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "common.names.fullname" $ }}-{{ $componentName }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: messages-{{ $componentName }}
+  {{- if $.Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $.Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" $ }}
+    kind: Deployment
+    name: {{ include "common.names.fullname" $ }}-{{ $componentName }}
+  minReplicas: {{ $component.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ $component.autoscaling.hpa.maxReplicas }}
+  metrics:
+    {{- if $component.autoscaling.hpa.targetMemory }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ $component.autoscaling.hpa.targetMemory }}
+    {{- end }}
+    {{- if $component.autoscaling.hpa.targetCPU }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $component.autoscaling.hpa.targetCPU }}
+    {{- end }}
+{{- end }}
+{{- end }}

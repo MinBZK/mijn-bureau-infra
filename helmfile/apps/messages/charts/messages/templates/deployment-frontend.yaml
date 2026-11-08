@@ -1,0 +1,162 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-frontend
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: messages-frontend
+  {{- if or .Values.frontend.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.frontend.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.frontend.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.frontend.replicaCount }}
+  {{- end }}
+  {{- if .Values.frontend.updateStrategy }}
+  strategy: {{- toYaml .Values.frontend.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.frontend.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: messages-frontend
+  template:
+    metadata:
+      {{- if .Values.frontend.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: messages-frontend
+    spec:
+      {{- include "messages.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "messages.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.frontend.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.frontend.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.frontend.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.frontend.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.frontend.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.frontend.priorityClassName }}
+      priorityClassName: {{ .Values.frontend.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.frontend.runtimeClassName }}
+      runtimeClassName: {{ .Values.frontend.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.frontend.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.frontend.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.frontend.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.frontend.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.frontend.terminationGracePeriodSeconds }}
+      {{- end }}
+      containers:
+        - name: messages
+          image: {{ include "messages.frontend.image" . }}
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          {{- if .Values.frontend.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.frontend.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else }}
+          {{- if .Values.frontend.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.frontend.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.args "context" $) | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          env:
+            - name: PORT
+              value: {{ .Values.frontend.containerPorts.http | quote }}
+            - name: MESSAGES_FRONTEND_ROOT
+              value: "/app"
+            - name: MESSAGES_FRONTEND_BACKEND_SERVER
+              value: {{ include "messages.frontendBackendServer" . | quote }}
+            - name: DJANGO_ADMIN_URL
+              value: {{ .Values.frontend.adminUrl | default "admin" | quote }}
+            - name: DJANGO_ADMIN_IP_ALLOWLIST
+              value: {{ .Values.frontend.adminIpAllowlist | default "0.0.0.0/0 ::/0" | quote }}
+            {{- if .Values.frontend.trustedProxies }}
+            - name: MESSAGES_FRONTEND_TRUSTED_PROXIES
+              value: {{ .Values.frontend.trustedProxies | quote }}
+            {{- end }}
+            {{- if .Values.frontend.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.frontend.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.frontend.extraEnvVarsCM .Values.frontend.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.frontend.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.frontend.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.frontend.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.frontend.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.frontend.resources }}
+          resources: {{- toYaml .Values.frontend.resources | nindent 12 }}
+          {{- else if ne .Values.frontend.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.frontend.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.frontend.containerPorts.http }}
+              protocol: TCP
+            {{- if .Values.frontend.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.frontend.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.frontend.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.frontend.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.frontend.livenessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /__lbheartbeat__
+              port: http
+          {{- end }}
+          {{- if .Values.frontend.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.frontend.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.frontend.readinessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /__lbheartbeat__
+              port: http
+          {{- end }}
+          {{- if .Values.frontend.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.frontend.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.frontend.startupProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /__lbheartbeat__
+              port: http
+          {{- end }}
+          {{- end }}
+          {{- if .Values.frontend.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.frontend.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.frontend.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.frontend.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.frontend.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.frontend.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

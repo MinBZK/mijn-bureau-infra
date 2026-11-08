@@ -1,0 +1,64 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "common.names.fullname" . }}-migrate
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: messages-migrate
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list (dict "helm.sh/hook" "post-install,post-upgrade" "helm.sh/hook-delete-policy" "before-hook-creation" "helm.sh/hook-weight" .Values.job.migrate.weight) .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
+  backoffLimit: {{ .Values.job.backoffLimit }}
+  template:
+    metadata:
+      labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: messages-migrate
+      {{- if .Values.job.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.job.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- include "messages.imagePullSecrets" . | nindent 6 }}
+      restartPolicy: {{ .Values.job.restartPolicy }}
+      serviceAccountName: {{ include "messages.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.backend.runtimeClassName }}
+      runtimeClassName: {{ .Values.backend.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.backend.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.backend.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.backend.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.backend.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "common.names.fullname" . }}-migrate
+          image: {{ include "messages.backend.image" . }}
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          {{- if .Values.backend.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.backend.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.job.commandMigrate "context" $) | nindent 12 }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.job.argsMigrate "context" $) | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "messages.secretName" . }}
+          {{- if .Values.job.resources }}
+          resources: {{- toYaml .Values.job.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

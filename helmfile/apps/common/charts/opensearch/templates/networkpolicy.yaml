@@ -1,0 +1,44 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" . }}
+kind: NetworkPolicy
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: opensearch
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: opensearch
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - port: {{ .Values.containerPorts.http }}
+          protocol: TCP
+      {{- if not .Values.networkPolicy.allowExternal }}
+      from:
+        - podSelector: {}
+      {{- end }}
+    {{- with .Values.networkPolicy.extraIngress }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+    {{- end }}
+  egress:
+    {{- if .Values.networkPolicy.allowExternalEgress }}
+    - {}
+    {{- else }}
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
+    {{- with .Values.networkPolicy.extraEgress }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+    {{- end }}
+    {{- end }}
+{{- end }}

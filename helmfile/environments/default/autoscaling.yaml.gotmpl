@@ -177,6 +177,33 @@ autoscaling:
         maxReplicas: 3
         targetCPU: 80
         targetMemory: ""
+    messages:
+      backend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      worker:
+        # The worker runs the Celery beat scheduler. Keep a single replica
+        # unless you split beat into its own deployment.
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 1
+        targetCPU: 80
+        targetMemory: ""
+      frontend:
+        enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      mta:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 1
+        targetCPU: 80
+        targetMemory: ""
     clamav:
       enabled: true
       minReplicas: 1

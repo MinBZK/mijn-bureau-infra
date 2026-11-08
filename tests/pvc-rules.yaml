@@ -69,3 +69,12 @@ pvc:
   dictaphone:
     minio:
       size: "42Gi"
+  messages:
+    postgresql:
+      size: "42Gi"
+    valkey:
+      size: "42Gi"
+    minio:
+      size: "42Gi"
+    opensearch:
+      size: "42Gi"

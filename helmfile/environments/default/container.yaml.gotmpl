@@ -146,6 +146,26 @@ container:
     repository: "lasuite/dictaphone-audio-extractor"
     tag: "v0.15.4"
     imagePullSecret: ~
+  messages_backend:
+    registry: "ghcr.io"
+    repository: "suitenumerique/messages-backend"
+    tag: "main"
+    imagePullSecret: ~
+  messages_frontend:
+    registry: "ghcr.io"
+    repository: "suitenumerique/messages-frontend"
+    tag: "main"
+    imagePullSecret: ~
+  messages_mta:
+    registry: "ghcr.io"
+    repository: "suitenumerique/messages-mta-in-py"
+    tag: "main"
+    imagePullSecret: ~
+  opensearch:
+    registry: "docker.io"
+    repository: "opensearchproject/opensearch"
+    tag: "2.19.2"
+    imagePullSecret: ~
   nginx:
     registry: docker.io
     repository: nginx/nginx-unprivileged

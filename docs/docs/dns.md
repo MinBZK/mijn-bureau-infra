@@ -43,6 +43,8 @@ global:
     projects-minio: "projects-minio"
     dictaphone: "dictaphone"
     dictaphone-minio: "dictaphone-minio"
+    messages: "messages"
+    messages-minio: "messages-minio"
     conversations-static: "static-conversations"
     drive-static: "static-drive"
     meet-static: "static-meet"
@@ -71,11 +73,67 @@ Create the following DNS records (replace `kubernetes.local` with your configure
 - `projects-minio.kubernetes.local`
 - `dictaphone.kubernetes.local`
 - `dictaphone-minio.kubernetes.local`
+- `messages.kubernetes.local`
+- `messages-minio.kubernetes.local`
 - `static-conversations.kubernetes.local`
 - `static-drive.kubernetes.local`
 - `static-meet.kubernetes.local`
 - `static-docs.kubernetes.local`
 - `drive-minio.kubernetes.local`
+
+## Email (Messages)
+
+The Messages application needs more than HTTP records: inbound mail is delivered by a
+separate SMTP load balancer, and every mail domain needs MX, SPF, DKIM and DMARC records.
+The default technical domain is `mail.<global.domain>`. Override
+`application.messages.technicalDomain` if you use a different name.
+
+Find the SMTP load balancer address:
+
+```bash
+kubectl get service messages-mta -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+```
+
+Create the following records. Replace `example.com` with the domain that receives mail and
+`mail.example.com` with the configured technical domain.
+
+```text
+; Inbound SMTP hosts. All names may point at the same load balancer.
+mail.example.com.       A     <SMTP load balancer IPv4>
+mail.example.com.       AAAA  <SMTP load balancer IPv6>
+mx1.mail.example.com.   A     <SMTP load balancer IPv4>
+mx1.mail.example.com.   AAAA  <SMTP load balancer IPv6>
+mx2.mail.example.com.   A     <SMTP load balancer IPv4>
+mx2.mail.example.com.   AAAA  <SMTP load balancer IPv6>
+
+; SPF for the technical domain. Include every outbound IP, or the relay IP.
+_spf.mail.example.com.  TXT   "v=spf1 ip4:<outbound IPv4> -all"
+
+; Records for each mail domain.
+example.com.            MX 10 mx1.mail.example.com.
+example.com.            MX 20 mx2.mail.example.com.
+example.com.            TXT   "v=spf1 include:_spf.mail.example.com -all"
+_dmarc.example.com.     TXT   "v=DMARC1; p=reject; adkim=s; aspf=s;"
+
+; DKIM. Copy the value from the mail domain detail page in the Messages admin.
+stmessages._domainkey.example.com. TXT "v=DKIM1; k=rsa; p=<public key>"
+```
+
+Additional requirements:
+
+- Open inbound TCP port 25 to the SMTP load balancer.
+- Make sure outbound TCP port 25 is allowed, or configure an SMTP relay with
+  `application.messages.relayHost`.
+- Publish a PTR record for every outbound IP. It should resolve to the technical domain.
+- The default `MESSAGES_DNS_RECORDS` template expects two MX names (`mx1` and `mx2`). If you
+  only have one address, point both names at the same IP or override
+  `application.messages.dnsRecords` with a single MX record.
+- If `application.messages.mailDomain` is set, the mail domain and its DKIM key are created
+  during installation. Otherwise create the domain in the Django admin and enable
+  **OIDC autojoin**.
+
+See [Messages](components/messages.md) for the application configuration and outbound mail
+setup.
 
 ## Cluster DNS network policies
 

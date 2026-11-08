@@ -1,0 +1,19 @@
+CHART NAME: {{ .Chart.Name }}
+CHART VERSION: {{ .Chart.Version }}
+APP VERSION: {{ .Chart.AppVersion }}
+
+** Please be patient while the chart is being deployed **
+
+The Messages web application is available at:
+
+  {{ .Values.backend.baseUrl }}
+
+{{- if eq .Values.mta.service.type "LoadBalancer" }}
+
+Point the MX records at the address of the inbound SMTP service:
+
+  kubectl get service {{ include "common.names.fullname" . }}-mta --namespace {{ include "common.names.namespace" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+
+{{- end }}
+
+{{- include "messages.validateValues" . }}

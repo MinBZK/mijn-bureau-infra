@@ -1,0 +1,248 @@
+{{- $hostname := printf "%s.%s" .Values.global.hostname.messages .Values.global.domain }}
+{{- $minioHostname := printf "%s.%s" (index .Values.global.hostname "messages-minio") .Values.global.domain }}
+{{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
+{{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
+{{- $minioBaseUrl := printf "http%s://%s" $sslPostfix $minioHostname }}
+{{- $technicalDomain := .Values.application.messages.technicalDomain | default (printf "mail.%s" .Values.global.domain) }}
+{{- $dnsRecords := dig "messages" "dnsRecords" `[{"target":"","type":"mx","value":"10 mx1.{technical_domain}."},{"target":"","type":"mx","value":"20 mx2.{technical_domain}."},{"target":"","type":"txt","value":"v=spf1 include:_spf.{technical_domain} -all"},{"target":"_dmarc","type":"txt","value":"v=DMARC1; p=reject; adkim=s; aspf=s;"}]` .Values.application }}
+{{- $preset := .Values.global.resourcesPreset | default "none" }}
+{{- $presetPerApp := .Values.global.resourcesPresetPerApp | default dict }}
+{{- $resources := .Values.resource | default dict }}
+{{- $autoscaling := .Values.autoscaling.horizontal | default dict }}
+{{- $pdb := .Values.pdb | default dict }}
+{{- $objectstore := .Values.objectstore.messages }}
+{{- $objectstoreScheme := ternary "https" "http" ($objectstore.useSSL | default false) }}
+{{- $objectStorePublicUrl := $objectstore.publicUrl | default "" }}
+{{- if and (not $objectStorePublicUrl) (eq .Environment.Name "demo") }}
+{{- $objectStorePublicUrl = $minioBaseUrl }}
+{{- end }}
+{{- $opensearchUrl := coalesce .Values.search.messages.url (printf "http://%s:%v" .Values.search.messages.host .Values.search.messages.port) }}
+{{- $relayHost := .Values.application.messages.relayHost | default "" }}
+{{- if and $relayHost (not (contains ":" $relayHost)) }}
+{{- $relayHost = printf "%s:587" $relayHost }}
+{{- end }}
+{{- $ollamaEnabled := .Values.application.ollama.enabled }}
+{{- $aiModel := .Values.ai.llm.model | default (ternary .Values.application.ollama.model "" $ollamaEnabled) }}
+{{- $aiHost := .Values.ai.llm.endpoint.host | default (ternary "ollama" "" $ollamaEnabled) }}
+{{- $aiEnabled := and (not (empty $aiModel)) (not (empty $aiHost)) }}
+
+global:
+  imageRegistry: {{ (coalesce .Values.container.messages_backend.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.messages_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+  security:
+    allowInsecureImages: true
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+commonLabels:
+  app.kubernetes.io/part-of: messages
+
+backend:
+  image:
+    registry: {{ (coalesce .Values.container.messages_backend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.messages_backend.repository | quote }}
+    tag: {{ .Values.container.messages_backend.tag | quote }}
+    pullPolicy: Always
+
+  resourcesPreset: {{ dig "messages" "backend" $preset $presetPerApp | quote }}
+  resources: {{ dig "messages" "backend" (dict) $resources | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ dig "messages" "backend" (dict) $autoscaling | toYaml | nindent 6 }}
+  pdb: {{ dig "messages" "backend" (dict) $pdb | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+  extraEnvVars: {{ .Values.application.messages.extraEnvVars | default list | toYaml | nindent 4 }}
+  secretKey: {{ .Values.secret.messages.secretKey | quote }}
+  saltKey: {{ .Values.secret.messages.saltKey | quote }}
+  mdaApiSecret: {{ .Values.secret.messages.mdaApiSecret | quote }}
+  baseUrl: {{ $baseUrl | quote }}
+  allowedHosts: {{ $hostname | quote }}
+  csrfTrustedOrigins: {{ $baseUrl | quote }}
+  instanceUrl: {{ $baseUrl | quote }}
+  languageCode: {{ ternary "nl-nl" "en-us" (eq (.Values.global.defaultLocale | default "nl") "nl") | quote }}
+  useXForwardedFor: true
+  technicalDomain: {{ $technicalDomain | quote }}
+  dnsRecords: {{ $dnsRecords | quote }}
+  maxIncomingEmailSize: {{ dig "messages" "maxIncomingEmailSize" 10485760 .Values.application | quote }}
+  maxOutgoingAttachmentSize: {{ dig "messages" "maxOutgoingAttachmentSize" 20971520 .Values.application | quote }}
+  mtaOutMode: {{ ternary "relay" "direct" (not (empty $relayHost)) | quote }}
+  mtaOutRelayHost: {{ $relayHost | quote }}
+  mtaOutRelayUsername: {{ .Values.application.messages.relayUsername | default "" | quote }}
+  mtaOutRelayPassword: {{ .Values.secret.messages.mtaRelayPassword | default "" | quote }}
+  mtaOutSmtpTlsSecurityLevel: {{ ternary "secure" "may" (not (empty $relayHost)) | quote }}
+  opensearchUrl: {{ $opensearchUrl | quote }}
+  opensearchIndexThreads: true
+  {{- if .Values.application.drive.enabled }}
+  driveBaseUrl: {{ printf "https://%s.%s" .Values.global.hostname.drive .Values.global.domain | quote }}
+  {{- end }}
+  {{- if $aiEnabled }}
+  featureAiSummary: true
+  featureAiAutolabels: true
+  {{- $aiPort := .Values.ai.llm.endpoint.port | default 11434 | int }}
+  {{- $aiIsSsl := ternary false .Values.ai.llm.endpoint.isSsl (and $ollamaEnabled (not .Values.ai.llm.endpoint.host)) }}
+  {{- $aiEndpointIsInternal := .Values.ai.llm.endpoint.isInternal | default false }}
+  {{- if not $aiEndpointIsInternal }}
+  {{- $aiPort = 0 }}
+  {{- end }}
+  {{- $aiPath := .Values.ai.llm.endpoint.path | default "v1" }}
+  {{- $aiEndpointBase := printf "http%s://%s" (ternary "s" "" $aiIsSsl) $aiHost }}
+  {{- $aiEndpoint := $aiEndpointBase }}
+  {{- if gt $aiPort 0 }}
+  {{- $aiEndpoint = printf "%s:%d" $aiEndpoint $aiPort }}
+  {{- end }}
+  {{- $aiEndpoint = printf "%s/%s" $aiEndpoint $aiPath }}
+  aiBaseUrl: {{ $aiEndpoint | quote }}
+  aiApiKey: {{ .Values.ai.llm.apiKey | default "" | quote }}
+  aiModel: {{ $aiModel | quote }}
+  {{- end }}
+
+worker:
+  image:
+    registry: {{ (coalesce .Values.container.messages_backend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.messages_backend.repository | quote }}
+    tag: {{ .Values.container.messages_backend.tag | quote }}
+    pullPolicy: Always
+  resourcesPreset: {{ dig "messages" "worker" $preset $presetPerApp | quote }}
+  resources: {{ dig "messages" "worker" (dict) $resources | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ dig "messages" "worker" (dict) $autoscaling | toYaml | nindent 6 }}
+  pdb: {{ dig "messages" "worker" (dict) $pdb | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+  extraEnvVars: {{ .Values.application.messages.extraEnvVars | default list | toYaml | nindent 4 }}
+
+frontend:
+  image:
+    registry: {{ (coalesce .Values.container.messages_frontend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.messages_frontend.repository | quote }}
+    tag: {{ .Values.container.messages_frontend.tag | quote }}
+    pullPolicy: Always
+  resourcesPreset: {{ dig "messages" "frontend" $preset $presetPerApp | quote }}
+  resources: {{ dig "messages" "frontend" (dict) $resources | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ dig "messages" "frontend" (dict) $autoscaling | toYaml | nindent 6 }}
+  pdb: {{ dig "messages" "frontend" (dict) $pdb | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+
+mta:
+  image:
+    registry: {{ (coalesce .Values.container.messages_mta.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.messages_mta.repository | quote }}
+    tag: {{ .Values.container.messages_mta.tag | quote }}
+    pullPolicy: Always
+  resourcesPreset: {{ dig "messages" "mta" $preset $presetPerApp | quote }}
+  resources: {{ dig "messages" "mta" (dict) $resources | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ dig "messages" "mta" (dict) $autoscaling | toYaml | nindent 6 }}
+  pdb: {{ dig "messages" "mta" (dict) $pdb | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+  hostname: {{ $technicalDomain | quote }}
+  service:
+    type: LoadBalancer
+    port: 25
+    annotations: {}
+    loadBalancerIP: {{ .Values.application.messages.loadBalancerIP | default "" | quote }}
+    externalTrafficPolicy: Local
+
+ingress:
+  enabled: true
+  hostname: {{ $hostname | quote }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.messages | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+externalRedis:
+  host: {{ .Values.cache.messages.host | quote }}
+  port: {{ .Values.cache.messages.port | quote }}
+  password: {{ .Values.cache.messages.password | quote }}
+
+externalDatabase:
+  database: {{ .Values.database.messages.name | quote }}
+  username: {{ .Values.database.messages.user | quote }}
+  host: {{ .Values.database.messages.host | quote }}
+  password: {{ .Values.database.messages.password | quote }}
+  port: {{ .Values.database.messages.port | quote }}
+  type: {{ .Values.database.messages.type | default "postgresql" | quote }}
+
+externalOpenSearch:
+  url: {{ $opensearchUrl | quote }}
+  indexThreads: true
+
+externalObjectStore:
+  endpoint: {{ printf "%s://%s:%v" $objectstoreScheme $objectstore.endpoint $objectstore.port | quote }}
+  port: {{ $objectstore.port | quote }}
+  useSSL: {{ $objectstore.useSSL | default false }}
+  region: {{ $objectstore.region | default "eu-west-1" | quote }}
+  accessKey: {{ $objectstore.username | quote }}
+  secretKey: {{ $objectstore.rootPassword | quote }}
+  buckets: {{ $objectstore.buckets | toYaml | nindent 4 }}
+  publicUrl: {{ $objectStorePublicUrl | quote }}
+
+authentication:
+  issuer: {{ .Values.authentication.oidc.issuer | quote }}
+  authorization_endpoint: {{ .Values.authentication.oidc.authorization_endpoint | quote }}
+  token_endpoint: {{ .Values.authentication.oidc.token_endpoint | quote }}
+  userinfo_endpoint: {{ .Values.authentication.oidc.userinfo_endpoint | quote }}
+  end_session_endpoint: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
+  jwks_uri: {{ .Values.authentication.oidc.jwks_uri | quote }}
+  claims:
+    username: {{ .Values.authentication.oidc.claims.username | default "preferred_username" | quote }}
+    display_name: {{ .Values.authentication.oidc.claims.display_name | default "name" | quote }}
+    given_name: {{ .Values.authentication.oidc.claims.given_name | default "given_name" | quote }}
+    family_name: {{ .Values.authentication.oidc.claims.family_name | default "family_name" | quote }}
+  client:
+    client_id: {{ .Values.authentication.client.messages.client_id | quote }}
+    client_secret: {{ .Values.authentication.client.messages.client_secret | quote }}
+
+superuser:
+  email: {{ .Values.secret.messages.adminUser | quote }}
+  password: {{ .Values.secret.messages.adminPassword | quote }}
+
+bootstrap:
+  mailDomain: {{ .Values.application.messages.mailDomain | default "" | quote }}
+  oidcAutojoin: true
+
+{{- if ne .Values.global.resourcesPreset "none" }}
+job:
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+{{- end }}
