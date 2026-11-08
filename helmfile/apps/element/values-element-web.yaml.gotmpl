@@ -98,6 +98,20 @@ networkPolicy:
     - ports:
         - port: 443
           protocol: TCP
+    # Keycloak OIDC connectivity (internal service and pod ports)
+    - ports:
+        - port: 80
+          protocol: TCP
+        - port: 8080
+          protocol: TCP
+      to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.application.keycloak.namespace | default "mijnbureau-keycloak" | quote }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: keycloak-keycloak
+              app.kubernetes.io/name: keycloak
 
 # Bureaublad return button: an initContainer reads the image's index.html,
 # injects a same-origin `<script src="/bureaublad-button.js">` tag before

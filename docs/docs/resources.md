@@ -161,6 +161,10 @@ These apps are safe at any preset -- the custom helper or values mapping enforce
 | Conversations | frontend        | `nano`   | 100m    | 128 MiB | Static React/Next.js                              |
 | Bureaublad    | backend         | `micro`  | 250m    | 256 MiB | Dashboard backend                                 |
 | Bureaublad    | frontend        | `nano`   | 100m    | 128 MiB | Dashboard frontend                                |
+| Calendars     | backend         | `micro`  | 250m    | 256 MiB | Django app                                        |
+| Calendars     | worker          | `micro`  | 250m    | 256 MiB | Dramatiq background worker                        |
+| Calendars     | frontend        | `nano`   | 100m    | 128 MiB | Static React/Vite                                 |
+| Calendars     | caldav          | `micro`  | 250m    | 256 MiB | SabreDAV PHP server                               |
 
 ### Dependencies (PostgreSQL, Valkey, MinIO)
 

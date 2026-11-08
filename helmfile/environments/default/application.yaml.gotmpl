@@ -104,6 +104,17 @@ application:
     namespace: ~
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "projects" "secretkey" | sha1sum | quote }}
 
+  # calendars is a calendar and scheduling application from LaSuite
+  calendars:
+    enabled: true
+    namespace: ~
+    secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "secretkey" | sha1sum | quote }}
+    saltKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "saltkey" | sha1sum | quote }}
+    caldav:
+      inboundApiKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "caldav_inbound" | sha1sum | quote }}
+      outboundApiKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "caldav_outbound" | sha1sum | quote }}
+      internalApiKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "caldav_internal" | sha1sum | quote }}
+
   # dictaphone is the Assistant Transcripts transcription and meeting workflow from LaSuite
   dictaphone:
     enabled: true

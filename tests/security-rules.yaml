@@ -20,6 +20,11 @@ global:
       backend: "small"
       frontend: "small"
     projects: "small"
+    calendars:
+      backend: "small"
+      worker: "small"
+      frontend: "small"
+      caldav: "small"
     conversations:
       backend: "small"
       frontend: "small"

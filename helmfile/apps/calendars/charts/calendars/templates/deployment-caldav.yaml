@@ -1,0 +1,190 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}-caldav
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: calendars-caldav
+  {{- if or .Values.caldav.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.caldav.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.caldav.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.caldav.replicaCount }}
+  {{- end }}
+  {{- if .Values.caldav.updateStrategy }}
+  strategy: {{- toYaml .Values.caldav.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.caldav.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: calendars-caldav
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/apache-config: {{ include (print $.Template.BasePath "/configmap-apache.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.caldav.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.caldav.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: calendars-caldav
+    spec:
+      {{- include "calendars.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "calendars.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.caldav.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.caldav.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.caldav.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.caldav.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.caldav.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.caldav.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.caldav.priorityClassName }}
+      priorityClassName: {{ .Values.caldav.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.caldav.runtimeClassName }}
+      runtimeClassName: {{ .Values.caldav.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.caldav.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.caldav.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.caldav.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.caldav.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.caldav.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.caldav.terminationGracePeriodSeconds }}
+      {{- end }}
+      containers:
+        - name: calendars-caldav
+          image: {{ template "calendars.caldav.image" . }}
+          imagePullPolicy: {{ .Values.caldav.image.pullPolicy }}
+          {{- if .Values.caldav.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.caldav.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.caldav.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.caldav.command "context" $) | nindent 12 }}
+          {{- else }}
+          command:
+            - /bin/sh
+            - -c
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.caldav.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.caldav.args "context" $) | nindent 12 }}
+          {{- else }}
+          args:
+            - /usr/local/bin/init-database.sh && exec apache2-foreground
+          {{- end }}
+          {{- if .Values.caldav.extraEnvVars }}
+          env:
+            {{- include "common.tplvalues.render" (dict "value" .Values.caldav.extraEnvVars "context" $) | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ template "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "calendars.secretName" . }}
+            {{- if .Values.caldav.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.caldav.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.caldav.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.caldav.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.caldav.resources }}
+          resources: {{- toYaml .Values.caldav.resources | nindent 12 }}
+          {{- else if ne .Values.caldav.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.caldav.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.caldav.containerPorts.http }}
+              protocol: TCP
+            {{- if .Values.caldav.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.caldav.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.caldav.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.caldav.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.caldav.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.caldav.livenessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /caldav/healthz
+              port: http
+          {{- end }}
+          {{- if .Values.caldav.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.caldav.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.caldav.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.caldav.readinessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /caldav/healthz
+              port: http
+          {{- end }}
+          {{- if .Values.caldav.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.caldav.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.caldav.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.caldav.startupProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /caldav/healthz
+              port: http
+          {{- end }}
+          {{- end }}
+          {{- if .Values.caldav.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.caldav.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: apache-run
+              mountPath: /var/run/apache2
+            - name: apache-lock
+              mountPath: /var/lock/apache2
+            - name: apache-log
+              mountPath: /var/log/apache2
+            - name: php-sessions
+              mountPath: /var/lib/php/sessions
+            - name: apache-config
+              mountPath: /etc/apache2/ports.conf
+              subPath: ports.conf
+            - name: apache-config
+              mountPath: /etc/apache2/sites-available/sabredav.conf
+              subPath: sabredav.conf
+            {{- if .Values.caldav.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.caldav.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: apache-run
+          emptyDir: {}
+        - name: apache-lock
+          emptyDir: {}
+        - name: apache-log
+          emptyDir: {}
+        - name: php-sessions
+          emptyDir: {}
+        - name: apache-config
+          configMap:
+            name: {{ template "common.names.fullname" . }}-apache
+            items:
+              - key: ports.conf
+                path: ports.conf
+              - key: sabredav.conf
+                path: sabredav.conf
+        {{- if .Values.caldav.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.caldav.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

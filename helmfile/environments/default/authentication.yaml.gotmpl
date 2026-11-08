@@ -10,6 +10,7 @@ authentication:
     userinfo_endpoint: ~
     end_session_endpoint: ~
     jwks_uri: ~
+    discovery_endpoint: ~
     # Leave empty if the claim is not supplied.
     claims:
       username: preferred_username
@@ -45,6 +46,9 @@ authentication:
     projects:
       client_id: "projects"
       client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "projects_client_secret" | sha1sum | quote}}
+    calendars:
+      client_id: "calendars"
+      client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "calendars_client_secret" | sha1sum | quote}}
     dictaphone:
       client_id: "dictaphone"
       client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "dictaphone_client_secret" | sha1sum | quote}}

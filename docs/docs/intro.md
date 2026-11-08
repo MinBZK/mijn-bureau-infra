@@ -16,7 +16,7 @@ Although MijnBureau is a public-driven initiative, its licensing encourages priv
 
 MijnBureau gives you one workspace for seamless collaboration and communication across teams and organizations.
 
-- **Work together:** documents, spreadsheets, presentations, notes, project management and secure file sharing.
+- **Work together:** documents, spreadsheets, presentations, notes, project management, calendars and secure file sharing.
 - **Communicate:** team chat, video conferencing
 - **AI** AI-assisted workflows
 - **Organize work:** one start page for all tools.
@@ -27,7 +27,6 @@ MijnBureau gives you one workspace for seamless collaboration and communication 
 We are actively expanding the suite with plans to include:
 
 - Email
-- Agenda
 - Password Manager
 
 ---
@@ -44,6 +43,7 @@ MijnBureau currently includes the following key components:
 | AI LLM             | Ollama               | [v0.40.14](https://github.com/ollama/ollama/tree/v0.40.14)                          | [documentation](https://ollama.com/)                                                 | MIT        |
 | File sharing       | Nextcloud            | [v35.0.2](https://github.com/nextcloud/server/tree/v35.0.2)                         | [documentation](https://nextcloud.com/)                                              | AGPL-3.0   |
 | Project Management | Projects             | [1.27.13](https://hub.docker.com/r/lasuite/projects/tags)                           | [documentation](https://github.com/suitenumerique/projects/blob/main/README.md)      | AGPL-3.0   |
+| Calendar           | Calendars            | [main](https://github.com/suitenumerique/calendars)                                 | [documentation](https://github.com/suitenumerique/calendars/tree/main/docs)          | MIT        |
 | Transcription      | Dictaphone           | [v0.15.4](https://github.com/suitenumerique/dictaphone/releases/tag/v0.15.4)        | [documentation](https://github.com/suitenumerique/dictaphone)                        | MIT        |
 | Notes              | Docs                 | [v5.7.0](https://github.com/suitenumerique/docs/releases/tag/v5.7.0)                | [documentation](https://github.com/suitenumerique/docs/tree/main/docs/installation)  | MIT        |
 | Office             | Collabora            | [v26.04.5.1.1](https://github.com/CollaboraOnline/online/releases/tag/cp-26.04.1-4) | [documentation](https://sdk.collaboraonline.com/docs/installation/index.html)        | MPL-2.0    |

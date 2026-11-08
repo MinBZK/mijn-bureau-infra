@@ -1,0 +1,85 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- $fullname := include "common.names.fullname" . -}}
+{{- $backendHost := printf "%s-backend" $fullname -}}
+{{- $caldavHost := printf "%s-caldav" $fullname -}}
+{{- $hostname := .Values.ingress.hostname | default (printf "%s.%s" $fullname .Values.clusterDomain) -}}
+{{- $baseUrl := .Values.backend.baseUrl | default (printf "https://%s" $hostname) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullname }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: calendars
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  ## Django settings shared by the backend and worker
+  ##
+  DJANGO_CONFIGURATION: Production
+  DJANGO_SETTINGS_MODULE: calendars.settings
+  DJANGO_ALLOWED_HOSTS: {{ printf "%s,%s-backend" (.Values.backend.allowedHosts | default $hostname) $fullname | quote }}
+  DJANGO_CSRF_TRUSTED_ORIGINS: {{ .Values.backend.csrfTrustedOrigins | default $baseUrl | quote }}
+  DJANGO_LANGUAGE_CODE: {{ .Values.backend.languageCode | quote }}
+  APP_NAME: "Calendars"
+  APP_URL: {{ $baseUrl | quote }}
+  LOGIN_REDIRECT_URL: {{ $baseUrl | quote }}
+  LOGIN_REDIRECT_URL_FAILURE: {{ $baseUrl | quote }}
+  LOGOUT_REDIRECT_URL: {{ $baseUrl | quote }}
+  FRONTEND_SILENT_LOGIN_ENABLED: {{ ternary "true" "false" .Values.backend.frontendSilentLoginEnabled | quote }}
+  FRONTEND_THEME: {{ .Values.backend.frontendTheme | quote }}
+  FRONTEND_MEET_BASE_URL: {{ .Values.backend.meetBaseUrl | quote }}
+
+  ## Database
+  ##
+  DB_HOST: {{ .Values.externalDatabase.host | quote }}
+  DB_NAME: {{ .Values.externalDatabase.database | quote }}
+  DB_USER: {{ .Values.externalDatabase.username | quote }}
+  DB_PORT: {{ .Values.externalDatabase.port | quote }}
+
+  ## OIDC
+  ##
+  OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
+  OIDC_RP_SIGN_ALGO: "RS256"
+  OIDC_RP_SCOPES: "openid email"
+  OIDC_STORE_ID_TOKEN: "true"
+  OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.jwks_uri | quote }}
+  OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.authorization_endpoint | quote }}
+  OIDC_OP_TOKEN_ENDPOINT: {{ .Values.authentication.token_endpoint | quote }}
+  OIDC_OP_USER_ENDPOINT: {{ .Values.authentication.userinfo_endpoint | quote }}
+  OIDC_OP_LOGOUT_ENDPOINT: {{ .Values.authentication.end_session_endpoint | quote }}
+  OIDC_REDIRECT_ALLOWED_HOSTS: {{ $baseUrl | quote }}
+  OIDC_USERINFO_FULLNAME_FIELDS: {{ printf "%s,%s" .Values.authentication.claims.given_name .Values.authentication.claims.family_name | quote }}
+
+  ## Email
+  ##
+  EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+  EMAIL_HOST: {{ .Values.smtp.host | quote }}
+  EMAIL_PORT: {{ .Values.smtp.port | quote }}
+  EMAIL_HOST_USER: {{ .Values.smtp.username | quote }}
+  EMAIL_USE_TLS: {{ ternary "true" "false" .Values.smtp.secure | quote }}
+  EMAIL_USE_SSL: "false"
+  DEFAULT_FROM_EMAIL: {{ .Values.smtp.from | quote }}
+  CALENDAR_INVITATION_FROM_EMAIL: {{ .Values.smtp.from | quote }}
+
+  ## CalDAV (Django proxies /caldav to this service)
+  ##
+  CALDAV_URL: {{ .Values.caldav.url | default (printf "http://%s:80" $caldavHost) | quote }}
+
+  ## CalDAV server settings
+  ##
+  PGHOST: {{ .Values.externalDatabase.host | quote }}
+  PGPORT: {{ .Values.externalDatabase.port | quote }}
+  PGDATABASE: {{ .Values.externalDatabase.database | quote }}
+  PGUSER: {{ .Values.externalDatabase.username | quote }}
+  CALDAV_DB_SCHEMA: {{ .Values.caldav.dbSchema | quote }}
+  CALDAV_BASE_URI: {{ .Values.caldav.baseUri | quote }}
+  CALDAV_CALLBACK_BASE_URL: {{ .Values.caldav.callbackBaseUrl | default (printf "http://%s:80" $backendHost) | quote }}
+  SANITIZER_STRIP_BINARY_ATTACHMENTS: {{ ternary "true" "false" .Values.caldav.sanitizerStripBinaryAttachments | quote }}
+  SANITIZER_MAX_DESCRIPTION_BYTES: {{ int .Values.caldav.sanitizerMaxDescriptionBytes | quote }}
+  SANITIZER_MAX_RESOURCE_SIZE: {{ int .Values.caldav.sanitizerMaxResourceSize | quote }}

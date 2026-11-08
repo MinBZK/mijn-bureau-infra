@@ -99,6 +99,7 @@ application:
 authentication:
   oidc:
     issuer: "https://id.${DOMAIN}/realms/mijnbureau"
+    discovery_endpoint: "https://id.${DOMAIN}/realms/mijnbureau/.well-known/openid-configuration"
     authorization_endpoint: "https://id.${DOMAIN}/realms/mijnbureau/protocol/openid-connect/auth"
     token_endpoint: "https://id.${DOMAIN}/realms/mijnbureau/protocol/openid-connect/token"
     introspection_endpoint: "https://id.${DOMAIN}/realms/mijnbureau/protocol/openid-connect/token/introspect"
