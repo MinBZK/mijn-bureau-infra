@@ -38,12 +38,6 @@ application:
     enabled: false
     namespace: ~
     defaultQuota: "10 GB"
-    # Maximum file upload size. Applied at both the nginx-ingress
-    # (`proxy-body-size` annotation) and PHP (`PHP_UPLOAD_LIMIT` env
-    # var, which sets upload_max_filesize & post_max_size). The upstream
-    # image's Apache `LimitRequestBody` is 1 GiB; raising uploadLimit
-    # above 1G also requires bumping `APACHE_BODY_LIMIT` (not currently
-    # exposed).
     uploadLimit: "512M"
 
   # livekit is a video conferencing backend system
@@ -129,16 +123,13 @@ application:
   messages:
     enabled: true
     namespace: ~
-    # Mail domain that users receive mail on. When set, a MailDomain with
-    # oidc_autojoin is created on install. Leave empty to manage domains in
-    # the Django admin.
+    # Mail domain that users receive mail on.
     mailDomain: ~
     # Hostname that MX records point at. Defaults to mail.<global.domain>.
     technicalDomain: ~
     # Optional public SMTP address to pin on the LoadBalancer.
     loadBalancerIP: ~
     # Optional outbound SMTP relay host or host:port. Leave empty for direct
-    # MX delivery. When set, relay mode and secure TLS are used automatically.
     relayHost: ~
     relayUsername: ~
     # Extra environment variables for the backend and worker, e.g. SPAM_CONFIG.

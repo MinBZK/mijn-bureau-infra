@@ -238,6 +238,9 @@ files:
 metrics:
   enabled: {{ .Values.metric.enabled | default false }}
   image:
+    registry: {{ (coalesce .Values.container.nextcloud_exporter.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.nextcloud_exporter.repository | quote }}
+    tag: {{ .Values.container.nextcloud_exporter.tag | quote }}
     pullPolicy: Always
   networkPolicy:
     monitoringNamespace: {{ .Values.metric.namespace | quote }}

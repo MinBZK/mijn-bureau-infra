@@ -1,10 +1,7 @@
 ---
 global:
   domain: "kubernetes.local"
-  # global.matrixDomain is the public-facing domain of the synapse server. See the documentation linked below for implications of setting this value.
-  # If `global.matrixDomain` is not set, it will be `<global.hostname.synapse>.<global.domain>`.
-  # Note that this value can only be set once at setup.
-  # ref: https://element-hq.github.io/synapse/latest/delegate.html
+  # global.matrixDomain is the public-facing domain of the synapse server
   matrixDomain: ""
 
   # resourcePreset sets the default resources for all applications
@@ -78,12 +75,10 @@ global:
     dictaphone-minio: "dictaphone-minio"
     messages: "messages"
     messages-minio: "messages-minio"
-    # static nginx sidecar hostnames — gateway picks these up automatically
     conversations-static: "static-conversations"
     drive-static: "static-drive"
     meet-static: "static-meet"
     docs-static: "static-docs"
-    # minio hostnames — gateway picks these up automatically
     drive-minio: "drive-minio"
 
   defaultLocale: "nl"

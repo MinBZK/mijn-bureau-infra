@@ -858,9 +858,9 @@ metrics:
   ## ref: https://hub.docker.com/r/nginx/nginx-prometheus-exporter/tags/
   ##
   image:
-    registry: docker.io
-    repository: nginx/nginx-prometheus-exporter
-    tag: 1.5.3
+    registry: {{ (coalesce .Values.container.nginx_exporter.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.nginx_exporter.repository | quote }}
+    tag: {{ .Values.container.nginx_exporter.tag | quote }}
     digest: ""
     pullPolicy: Always
     pullSecrets: []

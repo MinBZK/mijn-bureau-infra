@@ -1,0 +1,74 @@
+name: "Update calendars container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump calendars version to {{ source "calendars_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  calendars_latest_version:
+    name: "Get latest calendars tag"
+    kind: dockerimage
+    spec:
+      image: "ghcr.io/suitenumerique/calendars-backend"
+      architecture: amd64
+      tagfilter: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_calendars_tags:
+    name: "Update calendars container tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      keys:
+        - "$.container.calendars_backend.tag"
+        - "$.container.calendars_frontend.tag"
+        - "$.container.calendars_caldav.tag"
+    sourceid: calendars_latest_version
+    scmid: default
+
+  update_values_calendars_tags:
+    name: "Update values calendars tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/calendars/charts/calendars/values.yaml"
+      keys:
+        - "$.backend.image.tag"
+        - "$.frontend.image.tag"
+        - "$.caldav.image.tag"
+    sourceid: calendars_latest_version
+    scmid: default
+
+  update_chart_appVersion:
+    name: "Update calendars chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/calendars/charts/calendars/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: calendars_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump calendars version to {{ source "calendars_latest_version" }}

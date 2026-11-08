@@ -45,8 +45,6 @@ targets:
   update_kubectl_tag:
     name: "Update kubectl tag"
     kind: yaml
-    transformers:
-      - addprefix: "v"
     spec:
       engine: yamlpath
       file: "helmfile/environments/default/container.yaml.gotmpl"
@@ -57,8 +55,6 @@ targets:
   update_busybox_tag:
     name: "Update busybox tag"
     kind: yaml
-    transformers:
-      - addsuffix: "-musl"
     spec:
       engine: yamlpath
       file: "helmfile/environments/default/container.yaml.gotmpl"

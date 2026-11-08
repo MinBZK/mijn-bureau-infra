@@ -1,0 +1,47 @@
+name: "Update cnpg postgres container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump cnpg postgres version to {{ source "cnpg_postgres_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  cnpg_postgres_latest_version:
+    name: "Get latest cnpg postgres tag"
+    kind: dockerimage
+    spec:
+      image: "ghcr.io/cloudnative-pg/postgresql"
+      architecture: amd64
+      tagfilter: "^17\\.[0-9]+-standard-bookworm$"
+      versionfilter:
+        kind: regex/semver
+        regex: "^17\\.([0-9]+)-standard-bookworm$"
+        pattern: ">=0.0.0"
+
+targets:
+  update_cnpg_postgres_tag:
+    name: "Update cnpg postgres container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.cnpg_postgres.tag"
+    sourceid: cnpg_postgres_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump cnpg postgres version to {{ source "cnpg_postgres_latest_version" }}

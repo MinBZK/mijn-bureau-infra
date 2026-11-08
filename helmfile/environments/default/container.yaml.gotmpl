@@ -62,6 +62,11 @@ container:
     repository: "library/nextcloud"
     tag: "35.0.2-apache"
     imagePullSecret: ~
+  nextcloud_exporter:
+    registry: "docker.io"
+    repository: "xperimental/nextcloud-exporter"
+    tag: "0.9.1"
+    imagePullSecret: ~
   osShell:
     registry: "registry-1.docker.io"
     repository: "bitnamilegacy/os-shell"
@@ -170,6 +175,11 @@ container:
     registry: docker.io
     repository: nginx/nginx-unprivileged
     tag: 1.30.6-alpine-slim
+    imagePullSecret: ~
+  nginx_exporter:
+    registry: "docker.io"
+    repository: "nginx/nginx-prometheus-exporter"
+    tag: "1.5.3"
     imagePullSecret: ~
   docspec:
     imagePullSecret: ~

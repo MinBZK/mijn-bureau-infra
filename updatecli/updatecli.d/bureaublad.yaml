@@ -37,7 +37,7 @@ targets:
       file: "helmfile/environments/default/container.yaml.gotmpl"
       keys:
         - "$.container.bureaublad.backend.tag"
-        - "$.container.frontend.backend.tag"
+        - "$.container.bureaublad.frontend.tag"
     sourceid: bureaublad_latest_version
     scmid: default
 
@@ -49,7 +49,7 @@ targets:
       file: "helmfile/apps/bureaublad/charts/bureaublad/values.yaml"
       keys:
         - "$.backend.image.tag"
-        - "$.backend.frontend.tag"
+        - "$.frontend.image.tag"
     sourceid: bureaublad_latest_version
     scmid: default
 

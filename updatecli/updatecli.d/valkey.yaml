@@ -54,8 +54,6 @@ targets:
   update_valkeyexporter_tag:
     name: "Update valkey exporter tag"
     kind: yaml
-    transformers:
-      - addprefix: "v"
     spec:
       engine: yamlpath
       file: "helmfile/environments/default/container.yaml.gotmpl"
