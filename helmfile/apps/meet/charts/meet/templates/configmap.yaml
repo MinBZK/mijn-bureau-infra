@@ -21,6 +21,19 @@ data:
   DJANGO_CSRF_TRUSTED_ORIGINS: {{ .Values.meet_backend.CSRFTrustedOrigins | quote }}
   DJANGO_CORS_ALLOW_ALL_ORIGINS: "false"
   DJANGO_CORS_ALLOWED_ORIGINS: {{ .Values.meet_backend.CORSAllowedOrigins | quote}}
+  {{- with .Values.meet_backend.email }}
+  {{- if .host }}
+  DJANGO_EMAIL_BACKEND: {{ .backend | default "django.core.mail.backends.smtp.EmailBackend" | quote }}
+  DJANGO_EMAIL_HOST: {{ .host | quote }}
+  DJANGO_EMAIL_PORT: {{ .port | quote }}
+  DJANGO_EMAIL_HOST_USER: {{ .hostUser | quote }}
+  DJANGO_EMAIL_USE_TLS: {{ .useTls | default "true" | quote }}
+  DJANGO_EMAIL_USE_SSL: {{ .useSsl | default "false" | quote }}
+  DJANGO_EMAIL_FROM: {{ .from | quote }}
+  DJANGO_EMAIL_BRAND_NAME: {{ .brandName | quote }}
+  DJANGO_EMAIL_LOGO_IMG: {{ .logoImg | quote }}
+  {{- end }}
+  {{- end }}
   DB_HOST: {{ .Values.externalDatabase.host | quote }}
   DB_NAME: {{ .Values.externalDatabase.database | quote }}
   DB_USER: {{ .Values.externalDatabase.username | quote }}
@@ -35,12 +48,38 @@ data:
   OIDC_USERINFO_SHORTNAME_FIELD: {{ .Values.authentication.claims.given_name | quote }}
   LIVEKIT_API_KEY: {{ .Values.externalLivekit.apiKey | quote }}
   LIVEKIT_API_URL: {{ .Values.externalLivekit.apiUrl | quote }}
-  RESOURCE_DEFAULT_ACCESS_LEVEL: "restricted"
+  RESOURCE_DEFAULT_ACCESS_LEVEL: "trusted"
   ALLOW_UNREGISTERED_ROOMS: "false"
-  RECORDING_ENABLE: "false"
+  ROOM_SUBTITLE_ENABLED: {{ .Values.agent_subtitles.enabled | default false | quote }}
+  RECORDING_ENABLE: {{ .Values.meet_backend.recordingEnable | default false | quote }}
+  {{- if .Values.meet_backend.recordingEnable }}
+  # MinIO notifies the backend when egress finishes uploading a recording.
+  RECORDING_STORAGE_EVENT_ENABLE: "true"
+  RECORDING_ENABLE_STORAGE_EVENT_AUTH: "false"
+  {{- end }}
+  CELERY_ENABLED: {{ or .Values.celery_backend.enabled .Values.celery_summarize.enabled .Values.celery_transcribe.enabled | quote }}
   LIVEKIT_FORCE_WSS_PROTOCOL: "true"
   LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND: "true"
   LOGIN_REDIRECT_URL: {{ .Values.ingress.hostname | quote }}
   LOGIN_REDIRECT_URL_FAILURE: {{ .Values.ingress.hostname | quote }}
   LOGOUT_REDIRECT_URL: {{ .Values.ingress.hostname | quote }}
   FRONTEND_CUSTOM_CSS_URL: {{ .Values.meet.frontendCssUrl | quote }}
+  AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME: "false"
+  ROOM_INACTIVITY_DELETION_DAYS: "30"
+  ROOM_DELETED_RETENTION_DAYS: "30"
+  FRONTEND_IS_SILENT_LOGIN_ENABLED: "true"
+  FRONTEND_TRANSCRIPTION_DESTINATION: {{ .Values.meet.frontendTranscriptionDestination | quote }}
+  FILE_UPLOAD_ENABLED: "true"
+  # CELERY_ENABLED: "true"
+  # RECORDING_ENABLE: "True"
+  RECORDING_DOWNLOAD_BASE_URL: {{ .Values.meet_backend.recordingDownloadBaseUrl | default (printf "https://%s/recording" .Values.ingress.hostname) | quote }}
+  SUMMARY_SERVICE_ENDPOINT: {{ .Values.meet_backend.summaryServiceEndpoint | default (printf "http://%s-summary:80/api/v2/async-jobs/transcribe/" (include "common.names.fullname" .)) | quote }}
+  # IS_DOCS_INTEGRATION_ENABLED: false
+  FRONTEND_EXTERNAL_HOME_URL: {{ .Values.meet.frontendExternalHomeUrl | quote }}
+  RECORDING_EXPIRATION_DAYS: "7"
+  AWS_STORAGE_BUCKET_NAME: {{ .Values.externalMinio.bucket | quote }}
+  AWS_S3_ENDPOINT_URL: {{ printf "http%s://%s:%v" (ternary "s" "" (eq (toString .Values.externalMinio.useSSL) "true")) .Values.externalMinio.endpoint .Values.externalMinio.port | quote }}
+  AWS_S3_REGION_NAME: {{ .Values.externalMinio.region | quote }}
+  AWS_S3_SIGNATURE_VERSION: "s3v4"
+  AWS_S3_DOMAIN_REPLACE: {{ .Values.externalMinio.publicUrl | quote }}
+  MEDIA_BASE_URL: {{ printf "http%s://%s" (ternary "s" "" .Values.ingress.tls) .Values.ingress.hostname | quote }}

@@ -26,6 +26,48 @@
 {{- $aiHost := .Values.ai.llm.endpoint.host | default (ternary "ollama" "" $ollamaEnabled) }}
 {{- $aiEnabled := and (not (empty $aiModel)) (not (empty $aiHost)) }}
 
+{{- /* Fixed feature env vars shared by backend and worker; policy choices
+  (limits, retention, offload, anti-abuse) are hardcoded here; anything else
+  goes through application.messages.extraEnvVars. */}}
+{{- $appMsgs := .Values.application.messages }}
+{{- $featureEnv := list
+  (dict "name" "MESSAGES_BLOBS_OFFLOAD_ENABLED" "value" "true")
+  (dict "name" "THROTTLE_MAILBOX_OUTBOUND_EXTERNAL_RECIPIENTS" "value" "200/day")
+  (dict "name" "THROTTLE_MAILDOMAIN_OUTBOUND_EXTERNAL_RECIPIENTS" "value" "2000/day")
+  (dict "name" "TRASHBIN_CUTOFF_DAYS" "value" "30")
+  (dict "name" "MAX_RECIPIENTS_PER_MESSAGE" "value" "200")
+  (dict "name" "FRONTEND_SILENT_LOGIN_ENABLED" "value" "true")
+  (dict "name" "FEATURE_THREAD_SNIPPET" "value" "true")
+  (dict "name" "FRONTEND_LAGAUFRE_WIDGET_CONFIG" "value" "{}")
+}}
+# FEATURE_THREAD_SNIPPET enables the preview line under each thread subject;
+# the backlog is rebuilt by the job.threadSnippetsBackfill hook job.
+# FRONTEND_LAGAUFRE_WIDGET_CONFIG={} kills the deprecated NEXT_PUBLIC_*
+# build-time fallback: with api_url/path unset the widget is not rendered.
+{{- $calendarsBase := printf "https://%s.%s" .Values.global.hostname.calendars .Values.global.domain }}
+{{- $calendarsChannelHex := "" }}
+{{- $calendarsChannelId := "" }}
+{{- $calendarsChannelApiKey := "" }}
+{{- /* CalDAV integration with the calendars app. The global channel is
+  provisioned by a hook job in the calendars chart; both sides derive the
+  channel id and token from the master password, so no out-of-band exchange
+  is needed. Password = "<channel_id><token>" (no separator). */}}
+{{- if .Values.application.calendars.enabled | default false }}
+{{- $channelId := derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "messages-caldav-channel-id" | sha256sum | trunc 22 }}
+{{- $channelToken := derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "messages-caldav-channel-token" | sha1sum }}
+{{- /* Reverse integration: a global API-key channel in Messages that the
+  calendars app uses to list mailboxes and submit mailbox invitations. Both
+  sides derive the same UUID and key from the master password; the Messages
+  hook job stores only the SHA-256 hash of the key. */}}
+{{- $calendarsChannelHex = derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "messages-calendars-channel-id" | sha256sum | trunc 32 }}
+{{- $calendarsChannelId = printf "%s-%s-%s-%s-%s" (substr 0 8 $calendarsChannelHex) (substr 8 12 $calendarsChannelHex) (substr 12 16 $calendarsChannelHex) (substr 16 20 $calendarsChannelHex) (substr 20 32 $calendarsChannelHex) }}
+{{- $calendarsChannelApiKey = printf "msgk_%s" (derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "messages-calendars-channel-api-key" | sha256sum) }}
+{{- $featureEnv = append $featureEnv (dict "name" "CALDAV_DEFAULT_URL" "value" (printf "%s/caldav/" $calendarsBase)) }}
+{{- $featureEnv = append $featureEnv (dict "name" "CALDAV_DEFAULT_PASSWORD" "value" (printf "%s%s" $channelId $channelToken)) }}
+{{- $featureEnv = append $featureEnv (dict "name" "CALDAV_DEFAULT_WEB_URL" "value" $calendarsBase) }}
+{{- end }}
+{{- $messagesExtraEnv := concat ($appMsgs.extraEnvVars | default list) $featureEnv }}
+
 global:
   imageRegistry: {{ (coalesce .Values.container.messages_backend.registry .Values.container.default.registry) | quote }}
   {{- with (coalesce .Values.container.messages_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
@@ -58,7 +100,7 @@ backend:
   {{- if .Values.cluster.runtimeClassName }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   {{- end }}
-  extraEnvVars: {{ .Values.application.messages.extraEnvVars | default list | toYaml | nindent 4 }}
+  extraEnvVars: {{ $messagesExtraEnv | toYaml | nindent 4 }}
   secretKey: {{ .Values.secret.messages.secretKey | quote }}
   saltKey: {{ .Values.secret.messages.saltKey | quote }}
   mdaApiSecret: {{ .Values.secret.messages.mdaApiSecret | quote }}
@@ -81,6 +123,12 @@ backend:
   opensearchIndexThreads: true
   {{- if .Values.application.drive.enabled }}
   driveBaseUrl: {{ printf "https://%s.%s" .Values.global.hostname.drive .Values.global.domain | quote }}
+  # Drive integration calls the Drive API with the user's OIDC access token,
+  # refreshed via an encrypted refresh token in the session. Fernet key:
+  # 43 chars of a deterministic sha256 (hex ⊂ url-safe base64) + "=" padding,
+  # decoding to the required 32 bytes.
+  oidcStoreTokens: true
+  oidcStoreRefreshTokenKey: {{ printf "%s=" (derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "messages" "oidc-refresh-token-key" | sha256sum | trunc 43) | quote }}
   {{- end }}
   {{- if $aiEnabled }}
   featureAiSummary: true
@@ -119,7 +167,7 @@ worker:
   {{- if .Values.cluster.runtimeClassName }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   {{- end }}
-  extraEnvVars: {{ .Values.application.messages.extraEnvVars | default list | toYaml | nindent 4 }}
+  extraEnvVars: {{ $messagesExtraEnv | toYaml | nindent 4 }}
 
 frontend:
   image:
@@ -236,8 +284,13 @@ bootstrap:
   mailDomain: {{ .Values.application.messages.mailDomain | default "" | quote }}
   oidcAutojoin: true
 
-{{- if ne .Values.global.resourcesPreset "none" }}
 job:
+  calendarsChannel:
+    enabled: {{ .Values.application.calendars.enabled | default false }}
+    weight: "1"
+    channelId: {{ $calendarsChannelId | quote }}
+    apiKey: {{ $calendarsChannelApiKey | quote }}
+  {{- if ne .Values.global.resourcesPreset "none" }}
   resources:
     requests:
       memory: 256Mi
@@ -245,4 +298,4 @@ job:
     limits:
       memory: 512Mi
       cpu: 200m
-{{- end }}
+  {{- end }}

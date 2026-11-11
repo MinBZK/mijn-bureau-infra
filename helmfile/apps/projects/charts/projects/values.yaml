@@ -87,6 +87,9 @@ projects:
   ## @param projects.serviceName Display name of the service
   ##
   serviceName: "Projecten"
+  ## @param projects.theme Theme overrides for Projects. Leave empty to disable built-in branding overrides including Gaufre and feedback widgets.
+  ##
+  theme: {}
   ## @param projects.adminEmail Email of the default admin user seeded on first initialization
   ##
   adminEmail: ""

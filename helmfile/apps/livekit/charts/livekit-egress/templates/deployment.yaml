@@ -1,0 +1,206 @@
+{{- /*
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: livekit-egress
+  {{- if or .Values.egress.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.egress.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.egress.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.egress.replicaCount }}
+  {{- end }}
+  {{- if .Values.egress.updateStrategy }}
+  strategy: {{- toYaml .Values.egress.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.egress.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: livekit-egress
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.egress.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.egress.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: livekit-egress
+    spec:
+      {{- include "livekit-egress.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "livekit-egress.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.egress.automountServiceAccountToken }}
+      {{- if .Values.egress.runtimeClassName }}
+      runtimeClassName: {{ .Values.egress.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.egress.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.egress.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.egress.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.egress.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.egress.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.egress.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.egress.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.egress.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.egress.priorityClassName }}
+      priorityClassName: {{ .Values.egress.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.egress.schedulerName }}
+      schedulerName: {{ .Values.egress.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.egress.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.egress.topologySpreadConstraints "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.egress.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.egress.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.egress.writableDirs.enabled }}
+      initContainers:
+        - name: prepare-egress-dirs
+          image: {{ include "livekit-egress.dirsInitImage" . }}
+          imagePullPolicy: {{ .Values.egress.dirsInitContainer.image.pullPolicy }}
+          {{- if .Values.egress.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.egress.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            # mkdir creates the dirs; the chmod of volume roots fails when the
+            # init container runs non-root (kubelet fsGroup already grants the
+            # required group write access), so make it non-fatal.
+            - mkdir -p /home/egress/tmp /home/egress/.cache/xdgr /home/egress/.config /var/run/pulse /var/lib/pulse; chmod -R g+rwX /home/egress /var/run /var/lib/pulse || true
+          {{- if .Values.egress.resources }}
+          resources: {{- toYaml .Values.egress.resources | nindent 12 }}
+          {{- else if ne .Values.egress.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.egress.resourcesPreset) | nindent 12 }}
+          {{- else }}
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+              ephemeral-storage: 10Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+              ephemeral-storage: 100Mi
+          {{- end }}
+          volumeMounts:
+            - name: egress-home
+              mountPath: /home/egress
+            - name: egress-var-run
+              mountPath: /var/run
+            - name: egress-var-lib-pulse
+              mountPath: /var/lib/pulse
+      {{- end }}
+      containers:
+        - name: livekit-egress
+          image: {{ include "livekit-egress.image" . }}
+          imagePullPolicy: {{ .Values.egress.image.pullPolicy }}
+          {{- if .Values.egress.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.egress.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: EGRESS_CONFIG_FILE
+              value: /etc/livekit-egress/config.yaml
+            {{- if .Values.egress.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.egress.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.egress.extraEnvVarsCM .Values.egress.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.egress.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.egress.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.egress.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.egress.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.egress.resources }}
+          resources: {{- toYaml .Values.egress.resources | nindent 12 }}
+          {{- else if ne .Values.egress.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.egress.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            {{- if .Values.egress.config.health_port }}
+            - name: health
+              containerPort: {{ .Values.egress.config.health_port }}
+              protocol: TCP
+            {{- end }}
+            {{- if .Values.egress.config.prometheus_port }}
+            - name: metrics
+              containerPort: {{ .Values.egress.config.prometheus_port }}
+              protocol: TCP
+            {{- end }}
+          {{- if .Values.egress.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: health
+            initialDelaySeconds: {{ .Values.egress.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.egress.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.egress.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.egress.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.egress.livenessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.egress.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: health
+            initialDelaySeconds: {{ .Values.egress.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.egress.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.egress.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.egress.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.egress.readinessProbe.successThreshold }}
+          {{- end }}
+          volumeMounts:
+            - name: egress-config
+              mountPath: /etc/livekit-egress
+              readOnly: true
+            {{- if .Values.egress.writableDirs.enabled }}
+            - name: egress-home
+              mountPath: /home/egress
+            - name: egress-var-run
+              mountPath: /var/run
+            - name: egress-var-lib-pulse
+              mountPath: /var/lib/pulse
+            - name: egress-tmp
+              mountPath: /tmp
+            {{- end }}
+            - name: egress-dshm
+              mountPath: /dev/shm
+            {{- if .Values.egress.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.egress.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: egress-config
+          secret:
+            secretName: {{ include "livekit-egress.secretName" . }}
+        {{- if .Values.egress.writableDirs.enabled }}
+        - name: egress-home
+          emptyDir: {}
+        - name: egress-var-run
+          emptyDir: {}
+        - name: egress-var-lib-pulse
+          emptyDir: {}
+        - name: egress-tmp
+          emptyDir: {}
+        {{- end }}
+        - name: egress-dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: {{ .Values.egress.writableDirs.shmSizeLimit | quote }}
+        {{- if .Values.egress.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.egress.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

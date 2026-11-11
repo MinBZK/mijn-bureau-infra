@@ -48,3 +48,5 @@ debug.log
 
 # ignore logs from copilot hooks
 .github/logs/
+
+opencode.jsonc

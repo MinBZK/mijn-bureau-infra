@@ -2,6 +2,18 @@ bases:
   - "../../bases/default.yaml.gotmpl"
 
 releases:
+  - name: conversations-minio
+    chart: ../common/charts/minio
+    version: "17.0.11"
+    {{- if .Values.application.conversations.namespace }}
+    namespace: {{ .Values.application.conversations.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.conversations.enabled) | toYaml }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values-minio.yaml.gotmpl"
+
   - name: "conversations"
     chart: "charts/conversations"
     condition: application.conversations.enabled
@@ -16,6 +28,7 @@ releases:
     needs:
       - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-cluster
       - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-valkey
+      - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-minio
     {{- end }}
 
   - name: conversations-cluster-credentials

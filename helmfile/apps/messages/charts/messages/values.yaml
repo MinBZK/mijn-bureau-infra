@@ -154,6 +154,14 @@ backend:
   opensearchUrl: ""
   opensearchIndexThreads: true
   driveBaseUrl: ""
+  # Store the OIDC access token (and encrypted refresh token) in the session.
+  # Required for Drive integration: messages calls the Drive external API
+  # with the user's access token and refreshes it proactively.
+  oidcStoreTokens: false
+  # Fernet key used to encrypt the stored refresh token. Must be 44 url-safe
+  # base64 characters ("43 data chars + =") decoding to 32 bytes. Required
+  # when oidcStoreTokens is true.
+  oidcStoreRefreshTokenKey: ""
   featureAiSummary: false
   featureAiAutolabels: false
   aiBaseUrl: ""
@@ -180,7 +188,8 @@ worker:
     pullPolicy: Always
     pullSecrets: []
   replicaCount: 1
-  command: []
+  command:
+    - python
   args:
     - worker.py
     - --loglevel=INFO
@@ -465,14 +474,36 @@ job:
           )
           print(('Created' if created else 'Existing'), 'mail domain', domain.name)
       "
-      python manage.py bucket_cors --storage default --set
-      python manage.py bucket_cors --storage message-imports --set
-      python manage.py bucket_cors --storage message-blobs --set
-      python manage.py bucket_cors --storage message-exports --set
+      # MinIO Community does not implement PutBucketCors (it uses global CORS
+      # instead), so do not fail the whole release if a bucket rejects it.
+      for storage in default message-imports message-blobs message-exports; do
+        python manage.py bucket_cors --storage "$storage" --set || \
+          echo "WARNING: could not set CORS for $storage; continuing"
+      done
   migrate:
     weight: "-20"
   superuser:
     weight: "0"
+  ## Global api_key channel used by the calendars app to read mailboxes and
+  ## submit mailbox invitations. Idempotent: the hook job upserts a
+  ## deterministic channel id and stores the SHA-256 hash of the derived key.
+  calendarsChannel:
+    enabled: false
+    weight: "1"
+    channelId: ""
+    apiKey: ""
+  ## Rebuild Thread.snippet for pre-existing threads (required before
+  ## FEATURE_THREAD_SNIPPET shows correct previews). Idempotent: consecutive
+  ## runs resume from a cache cursor instead of restarting from the top.
+  threadSnippetsBackfill:
+    enabled: true
+    weight: "1"
+    command:
+      - /bin/sh
+    args:
+      - -c
+      - |
+        python manage.py backfill_thread_snippets
 
 ## @section Traffic exposure parameters
 

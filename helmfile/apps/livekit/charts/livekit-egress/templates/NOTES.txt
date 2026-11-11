@@ -1,0 +1,9 @@
+LiveKit Egress has been deployed.
+
+The egress service connects to the LiveKit server configured in
+`egress.config.ws_url` and uploads recordings to the S3 bucket configured in
+`egress.config.s3`.
+
+Check the worker health with:
+
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/component=livekit-egress

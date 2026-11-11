@@ -9,6 +9,34 @@ ai:
       isInternal: false
     apiKey: ~
 
+  # WhisperX-compatible speech-to-text endpoint used for batch transcription.
+  whisperx:
+    baseUrl: ~
+    apiKey: ~
+    # Model name understood by the configured endpoint, for example large-v3.
+    # Leave empty to use the summary service default.
+    asrModel: ~
+    # ISO 639-1 language code. Leave empty to use global.defaultLocale.
+    defaultLanguage: ~
+
+  # Real-time speech-to-text provider used by the Meet LiveKit agents.
+  # provider can be deepgram, kyutai or voxtral-vllm.
+  stt:
+    provider: "voxtral"
+    deepgram:
+      apiKey: ~
+      model: "nova-3"
+      # "multi" enables automatic multilingual code-switching.
+      language: "multi"
+    kyutai:
+      baseUrl: ~
+      apiKey: ~
+    voxtral:
+      baseUrl: ~
+      apiKey: ~
+      model: "voxtral-mini-4b-realtime-2602"
+      targetStreamingDelayMs: 480
+
   dictaphone:
     serviceUrl: ~
     serviceApiKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "dictaphone" "aiServiceApiKey" | sha1sum | quote }}

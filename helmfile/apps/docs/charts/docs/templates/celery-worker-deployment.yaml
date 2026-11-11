@@ -16,7 +16,9 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
+  {{- if not .Values.backend.celery.autoscaling.hpa.enabled }}
   replicas: {{ .Values.backend.celery.replicaCount }}
+  {{- end }}
   {{- if .Values.backend.celery.updateStrategy }}
   strategy: {{- toYaml .Values.backend.celery.updateStrategy | nindent 4 }}
   {{- end }}

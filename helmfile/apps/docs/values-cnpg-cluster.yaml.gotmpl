@@ -39,6 +39,12 @@ cluster:
     owner: {{ .Values.database.docs.user }}
     secret:
       name: docs-cluster-app
+    # impress migrations (0002, 0021) run CREATE EXTENSION IF NOT EXISTS.
+    # Provision them at bootstrap so the migrate job can run as the app user
+    # instead of the CNPG superuser, keeping table ownership with the app user.
+    postInitApplicationSQL:
+      - CREATE EXTENSION IF NOT EXISTS pg_trgm;
+      - CREATE EXTENSION IF NOT EXISTS unaccent;
 
 backups:
   enabled: false

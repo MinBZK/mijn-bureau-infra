@@ -121,6 +121,21 @@ spec:
                 secretKeyRef:
                   name: {{ include "conversations.secretName" . }}
                   key: REDIS_URL
+            - name: CELERY_BROKER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: CELERY_BROKER_URL
+            - name: CELERY_RESULT_BACKEND
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: CELERY_RESULT_BACKEND
+            - name: AWS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: AWS_S3_SECRET_ACCESS_KEY
             - name: OIDC_RP_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:

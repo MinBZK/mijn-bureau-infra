@@ -95,6 +95,15 @@ backend:
     {{- if .Values.application.nextcloud.enabled }}
     OCS_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.nextcloud .Values.global.domain }}
     {{- end }}
+    {{- if .Values.application.calendars.enabled }}
+    CALENDAR_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.calendars .Values.global.domain }}
+    {{- end }}
+    {{- if .Values.application.messages.enabled }}
+    EMAIL_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.messages .Values.global.domain }}
+    {{- end }}
+    {{- if .Values.application.dictaphone.enabled }}
+    DICTAPHONE_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.dictaphone .Values.global.domain }}
+    {{- end }}
     {{- if .Values.application.drive.enabled }}
     DRIVE_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.drive .Values.global.domain | quote }}
     {{- end }}

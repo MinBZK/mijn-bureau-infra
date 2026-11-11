@@ -107,9 +107,6 @@ backend:
           - port: 4444
   jobs:
     releaseSuffix: {{ $releaseId | quote }}
-  migrateDbCredentials:
-    DB_USER: "postgres"
-    DB_PASSWORD: {{ .Values.database.docs.adminpassword | quote }}
   envVars:
     AWS_S3_ENDPOINT_URL: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.docs.useSSL) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port | quote }}
     AWS_S3_ACCESS_KEY_ID: {{ .Values.objectstore.docs.username | quote }}
@@ -145,12 +142,13 @@ backend:
     CONVERSION_API_CONTENT_FIELD: "content"
     CONVERSION_API_ENDPOINT: "convert"
     CONVERSION_API_SECURE: "false"
+    CONVERSION_UPLOAD_ENABLED: "true"
     DOCSPEC_API_URL: http://docs-docspec:4000/conversion
     CRISP_WEBSITE_ID: ""
     DOCUMENT_IMAGE_MAX_SIZE: "10485760"
     FRONTEND_CSS_URL: "https://static-{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/iframe-hide.css"
     FRONTEND_JS_URL: "https://static-{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/bureaublad-button.js"
-    FRONTEND_HOMEPAGE_FEATURE_ENABLED: "false"
+    FRONTEND_HOMEPAGE_FEATURE_ENABLED: "true"
     FRONTEND_THEME: ""
     DB_ENGINE: {{ .Values.database.docs.engine | quote}}
     DB_HOST: {{ .Values.database.docs.host | quote }}
@@ -218,150 +216,12 @@ backend:
     SPECTACULAR_SETTINGS_ENABLE_DJANGO_DEPLOY_CHECK: "false"
     STORAGES_STATICFILES_BACKEND: "django.contrib.staticfiles.storage.StaticFilesStorage"
     THEME_CUSTOMIZATION_CACHE_TIMEOUT: "86400"
-    THEME_CUSTOMIZATION_FILE_PATH: ""
+    # THEME_CUSTOMIZATION_FILE_PATH intentionally unset: upstream default
+    # (/app/impress/configuration/theme/default.json) matches the chart's
+    # themeCustomization mount path. Setting it to "" disables customization.
     USER_OIDC_ESSENTIAL_CLAIMS: ""
     Y_PROVIDER_API_BASE_URL: "http://docs-y-provider:443/api/"
     Y_PROVIDER_API_KEY: {{ .Values.application.docs.yProvider.key | quote }}
-  themeCustomization:
-    enabled: true
-    fileContent: |
-      {
-        "translations": {
-            "en": {
-              "translation": {
-                "Docs": "Mijn Bureau Docs",
-                "New doc": "+"
-              }
-            }
-          },
-        "footer": {
-          "default": {
-            "logo": {
-              "src": "/assets/icon-docs.svg",
-              "width": "54px",
-              "alt": "Docs Logo",
-              "withTitle": true
-            },
-            "externalLinks": [
-              {
-                "label": "GitHub",
-                "href": "https://github.com/suitenumerique/docs/"
-              },
-              {
-                "label": "DINUM",
-                "href": "https://www.numerique.gouv.fr/dinum/"
-              },
-              {
-                "label": "ZenDiS",
-                "href": "https://zendis.de/"
-              },
-              {
-                "label": "BlockNote.js",
-                "href": "https://www.blocknotejs.org/"
-              }
-            ],
-            "bottomInformation": {
-              "label": "Unless otherwise stated, all content on this site is under",
-              "link": {
-                "label": "licence etalab-2.0",
-                "href": "https://github.com/etalab/licence-ouverte/blob/master/LO.md"
-              }
-            }
-          },
-          "en": {
-            "legalLinks": [
-              {
-                "label": "Legal Notice",
-                "href": "#"
-              },
-              {
-                "label": "Personal data and cookies",
-                "href": "#"
-              },
-              {
-                "label": "Accessibility",
-                "href": "#"
-              }
-            ],
-            "bottomInformation": {
-              "label": "Unless otherwise stated, all content on this site is under",
-              "link": {
-                "label": "licence MIT",
-                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
-              }
-            }
-          },
-          "fr": {
-            "legalLinks": [
-              {
-                "label": "Mentions légales",
-                "href": "#"
-              },
-              {
-                "label": "Données personnelles et cookies",
-                "href": "#"
-              },
-              {
-                "label": "Accessibilité",
-                "href": "#"
-              }
-            ],
-            "bottomInformation": {
-              "label": "Sauf mention contraire, tout le contenu de ce site est sous",
-              "link": {
-                "label": "licence MIT",
-                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
-              }
-            }
-          },
-          "de": {
-            "legalLinks": [
-              {
-                "label": "Impressum",
-                "href": "#"
-              },
-              {
-                "label": "Personenbezogene Daten und Cookies",
-                "href": "#"
-              },
-              {
-                "label": "Barrierefreiheit",
-                "href": "#"
-              }
-            ],
-            "bottomInformation": {
-              "label": "Sofern nicht anders angegeben, steht der gesamte Inhalt dieser Website unter",
-              "link": {
-                "label": "licence MIT",
-                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
-              }
-            }
-          },
-          "nl": {
-            "legalLinks": [
-              {
-                "label": "Wettelijke bepalingen",
-                "href": "#"
-              },
-              {
-                "label": "Persoonlijke gegevens en cookies",
-                "href": "#"
-              },
-              {
-                "label": "Toegankelijkheid",
-                "href": "#"
-              }
-            ],
-            "bottomInformation": {
-              "label": "Tenzij anders vermeld, is alle inhoud van deze site ondergebracht onder",
-              "link": {
-                "label": "licence MIT",
-                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
-              }
-            }
-          }
-        }
-      }"
   celery:
     livenessProbe:
       enabled: false

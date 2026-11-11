@@ -14,7 +14,12 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 data:
+  HOME: "/tmp"
   CONVERSATIONS_BASE_URL: {{ .Values.conversations.baseUrl | quote }}
+  DOCS_BASE_URL: {{ .Values.conversations.docsBaseUrl | quote }}
+  {{- if .Values.conversations.docsBaseUrl }}
+  OIDC_STORE_ACCESS_TOKEN: "true"
+  {{- end }}
   LOGIN_REDIRECT_URL: {{ .Values.conversations.baseUrl | quote }}
   LOGIN_REDIRECT_URL_FAILURE: {{ .Values.conversations.baseUrl | quote }}
   LOGOUT_REDIRECT_URL: {{ .Values.conversations.baseUrl | quote }}
@@ -29,6 +34,11 @@ data:
   DB_NAME: {{ .Values.externalDatabase.database | quote }}
   DB_USER: {{ .Values.externalDatabase.username | quote }}
   DB_PORT: {{ .Values.externalDatabase.port | quote }}
+  AWS_S3_ENDPOINT_URL: {{ .Values.externalObjectStore.endpoint | quote }}
+  AWS_S3_ACCESS_KEY_ID: {{ .Values.externalObjectStore.accessKey | quote }}
+  AWS_S3_REGION_NAME: {{ .Values.externalObjectStore.region | quote }}
+  AWS_STORAGE_BUCKET_NAME: {{ .Values.externalObjectStore.bucket | quote }}
+  FILE_UPLOAD_MODE: "backend_to_s3"
   OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
   OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.jwks_uri | quote }}
   OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.authorization_endpoint | quote }}
@@ -46,4 +56,8 @@ data:
   FRONTEND_JS_URL: {{ .Values.conversations_frontend.frontendJsUrl | quote }}
   FRONTEND_HOMEPAGE_FEATURE_ENABLED: "false"
   # FEATURE_FLAG_WEB_SEARCH: "false"
-  # FEATURE_FLAG_DOCUMENT_UPLOAD: "false"
+  # FEATURE_FLAG_DOCUMENT_UPLOAD: "ENABLED"
+  FRONTEND_SILENT_LOGIN_ENABLED: "true"
+  LLM_EVAL_JUDGE_MODEL_HRID: "default-model"
+  LLM_SUMMARIZATION_MODEL_HRID: "default-model"
+  DEFAULT_ALLOW_SMART_WEB_SEARCH: "true"

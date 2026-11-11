@@ -19,6 +19,7 @@ data:
   BASE_URL: {{ .Values.projects.baseUrl | quote }}
   TRUST_PROXY: "1"
   SERVICE_NAME: {{ .Values.projects.serviceName | quote }}
+  THEME: {{ .Values.projects.theme | toJson | quote }}
   ALLOW_ALL_TO_CREATE_PROJECTS: "true"
   OIDC_ISSUER: {{ .Values.authentication.issuer | default "" | quote }}
   OIDC_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}

@@ -1,0 +1,28 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.conversations.celery.pdb.create }}
+apiVersion: {{ include "common.capabilities.policy.apiVersion" . }}
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "common.names.fullname" . }}-backend-celery
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: conversations-backend-celery
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.conversations.celery.pdb.minAvailable }}
+  minAvailable: {{ .Values.conversations.celery.pdb.minAvailable }}
+  {{- end }}
+  {{- if or .Values.conversations.celery.pdb.maxUnavailable ( not .Values.conversations.celery.pdb.minAvailable ) }}
+  maxUnavailable: {{ .Values.conversations.celery.pdb.maxUnavailable | default 1 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.conversations.celery.podLabels .Values.commonLabels ) "context" . ) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: conversations-backend-celery
+{{- end }}

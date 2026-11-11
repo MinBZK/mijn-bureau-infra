@@ -110,6 +110,10 @@ container:
     registry: ""
     imagePullSecret: ""
 
+  livekit_egress:
+    registry: ""
+    imagePullSecret: ""
+
   kubectl:
     registry: ""
     imagePullSecret: ""

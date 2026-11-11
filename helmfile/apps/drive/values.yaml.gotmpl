@@ -31,6 +31,20 @@ drive:
   pdb: {{ .Values.pdb.drive.backend | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   secretKey: {{ .Values.application.drive.secretKey | quote }}
+  # Env-load the full drive secret (contains DB passwords, S3 keys and the
+  # DJANGO_EMAIL_HOST_PASSWORD rendered by this chart), same as the meet chart.
+  extraEnvVarsSecret: drive
+  email:
+    host: {{ .Values.smtp.host | quote }}
+    port: {{ .Values.smtp.port | quote }}
+    hostUser: {{ .Values.smtp.username | quote }}
+    hostPassword: {{ .Values.smtp.password | quote }}
+    useTls: {{ .Values.smtp.tls.enabled | default true | quote }}
+    useSsl: "false"
+    from: {{ .Values.smtp.from.email | quote }}
+    brandName: {{ .Values.smtp.from.name | quote }}
+    logoImg: {{ .Values.smtp.from.logoImage | quote }}
+    urlApp: "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
   CSRFTrustedOrigins: "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
   CORSAllowedOrigins: "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
   AllowedHosts: "{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
@@ -40,8 +54,28 @@ drive:
   serverToServerKey: {{ .Values.application.drive.secrettoServerKey | quote }}
   baseUrl: "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
   externalMinioAPI: "https://{{ .Values.global.hostname.drive }}-minio.{{ .Values.global.domain }}"
+  # Enforce per-user storage limits (default 10 GiB = 10737418240 bytes).
+  # Empty ENTITLEMENTS_BACKEND_PARAMETERS falls back to local-backend defaults.
+  # Per-user overrides are managed in the Django admin (storage_limit_override).
+  extraEnvVars:
+    - name: ENTITLEMENTS_BACKEND
+      value: "core.entitlements.backends.local.LocalEntitlementsBackend"
+    - name: ENTITLEMENTS_BACKEND_PARAMETERS
+      value: '{"default_storage_limit": 10737418240}'
+    {{- if .Values.application.messages.enabled }}
+    # Messages integration: allow the messages OIDC client's access tokens on
+    # the external API, and let the messages frontend drive the file picker
+    # (SDK relay pages + CORS).
+    - name: OIDC_RS_ALLOWED_AUDIENCES
+      value: {{ .Values.authentication.client.messages.client_id | quote }}
+    - name: SDK_ENABLED
+      value: "true"
+    - name: SDK_CORS_ALLOWED_ORIGINS
+      value: "https://{{ .Values.global.hostname.messages }}.{{ .Values.global.domain }}"
+    {{- end }}
   frontendCssUrl: "https://static-{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/iframe-hide.css"
   frontendJsUrl: "https://static-{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/bureaublad-button.js"
+  frontendExternalHomeUrl: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
 
   {{ if .Values.application.collabora.enabled }}
   wopiClients: "collabora"

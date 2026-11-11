@@ -1,0 +1,130 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.celery_transcribe.enabled }}
+{{- $envVars := include "meet.common.env" (list . .Values.celery_transcribe) }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "meet.celeryTranscribe.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: meet-celery-transcribe
+  {{- if or .Values.celery_transcribe.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.celery_transcribe.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.celery_transcribe.replicaCount }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.celery_transcribe.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: meet-celery-transcribe
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.celery_transcribe.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.celery_transcribe.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: meet-celery-transcribe
+    spec:
+      {{- include "meet.celeryTranscribe.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "meet.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.celery_transcribe.automountServiceAccountToken }}
+      {{- if .Values.celery_transcribe.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.celery_transcribe.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.celery_transcribe.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.celery_transcribe.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.celery_transcribe.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.celery_transcribe.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.celery_transcribe.priorityClassName }}
+      priorityClassName: {{ .Values.celery_transcribe.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.celery_transcribe.schedulerName }}
+      schedulerName: {{ .Values.celery_transcribe.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.celery_transcribe.runtimeClassName }}
+      runtimeClassName: {{ .Values.celery_transcribe.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.celery_transcribe.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.celery_transcribe.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.celery_transcribe.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.celery_transcribe.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.celery_transcribe.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.celery_transcribe.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.celery_transcribe.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" .Values.celery_transcribe.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: celery-transcribe
+          image: {{ template "meet.celeryTranscribe.image" . }}
+          imagePullPolicy: {{ .Values.celery_transcribe.image.pullPolicy }}
+          {{- if .Values.celery_transcribe.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.celery_transcribe.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.celery_transcribe.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.celery_transcribe.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.celery_transcribe.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.celery_transcribe.args "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if or $envVars .Values.celery_transcribe.extraEnvVars }}
+          env:
+            {{- if $envVars }}
+            {{- $envVars | nindent 12 }}
+            {{- end }}
+            {{- if .Values.celery_transcribe.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.celery_transcribe.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.celery_transcribe.envFrom .Values.celery_transcribe.extraEnvVarsCM .Values.celery_transcribe.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.celery_transcribe.envFrom }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.celery_transcribe.envFrom "context" $) | nindent 12 }}
+            {{- end }}
+            {{- if .Values.celery_transcribe.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.celery_transcribe.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.celery_transcribe.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.celery_transcribe.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.celery_transcribe.resources }}
+          resources: {{- toYaml .Values.celery_transcribe.resources | nindent 12 }}
+          {{- else if ne .Values.celery_transcribe.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.celery_transcribe.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.celery_transcribe.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.celery_transcribe.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.celery_transcribe.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.celery_transcribe.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.celery_transcribe.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.celery_transcribe.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}
+{{- end }}

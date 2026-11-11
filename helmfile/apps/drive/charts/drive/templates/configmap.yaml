@@ -21,6 +21,20 @@ data:
   DJANGO_CSRF_TRUSTED_ORIGINS: {{ .Values.drive.CSRFTrustedOrigins | quote }}
   DJANGO_CORS_ALLOW_ALL_ORIGINS: "false"
   DJANGO_CORS_ALLOWED_ORIGINS: {{ .Values.drive.CORSAllowedOrigins | quote}}
+  {{- with .Values.drive.email }}
+  {{- if .host }}
+  DJANGO_EMAIL_BACKEND: {{ .backend | default "django.core.mail.backends.smtp.EmailBackend" | quote }}
+  DJANGO_EMAIL_HOST: {{ .host | quote }}
+  DJANGO_EMAIL_PORT: {{ .port | quote }}
+  DJANGO_EMAIL_HOST_USER: {{ .hostUser | quote }}
+  DJANGO_EMAIL_USE_TLS: {{ .useTls | default "true" | quote }}
+  DJANGO_EMAIL_USE_SSL: {{ .useSsl | default "false" | quote }}
+  DJANGO_EMAIL_FROM: {{ .from | quote }}
+  DJANGO_EMAIL_BRAND_NAME: {{ .brandName | quote }}
+  DJANGO_EMAIL_LOGO_IMG: {{ .logoImg | quote }}
+  DJANGO_EMAIL_URL_APP: {{ .urlApp | quote }}
+  {{- end }}
+  {{- end }}
   LOGIN_REDIRECT_URL: {{ .Values.drive.baseUrl | quote }}
   LOGIN_REDIRECT_URL_FAILURE: {{ .Values.drive.baseUrl | quote }}
   LOGOUT_REDIRECT_URL: {{ .Values.drive.baseUrl | quote }}
@@ -48,4 +62,5 @@ data:
   FRONTEND_SILENT_LOGIN_ENABLED: "true"
   FRONTEND_CSS_URL: {{ .Values.drive.frontendCssUrl | quote }}
   FRONTEND_JS_URL: {{ .Values.drive.frontendJsUrl | quote }}
+  FRONTEND_EXTERNAL_HOME_URL: {{ .Values.drive.frontendExternalHomeUrl | quote }}
   

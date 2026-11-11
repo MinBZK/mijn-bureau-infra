@@ -6,6 +6,8 @@
 {{- $resources := .Values.resource | default dict }}
 {{- $autoscaling := .Values.autoscaling.horizontal | default dict }}
 {{- $pdb := .Values.pdb | default dict }}
+{{- $messagesChannelHex := derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "messages-calendars-channel-id" | sha256sum | trunc 32 }}
+{{- $messagesChannelId := printf "%s-%s-%s-%s-%s" (substr 0 8 $messagesChannelHex) (substr 8 12 $messagesChannelHex) (substr 12 16 $messagesChannelHex) (substr 16 20 $messagesChannelHex) (substr 20 32 $messagesChannelHex) }}
 
 global:
   ## Global Docker image parameters
@@ -60,6 +62,16 @@ backend:
   {{- if .Values.application.meet.enabled }}
   meetBaseUrl: {{ printf "https://%s.%s" .Values.global.hostname.meet .Values.global.domain | quote }}
   {{- end }}
+  {{- if .Values.application.messages.enabled }}
+  {{- /* Messages runs with SECURE_SSL_REDIRECT, so the in-cluster HTTP
+    service would 301 to HTTPS and fail. Use the public HTTPS URL, which is
+    allowed by ALLOWED_HOSTS and reaches the backend through the gateway. */}}
+  messagesIntegration:
+    enabled: true
+    apiUrl: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.messages .Values.global.domain | quote }}
+    channelId: {{ $messagesChannelId | quote }}
+    apiKey: {{ printf "msgk_%s" (derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "messages-calendars-channel-api-key" | sha256sum) | quote }}
+  {{- end }}
 
 worker:
   resourcesPreset: {{ dig "calendars" "worker" $preset $presetPerApp | quote }}
@@ -111,6 +123,18 @@ caldav:
   inboundApiKey: {{ .Values.application.calendars.caldav.inboundApiKey | quote }}
   outboundApiKey: {{ .Values.application.calendars.caldav.outboundApiKey | quote }}
   internalApiKey: {{ .Values.application.calendars.caldav.internalApiKey | quote }}
+
+{{- if .Values.application.messages.enabled }}
+# Global "caldav" channel for the messages app, provisioned by a hook job. Id
+# and token are deterministically derived from the master password; the
+# messages chart derives the same pair and sends them as CalDAV Basic auth
+# (password = <id><token>), so no out-of-band exchange is needed.
+messagesChannel:
+  enabled: true
+  # 22 base64url chars decoding to the 16-byte channel UUID
+  id: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "messages-caldav-channel-id" | sha256sum | trunc 22 | quote }}
+  token: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "messages-caldav-channel-token" | sha1sum | quote }}
+{{- end }}
 
 ingress:
   enabled: true

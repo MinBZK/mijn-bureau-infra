@@ -1,0 +1,281 @@
+#
+# SPDX-License-Identifier: APACHE-2.0
+
+## @section Global parameters
+
+global:
+  ## Global Docker image parameters
+  ## @param global.imageRegistry Global Docker Image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: ""
+  imagePullSecrets: []
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  defaultStorageClass: ""
+
+## @section Common parameters
+
+## @param kubeVersion Override Kubernetes version reported by .Capabilities
+##
+kubeVersion: ""
+## @param apiVersions Override Kubernetes API versions reported by .Capabilities
+##
+apiVersions: []
+## @param nameOverride String to partially override common.names.name
+##
+nameOverride: "livekit-egress"
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: "livekit-egress"
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: cluster.local
+## @param extraDeploy Array of extra objects to deploy with the release
+##
+extraDeploy: []
+
+## @section LiveKit Egress parameters
+
+egress:
+  ## @param egress.image.registry Egress image registry
+  ## @param egress.image.repository Egress image repository
+  ## @param egress.image.tag Egress image tag (immutable tags are recommended)
+  ## @param egress.image.digest Egress image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag
+  ## @param egress.image.pullPolicy Egress image pull policy
+  ## @param egress.image.pullSecrets Egress image pull secrets
+  ##
+  image:
+    registry: docker.io
+    repository: livekit/egress
+    tag: v1.15.0
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+
+  ## @param egress.replicaCount Number of egress replicas to deploy
+  ##
+  replicaCount: 1
+
+  ## @param egress.resourcesPreset Egress container resources preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge)
+  ## @param egress.resources Egress container requests and limits (overrides resourcesPreset)
+  ##
+  resourcesPreset: "xlarge"
+  resources: {}
+
+  ## @param egress.podSecurityContext.enabled Enable egress pods' Security Context
+  ## @param egress.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy
+  ## @param egress.podSecurityContext.sysctls Set kernel settings using the sysctl interface
+  ## @param egress.podSecurityContext.supplementalGroups Set filesystem extra groups
+  ## @param egress.podSecurityContext.fsGroup Set fsGroup in egress pods' Security Context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+
+  ## @param egress.containerSecurityContext.enabled Enable egress container Security Context
+  ## @param egress.containerSecurityContext.seLinuxOptions Set SELinux options in egress container
+  ## @param egress.containerSecurityContext.runAsUser Set runAsUser in egress container
+  ## @param egress.containerSecurityContext.runAsGroup Set runAsGroup in egress container
+  ## @param egress.containerSecurityContext.runAsNonRoot Set runAsNonRoot in egress container
+  ## @param egress.containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in egress container
+  ## @param egress.containerSecurityContext.privileged Set privileged in egress container
+  ## @param egress.containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in egress container
+  ## @param egress.containerSecurityContext.capabilities.drop List of capabilities to be dropped in egress container
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+
+  ## @param egress.config Egress configuration, rendered into a Secret and passed via EGRESS_CONFIG_FILE
+  ## ref: https://docs.livekit.io/transport/self-hosting/egress/
+  ##
+  config:
+    logging:
+      level: info
+    health_port: 8080
+    prometheus_port: 9090
+    ws_url: ws://livekit-server:80
+    insecure: true
+    enable_chrome_sandbox: false
+    cpu_cost:
+      room_composite_cpu_cost: 2.0
+      track_composite_cpu_cost: 1.0
+      track_cpu_cost: 0.5
+    s3:
+      # MinIO and most S3-compatible stores require path-style requests.
+      force_path_style: true
+
+  ## @param egress.writableDirs.enabled Mount writable emptyDir volumes needed by PulseAudio, Chrome and GStreamer
+  ## @param egress.writableDirs.shmSizeLimit Size limit for /dev/shm
+  ##
+  writableDirs:
+    enabled: true
+    shmSizeLimit: "1Gi"
+
+  ## Init container used to prepare writable directories in the emptyDir volumes
+  ##
+  dirsInitContainer:
+    ## @param egress.dirsInitContainer.image.registry Init container image registry
+    ## @param egress.dirsInitContainer.image.repository Init container image repository
+    ## @param egress.dirsInitContainer.image.tag Init container image tag
+    ## @param egress.dirsInitContainer.image.digest Init container image digest
+    ## @param egress.dirsInitContainer.image.pullPolicy Init container image pull policy
+    ##
+    image:
+      registry: docker.io
+      repository: busybox
+      tag: "1.37.0-musl"
+      digest: ""
+      pullPolicy: Always
+
+  ## @param egress.extraEnvVars Extra environment variables as an array of EnvVar objects
+  ## @param egress.extraEnvVarsCM Name of an existing ConfigMap containing extra environment variables
+  ## @param egress.extraEnvVarsSecret Name of an existing Secret containing extra environment variables
+  ##
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+
+  ## @param egress.extraVolumes Extra volumes for the egress pods
+  ## @param egress.extraVolumeMounts Extra volume mounts for the egress container
+  ##
+  extraVolumes: []
+  extraVolumeMounts: []
+
+  ## @param egress.automountServiceAccountToken Mount Service Account token in the egress pods
+  ##
+  automountServiceAccountToken: false
+
+  ## @param egress.runtimeClassName Runtime class name for the egress pods
+  ##
+  runtimeClassName: ""
+
+  ## @param egress.nodeSelector Node labels for egress pods assignment
+  ## @param egress.tolerations Tolerations for egress pods assignment
+  ## @param egress.affinity Affinity for egress pods assignment
+  ## @param egress.topologySpreadConstraints Topology Spread Constraints for egress pods
+  ## @param egress.priorityClassName Egress pods' priorityClassName
+  ## @param egress.schedulerName Name of the k8s scheduler (other than default) for egress pods
+  ## @param egress.terminationGracePeriodSeconds Seconds egress pods need to terminate gracefully
+  ## @param egress.updateStrategy.type Egress deployment strategy type
+  ## @param egress.podLabels Extra labels for egress pods
+  ## @param egress.podAnnotations Annotations for egress pods
+  ## @param egress.deploymentAnnotations Annotations for the egress Deployment
+  ##
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  priorityClassName: ""
+  schedulerName: ""
+  terminationGracePeriodSeconds: 3600
+  updateStrategy:
+    type: RollingUpdate
+  podLabels: {}
+  podAnnotations: {}
+  deploymentAnnotations: {}
+
+  ## @param egress.livenessProbe.enabled Enable livenessProbe on the egress container
+  ## @param egress.readinessProbe.enabled Enable readinessProbe on the egress container
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+
+  ## @param egress.autoscaling.hpa.enabled Enable HPA for egress pods
+  ## @param egress.autoscaling.hpa.minReplicas Minimum number of replicas
+  ## @param egress.autoscaling.hpa.maxReplicas Maximum number of replicas
+  ## @param egress.autoscaling.hpa.targetCPU Target CPU utilization percentage
+  ## @param egress.autoscaling.hpa.targetMemory Target Memory utilization percentage
+  ##
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 60
+      targetMemory: ""
+
+  ## @param egress.pdb.create Enable/disable a Pod Disruption Budget creation
+  ## @param egress.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param egress.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
+  ##
+  pdb:
+    create: false
+    minAvailable: ""
+    maxUnavailable: 1
+
+## @section Service parameters
+
+service:
+  ## @param service.type Egress service type
+  ## @param service.ports.health Egress health port
+  ## @param service.ports.metrics Egress Prometheus metrics port
+  ## @param service.annotations Additional annotations for the egress service
+  ##
+  type: ClusterIP
+  ports:
+    health: 8080
+    metrics: 9090
+  annotations: {}
+
+## @section Network Policy parameters
+
+networkPolicy:
+  ## @param networkPolicy.enabled Enable creation of NetworkPolicy resources
+  ##
+  enabled: true
+  ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations
+  ## Egress needs external access for WebRTC media and optional RTMP streaming.
+  ##
+  allowExternalEgress: true
+  ## @param networkPolicy.extraIngress Additional ingress rules
+  ## @param networkPolicy.extraEgress Additional egress rules (ignored when allowExternalEgress=true)
+  ##
+  extraIngress: []
+  extraEgress: []
+
+## @section RBAC parameters
+
+serviceAccount:
+  ## @param serviceAccount.create Enable the creation of a ServiceAccount
+  ## @param serviceAccount.name Name of the created ServiceAccount
+  ## @param serviceAccount.annotations Custom annotations for the ServiceAccount
+  ## @param serviceAccount.automountServiceAccountToken Enable/disable auto mounting of the service account token
+  ##
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false

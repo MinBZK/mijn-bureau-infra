@@ -39,6 +39,8 @@ projects:
   baseUrl: {{ $baseUrl | quote }}
   adminEmail: {{ .Values.secret.projects.adminUser | quote }}
   adminPassword: {{ .Values.secret.projects.adminPassword | quote }}
+  theme:
+    {{- .Values.application.projects.theme | default dict | toYaml | nindent 4 }}
 
   replicaCount: {{ .Values.autoscaling.horizontal.projects.minReplicas | default 1 }}
   resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.projects .Values.global.resourcesPreset | quote }}

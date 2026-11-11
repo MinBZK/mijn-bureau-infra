@@ -73,3 +73,17 @@ security:
       enabled: true
       fsGroup: 7777
       fsGroupChangePolicy: "TestingPropagation"
+
+  livekit_egress:
+    containerSecurityContext:
+      enabled: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 9999
+      runAsGroup: 8888
+
+    podSecurityContext:
+      enabled: true
+      fsGroup: 7777
+      fsGroupChangePolicy: "TestingPropagation"

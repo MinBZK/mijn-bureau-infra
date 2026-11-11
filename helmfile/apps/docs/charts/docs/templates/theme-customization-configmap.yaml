@@ -16,5 +16,5 @@ metadata:
   {{- end }}
 data:
   default.json: |
-    {{ .Values.backend.themeCustomization.fileContent | toJson | indent 4 }}
+    {{- .Values.backend.themeCustomization.fileContent | nindent 4 }}
 {{- end }}

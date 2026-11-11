@@ -77,6 +77,11 @@ container:
     repository: "livekit/livekit-server"
     tag: "v1.13.11"
     imagePullSecret: ~
+  livekit_egress:
+    registry: "registry-1.docker.io"
+    repository: "livekit/egress"
+    tag: "v1.15.0"
+    imagePullSecret: ~
   kubectl:
     registry: registry.k8s.io
     repository: kubectl
@@ -95,6 +100,16 @@ container:
   meet_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/meet-frontend"
+    tag: "v1.37.0"
+    imagePullSecret: ~
+  meet_summary:
+    registry: "registry-1.docker.io"
+    repository: "lasuite/meet-summary"
+    tag: "v1.37.0"
+    imagePullSecret: ~
+  meet_agents:
+    registry: "registry-1.docker.io"
+    repository: "lasuite/meet-agents"
     tag: "v1.37.0"
     imagePullSecret: ~
   conversations_backend:
@@ -203,10 +218,10 @@ container:
     registry: "ghcr.io"
     backend:
       repository: "minbzk/bureaublad-api"
-      tag: "v1.0.1"
+      tag: "v2.0.1"
     frontend:
       repository: "minbzk/bureaublad-frontend"
-      tag: "v1.0.1"
+      tag: "v2.0.1"
   clamav:
     registry: "registry-1.docker.io"
     repository: "clamav/clamav"

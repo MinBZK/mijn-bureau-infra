@@ -1,3 +1,12 @@
+{{- $livekitKeys := deepCopy .Values.application.livekit.keys -}}
+{{- $firstKeyName := $livekitKeys | keys | first -}}
+{{- $livekitKeyName := $firstKeyName -}}
+{{- if and .Values.livekit.meet.apiKey .Values.livekit.meet.apiSecret -}}
+{{- $livekitKeyName = .Values.livekit.meet.apiKey -}}
+{{- $_ := set $livekitKeys $livekitKeyName .Values.livekit.meet.apiSecret -}}
+{{- else if .Values.livekit.meet.apiSecret -}}
+{{- $_ := set $livekitKeys $firstKeyName .Values.livekit.meet.apiSecret -}}
+{{- end -}}
 global:
   ## Global Docker image parameters
   ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
@@ -44,6 +53,14 @@ livekit:
       client_cert_file: /etc/livekit_certs/tls.crt
       client_key_file: /etc/livekit_certs/tls.key
       {{- end}}
+    {{- if and .Values.application.livekit.egress.enabled .Values.application.meet.enabled }}
+    # Meet needs LiveKit egress lifecycle webhooks (started/ended/failed) to
+    # update its recording state and notify participants.
+    webhook:
+      api_key: {{ $livekitKeyName | quote }}
+      urls:
+        - "{{ ternary "https" "http" (.Values.global.tls.enabled | default true) }}://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/api/v1.0/rooms/webhooks-livekit/"
+    {{- end }}
   {{- if .Values.cluster.runtimeClassName }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   {{- end }}
@@ -56,7 +73,7 @@ livekit:
     port: {{ .Values.cache.livekit.port }}
     password: {{ .Values.cache.livekit.password | quote }}
 
-  keys: {{ .Values.application.livekit.keys | toYaml | nindent 4 }}
+  keys: {{ $livekitKeys | toYaml | nindent 4 }}
 
   loadBalancerIP: {{ .Values.application.livekit.loadBalancerIP | default "1.3.5.7" | quote }}
 

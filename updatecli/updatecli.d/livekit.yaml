@@ -27,6 +27,16 @@ sources:
       versionfilter:
         kind: semver
         pattern: ">0.0.0"
+  livekit_egress_latest_version:
+    name: "Get latest livekit egress tag"
+    kind: dockerimage
+    spec:
+      image: "livekit/egress"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
 
 targets:
   update_livekit_tag:
@@ -37,6 +47,15 @@ targets:
       file: "helmfile/environments/default/container.yaml.gotmpl"
       key: "$.container.livekit_server.tag"
     sourceid: livekit_latest_version
+    scmid: default
+  update_livekit_egress_tag:
+    name: "Update livekit egress tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.livekit_egress.tag"
+    sourceid: livekit_egress_latest_version
     scmid: default
 
 actions:

@@ -1,0 +1,130 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.agent_subtitles.enabled }}
+{{- $envVars := include "meet.common.env" (list . .Values.agent_subtitles) }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "meet.agentSubtitles.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: meet-agent-subtitles
+  {{- if or .Values.agent_subtitles.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.agent_subtitles.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.agent_subtitles.replicaCount }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.agent_subtitles.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: meet-agent-subtitles
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.agent_subtitles.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.agent_subtitles.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: meet-agent-subtitles
+    spec:
+      {{- include "meet.agentSubtitles.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "meet.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.agent_subtitles.automountServiceAccountToken }}
+      {{- if .Values.agent_subtitles.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.agent_subtitles.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.agent_subtitles.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.agent_subtitles.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.agent_subtitles.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.agent_subtitles.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.agent_subtitles.priorityClassName }}
+      priorityClassName: {{ .Values.agent_subtitles.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.agent_subtitles.schedulerName }}
+      schedulerName: {{ .Values.agent_subtitles.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.agent_subtitles.runtimeClassName }}
+      runtimeClassName: {{ .Values.agent_subtitles.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.agent_subtitles.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.agent_subtitles.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.agent_subtitles.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.agent_subtitles.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.agent_subtitles.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.agent_subtitles.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.agent_subtitles.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" .Values.agent_subtitles.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: agent-subtitles
+          image: {{ template "meet.agentSubtitles.image" . }}
+          imagePullPolicy: {{ .Values.agent_subtitles.image.pullPolicy }}
+          {{- if .Values.agent_subtitles.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.agent_subtitles.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.agent_subtitles.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.agent_subtitles.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.agent_subtitles.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.agent_subtitles.args "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if or $envVars .Values.agent_subtitles.extraEnvVars }}
+          env:
+            {{- if $envVars }}
+            {{- $envVars | nindent 12 }}
+            {{- end }}
+            {{- if .Values.agent_subtitles.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.agent_subtitles.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.agent_subtitles.envFrom .Values.agent_subtitles.extraEnvVarsCM .Values.agent_subtitles.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.agent_subtitles.envFrom }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.agent_subtitles.envFrom "context" $) | nindent 12 }}
+            {{- end }}
+            {{- if .Values.agent_subtitles.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.agent_subtitles.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.agent_subtitles.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.agent_subtitles.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.agent_subtitles.resources }}
+          resources: {{- toYaml .Values.agent_subtitles.resources | nindent 12 }}
+          {{- else if ne .Values.agent_subtitles.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.agent_subtitles.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.agent_subtitles.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.agent_subtitles.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.agent_subtitles.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.agent_subtitles.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.agent_subtitles.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.agent_subtitles.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}
+{{- end }}

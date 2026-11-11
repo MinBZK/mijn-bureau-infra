@@ -1,0 +1,130 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.agent_metadata.enabled }}
+{{- $envVars := include "meet.common.env" (list . .Values.agent_metadata) }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "meet.agentMetadata.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: meet-agent-metadata
+  {{- if or .Values.agent_metadata.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.agent_metadata.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.agent_metadata.replicaCount }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.agent_metadata.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: meet-agent-metadata
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.agent_metadata.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.agent_metadata.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: meet-agent-metadata
+    spec:
+      {{- include "meet.agentMetadata.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "meet.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.agent_metadata.automountServiceAccountToken }}
+      {{- if .Values.agent_metadata.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.agent_metadata.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.agent_metadata.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.agent_metadata.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.agent_metadata.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.agent_metadata.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.agent_metadata.priorityClassName }}
+      priorityClassName: {{ .Values.agent_metadata.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.agent_metadata.schedulerName }}
+      schedulerName: {{ .Values.agent_metadata.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.agent_metadata.runtimeClassName }}
+      runtimeClassName: {{ .Values.agent_metadata.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.agent_metadata.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.agent_metadata.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.agent_metadata.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.agent_metadata.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.agent_metadata.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.agent_metadata.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.agent_metadata.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" .Values.agent_metadata.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: agent-metadata
+          image: {{ template "meet.agentMetadata.image" . }}
+          imagePullPolicy: {{ .Values.agent_metadata.image.pullPolicy }}
+          {{- if .Values.agent_metadata.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.agent_metadata.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.agent_metadata.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.agent_metadata.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.agent_metadata.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.agent_metadata.args "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if or $envVars .Values.agent_metadata.extraEnvVars }}
+          env:
+            {{- if $envVars }}
+            {{- $envVars | nindent 12 }}
+            {{- end }}
+            {{- if .Values.agent_metadata.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.agent_metadata.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.agent_metadata.envFrom .Values.agent_metadata.extraEnvVarsCM .Values.agent_metadata.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.agent_metadata.envFrom }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.agent_metadata.envFrom "context" $) | nindent 12 }}
+            {{- end }}
+            {{- if .Values.agent_metadata.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.agent_metadata.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.agent_metadata.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.agent_metadata.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.agent_metadata.resources }}
+          resources: {{- toYaml .Values.agent_metadata.resources | nindent 12 }}
+          {{- else if ne .Values.agent_metadata.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.agent_metadata.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.agent_metadata.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.agent_metadata.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.agent_metadata.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.agent_metadata.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.agent_metadata.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.agent_metadata.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}
+{{- end }}
