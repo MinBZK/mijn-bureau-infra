@@ -188,3 +188,18 @@ pvc:
       storageClass: ~
       size: "10Gi"
       accessModes: []
+
+  openzaak:
+    postgresql:
+      storageClass: ~
+      size: "8Gi"
+      accessModes: []
+    valkey:
+      storageClass: ~
+      size: "1Gi"
+      accessModes: []
+    # Uploaded documents served through nginx X-Accel; single-writer RWO PVC.
+    media:
+      storageClass: ~
+      size: "5Gi"
+      accessModes: []

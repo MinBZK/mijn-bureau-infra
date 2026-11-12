@@ -40,6 +40,11 @@ global:
     bureaublad:
       backend: "small"
       frontend: "small"
+    openzaak:
+      web: "small"
+      celery: "small"
+      celeryBeat: "small"
+      nginx: "small"
 
 container:
   default:
@@ -199,5 +204,13 @@ container:
     imagePullSecret: ""
 
   conversations_frontend:
+    registry: ""
+    imagePullSecret: ""
+
+  openzaak:
+    registry: ""
+    imagePullSecret: ""
+
+  cnpg_postgis:
     registry: ""
     imagePullSecret: ""

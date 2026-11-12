@@ -1,0 +1,159 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-web
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: openzaak-web
+  {{- if .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.web.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.web.replicaCount }}
+  {{- end }}
+  strategy:
+    type: Recreate
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: openzaak-web
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        checksum/superuser-secret: {{ include (print $.Template.BasePath "/secret-superuser.yaml") . | sha256sum }}
+        {{- if .Values.fixtures.enabled }}
+        checksum/fixtures: {{ include (print $.Template.BasePath "/configmap-fixtures.yaml") . | sha256sum }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: openzaak-web
+    spec:
+      {{- include "openzaak.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "openzaak.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.web.runtimeClassName }}
+      runtimeClassName: {{ .Values.web.runtimeClassName | quote }}
+      {{- end }}
+      affinity:
+        {{- include "openzaak.podAffinity" . | nindent 8 }}
+      {{- if .Values.web.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.web.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: web
+          image: {{ include "openzaak.app.image" . }}
+          imagePullPolicy: {{ .Values.web.image.pullPolicy }}
+          {{- if .Values.web.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.web.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- end }}
+          {{- /* No command override: the image entrypoint runs manage.py check,
+            waits for the database, migrates, loads fixtures from /app/fixtures,
+            creates the superuser and starts uwsgi. */}}
+          ports:
+            - name: http
+              containerPort: {{ .Values.web.containerPorts.http }}
+          {{- if .Values.web.extraEnvVars }}
+          env: {{- include "common.tplvalues.render" (dict "value" .Values.web.extraEnvVars "context" $) | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "openzaak.secretName" . }}
+            {{- if and .Values.superuser.username .Values.superuser.password }}
+            - secretRef:
+                name: {{ include "openzaak.superuserSecretName" . }}
+            {{- end }}
+            {{- if .Values.web.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.web.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.web.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.web.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.web.resources }}
+          resources: {{- toYaml .Values.web.resources | nindent 12 }}
+          {{- else if ne .Values.web.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.web.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.web.probes.startup.enabled }}
+          startupProbe:
+            exec:
+              command:
+                - maykin-common
+                - health-check
+                - --endpoint=http://localhost:8000/{{ trimSuffix "/" .Values.settings.subpath }}_healthz/livez/
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          {{- end }}
+          {{- if .Values.web.probes.liveness.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - maykin-common
+                - health-check
+                - --endpoint=http://localhost:8000/{{ trimSuffix "/" .Values.settings.subpath }}_healthz/livez/
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 6
+          {{- end }}
+          {{- if .Values.web.probes.readiness.enabled }}
+          readinessProbe:
+            exec:
+              command:
+                - maykin-common
+                - health-check
+                - --endpoint=http://localhost:8000/{{ trimSuffix "/" .Values.settings.subpath }}_healthz/livez/
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          {{- end }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-app
+              mountPath: /app/tmp
+            {{- if .Values.persistence.media.enabled }}
+            - name: media
+              mountPath: /app/media
+              subPath: media
+            - name: media
+              mountPath: /app/private-media
+              subPath: private-media
+            {{- end }}
+            {{- if .Values.fixtures.enabled }}
+            - name: fixtures
+              mountPath: /app/fixtures
+              readOnly: true
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: tmp-app
+          emptyDir: {}
+        {{- if .Values.persistence.media.enabled }}
+        - name: media
+          persistentVolumeClaim:
+            claimName: {{ include "openzaak.mediaPvcName" . }}
+        {{- end }}
+        {{- if .Values.fixtures.enabled }}
+        - name: fixtures
+          configMap:
+            name: {{ include "openzaak.fixturesConfigMapName" . }}
+        {{- end }}

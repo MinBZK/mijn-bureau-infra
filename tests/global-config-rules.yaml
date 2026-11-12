@@ -49,3 +49,8 @@ global:
     bureaublad:
       backend: "xlarge"
       frontend: "xlarge"
+    openzaak:
+      web: "xlarge"
+      celery: "xlarge"
+      celeryBeat: "xlarge"
+      nginx: "xlarge"

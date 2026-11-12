@@ -48,6 +48,11 @@ global:
     bureaublad:
       backend: "small"
       frontend: "small"
+    openzaak:
+      web: "small"
+      celery: "small"
+      celeryBeat: "small"
+      nginx: "small"
 
 cluster:
   ingress:

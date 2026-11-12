@@ -1,0 +1,31 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- $components := dict "web" .Values.web "celery" .Values.celery "celery-beat" .Values.celeryBeat "nginx" .Values.nginx -}}
+{{- range $componentName, $component := $components }}
+{{- if $component.pdb.create }}
+---
+apiVersion: {{ include "common.capabilities.policy.apiVersion" $ }}
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "common.names.fullname" $ }}-{{ $componentName }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: openzaak-{{ $componentName }}
+  {{- if $.Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $.Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $component.pdb.minAvailable }}
+  minAvailable: {{ $component.pdb.minAvailable }}
+  {{- end }}
+  {{- if or $component.pdb.maxUnavailable (not $component.pdb.minAvailable) }}
+  maxUnavailable: {{ $component.pdb.maxUnavailable | default 1 }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: openzaak-{{ $componentName }}
+{{- end }}
+{{- end }}

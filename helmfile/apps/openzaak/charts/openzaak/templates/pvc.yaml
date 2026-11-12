@@ -1,0 +1,26 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if and .Values.persistence.media.enabled (not .Values.persistence.media.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "openzaak.mediaPvcName" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: openzaak
+  {{- if or .Values.persistence.media.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.persistence.media.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes: {{- .Values.persistence.media.accessModes | toYaml | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.media.size | quote }}
+  {{- with (.Values.persistence.media.storageClass | default .Values.global.storageClass) }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+{{- end }}

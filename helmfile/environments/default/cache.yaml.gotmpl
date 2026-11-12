@@ -59,3 +59,8 @@ cache:
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "messages" "password" | sha1sum | quote }}
+  openzaak:
+    host: "openzaak-valkey"
+    port: 6379
+    isInternal: true
+    password: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "openzaak" "password" | sha1sum | quote }}

@@ -107,3 +107,15 @@ database:
     isInternal: true
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "messages" "database" | sha1sum | quote}}
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "messages" "database_admin" | sha1sum | quote}}
+
+  # openzaak requires postgis and pg_trgm; the demo environment provisions a
+  # CNPG postgis cluster for it.
+  openzaak:
+    type: postgresql
+    host: openzaak-cluster-rw
+    name: openzaak
+    user: openzaak
+    port: 5432
+    isInternal: true
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "openzaak" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "openzaak" "database_admin" | sha1sum | quote}}

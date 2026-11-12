@@ -218,6 +218,34 @@ autoscaling:
         maxReplicas: 1
         targetCPU: 80
         targetMemory: ""
+    openzaak:
+      # The media PVC is single-writer (RWO); keep 1 replica unless media
+      # storage is moved to an RWX backend.
+      web:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 1
+        targetCPU: 80
+        targetMemory: ""
+      celery:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 1
+        targetCPU: 80
+        targetMemory: ""
+      # beat is a singleton scheduler; never autoscale it.
+      celeryBeat:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 1
+        targetCPU: 80
+        targetMemory: ""
+      nginx:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 1
+        targetCPU: 80
+        targetMemory: ""
     clamav:
       enabled: true
       minReplicas: 1

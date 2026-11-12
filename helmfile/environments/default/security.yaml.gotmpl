@@ -43,6 +43,27 @@ security:
       sysctls: []
       supplementalGroups: []
 
+  # The openzaak/open-zaak image runs as its `maykin` user (uid 1000).
+  openzaak:
+    containerSecurityContext:
+      enabled: true
+      seLinuxOptions: {}
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - "ALL"
+      privileged: false
+      runAsUser: 1000
+      runAsGroup: 1000
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1000
+      fsGroupChangePolicy: Always
+      sysctls: []
+      supplementalGroups: []
+
   collabora:
     containerSecurityContext:
       enabled: true

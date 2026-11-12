@@ -139,3 +139,4 @@ LaSuite Dictaphone: <https://github.com/suitenumerique/dictaphone/tree/main/src/
 Bureaublad: <https://github.com/MinBZK/bureaublad>
 Element Synaps and web: <https://github.com/element-hq/element-docker-demo>
 Livekit: <https://github.com/livekit/livekit>
+OpenZaak: <https://github.com/open-zaak/open-zaak>

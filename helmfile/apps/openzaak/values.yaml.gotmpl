@@ -1,0 +1,193 @@
+{{- $hostname := printf "%s.%s" .Values.global.hostname.openzaak .Values.global.domain }}
+{{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
+{{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
+{{- $preset := .Values.global.resourcesPreset | default "none" }}
+{{- $presetPerApp := .Values.global.resourcesPresetPerApp | default dict }}
+{{- $resources := .Values.resource | default dict }}
+{{- $autoscaling := .Values.autoscaling.horizontal | default dict }}
+{{- $pdb := .Values.pdb | default dict }}
+
+global:
+  imageRegistry: {{ (coalesce .Values.container.openzaak.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.openzaak.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+  storageClass: {{ .Values.pvc.default.storageClass | quote }}
+  security:
+    allowInsecureImages: true
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+commonLabels:
+  app.kubernetes.io/part-of: openzaak
+
+web:
+  image:
+    registry: {{ (coalesce .Values.container.openzaak.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.openzaak.repository | quote }}
+    tag: {{ .Values.container.openzaak.tag | quote }}
+    pullPolicy: Always
+  replicaCount: 1
+  resourcesPreset: {{ dig "openzaak" "web" $preset $presetPerApp | quote }}
+  resources: {{ dig "openzaak" "web" (dict) $resources | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.openzaak.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.openzaak.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ dig "openzaak" "web" (dict) $autoscaling | toYaml | nindent 6 }}
+  pdb: {{ dig "openzaak" "web" (dict) $pdb | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+
+celery:
+  replicaCount: 1
+  resourcesPreset: {{ dig "openzaak" "celery" $preset $presetPerApp | quote }}
+  resources: {{ dig "openzaak" "celery" (dict) $resources | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.openzaak.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.openzaak.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ dig "openzaak" "celery" (dict) $autoscaling | toYaml | nindent 6 }}
+  pdb: {{ dig "openzaak" "celery" (dict) $pdb | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+
+celeryBeat:
+  resourcesPreset: {{ dig "openzaak" "celeryBeat" $preset $presetPerApp | quote }}
+  resources: {{ dig "openzaak" "celeryBeat" (dict) $resources | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.openzaak.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.openzaak.containerSecurityContext | toYaml | nindent 4 }}
+  pdb: {{ dig "openzaak" "celeryBeat" (dict) $pdb | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+
+nginx:
+  image:
+    registry: {{ (coalesce .Values.container.nginx.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.nginx.repository | quote }}
+    tag: {{ .Values.container.nginx.tag | quote }}
+    pullPolicy: Always
+  replicaCount: 1
+  resourcesPreset: {{ dig "openzaak" "nginx" $preset $presetPerApp | quote }}
+  resources: {{ dig "openzaak" "nginx" (dict) $resources | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.openzaak.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.openzaak.containerSecurityContext | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ dig "openzaak" "nginx" (dict) $autoscaling | toYaml | nindent 6 }}
+  pdb: {{ dig "openzaak" "nginx" (dict) $pdb | toYaml | nindent 4 }}
+  {{- if .Values.cluster.runtimeClassName }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  {{- end }}
+
+settings:
+  secretKey: {{ .Values.application.openzaak.secretKey | quote }}
+  allowedHosts: {{ $hostname | quote }}
+  csrfTrustedOrigins: {{ $baseUrl | quote }}
+  isHttps: {{ .Values.global.tls.enabled | default true }}
+  # Demo convenience settings are derived from the environment; MijnBureau
+  # never deploys a notifications API (NRC), so notifications stay disabled.
+  disable2fa: {{ eq .Environment.Name "demo" }}
+  notificationsDisabled: true
+  email:
+    host: {{ .Values.smtp.host | default "" | quote }}
+    port: {{ .Values.smtp.port | default 587 }}
+    useTLS: {{ .Values.smtp.tls.enabled | default false }}
+    username: {{ .Values.smtp.username | default "" | quote }}
+    password: {{ .Values.smtp.password | default "" | quote }}
+    fromEmail: {{ .Values.smtp.from.email | default "" | quote }}
+
+externalDatabase:
+  host: {{ .Values.database.openzaak.host | quote }}
+  port: {{ .Values.database.openzaak.port | quote }}
+  database: {{ .Values.database.openzaak.name | quote }}
+  username: {{ .Values.database.openzaak.user | quote }}
+  password: {{ .Values.database.openzaak.password | quote }}
+  isInternal: {{ .Values.database.openzaak.isInternal | default false }}
+
+externalRedis:
+  host: {{ .Values.cache.openzaak.host | quote }}
+  port: {{ .Values.cache.openzaak.port | quote }}
+  password: {{ .Values.cache.openzaak.password | quote }}
+  isInternal: {{ .Values.cache.openzaak.isInternal | default false }}
+
+persistence:
+  media:
+    enabled: true
+    size: {{ coalesce .Values.pvc.openzaak.media.size .Values.pvc.default.size "5Gi" | quote }}
+    storageClass: {{ coalesce .Values.pvc.openzaak.media.storageClass .Values.pvc.default.storageClass | quote }}
+    accessModes: {{ coalesce .Values.pvc.openzaak.media.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 6 }}
+
+fixtures:
+  # Demo environments get the bundled upstream development catalogus fixture.
+  enabled: {{ eq .Environment.Name "demo" }}
+
+superuser:
+  username: {{ .Values.application.openzaak.adminUser | default "admin" | quote }}
+  email: {{ .Values.secret.openzaak.adminUser | quote }}
+  password: {{ .Values.secret.openzaak.adminPassword | quote }}
+
+ingress:
+  enabled: true
+  hostname: {{ $hostname | quote }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.openzaak | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+
+networkPolicy:
+  extraEgress:
+    # nginx -> web (service port 80, pod port 8000 after DNAT)
+    - ports:
+        - port: 80
+          protocol: TCP
+        - port: 8000
+          protocol: TCP
+      to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: openzaak
+              app.kubernetes.io/component: openzaak-web
+    # PostgreSQL connectivity
+    - ports:
+        - port: {{ .Values.database.openzaak.port }}
+          protocol: TCP
+      {{- if .Values.database.openzaak.isInternal }}
+      to:
+        - podSelector:
+            matchLabels:
+              cnpg.io/cluster: openzaak-cluster
+              role: primary
+      {{- end }}
+    # Valkey connectivity
+    - ports:
+        - port: {{ .Values.cache.openzaak.port }}
+          protocol: TCP
+      {{- if .Values.cache.openzaak.isInternal }}
+      to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: valkey
+              app.kubernetes.io/component: primary
+      {{- end }}
+    # External https access (selectielijst references, remote zaaktypen, OIDC)
+    - ports:
+        - port: 443
+          protocol: TCP

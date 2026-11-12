@@ -1,0 +1,23 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if .Values.fixtures.enabled }}
+{{- $catalogus := .Values.fixtures.catalogus | default (.Files.Get "files/catalogi.json") -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openzaak.fixturesConfigMapName" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: openzaak-fixtures
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  # Upstream development fixture (docker/fixtures/catalogi.json) pinned to the
+  # chart appVersion; loaded by the container entrypoint into the database.
+  catalogi.json: |
+    {{- $catalogus | nindent 4 }}
+{{- end }}

@@ -1,0 +1,67 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- $fullname := include "common.names.fullname" . -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullname }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: openzaak
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  ## Home directory for the unprivileged runtime user. The root filesystem is
+  ## read-only, so anything writing under $HOME must be pointed at the
+  ## writable /tmp emptyDir.
+  HOME: "/tmp"
+
+  ## Django
+  ##
+  DJANGO_SETTINGS_MODULE: "openzaak.conf.docker"
+  SITE_DOMAIN: {{ .Values.ingress.hostname | quote }}
+  # localhost/127.0.0.1 are needed for in-pod health probes (kubelet sends the pod IP otherwise)
+  ALLOWED_HOSTS: {{ printf "%s,%s-web,%s,localhost,127.0.0.1" (.Values.settings.allowedHosts | default .Values.ingress.hostname) $fullname $fullname | quote }}
+  CSRF_TRUSTED_ORIGINS: {{ .Values.settings.csrfTrustedOrigins | default (printf "%s://%s" (ternary "https" "http" .Values.settings.isHttps) .Values.ingress.hostname) | quote }}
+  SUBPATH: {{ .Values.settings.subpath | default "/" | quote }}
+  IS_HTTPS: {{ ternary "yes" "no" .Values.settings.isHttps | quote }}
+  NUM_PROXIES: {{ .Values.settings.numProxies | quote }}
+  DISABLE_2FA: {{ .Values.settings.disable2fa | quote }}
+  {{- if .Values.settings.notificationsDisabled }}
+  NOTIFICATIONS_DISABLED: "true"
+  {{- end }}
+  OTEL_SDK_DISABLED: "true"
+  RELEASE: {{ .Chart.AppVersion | quote }}
+  {{- if .Values.settings.email.host }}
+  EMAIL_HOST: {{ .Values.settings.email.host | quote }}
+  EMAIL_PORT: {{ .Values.settings.email.port | quote }}
+  EMAIL_USE_TLS: {{ .Values.settings.email.useTLS | quote }}
+  EMAIL_HOST_USER: {{ .Values.settings.email.username | quote }}
+  DEFAULT_FROM_EMAIL: {{ .Values.settings.email.fromEmail | default (printf "noreply@%s" .Values.ingress.hostname) | quote }}
+  {{- end }}
+
+  ## Database (PostgreSQL with postgis + pg_trgm)
+  ##
+  DB_HOST: {{ .Values.externalDatabase.host | quote }}
+  DB_NAME: {{ .Values.externalDatabase.database | quote }}
+  DB_USER: {{ .Values.externalDatabase.username | quote }}
+  DB_PORT: {{ .Values.externalDatabase.port | quote }}
+
+  ## Celery
+  ##
+  CELERY_WORKER_NAME: {{ .Values.settings.celeryWorkerName | quote }}
+  CELERY_RESULT_EXPIRES: "3600"
+
+  ## Documents served through the nginx X-Accel location
+  ##
+  SENDFILE_BACKEND: {{ .Values.settings.sendfileBackend | quote }}
+  PRIVATE_MEDIA_URL: "/private-media/"
+
+  {{- if .Values.superuser.username }}
+  OPENZAAK_SUPERUSER_USERNAME: {{ .Values.superuser.username | quote }}
+  OPENZAAK_SUPERUSER_EMAIL: {{ .Values.superuser.email | quote }}
+  {{- end }}

@@ -1,0 +1,50 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: openzaak-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.openzaak.namespace }}
+    namespace: {{ .Values.application.openzaak.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.openzaak.enabled) | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: openzaak-cluster
+    chart: ../common/charts/cluster
+    {{- if .Values.application.openzaak.namespace }}
+    namespace: {{ .Values.application.openzaak.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.openzaak.enabled) | toYaml }}
+    needs:
+      - {{ if .Values.application.openzaak.namespace }}{{ .Values.application.openzaak.namespace }}/{{ end }}openzaak-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
+
+  - name: openzaak-valkey
+    chart: ../common/charts/valkey
+    {{- if .Values.application.openzaak.namespace }}
+    namespace: {{ .Values.application.openzaak.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.openzaak.enabled) | toYaml }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-valkey.yaml.gotmpl"
+
+  - name: openzaak
+    chart: charts/openzaak
+    condition: application.openzaak.enabled
+    {{- if .Values.application.openzaak.namespace }}
+    namespace: {{ .Values.application.openzaak.namespace }}
+    {{- end }}
+    {{- if and (eq .Environment.Name "demo") (.Values.application.openzaak.enabled) }}
+    needs:
+      - {{ if .Values.application.openzaak.namespace }}{{ .Values.application.openzaak.namespace }}/{{ end }}openzaak-cluster
+      - {{ if .Values.application.openzaak.namespace }}{{ .Values.application.openzaak.namespace }}/{{ end }}openzaak-valkey
+    {{- end }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values.yaml.gotmpl"

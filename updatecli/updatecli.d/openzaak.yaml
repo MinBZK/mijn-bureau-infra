@@ -1,0 +1,66 @@
+name: "Update openzaak container tag"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump openzaak version to {{ source "openzaak_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  openzaak_latest_version:
+    name: "Get latest openzaak tag"
+    kind: dockerimage
+    spec:
+      image: "openzaak/open-zaak"
+      architecture: amd64
+      tagfilter: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_openzaak_tag:
+    name: "Update openzaak container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.openzaak.tag"
+    sourceid: openzaak_latest_version
+    scmid: default
+
+  update_values_openzaak_tag:
+    name: "Update openzaak chart values tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/openzaak/charts/openzaak/values.yaml"
+      key: "$.web.image.tag"
+    sourceid: openzaak_latest_version
+    scmid: default
+
+  update_chart_appVersion:
+    name: "Update openzaak chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/openzaak/charts/openzaak/Chart.yaml"
+      key: "$.appVersion"
+    sourceid: openzaak_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump openzaak version to {{ source "openzaak_latest_version" }}

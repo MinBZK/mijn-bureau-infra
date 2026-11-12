@@ -1,0 +1,141 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- $image := .Values.web.image -}}
+{{- if .Values.celery.image.repository }}
+{{- $image = .Values.celery.image -}}
+{{- end }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-celery
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: openzaak-celery
+  {{- if .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.celery.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.celery.replicaCount }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: openzaak-celery
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: openzaak-celery
+    spec:
+      {{- include "openzaak.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "openzaak.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.celery.runtimeClassName }}
+      runtimeClassName: {{ .Values.celery.runtimeClassName | quote }}
+      {{- end }}
+      affinity:
+        {{- include "openzaak.podAffinity" . | nindent 8 }}
+      {{- if .Values.celery.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.celery.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      # Migrations run in the web container entrypoint; workers must not start
+      # before the schema exists.
+      initContainers:
+        - name: wait-for-migrations
+          image: {{ include "common.images.image" (dict "imageRoot" $image "global" .Values.global) }}
+          imagePullPolicy: {{ $image.pullPolicy | default "Always" }}
+          {{- if .Values.celery.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.celery.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until python src/manage.py migrate --check > /dev/null 2>&1; do
+                echo "waiting for database migrations..."; sleep 5;
+              done
+          envFrom:
+            - configMapRef:
+                name: {{ include "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "openzaak.secretName" . }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-app
+              mountPath: /app/tmp
+      containers:
+        - name: celery
+          image: {{ include "common.images.image" (dict "imageRoot" $image "global" .Values.global) }}
+          imagePullPolicy: {{ $image.pullPolicy | default "IfNotPresent" }}
+          {{- if .Values.celery.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.celery.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else }}
+          command: ["/celery_worker.sh"]
+          {{- end }}
+          {{- if .Values.celery.extraEnvVars }}
+          env: {{- include "common.tplvalues.render" (dict "value" .Values.celery.extraEnvVars "context" $) | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "openzaak.secretName" . }}
+            {{- if .Values.celery.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.celery.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.celery.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.celery.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.celery.resources }}
+          resources: {{- toYaml .Values.celery.resources | nindent 12 }}
+          {{- else if ne .Values.celery.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.celery.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          {{- if and (not .Values.diagnosticMode.enabled) .Values.celery.probes.liveness.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - maykin-common worker-health-check --liveness-file=/app/tmp/celery_worker_event_loop.live --max-age=70 --broker="$CELERY_BROKER_URL" --worker-name="$CELERY_WORKER_NAME"
+            periodSeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 3
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-app
+              mountPath: /app/tmp
+            {{- if .Values.persistence.media.enabled }}
+            - name: media
+              mountPath: /app/media
+              subPath: media
+            - name: media
+              mountPath: /app/private-media
+              subPath: private-media
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: tmp-app
+          emptyDir: {}
+        {{- if .Values.persistence.media.enabled }}
+        - name: media
+          persistentVolumeClaim:
+            claimName: {{ include "openzaak.mediaPvcName" . }}
+        {{- end }}

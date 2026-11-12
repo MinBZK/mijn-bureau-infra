@@ -1,0 +1,360 @@
+# Default values for openzaak.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+## @section Global parameters
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry, imagePullSecrets
+
+## @param global.imageRegistry Global Docker image registry
+## @param global.imagePullSecrets Global Docker registry secret names as an array
+## @param global.storageClass Global StorageClass for Persistent Volume(s)
+global:
+  imageRegistry: ""
+  ## E.g.
+  ## imagePullSecrets:
+  ##   - myRegistryKeySecretName
+  ##
+  imagePullSecrets: []
+  storageClass: ""
+
+## @param commonLabels Labels to add to all deployed objects
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonLabels: {}
+commonAnnotations: {}
+
+## @param clusterDomain Default Kubernetes cluster domain
+##
+clusterDomain: cluster.local
+
+## cluster.* values are injected by helmfile (values-cluster-ingress) and select
+## the routing mode: "ingress" renders an Ingress, "gateway-api" an HTTPRoute.
+cluster:
+  routingMode: ingress
+  gateway: {}
+  tls:
+    selfSigned: false
+
+## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
+## @param diagnosticMode.command Command to override all containers in the the deployment(s)/statefulset(s)
+## @param diagnosticMode.args Args to override all containers in the the deployment(s)/statefulset(s)
+##
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section Open Zaak web (API) parameters
+##
+web:
+  ## @param web.image.registry Open Zaak image registry
+  ## @param web.image.repository Open Zaak image repository
+  ## @param web.image.tag Open Zaak image tag
+  ## @param web.image.pullPolicy Open Zaak image pull policy
+  ##
+  image:
+    registry: registry-1.docker.io
+    repository: openzaak/open-zaak
+    tag: 1.31.2
+    pullPolicy: IfNotPresent
+
+  ## @param web.replicaCount Number of Open Zaak web replicas to deploy
+  # The media PVC is single-writer; keep at 1 unless media storage is RWX.
+  replicaCount: 1
+
+  ## @param web.resourcesPreset Set container resources according to one common preset
+  ## @param web.resources Set container requests and limits for different resources like CPU or memory
+  resourcesPreset: "nano"
+  resources: {}
+
+  ## @param web.podSecurityContext Pod security context
+  ## @param web.containerSecurityContext Container security context
+  podSecurityContext: {}
+  containerSecurityContext: {}
+
+  ## @param web.probes.startup.enabled Enable startupProbe
+  ## @param web.probes.liveness.enabled Enable livenessProbe
+  ## @param web.probes.readiness.enabled Enable readinessProbe
+  probes:
+    startup:
+      enabled: true
+    liveness:
+      enabled: true
+    readiness:
+      enabled: true
+
+  ## @param web.autoscaling.hpa.enabled Enable HPA
+  ## @param web.autoscaling.hpa.minReplicas Minimum number of replicas
+  ## @param web.autoscaling.hpa.maxReplicas Maximum number of replicas
+  ## @param web.autoscaling.hpa.targetCPU Target CPU utilization percentage
+  ## @param web.autoscaling.hpa.targetMemory Target Memory utilization percentage
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+
+  ## @param web.pdb.create Enable/disable a Pod Disruption Budget creation
+  ## @param web.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param web.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+
+  ## @param web.containerPorts.http Open Zaak web HTTP container port
+  containerPorts:
+    http: 8000
+
+  ## @param web.extraEnvVars Extra environment variables for the web container
+  extraEnvVars: []
+  ## @param web.extraEnvVarsCM Name of existing ConfigMap containing extra env vars
+  ## @param web.extraEnvVarsSecret Name of existing Secret containing extra env vars
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+
+## @section Open Zaak Celery worker parameters
+##
+celery:
+  ## inherit image from web unless overridden
+  image:
+    registry: ""
+    repository: ""
+    tag: ""
+    pullPolicy: ""
+
+  ## @param celery.replicaCount Number of Celery worker replicas to deploy
+  replicaCount: 1
+
+  resourcesPreset: "nano"
+  resources: {}
+
+  podSecurityContext: {}
+  containerSecurityContext: {}
+
+  probes:
+    startup:
+      enabled: false
+    liveness:
+      enabled: true
+    readiness:
+      enabled: false
+
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+
+  ## @param celery.extraEnvVars Extra environment variables for the Celery worker container
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+
+## @section Open Zaak Celery beat parameters
+##
+celeryBeat:
+  image:
+    registry: ""
+    repository: ""
+    tag: ""
+    pullPolicy: ""
+
+  ## beat is a singleton scheduler; never scale above 1
+  replicaCount: 1
+
+  resourcesPreset: "nano"
+  resources: {}
+
+  podSecurityContext: {}
+  containerSecurityContext: {}
+
+  probes:
+    liveness:
+      enabled: true
+
+  pdb:
+    create: false
+    minAvailable: ""
+    maxUnavailable: 1
+
+  ## @param celeryBeat.extraEnvVars Extra environment variables for the Celery beat container
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+
+## @section nginx reverse proxy parameters
+## nginx fronts the web pods and serves uploaded documents via X-Accel.
+##
+nginx:
+  image:
+    registry: docker.io
+    repository: nginx/nginx-unprivileged
+    tag: 1.30.6-alpine-slim
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  resourcesPreset: "nano"
+  resources: {}
+
+  podSecurityContext: {}
+  containerSecurityContext: {}
+
+  probes:
+    liveness:
+      enabled: true
+
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: 1
+
+  containerPorts:
+    http: 8080
+
+## @section Open Zaak application settings
+##
+settings:
+  ## @param settings.secretKey Django SECRET_KEY
+  secretKey: ""
+  ## @param settings.allowedHosts ALLOWED_HOSTS (comma separated)
+  allowedHosts: ""
+  ## @param settings.csrfTrustedOrigins CSRF_TRUSTED_ORIGINS
+  csrfTrustedOrigins: ""
+  ## @param settings.subpath SUBPATH to serve Open Zaak under
+  subpath: "/"
+  ## @param settings.isHttps Whether external traffic uses HTTPS
+  isHttps: true
+  ## @param settings.numProxies NUM_PROXIES in front of Open Zaak (gateway + nginx)
+  numProxies: 2
+  ## @param settings.sendfileBackend django-sendfile2 backend
+  sendfileBackend: django_sendfile.backends.nginx
+  ## @param settings.disable2fa Disable two-factor auth for the admin (demo convenience)
+  disable2fa: false
+  ## @param settings.notificationsDisabled Disable sending notifications (kanalen) to a notifications API
+  notificationsDisabled: false
+  ## @param settings.email.outgoing mail settings (smtp.yaml.gotmpl)
+  email:
+    host: ""
+    port: 587
+    useTLS: true
+    username: ""
+    ## password lives in the openzaak secret when non-empty
+    password: ""
+    fromEmail: ""
+  ## @param settings.financialCommons Funding/branding is not used; reserved
+  ## Celery worker identity must stay stable for the liveness probe scripts
+  celeryWorkerName: "celery@openzaak"
+
+## @section Database parameters (CNPG cluster or external PostgreSQL with postgis)
+##
+externalDatabase:
+  host: ""
+  port: 5432
+  database: openzaak
+  username: openzaak
+  password: ""
+  isInternal: false
+
+## @section Redis/Valkey parameters (cache + Celery broker)
+##
+externalRedis:
+  host: ""
+  port: 6379
+  password: ""
+  isInternal: false
+
+## @section Persistence (uploaded documents / media)
+## Single PVC shared by the web and nginx pods; documents are served from
+## private-media through the nginx X-Accel location.
+persistence:
+  media:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    annotations: {}
+    existingClaim: ""
+
+## @section Default catalogus fixture
+## The Open Zaak container entrypoint loads every *.json under FIXTURES_DIR
+## (/app/fixtures) after running migrations. The bundled fixture is the
+## upstream development catalogus (docker/fixtures/catalogi.json) from the
+## open-zaak/open-zaak repository, pinned to the chart appVersion.
+fixtures:
+  ## @param fixtures.enabled Load the bundled default catalogus fixture on startup
+  enabled: true
+  ## @param fixtures.catalogus Content of the catalogus fixture (defaults to upstream dev fixture)
+  catalogus: ""
+
+## @section Superuser (admin) bootstrap
+## The container entrypoint creates the superuser when
+## OPENZAAK_SUPERUSER_USERNAME is set.
+superuser:
+  username: admin
+  email: admin@example.com
+  password: ""
+
+## @section Traffic exposure parameters
+##
+service:
+  type: ClusterIP
+  ports:
+    http: 80
+  annotations: {}
+
+ingress:
+  enabled: true
+  hostname: ""
+  pathType: Prefix
+  ingressClassName: ""
+  annotations: {}
+  ## TLS is managed by the gateway or cert-manager annotations
+  tls: true
+  selfSigned: false
+  extraTls: []
+  extraRules: []
+  extraHosts: []
+  extraPaths: []
+
+## @section NetworkPolicy
+##
+networkPolicy:
+  enabled: true
+  ## allowExternal=false restricts ingress to pods of this release
+  allowExternal: true
+  ## allowExternalEgress=true allows all egress (off cluster)
+  allowExternalEgress: false
+  extraIngress: []
+  extraEgress: []
+
+## @section Service account
+##
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false

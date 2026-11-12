@@ -1,0 +1,49 @@
+fullnameOverride: openzaak-cluster
+
+# Open Zaak requires PostgreSQL >= 14 with the postgis and pg_trgm extensions.
+# postInitApplicationSQL adds pg_trgm next to the postgis extensions that
+# the postgis cluster type installs by default.
+type: postgis
+
+version:
+  postgresql: "17"
+
+mode: standalone
+
+cluster:
+  imageName: {{ printf "%s/%s:%s" .Values.container.cnpg_postgis.registry .Values.container.cnpg_postgis.repository .Values.container.cnpg_postgis.tag }}
+  instances: 1
+
+  enableSuperuserAccess: true
+  superuserSecret: openzaak-cluster-superuser
+
+  {{- with (coalesce .Values.container.cnpg_postgis.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - name: {{ . | quote }}
+  {{- end }}
+
+  storage:
+    size: {{ coalesce .Values.pvc.openzaak.postgresql.size .Values.pvc.default.size "8Gi" }}
+    {{- with (coalesce .Values.pvc.openzaak.postgresql.storageClass .Values.pvc.default.storageClass) }}
+    storageClass: {{ . }}
+    {{- end }}
+
+  {{- with .Values.resource.openzaak.postgresql }}
+  resources: {{ toYaml . | nindent 4 }}
+  {{- end }}
+
+  monitoring:
+    enabled: {{ .Values.metric.enabled | default false }}
+    podMonitor:
+      enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
+
+  initdb:
+    database: {{ .Values.database.openzaak.name }}
+    owner: {{ .Values.database.openzaak.user }}
+    secret:
+      name: openzaak-cluster-app
+    postInitApplicationSQL:
+      - CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+backups:
+  enabled: false

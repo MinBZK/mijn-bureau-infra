@@ -1,0 +1,104 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-nginx
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: openzaak-nginx
+  {{- if .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.nginx.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.nginx.replicaCount }}
+  {{- end }}
+  strategy:
+    type: Recreate
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: openzaak-nginx
+  template:
+    metadata:
+      annotations:
+        checksum/nginx-config: {{ include (print $.Template.BasePath "/configmap-nginx.yaml") . | sha256sum }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: openzaak-nginx
+    spec:
+      {{- include "openzaak.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "openzaak.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      affinity:
+        {{- include "openzaak.podAffinity" . | nindent 8 }}
+      {{- if .Values.nginx.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.nginx.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: nginx
+          image: {{ include "openzaak.nginx.image" . }}
+          imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
+          {{- if .Values.nginx.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.nginx.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.nginx.containerPorts.http }}
+          {{- if .Values.nginx.resources }}
+          resources: {{- toYaml .Values.nginx.resources | nindent 12 }}
+          {{- else if ne .Values.nginx.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.nginx.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          {{- if and (not .Values.diagnosticMode.enabled) .Values.nginx.probes.liveness.enabled }}
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 6
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+              readOnly: true
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.persistence.media.enabled }}
+            - name: media
+              mountPath: /private-media
+              subPath: private-media
+              readOnly: true
+            {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "openzaak.nginxConfigMapName" . }}
+            items:
+              - key: default.conf
+                path: default.conf
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.persistence.media.enabled }}
+        - name: media
+          persistentVolumeClaim:
+            claimName: {{ include "openzaak.mediaPvcName" . }}
+            readOnly: true
+        {{- end }}

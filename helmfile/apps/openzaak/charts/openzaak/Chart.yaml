@@ -1,0 +1,25 @@
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+annotations:
+  category: zgw
+  licenses: EUPL-1.2
+apiVersion: v2
+appVersion: 1.31.2
+dependencies:
+  - name: common
+    repository: "file://../../../common/charts/common"
+    version: 2.31.1
+description: Open Zaak case and document registration providing the Dutch ZGW APIs (Zaken, Documenten, Catalogi, Besluiten)
+home: https://minbzk.github.io/mijn-bureau-infra/
+keywords:
+  - zgw
+  - openzaak
+  - zaken
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: openzaak
+sources:
+  - https://github.com/open-zaak/open-zaak
+version: 0.1.0

@@ -78,3 +78,10 @@ pvc:
       size: "42Gi"
     opensearch:
       size: "42Gi"
+  openzaak:
+    postgresql:
+      size: "42Gi"
+    valkey:
+      size: "42Gi"
+    media:
+      size: "42Gi"

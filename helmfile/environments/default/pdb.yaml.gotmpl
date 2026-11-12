@@ -122,6 +122,20 @@ pdb:
     opensearch:
       create: true
       maxUnavailable: 1
+  openzaak:
+    web:
+      create: true
+      maxUnavailable: 1
+    celery:
+      create: true
+      maxUnavailable: 1
+    celeryBeat:
+      create: false
+      maxUnavailable: 1
+    nginx:
+      create: true
+      maxUnavailable: 1
+
   clamav:
     create: true
     maxUnavailable: 1

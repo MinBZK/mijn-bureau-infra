@@ -1,0 +1,125 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- $image := .Values.web.image -}}
+{{- if .Values.celeryBeat.image.repository }}
+{{- $image = .Values.celeryBeat.image -}}
+{{- end }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}-celery-beat
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: openzaak-celery-beat
+  {{- if .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: openzaak-celery-beat
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: openzaak-celery-beat
+    spec:
+      {{- include "openzaak.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "openzaak.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.celeryBeat.runtimeClassName }}
+      runtimeClassName: {{ .Values.celeryBeat.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.celeryBeat.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.celeryBeat.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      # Migrations run in the web container entrypoint; beat must not start
+      # before the django_celery_beat tables exist.
+      initContainers:
+        - name: wait-for-migrations
+          image: {{ include "common.images.image" (dict "imageRoot" $image "global" .Values.global) }}
+          imagePullPolicy: {{ $image.pullPolicy | default "Always" }}
+          {{- if .Values.celeryBeat.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.celeryBeat.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until python src/manage.py migrate --check > /dev/null 2>&1; do
+                echo "waiting for database migrations..."; sleep 5;
+              done
+          envFrom:
+            - configMapRef:
+                name: {{ include "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "openzaak.secretName" . }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-app
+              mountPath: /app/tmp
+      containers:
+        - name: celery-beat
+          image: {{ include "common.images.image" (dict "imageRoot" $image "global" .Values.global) }}
+          imagePullPolicy: {{ $image.pullPolicy | default "IfNotPresent" }}
+          {{- if .Values.celeryBeat.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.celeryBeat.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else }}
+          command: ["/celery_beat.sh"]
+          {{- end }}
+          {{- if .Values.celeryBeat.extraEnvVars }}
+          env: {{- include "common.tplvalues.render" (dict "value" .Values.celeryBeat.extraEnvVars "context" $) | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "openzaak.secretName" . }}
+            {{- if .Values.celeryBeat.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.celeryBeat.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.celeryBeat.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.celeryBeat.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.celeryBeat.resources }}
+          resources: {{- toYaml .Values.celeryBeat.resources | nindent 12 }}
+          {{- else if ne .Values.celeryBeat.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.celeryBeat.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          {{- if and (not .Values.diagnosticMode.enabled) .Values.celeryBeat.probes.liveness.enabled }}
+          livenessProbe:
+            # celery_beat.sh writes no liveness file, so fall back to a process check
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pgrep -f 'celery.*beat' > /dev/null
+            periodSeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 3
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-app
+              mountPath: /app/tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: tmp-app
+          emptyDir: {}

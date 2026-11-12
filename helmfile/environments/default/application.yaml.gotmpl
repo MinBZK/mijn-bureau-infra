@@ -158,6 +158,14 @@ application:
     # Extra environment variables for the backend and worker, e.g. SPAM_CONFIG.
     extraEnvVars: []
 
+  # openzaak is a case and document registration system exposing the Dutch ZGW APIs
+  openzaak:
+    enabled: true
+    namespace: ~
+    secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "openzaak" "secretkey" | sha1sum | quote }}
+    # Username of the locally bootstrapped Django superuser.
+    adminUser: admin
+
   # Clam AV is a virus toolkit
   clamav:
     enabled: true
