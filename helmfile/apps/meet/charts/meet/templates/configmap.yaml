@@ -73,7 +73,8 @@ data:
   # CELERY_ENABLED: "true"
   # RECORDING_ENABLE: "True"
   RECORDING_DOWNLOAD_BASE_URL: {{ .Values.meet_backend.recordingDownloadBaseUrl | default (printf "https://%s/recording" .Values.ingress.hostname) | quote }}
-  SUMMARY_SERVICE_ENDPOINT: {{ .Values.meet_backend.summaryServiceEndpoint | default (printf "http://%s-summary:80/api/v2/async-jobs/transcribe/" (include "common.names.fullname" .)) | quote }}
+  SUMMARY_SERVICE_ENDPOINT: {{ .Values.meet_backend.summaryServiceEndpoint | default (printf "http://%s-summary:80/api/v2/async-jobs/transcribe" (include "common.names.fullname" .)) | quote }}
+  SUMMARY_SERVICE_VERSION: "2"
   # IS_DOCS_INTEGRATION_ENABLED: false
   FRONTEND_EXTERNAL_HOME_URL: {{ .Values.meet.frontendExternalHomeUrl | quote }}
   RECORDING_EXPIRATION_DAYS: "7"

@@ -1,0 +1,140 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.summary_api.enabled }}
+{{- $envVars := include "meet.common.env" (list . .Values.summary_api) }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "meet.summaryApi.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: meet-summary
+  {{- if .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.summary_api.replicaCount }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.summary_api.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: meet-summary
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.summary_api.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.summary_api.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: meet-summary
+    spec:
+      {{- include "meet.summaryApi.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "meet.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.summary_api.automountServiceAccountToken }}
+      {{- if .Values.summary_api.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.summary_api.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.summary_api.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.summary_api.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.summary_api.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.summary_api.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.summary_api.priorityClassName }}
+      priorityClassName: {{ .Values.summary_api.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.summary_api.schedulerName }}
+      schedulerName: {{ .Values.summary_api.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.summary_api.runtimeClassName }}
+      runtimeClassName: {{ .Values.summary_api.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.summary_api.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.summary_api.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.summary_api.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.summary_api.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.summary_api.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" .Values.summary_api.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: summary-api
+          image: {{ template "meet.summaryApi.image" . }}
+          imagePullPolicy: {{ .Values.summary_api.image.pullPolicy }}
+          {{- if .Values.summary_api.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.summary_api.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.summary_api.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.summary_api.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.summary_api.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.summary_api.args "context" $) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.summary_api.containerPorts.http }}
+              protocol: TCP
+          startupProbe:
+            tcpSocket:
+              port: http
+            failureThreshold: 30
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+          {{- if or $envVars .Values.summary_api.extraEnvVars }}
+          env:
+            {{- if $envVars }}
+            {{- $envVars | nindent 12 }}
+            {{- end }}
+            {{- if .Values.summary_api.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.summary_api.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.summary_api.extraEnvVarsCM }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.summary_api.extraEnvVarsCM "context" $) }}
+          {{- end }}
+          {{- if .Values.summary_api.extraEnvVarsSecret }}
+          envFrom:
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.summary_api.extraEnvVarsSecret "context" $) }}
+          {{- end }}
+          {{- if .Values.summary_api.resources }}
+          resources: {{- toYaml .Values.summary_api.resources | nindent 12 }}
+          {{- else if ne .Values.summary_api.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.summary_api.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.summary_api.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.summary_api.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.summary_api.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.summary_api.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.summary_api.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.summary_api.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}
+{{- end }}

@@ -79,7 +79,12 @@ Store API keys in your environment's untracked secrets file, not in `ai.yaml.got
 
 ### WhisperX transcription
 
-`celery-transcribe` sends audio to an OpenAI-compatible WhisperX endpoint:
+`celery-transcribe` sends audio to an OpenAI-compatible WhisperX endpoint. The
+`meet-summary` service (FastAPI job API) is deployed automatically when the
+summary feature is enabled and either `ai.llm` or `ai.whisperx.baseUrl` is
+configured; the Meet backend submits jobs to it as summary API v2
+(`SUMMARY_SERVICE_VERSION=2`, `SUMMARY_SERVICE_API_TOKEN` derived from
+`secret.meet.summaryApiToken` or `application.meet.secretKey`).
 
 ```yaml
 ai:
@@ -91,6 +96,29 @@ ai:
 ```
 
 If `defaultLanguage` is empty, Meet uses `global.defaultLocale`.
+
+#### OpenAI as transcription backend
+
+The summary worker's request format is built for WhisperX and is rejected
+directly by the OpenAI API (`diarized_json` needs model
+`gpt-4o-transcribe-diarize`, and recordings over 30 seconds need
+`chunking_strategy=auto`, which the worker never sends). Set
+`ai.whisperx.shim: true` to deploy the in-cluster `meet-openai-shim` release,
+which rewrites the request for OpenAI:
+
+```yaml
+ai:
+  whisperx:
+    shim: true
+    baseUrl: http://meet-openai-shim.<meet namespace>.svc.cluster.local/v1
+    apiKey: <openai secret>
+    asrModel: gpt-4o-transcribe-diarize
+```
+
+The shim forces the model and injects `chunking_strategy=auto`, drops
+`timestamp_granularities`, renames `.opus` uploads to `.ogg`, and passes the
+`Authorization` header through, so only your OpenAI API key is required.
+Transcripts are sent to OpenAI (a US processor).
 
 ### Real-time speech-to-text
 
