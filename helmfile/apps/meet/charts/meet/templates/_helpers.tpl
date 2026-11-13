@@ -132,6 +132,24 @@ Full names for the additional meet components
 {{- end -}}
 
 {{/*
+Return the proper summary API image name
+*/}}
+{{- define "meet.summaryApi.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.summary_api.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
+Return the proper Docker Image Registry Secret Names
+*/}}
+{{- define "meet.summaryApi.imagePullSecrets" -}}
+{{- include "common.images.renderPullSecrets" (dict "images" (list .Values.summary_api.image) "context" $) -}}
+{{- end -}}
+
+{{- define "meet.summaryApi.fullname" -}}
+{{ include "common.names.fullname" . }}-summary
+{{- end -}}
+
+{{/*
 Transform a dictionary of environment variables into a list of EnvVar objects.
 Usage: {{ include "meet.env.transformDict" .Values.component.envVars }}
 */}}

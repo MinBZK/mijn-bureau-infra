@@ -28,6 +28,7 @@
 {{- end -}}
 {{- $summaryApiToken := .Values.secret.meet.summaryApiToken | default .Values.application.meet.secretKey -}}
 {{- $summaryWebhookApiToken := .Values.secret.meet.summaryWebhookApiToken | default .Values.application.meet.secretKey -}}
+{{- $summaryEnabled := dig "application" "meet" "summary" "enabled" true .Values -}}
 {{- $whisperx := .Values.ai.whisperx | default dict -}}
 {{- $llmReady := and (not (empty .Values.ai.llm.endpoint.host)) (not (empty .Values.ai.llm.model)) -}}
 {{- $whisperxReady := not (empty $whisperx.baseUrl) -}}
@@ -43,6 +44,9 @@
   "CELERY_RESULT_BACKEND" $summaryRedisUrl
   "TASK_TRACKER_REDIS_URL" $summaryRedisUrl
   "IS_DOCS_INTEGRATION_ENABLED" "True"
+  "IS_LASUITE_DOCS_INTEGRATION_ENABLED" "True"
+  "LASUITE_DOCS_BASE_URL" (printf "https://%s.%s" .Values.global.hostname.docs .Values.global.domain)
+  "LASUITE_DOCS_SERVER_TO_SERVER_API_KEY" (dig "application" "docs" "serverToServerApiToken" "secret-api-key" .Values)
   "IS_SUMMARY_ENABLED" "True"
   "LLM_API_KEY" ""
   "LLM_BASE_URL" ""
@@ -62,7 +66,7 @@
   "api_key" $summaryApiToken
   "webhook_url" (printf "%s/api/v1.0/recordings/external-process-hook/" $meetBaseUrl)
   "webhook_api_key" $summaryWebhookApiToken
-  "allowed_push_to_docs" false
+  "allowed_push_to_docs" true
 -}}
 {{- $_ := set $summaryEnv "AUTHORIZED_TENANTS" (list $summaryTenant | toJson) -}}
 {{- $llmHost := .Values.ai.llm.endpoint.host | default "" -}}
@@ -252,6 +256,9 @@ meet_backend:
     logoImg: {{ .Values.smtp.from.logoImage | quote }}
   recordingEnable: {{ and .Values.application.livekit.enabled .Values.application.livekit.egress.enabled | toYaml }}
   recordingDownloadBaseUrl: "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/recording"
+  {{- if $summaryEnabled }}
+  summaryServiceApiToken: {{ $summaryApiToken | quote }}
+  {{- end }}
 
   {{- if eq .Values.global.defaultLocale "nl" }}
   languageCode: nl-nl
@@ -356,7 +363,6 @@ job:
 
 {{ $agentsEnabled := dig "application" "meet" "agents" "enabled" true .Values -}}
 {{ $subtitlesAgentEnabled := dig "application" "meet" "agents" "subtitles" "enabled" false .Values -}}
-{{ $summaryEnabled := dig "application" "meet" "summary" "enabled" true .Values -}}
 {{ $celeryBackendEnabled := dig "application" "meet" "celeryBackend" "enabled" true .Values -}}
 
 agent_metadata:
@@ -433,6 +439,24 @@ celery_summarize:
 
 celery_transcribe:
   enabled: {{ and $summaryEnabled $whisperxReady }}
+  image:
+    registry: {{ (coalesce .Values.container.meet_summary.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.meet_summary.repository | quote }}
+    tag: {{ .Values.container.meet_summary.tag | default .Values.container.meet_backend.tag | quote }}
+    {{- with (coalesce .Values.container.meet_summary.imagePullSecret .Values.container.default.imagePullSecret) }}
+    pullSecrets:
+      - name: {{ . | quote }}
+    {{- end }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.meet.summary .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.meet.summary | default dict | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  envVars:
+    {{- $summaryEnv | toYaml | nindent 4 }}
+
+summary_api:
+  enabled: {{ and $summaryEnabled (or $llmReady $whisperxReady) }}
   image:
     registry: {{ (coalesce .Values.container.meet_summary.registry .Values.container.default.registry) | quote }}
     repository: {{ .Values.container.meet_summary.repository | quote }}

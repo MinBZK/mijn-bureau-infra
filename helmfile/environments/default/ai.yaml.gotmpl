@@ -18,6 +18,10 @@ ai:
     asrModel: ~
     # ISO 639-1 language code. Leave empty to use global.defaultLocale.
     defaultLanguage: ~
+    # Deploy the OpenAI translation shim (meet-openai-shim) that rewrites the
+    # summary worker's WhisperX-style requests for the OpenAI audio
+    # transcriptions API. Set baseUrl to the shim service when enabled.
+    shim: false
 
   # Real-time speech-to-text provider used by the Meet LiveKit agents.
   # provider can be deepgram, kyutai or voxtral-vllm.

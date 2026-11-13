@@ -1515,6 +1515,125 @@ celery_transcribe:
   ## @param celery_transcribe.initContainers Extra init containers for the transcribe worker pods
   ##
   initContainers: []
+summary_api:
+  ## @param summary_api.enabled Enable the summary API service (entry point for the transcription/summarize workers)
+  ##
+  enabled: true
+  ## @param summary_api.image.registry Summary API image registry
+  ## @param summary_api.image.repository Summary API image repository
+  ## @param summary_api.image.tag Summary API image tag
+  ## @param summary_api.image.digest Summary API image digest
+  ## @param summary_api.image.pullPolicy Summary API image pull policy
+  ## @param summary_api.image.pullSecrets Summary API image pull secrets
+  ##
+  image:
+    registry: docker.io
+    repository: lasuite/meet-summary
+    tag: v1.37.0
+    digest: ""
+    pullPolicy: Always
+    pullSecrets: []
+  ## @param summary_api.replicaCount Number of summary API replicas
+  ##
+  replicaCount: 1
+  ## @param summary_api.containerPorts.http Summary API container port
+  ##
+  containerPorts:
+    http: 8000
+  ## @param summary_api.command Override the summary API command
+  ##
+  command: []
+  ## @param summary_api.args Override the summary API arguments
+  ##
+  args: []
+  ## @param summary_api.envVars Environment variables as a map. Values can be plain strings or
+  ## Kubernetes EnvVarSource maps such as `secretKeyRef` or `configMapKeyRef`.
+  ##
+  envVars: {}
+  ## @param summary_api.extraEnvVars Extra environment variables as a list of EnvVar objects
+  ##
+  extraEnvVars: []
+  ## @param summary_api.extraEnvVarsCM Name of an existing ConfigMap containing extra environment variables
+  ##
+  extraEnvVarsCM: ""
+  ## @param summary_api.extraEnvVarsSecret Name of an existing Secret containing extra environment variables
+  ##
+  extraEnvVarsSecret: ""
+  ## @param summary_api.resourcesPreset Resource preset for the summary API
+  ##
+  resourcesPreset: "micro"
+  ## @param summary_api.resources Resource requests and limits for the summary API
+  ##
+  resources: {}
+  ## @param summary_api.podSecurityContext Summary API pod security context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  ## @param summary_api.containerSecurityContext Summary API container security context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+  ## @param summary_api.automountServiceAccountToken Mount Service Account token in the summary API pods
+  ##
+  automountServiceAccountToken: false
+  ## @param summary_api.podAnnotations Annotations for the summary API pods
+  ##
+  podAnnotations: {}
+  ## @param summary_api.podLabels Extra labels for the summary API pods
+  ##
+  podLabels: {}
+  ## @param summary_api.affinity Affinity for the summary API pods
+  ##
+  affinity: {}
+  ## @param summary_api.nodeSelector Node labels for the summary API pods
+  ##
+  nodeSelector: {}
+  ## @param summary_api.tolerations Tolerations for the summary API pods
+  ##
+  tolerations: []
+  ## @param summary_api.priorityClassName Summary API pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param summary_api.topologySpreadConstraints Topology spread constraints for the summary API pods
+  ##
+  topologySpreadConstraints: []
+  ## @param summary_api.schedulerName Scheduler name for the summary API pods
+  ##
+  schedulerName: ""
+  ## @param summary_api.runtimeClassName Runtime class name for the summary API pods
+  ##
+  runtimeClassName: ""
+  ## @param summary_api.extraVolumes Extra volumes for the summary API pods
+  ##
+  extraVolumes: []
+  ## @param summary_api.extraVolumeMounts Extra volume mounts for the summary API container
+  ##
+  extraVolumeMounts: []
+  ## @param summary_api.sidecars Extra sidecar containers for the summary API pods
+  ##
+  sidecars: []
+  ## @param summary_api.initContainers Extra init containers for the summary API pods
+  ##
+  initContainers: []
+  service:
+    ## @param summary_api.service.port Summary API service port
+    ##
+    port: 80
 ## meet service parameters
 ##
 service:
