@@ -37,6 +37,24 @@ spec:
       backendRefs:
         - name: {{ include "dictaphone.backend.fullname" . }}
           port: {{ .Values.service.backend.ports.http }}
+    {{- /* Media files (playback/download) are served by the dictaphone-nginx
+      release, which enforces auth via the backend's media-auth subrequest —
+      Gateway API has no auth_request, hence the in-pod proxy. */}}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /media
+      filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set:
+              - name: Strict-Transport-Security
+                value: max-age=31536000; includeSubDomains; preload
+              - name: Content-Security-Policy
+                value: default-src 'none'
+      backendRefs:
+        - name: dictaphone-nginx
+          port: 80
     - matches:
         - path:
             type: PathPrefix

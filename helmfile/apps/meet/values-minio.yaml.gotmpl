@@ -793,6 +793,16 @@ networkPolicy:
         - podSelector:
             matchLabels:
               app.kubernetes.io/part-of: minio
+        {{- if .Values.application.dictaphone.enabled | default false }}
+        {{/* dictaphone downloads transcripts of recordings transcribed by the
+          summary service from this bucket. */}}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.application.dictaphone.namespace | default "mijnbureau-dictaphone" | quote }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: dictaphone
+        {{- end }}
         {{- if and .Values.application.livekit.enabled .Values.application.livekit.egress.enabled }}
         - namespaceSelector:
             matchLabels:

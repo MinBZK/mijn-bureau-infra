@@ -90,6 +90,7 @@ backend:
     tag: {{ .Values.container.messages_backend.tag | quote }}
     pullPolicy: Always
 
+  logoutRedirectUrl: {{ printf "https://%s.%s" .Values.global.hostname.bureaublad .Values.global.domain | quote }}
   resourcesPreset: {{ dig "messages" "backend" $preset $presetPerApp | quote }}
   resources: {{ dig "messages" "backend" (dict) $resources | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}

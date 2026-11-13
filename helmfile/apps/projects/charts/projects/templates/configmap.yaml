@@ -30,7 +30,7 @@ data:
   OIDC_IGNORE_USERNAME: "true"
   OIDC_IGNORE_ROLES: "true"
   OIDC_ENFORCED: "true"
-  OIDC_POST_LOGOUT_REDIRECT_URI: {{ .Values.projects.baseUrl | quote }}
+  OIDC_POST_LOGOUT_REDIRECT_URI: {{ .Values.projects.logoutRedirectUrl | default .Values.projects.baseUrl | quote }}
   {{- if .Values.projects.adminEmail }}
   DEFAULT_ADMIN_EMAIL: {{ .Values.projects.adminEmail | quote }}
   DEFAULT_ADMIN_NAME: "Admin"

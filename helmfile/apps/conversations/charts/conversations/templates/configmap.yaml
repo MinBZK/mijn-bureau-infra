@@ -22,7 +22,7 @@ data:
   {{- end }}
   LOGIN_REDIRECT_URL: {{ .Values.conversations.baseUrl | quote }}
   LOGIN_REDIRECT_URL_FAILURE: {{ .Values.conversations.baseUrl | quote }}
-  LOGOUT_REDIRECT_URL: {{ .Values.conversations.baseUrl | quote }}
+  LOGOUT_REDIRECT_URL: {{ .Values.conversations.logoutRedirectUrl | default .Values.conversations.baseUrl | quote }}
   DJANGO_CONFIGURATION: Feature
   DJANGO_SETTINGS_MODULE: conversations.settings
   DJANGO_LANGUAGE_CODE: {{ .Values.conversations.languageCode | quote }}

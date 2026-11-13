@@ -44,6 +44,8 @@ data:
   OIDC_OP_TOKEN_ENDPOINT: {{ .Values.authentication.token_endpoint | quote }}
   OIDC_OP_USER_ENDPOINT: {{ .Values.authentication.userinfo_endpoint | quote }}
   OIDC_OP_LOGOUT_ENDPOINT: {{ .Values.authentication.end_session_endpoint | quote }}
+  OIDC_OP_URL: {{ .Values.authentication.issuer | quote }}
+  SESSION_ENGINE: {{ .Values.meet.backendSessionEngine | default "django.contrib.sessions.backends.cache" | quote }}
   OIDC_USERINFO_FULLNAME_FIELDS: "{{ .Values.authentication.claims.given_name }},{{ .Values.authentication.claims.family_name }}"
   OIDC_USERINFO_SHORTNAME_FIELD: {{ .Values.authentication.claims.given_name | quote }}
   LIVEKIT_API_KEY: {{ .Values.externalLivekit.apiKey | quote }}
@@ -62,7 +64,7 @@ data:
   LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND: "true"
   LOGIN_REDIRECT_URL: {{ .Values.ingress.hostname | quote }}
   LOGIN_REDIRECT_URL_FAILURE: {{ .Values.ingress.hostname | quote }}
-  LOGOUT_REDIRECT_URL: {{ .Values.ingress.hostname | quote }}
+  LOGOUT_REDIRECT_URL: {{ .Values.meet.logoutRedirectUrl | default (printf "https://%s" .Values.ingress.hostname) | quote }}
   FRONTEND_CUSTOM_CSS_URL: {{ .Values.meet.frontendCssUrl | quote }}
   AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME: "false"
   ROOM_INACTIVITY_DELETION_DAYS: "30"

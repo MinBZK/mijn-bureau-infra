@@ -170,18 +170,16 @@ import:
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
             "publicClient": false,
-            "frontchannelLogout": true,
+            "frontchannelLogout": false,
             "protocol": "openid-connect",
             "attributes": {
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1759388679",
               "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/api/v1.0/logout/",
               "standard.token.exchange.enabled": "false",
-              "frontchannel.logout.url": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "backchannel.logout.url": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/api/v1.0/backchannel-logout/",
               "post.logout.redirect.uris": "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/*",
-              "frontchannel.logout.session.required": "false",
               "oauth2.device.authorization.grant.enabled": "false",
               "display.on.consent.screen": "false",
               "backchannel.logout.revoke.offline.tokens": "false"
@@ -219,15 +217,12 @@ import:
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1759388679",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/api/v1.0/logout/",
               "standard.token.exchange.enabled": "false",
               "frontchannel.logout.url": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/api/v1.0/logout/",
               "post.logout.redirect.uris": "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/*",
               "frontchannel.logout.session.required": "false",
               "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
+              "display.on.consent.screen": "false"
             }
           },
           {
@@ -262,15 +257,12 @@ import:
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1759388679",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/api/v1.0/logout/",
               "standard.token.exchange.enabled": "false",
               "frontchannel.logout.url": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/api/v1.0/logout/",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/*",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/*##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
               "frontchannel.logout.session.required": "false",
               "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
+              "display.on.consent.screen": "false"
             }
           },
           {
@@ -299,21 +291,17 @@ import:
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
             "publicClient": false,
-            "frontchannelLogout": true,
+            "frontchannelLogout": false,
             "protocol": "openid-connect",
             "attributes": {
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "[PHONE]",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}/oidc-callback",
               "standard.token.exchange.enabled": "false",
-              "frontchannel.logout.url": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}/oidc-callback",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}/*",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}/*##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
               "frontchannel.logout.session.required": "false",
               "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
+              "display.on.consent.screen": "false"
             }
           },
           {
@@ -348,15 +336,12 @@ import:
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "[PHONE]",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}/api/v1.0/backchannel-logout/",
               "standard.token.exchange.enabled": "false",
               "frontchannel.logout.url": "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}/api/v1.0/logout/",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}/*",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}/*##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
               "frontchannel.logout.session.required": "false",
               "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
+              "display.on.consent.screen": "false"
             }
           },
           {
@@ -385,14 +370,16 @@ import:
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": false,
             "publicClient": false,
-            "frontchannelLogout": false,
+            "frontchannelLogout": true,
             "protocol": "openid-connect",
             "attributes": {
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1735689600",
               "standard.token.exchange.enabled": "false",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}/*",
+              "frontchannel.logout.url": "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}/api/v1.0/logout/",
+              "frontchannel.logout.session.required": "false",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}/*##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
               "oauth2.device.authorization.grant.enabled": "false",
               "display.on.consent.screen": "false"
             }
@@ -466,15 +453,12 @@ import:
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1759388679",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/api/v1.0/logout/",
               "standard.token.exchange.enabled": "false",
               "frontchannel.logout.url": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/api/v1.0/logout/",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/*",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/*##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
               "frontchannel.logout.session.required": "false",
               "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
+              "display.on.consent.screen": "false"
             }
           },
           {
@@ -509,15 +493,12 @@ import:
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1759388679",
-              "backchannel.logout.session.required": "true",
-              "backchannel.logout.url": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/api/v1/auth/logout",
               "standard.token.exchange.enabled": "true",
               "frontchannel.logout.url": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/api/v1/auth/logout",
               "post.logout.redirect.uris": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/*",
               "frontchannel.logout.session.required": "false",
               "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
+              "display.on.consent.screen": "false"
             }
           },
           {
@@ -553,13 +534,12 @@ import:
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "[PHONE]",
-              "backchannel.logout.session.required": "false",
               "standard.token.exchange.enabled": "false",
+              "frontchannel.logout.url": "https://{{ .Values.global.hostname.messages }}.{{ .Values.global.domain }}/api/v1.0/logout/",
               "frontchannel.logout.session.required": "false",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.messages }}.{{ .Values.global.domain }}/*",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.messages }}.{{ .Values.global.domain }}/*##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
               "oauth2.device.authorization.grant.enabled": "false",
-              "display.on.consent.screen": "false",
-              "backchannel.logout.revoke.offline.tokens": "false"
+              "display.on.consent.screen": "false"
             },
             "protocolMappers": [
               {

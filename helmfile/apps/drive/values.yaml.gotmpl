@@ -39,7 +39,7 @@ drive:
     port: {{ .Values.smtp.port | quote }}
     hostUser: {{ .Values.smtp.username | quote }}
     hostPassword: {{ .Values.smtp.password | quote }}
-    useTls: {{ .Values.smtp.tls.enabled | default true | quote }}
+    useTls: {{ ternary "true" "false" (dig "tls" "enabled" true (.Values.smtp | default dict)) | quote }}
     useSsl: "false"
     from: {{ .Values.smtp.from.email | quote }}
     brandName: {{ .Values.smtp.from.name | quote }}
@@ -75,6 +75,7 @@ drive:
     {{- end }}
   frontendCssUrl: "https://static-{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/iframe-hide.css"
   frontendJsUrl: "https://static-{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/bureaublad-button.js"
+  logoutRedirectUrl: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
   frontendExternalHomeUrl: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
 
   {{ if .Values.application.collabora.enabled }}

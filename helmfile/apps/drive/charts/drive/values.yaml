@@ -103,6 +103,8 @@ drive:
     pullSecrets: []
     debug: false
   baseUrl: ""
+  ## @param drive.logoutRedirectUrl Where the browser lands after logout. Empty falls back to baseUrl.
+  logoutRedirectUrl: ""
   ## @param drive.replicaCount Number of drive replicas to deploy
   ##
   replicaCount: 1

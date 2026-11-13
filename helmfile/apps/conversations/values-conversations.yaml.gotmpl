@@ -37,6 +37,7 @@ conversations:
   CORSAllowedOrigins: "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
   AllowedHosts: "{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
   baseUrl: "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
+  logoutRedirectUrl: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
   {{- if .Values.application.docs.enabled }}
   docsBaseUrl: "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}"
   {{- end }}

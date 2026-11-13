@@ -110,6 +110,8 @@ conversations:
   superuserEmail: "admin@example.com"
   superuserPassword: "admin_password"
   baseUrl: ""
+  ## @param conversations.logoutRedirectUrl Where the browser lands after logout. Empty falls back to baseUrl.
+  logoutRedirectUrl: ""
   ## @param conversations.docsBaseUrl Base URL of the Docs application used by the "Edit in Docs" integration
   ##
   docsBaseUrl: ""
