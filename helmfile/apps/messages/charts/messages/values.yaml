@@ -136,6 +136,8 @@ backend:
   saltKey: ""
   mdaApiSecret: ""
   baseUrl: ""
+  ## @param backend.logoutRedirectUrl Where the browser lands after logout. Empty falls back to baseUrl.
+  logoutRedirectUrl: ""
   allowedHosts: ""
   csrfTrustedOrigins: ""
   instanceUrl: ""

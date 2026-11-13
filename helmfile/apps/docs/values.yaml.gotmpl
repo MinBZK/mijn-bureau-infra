@@ -149,6 +149,7 @@ backend:
     FRONTEND_CSS_URL: "https://static-{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/iframe-hide.css"
     FRONTEND_JS_URL: "https://static-{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/bureaublad-button.js"
     FRONTEND_HOMEPAGE_FEATURE_ENABLED: "true"
+    FRONTEND_SILENT_LOGIN_ENABLED: "true"
     FRONTEND_THEME: ""
     DB_ENGINE: {{ .Values.database.docs.engine | quote}}
     DB_HOST: {{ .Values.database.docs.host | quote }}
@@ -172,6 +173,7 @@ backend:
     DJANGO_EMAIL_HOST_USER: {{ .Values.smtp.username | quote }}
     DJANGO_EMAIL_LOGO_IMG: {{ .Values.smtp.from.logoImage | quote }}
     DJANGO_EMAIL_PORT: {{ .Values.smtp.port | quote }}
+    DJANGO_EMAIL_URL_APP: {{ $baseUrl | quote }}
     DJANGO_EMAIL_USE_SSL: "false"
     DJANGO_EMAIL_USE_TLS: {{ .Values.smtp.tls.enabled | quote }}
     DJANGO_SERVER_TO_SERVER_API_TOKENS: "secret-api-key"
@@ -185,7 +187,7 @@ backend:
     LOGGING_LEVEL_LOGGERS_ROOT: "INFO"
     LOGIN_REDIRECT_URL: {{ $baseUrl | quote }}
     LOGIN_REDIRECT_URL_FAILURE: {{ $baseUrl | quote }}
-    LOGOUT_REDIRECT_URL: {{ $baseUrl | quote }}
+    LOGOUT_REDIRECT_URL: {{ printf "https://%s.%s" .Values.global.hostname.bureaublad .Values.global.domain | quote }}
     MALWARE_DETECTION_BACKEND: "lasuite.malware_detection.backends.dummy.DummyBackend"
     MALWARE_DETECTION_PARAMETERS: '{"callback_path": "core.malware_detection.malware_detection_callback",}'
     MEDIA_BASE_URL: {{ $baseUrl | quote }}

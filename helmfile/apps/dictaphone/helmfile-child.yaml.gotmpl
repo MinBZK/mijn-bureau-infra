@@ -45,6 +45,20 @@ releases:
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-minio.yaml.gotmpl"
 
+  # Media proxy with auth subrequest for /media (playback + downloads).
+  # Gateway API has no auth_request; the in-pod nginx does it against the
+  # backend's media-auth endpoint, same pattern as docs-nginx.
+  - name: dictaphone-nginx
+    chart: ../common/charts/nginx
+    {{- if .Values.application.dictaphone.namespace }}
+    namespace: {{ .Values.application.dictaphone.namespace }}
+    {{- end }}
+    condition: application.dictaphone.enabled
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values-nginx.yaml.gotmpl"
+
   - name: dictaphone
     chart: charts/dictaphone
     condition: application.dictaphone.enabled

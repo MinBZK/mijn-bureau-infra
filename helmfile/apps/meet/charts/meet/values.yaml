@@ -79,6 +79,10 @@ meet:
   ##
   frontendCssUrl: ""
   frontendExternalHomeUrl: ""
+  ## @param meet.backendSessionEngine Django session engine. Use django.contrib.sessions.backends.cached_db to enable OIDC back-channel logout (the lasuite view requires database-backed sessions).
+  backendSessionEngine: "django.contrib.sessions.backends.cache"
+  ## @param meet.logoutRedirectUrl Where the browser lands after logout. Empty falls back to the ingress base URL.
+  logoutRedirectUrl: ""
   ## @param meet.frontendTranscriptionDestination URL where users can send transcriptions
   ##
   frontendTranscriptionDestination: ""
@@ -1288,7 +1292,9 @@ celery_summarize:
     - --pool=solo
     - --loglevel=info
     - -Q
-    - summarize-queue,summarize-queue-v2
+    # call-webhook-queue-v2: upstream assigns webhook delivery to a dedicated
+    # worker (celerySummaryBackend); here the summarize worker handles it.
+    - summarize-queue,summarize-queue-v2,call-webhook-queue-v2
   ## @param celery_summarize.args Override the summarize worker arguments
   ##
   args: []

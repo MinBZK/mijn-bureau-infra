@@ -84,6 +84,8 @@ projects:
   ## @param projects.baseUrl Public URL of the application
   ##
   baseUrl: ""
+  ## @param projects.logoutRedirectUrl Post-logout redirect target. Empty falls back to baseUrl.
+  logoutRedirectUrl: ""
   ## @param projects.serviceName Display name of the service
   ##
   serviceName: "Projecten"

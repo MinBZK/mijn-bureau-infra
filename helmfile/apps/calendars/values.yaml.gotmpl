@@ -54,6 +54,7 @@ backend:
   secretKey: {{ .Values.application.calendars.secretKey | quote }}
   saltKey: {{ .Values.application.calendars.saltKey | quote }}
   baseUrl: {{ $baseUrl | quote }}
+  logoutRedirectUrl: {{ printf "https://%s.%s" .Values.global.hostname.bureaublad .Values.global.domain | quote }}
   allowedHosts: {{ $hostname | quote }}
   csrfTrustedOrigins: {{ $baseUrl | quote }}
   languageCode: {{ ternary "nl-nl" "en-us" (eq (.Values.global.defaultLocale | default "nl") "nl") | quote }}

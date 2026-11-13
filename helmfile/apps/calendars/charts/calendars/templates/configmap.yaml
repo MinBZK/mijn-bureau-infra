@@ -30,7 +30,7 @@ data:
   APP_URL: {{ $baseUrl | quote }}
   LOGIN_REDIRECT_URL: {{ $baseUrl | quote }}
   LOGIN_REDIRECT_URL_FAILURE: {{ $baseUrl | quote }}
-  LOGOUT_REDIRECT_URL: {{ $baseUrl | quote }}
+  LOGOUT_REDIRECT_URL: {{ .Values.backend.logoutRedirectUrl | default $baseUrl | quote }}
   FRONTEND_SILENT_LOGIN_ENABLED: {{ ternary "true" "false" .Values.backend.frontendSilentLoginEnabled | quote }}
   FRONTEND_THEME: {{ .Values.backend.frontendTheme | quote }}
   FRONTEND_MEET_BASE_URL: {{ .Values.backend.meetBaseUrl | quote }}

@@ -1,7 +1,10 @@
 {{- $hostname := printf "%s.%s" .Values.global.hostname.dictaphone .Values.global.domain }}
 {{- $baseUrl := printf "https://%s" $hostname }}
 {{- $minioHostname := printf "%s.%s" (index .Values.global.hostname "dictaphone-minio") .Values.global.domain }}
-{{- $minioEndpoint := printf "http://%s:%d" .Values.objectstore.dictaphone.endpoint .Values.objectstore.dictaphone.port }}
+{{- /* Presigned download URLs are consumed cross-namespace too (meet's
+  summary celery workers). Bare service names don't resolve there, so keep
+  everything FQDN. */ -}}
+{{- $minioEndpoint := printf "http://%s.%s.svc.cluster.local:%d" .Values.objectstore.dictaphone.endpoint (.Values.application.dictaphone.namespace | default "mijnbureau-dictaphone") .Values.objectstore.dictaphone.port }}
 {{- $minioPublicUrl := printf "https://%s" $minioHostname }}
 
 global:
@@ -33,6 +36,10 @@ backend:
     registry: {{ (coalesce .Values.container.dictaphone_backend.registry .Values.container.default.registry) | quote }}
     repository: {{ .Values.container.dictaphone_backend.repository | quote }}
     tag: {{ .Values.container.dictaphone_backend.tag | quote }}
+  logoutRedirectUrl: {{ printf "https://%s.%s" .Values.global.hostname.bureaublad .Values.global.domain | quote }}
+  # TLS terminates at the gateway; redirecting in-cluster HTTP to :443 breaks
+  # the audio-extractor's internal API polling.
+  secureSslRedirect: "false"
   replicaCount: 1
   resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.dictaphone.backend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.dictaphone.backend | default dict | toYaml | nindent 4 }}
@@ -187,12 +194,16 @@ application:
     transcodingToken: {{ .Values.application.dictaphone.audioExtractor.transcodingToken | quote }}
     validationToken: {{ .Values.application.dictaphone.audioExtractor.validationToken | quote }}
   ai:
-    serviceUrl: {{ .Values.ai.dictaphone.serviceUrl | default "" | quote }}
+    {{- /* dictaphone transcribes via meet's summary service when no external
+      serviceUrl is configured. */}}
+    serviceUrl: {{ coalesce .Values.ai.dictaphone.serviceUrl (ternary (printf "http://meet-summary.%s.svc.cluster.local/api/v2/" (.Values.application.meet.namespace | default "mijnbureau-meet")) "" (dig "application" "meet" "summary" "enabled" true .Values)) | quote }}
     serviceApiKey: {{ .Values.ai.dictaphone.serviceApiKey | quote }}
     webhookApiKey: {{ .Values.ai.dictaphone.webhookApiKey | quote }}
-  superuser:
-    email: {{ .Values.secret.dictaphone.adminUser | quote }}
-    password: {{ .Values.secret.dictaphone.adminPassword | quote }}
+  docs:
+    baseUrl: {{ printf "https://%s.%s" .Values.global.hostname.docs .Values.global.domain | quote }}
+    # Must match docs' DJANGO_SERVER_TO_SERVER_API_TOKENS.
+    # TODO: rotate to a derived value in sync with the docs chart value.
+    serverToServerApiKey: {{ dig "application" "docs" "serverToServerApiToken" "secret-api-key" .Values | quote }}
 
 smtp:
   host: {{ .Values.smtp.host | quote }}

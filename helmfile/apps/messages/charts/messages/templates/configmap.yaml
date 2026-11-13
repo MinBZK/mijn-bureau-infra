@@ -67,7 +67,7 @@ data:
   OIDC_USERINFO_FULLNAME_FIELDS: {{ printf "%s,%s" .Values.authentication.claims.given_name .Values.authentication.claims.family_name | quote }}
   LOGIN_REDIRECT_URL: {{ $baseUrl | quote }}
   LOGIN_REDIRECT_URL_FAILURE: {{ $baseUrl | quote }}
-  LOGOUT_REDIRECT_URL: {{ $baseUrl | quote }}
+  LOGOUT_REDIRECT_URL: {{ .Values.backend.logoutRedirectUrl | default $baseUrl | quote }}
 
   ## Mail
   ##

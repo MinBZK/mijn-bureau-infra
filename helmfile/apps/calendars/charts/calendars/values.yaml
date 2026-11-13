@@ -143,6 +143,8 @@ backend:
   secretKey: ""
   saltKey: ""
   baseUrl: ""
+  ## @param backend.logoutRedirectUrl Where the browser lands after logout. Empty falls back to baseUrl.
+  logoutRedirectUrl: ""
   allowedHosts: ""
   csrfTrustedOrigins: ""
   languageCode: "nl-nl"
@@ -430,6 +432,26 @@ job:
     weight: "0"
   caldavMessagesChannel:
     weight: "1"
+  defaultLanguage:
+    weight: "2"
+
+## @section Default user language
+## Post-install/upgrade hook that sets the default interface/email language
+## for users without a language preference. The invitation mailer otherwise
+## falls back to French.
+##
+defaultLanguage:
+  enabled: true
+  ## Language to apply (e.g. "nl-nl"). Empty falls back to backend.languageCode.
+  code: ""
+  ## CronJob repeating the same update, catching users created between
+  ## deploys (they start without a language preference).
+  cron:
+    enabled: true
+    schedule: "7 * * * *"
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 3
 
 ## @section Messages-app CalDAV channel
 ## Global "caldav" channel provisioned for the LaSuite messages app.

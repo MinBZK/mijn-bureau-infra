@@ -2,7 +2,12 @@
 {{- $meetScheme := ternary "https" "http" (.Values.global.tls.enabled | default true) -}}
 {{- $meetBaseUrl := printf "%s://%s" $meetScheme $meetHostname -}}
 {{- $summaryRedisUrl := printf "redis://default:%s@%s:%v/2" .Values.cache.meet.password .Values.cache.meet.host .Values.cache.meet.port -}}
+{{- /* Presigned URLs handed to neighbours (dictaphone fetches summary
+  transcripts) must resolve cross-namespace; qualify the service name. */ -}}
 {{- $meetS3Endpoint := dig "objectstore" "meet" "endpoint" "" .Values -}}
+{{- if and $meetS3Endpoint (not (contains "." $meetS3Endpoint)) -}}
+{{- $meetS3Endpoint = printf "%s.%s.svc.cluster.local" $meetS3Endpoint (.Values.application.meet.namespace | default "mijnbureau-meet") -}}
+{{- end -}}
 {{- $meetS3Port := dig "objectstore" "meet" "port" 9000 .Values -}}
 {{- $meetS3Ssl := dig "objectstore" "meet" "useSSL" false .Values -}}
 {{- $meetS3HostPort := "" -}}
@@ -68,7 +73,20 @@
   "webhook_api_key" $summaryWebhookApiToken
   "allowed_push_to_docs" true
 -}}
-{{- $_ := set $summaryEnv "AUTHORIZED_TENANTS" (list $summaryTenant | toJson) -}}
+{{- /* dictaphone transcribes through the same summary service: separate tenant
+  with its own api key; results are posted to dictaphone's in-cluster webhook
+  (Bearer AI_WEBHOOK_API_KEY). */ -}}
+{{- $summaryTenants := list $summaryTenant -}}
+{{- if .Values.application.dictaphone.enabled | default false -}}
+{{- $dictaphoneTenant := dict
+  "id" "dictaphone"
+  "api_key" .Values.ai.dictaphone.serviceApiKey
+  "webhook_url" (printf "http://dictaphone-backend.%s.svc.cluster.local/api/v1.0/ai-jobs/webhook/" (.Values.application.dictaphone.namespace | default "mijnbureau-dictaphone"))
+  "webhook_api_key" .Values.ai.dictaphone.webhookApiKey
+-}}
+{{- $summaryTenants = append $summaryTenants $dictaphoneTenant -}}
+{{- end -}}
+{{- $_ := set $summaryEnv "AUTHORIZED_TENANTS" ($summaryTenants | toJson) -}}
 {{- $llmHost := .Values.ai.llm.endpoint.host | default "" -}}
 {{- if $llmHost -}}
 {{- $llmSsl := true -}}
@@ -159,6 +177,10 @@ meet:
 
   frontendCssUrl: "https://static-{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/iframe-hide.css"
   frontendExternalHomeUrl: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
+  logoutRedirectUrl: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
+  # cached_db sessions are required for the lasuite OIDC back-channel logout
+  # endpoint (/api/v1.0/backchannel-logout/).
+  backendSessionEngine: "django.contrib.sessions.backends.cached_db"
   frontendTranscriptionDestination: "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}"
 
   # Init containers don't inherit resourcesPreset from the chart, so we mirror

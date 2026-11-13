@@ -34,7 +34,7 @@ data:
   DJANGO_CORS_ALLOWED_ORIGINS: {{ printf "%s,%s" $baseUrl $httpUrl | quote }}
   DJANGO_CORS_ALLOW_ALL_ORIGINS: "false"
   DJANGO_SILENCED_SYSTEM_CHECKS: "security.W004,security.W008"
-  SECURE_SSL_REDIRECT: "true"
+  SECURE_SSL_REDIRECT: {{ .Values.backend.secureSslRedirect | default "true" | quote }}
 
   DB_ENGINE: "django.db.backends.postgresql_psycopg2"
   DB_HOST: {{ .Values.externalDatabase.host | quote }}
@@ -65,7 +65,7 @@ data:
   ALLOW_LOGOUT_GET_METHOD: "true"
   LOGIN_REDIRECT_URL: {{ $baseUrl | quote }}
   LOGIN_REDIRECT_URL_FAILURE: {{ $baseUrl | quote }}
-  LOGOUT_REDIRECT_URL: {{ $baseUrl | quote }}
+  LOGOUT_REDIRECT_URL: {{ .Values.backend.logoutRedirectUrl | default $baseUrl | quote }}
 
   MEDIA_BASE_URL: {{ $baseUrl | quote }}
   AWS_S3_UPLOAD_POLICY_EXPIRATION: "60"
@@ -81,6 +81,10 @@ data:
 
   {{- if .Values.application.ai.serviceUrl }}
   AI_SERVICE_URL: {{ .Values.application.ai.serviceUrl | quote }}
+  {{- end }}
+  {{- if .Values.application.docs.baseUrl }}
+  ## Docs integration ("create in Docs")
+  DOCS_BASE_URL: {{ .Values.application.docs.baseUrl | quote }}
   {{- end }}
 
   {{- if .Values.smtp.host }}

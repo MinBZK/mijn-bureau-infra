@@ -37,6 +37,7 @@ projects:
 
   secretKey: {{ .Values.application.projects.secretKey | quote }}
   baseUrl: {{ $baseUrl | quote }}
+  logoutRedirectUrl: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
   adminEmail: {{ .Values.secret.projects.adminUser | quote }}
   adminPassword: {{ .Values.secret.projects.adminPassword | quote }}
   theme:

@@ -1,0 +1,86 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if .Values.defaultLanguage.enabled }}
+{{- /* Set the default language for users that never picked one
+  (language IS NULL or ""). The invitation mailer falls back to French
+  when a recipient has no language; the instance default is the sane
+  fallback. Idempotent: users with an explicit language keep their
+  choice. Runs after migrate (weight -10), superuser (0) and the
+  messages channel (1) hook jobs. */ -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "common.names.fullname" . }}-default-language
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: calendars-default-language
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list (dict "helm.sh/hook" "post-install,post-upgrade" "helm.sh/hook-delete-policy" "before-hook-creation" "helm.sh/hook-weight" .Values.job.defaultLanguage.weight) .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
+  backoffLimit: {{ .Values.job.backoffLimit }}
+  template:
+    metadata:
+      labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: calendars-default-language
+      {{- if .Values.job.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.job.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- include "calendars.imagePullSecrets" . | nindent 6 }}
+      restartPolicy: {{ .Values.job.restartPolicy }}
+      serviceAccountName: {{ template "calendars.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.backend.runtimeClassName }}
+      runtimeClassName: {{ .Values.backend.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.backend.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.backend.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" ( dict "value" .Values.backend.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.backend.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.backend.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "common.names.fullname" . }}-default-language
+          image: {{ template "calendars.backend.image" . }}
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          {{- if .Values.backend.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.backend.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: DEFAULT_LANGUAGE_CODE
+              value: {{ .Values.defaultLanguage.code | default .Values.backend.languageCode | lower | quote }}
+          command:
+            - /bin/sh
+          args:
+            - -c
+            - |
+              python manage.py shell -c "
+              import os
+              from django.db.models import Q
+              from core.models import User
+              code = os.environ['DEFAULT_LANGUAGE_CODE']
+              updated = User.objects.filter(Q(language__isnull=True) | Q(language='')).update(language=code)
+              print(f'Set language={code} for {updated} user(s) without a language preference')
+              "
+          envFrom:
+            - configMapRef:
+                name: {{ template "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "calendars.secretName" . }}
+          {{- if .Values.job.resources }}
+          resources: {{- toYaml .Values.job.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{- end }}

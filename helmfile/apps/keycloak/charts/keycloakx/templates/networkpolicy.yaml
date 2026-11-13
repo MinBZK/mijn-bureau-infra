@@ -19,6 +19,9 @@ spec:
     matchLabels:
       {{- include "keycloak.selectorLabels" . | nindent 6 }}
   ingress:
+    # JGroups/Infinispan clustering is only reachable between Keycloak pods
+    # (same namespace). Without it the cluster splits ("JDBC_PING2 split-brain"),
+    # which also breaks single-logout propagation of auth sessions.
     {{- with .Values.networkPolicy.extraFrom }}
     - from:
         {{- toYaml . | nindent 8 }}
@@ -34,6 +37,15 @@ spec:
           port: {{ .containerPort }}
         {{- end }}
     {{- end }}
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "keycloak.selectorLabels" . | nindent 14 }}
+      ports:
+        - protocol: TCP
+          port: 7800
+        - protocol: TCP
+          port: 57800
     - ports:
         - protocol: TCP
           port: 8080

@@ -81,6 +81,10 @@ backend:
     digest: ""
     pullPolicy: Always
     pullSecrets: []
+  ## @param backend.logoutRedirectUrl Where the browser lands after logout. Empty falls back to the ingress base URL.
+  logoutRedirectUrl: ""
+  ## @param backend.secureSslRedirect Force HTTP->HTTPS redirects in Django ("true"/"false"). Should be "false" when TLS terminates at the ingress/gateway, otherwise in-cluster HTTP clients (audio-extractor pulling /api/internal/) hit a closed 443.
+  secureSslRedirect: "true"
   ## @param backend.replicaCount Number of backend replicas
   ##
   replicaCount: 1
@@ -1175,6 +1179,11 @@ application:
     serviceUrl: ""
     serviceApiKey: ""
     webhookApiKey: ""
+  docs:
+    ## @param application.docs.baseUrl Base URL of LaSuite Docs for the "create in Docs" integration. Empty = upstream default (example.com).
+    baseUrl: ""
+    ## @param application.docs.serverToServerApiKey API key accepted by Docs (matches DJANGO_SERVER_TO_SERVER_API_TOKENS on the Docs side).
+    serverToServerApiKey: ""
   superuser:
     email: ""
     password: ""
