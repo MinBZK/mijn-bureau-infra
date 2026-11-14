@@ -1503,7 +1503,7 @@ docspec:
   image:
     registry: ghcr.io
     repository: docspecio/api
-    tag: "1.21.10"
+    tag: "3.0.2"
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
