@@ -445,7 +445,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["nginx", "traefik"]
+              "enum": ["nginx", "traefik", "none"]
             },
             "className": {
               "type": "string"

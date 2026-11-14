@@ -1696,6 +1696,8 @@ synapse:
     messaging:
       perSecond: 0.2
       burstCount: 10.0
+    ## @param synapse.rateLimiting.delayedEventMgmt MSC4140 delayed event management rate limiting, rendered verbatim as rc_delayed_event_mgmt (keys per_second/burst_count). Element Call needs these raised for its 5s delayed-leave heartbeats.
+    delayedEventMgmt: {}
   ## @param synapse.maxEventDelayDuration The maximum allowed duration by which sent events can be delayed, as per MSC4140. Must be a positive value if set. If `null` or unset, sending of delayed events is disallowed.
   ## ref: https://github.com/matrix-org/matrix-spec-proposals/pull/4140
   maxEventDelayDuration: null
@@ -1761,6 +1763,14 @@ synapse:
     workerToRunOn: null
   ## @param synapse.experimentalFeatures Enable experimental features by adding entries with format `<feature name>: true`.
   experimentalFeatures: {}
+  ## @param synapse.matrixRtc MatrixRTC configuration block (Synapse >= 1.127). Rendered top-level as matrix_rtc; the transports entries are exposed to clients over the MSC4519 /_matrix/client/unstable/org.matrix.msc4143/rtc/transports endpoint.
+  ## ref: https://element-hq.github.io/synapse/latest/usage/configuration/config_documentation.html
+  matrixRtc: {}
+  ## @param synapse.appServiceConfigFiles List of application service registration file paths mounted into the homeserver (e.g. the lk-jwt-service registration for MatrixRTC).
+  ## ref: https://element-hq.github.io/synapse/latest/usage/configuration/config_documentation.html#app_service_config_files
+  appServiceConfigFiles: []
+  ## @param synapse.extraSecretFiles Extra files (filename -> content, templated) added to the synapse secrets Secret, available at /synapse/secrets/<filename>. Use for application service registration files referenced from appServiceConfigFiles.
+  extraSecretFiles: {}
   ## @param synapse.matrixAuthenticationService MAS (Matrix Authentication Service) integration block (Synapse >= 1.164). Rendered top-level as matrix_authentication_service; the only supported keys are enabled (bool), endpoint (string), secret (string), secret_path (string), force_http2 (bool).
   ## ref: https://element-hq.github.io/synapse/latest/usage/configuration/config_documentation.html#matrix_authentication_service
   matrixAuthenticationService: {}

@@ -94,6 +94,16 @@ spec:
             - |
               set -eu
               cat /synapse/config-src/log.yaml > /synapse/config/log.yaml
+              # Extra secret files (e.g. appservice registrations) are copied
+              # into the shared config volume: the main container does not
+              # mount synapse-secrets directly.
+              found=0
+              for f in /synapse/secrets/*; do
+                base="$(basename "$f")"
+                [ "$base" = "secrets.yaml" ] && continue
+                [ $found -eq 0 ] && { mkdir -p /synapse/config/appservices; found=1; }
+                cp "$f" "/synapse/config/appservices/$base"
+              done
               {
                 cat /synapse/config-src/homeserver.yaml
                 printf '\n'

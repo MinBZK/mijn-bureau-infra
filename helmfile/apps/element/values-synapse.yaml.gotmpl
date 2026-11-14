@@ -47,6 +47,7 @@ master:
 {{- if .Values.cluster.runtimeClassName }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 {{- end }}
+
   autoscaling:
     vpa: {{ .Values.autoscaling.vertical.synapse.master | toYaml | nindent 6 }}
   startupProbe:
@@ -280,10 +281,19 @@ synapse:
     messaging:
       perSeconde: 0.5
       burstCount: 30.0
+    {{- if .Values.application.element.call.enabled }}
+    # MSC4140 delayed event management: Element Call heartbeats delayed leave
+    # events every 5 seconds per participant (plus headroom).
+    delayedEventMgmt:
+      per_second: 1
+      burst_count: 20
+    {{- end }}
   # The maximum allowed duration by which sent events can be delayed, as per MSC4140.
   maxEventDelayDuration: "24h"
   # Redirect traffic to port 443 when server_name and hostname are identical and tls is enabled.
-  serveServerWellknown: {{ and .Values.tls.synapse (eq $serverName $hostName ) }}
+  # Also enabled with Element Call: lk-jwt-service resolves the homeserver via
+  # /.well-known/matrix/server and without it falls back to matrix:8448.
+  serveServerWellknown: {{ or (and .Values.tls.synapse (eq $serverName $hostName )) (.Values.application.element.call.enabled | default false) }}
   # Avatar image settings
   avatar:
     maxSize: "10M"
@@ -363,6 +373,48 @@ synapse:
     msc3266_enabled: true
     # MSC4222 needed for syncv2 state_after. This allows clients to correctly track the state of the room.
     msc4222_enabled: true
+    {{- if .Values.application.element.call.enabled }}
+    # MSC4143/MSC4519: expose the MatrixRTC transports endpoint so clients can
+    # discover the LiveKit JWT service. Element Call requires this (or the
+    # org.matrix.msc4143.rtc_foci well-known entry below).
+    msc4143_enabled: true
+    # MSC4502/MSC4512: let lk-jwt-service integrate as an application service;
+    # MSC4512 additionally proxies the /rtc/livekit C-S and S-S endpoints to it.
+    msc4502_enabled: true
+    msc4512_enabled: true
+    {{- end }}
+  {{- if .Values.application.element.call.enabled }}
+  # MSC4519: advertise the LiveKit transport via
+  # /_matrix/client/unstable/org.matrix.msc4143/rtc/transports. Without this
+  # clients error with MISSING_MATRIX_RTC_TRANSPORT.
+  matrixRtc:
+    transports:
+      - type: livekit
+        livekit_service_url: {{ printf "https://%s.%s" (index .Values.global.hostname "livekit-jwt") .Values.global.domain | quote }}
+  # Application service wiring for lk-jwt-service: Synapse loads the
+  # registration (extraSecretFiles lands in the synapse-secrets Secret volume)
+  # and proxies /rtc/livekit traffic to the service (MSC4512).
+  appServiceConfigFiles:
+    - /synapse/config/appservices/lk-jwt.yaml
+  # Registration file content per lk-jwt-service README: no event traffic
+  # (url: null), MSC4502 membership-lookup scope, MSC4512 proxy prefix.
+  extraSecretFiles:
+    lk-jwt.yaml: |
+      id: "LiveKit JWT service"
+      as_token: {{ .Values.application.element.call.asToken | quote }}
+      hs_token: {{ .Values.application.element.call.hsToken | quote }}
+      sender_localpart: "_lk_jwt_service"
+      namespaces:
+        users:
+          # Cover all users: the service must verify room membership without
+          # being joined to any room itself. No event traffic required.
+          - exclusive: false
+            regex: ".*"
+      url: null
+      io.element.msc4502.scopes: ["urn:matrix:client:io.element.msc4502:rooms:is_joined"]
+      io.element.msc4512.proxy_prefix: "rtc/livekit"
+      io.element.msc4512.proxy_url: "http://lk-jwt-service.{{ .Values.application.element.namespace | default "mijnbureau-element" }}.svc.cluster.local"
+  {{- end }}
 
   {{- if .Values.application.element.mas.enabled }}
   # Matrix Authentication Service integration (stable since Synapse 1.164;
@@ -375,13 +427,26 @@ synapse:
     {{- $masNs := .Values.application.element.namespace | default "mijnbureau-element" }}
     endpoint: {{ printf "http://element-mas.%s.svc.cluster.local:8080" $masNs | quote }}
     secret: {{ .Values.application.element.mas.sharedSecret | quote }}
+  {{- end }}
+
+  {{- if or .Values.application.element.mas.enabled .Values.application.element.call.enabled }}
 
   # Serve /.well-known/matrix/client with the MAS redirect so native clients
   # discover the OIDC provider on their own.
   extraWellKnownClientContent:
+    {{- if .Values.application.element.mas.enabled }}
+    # MSC2965: OIDC delegation via MAS for native clients
     "org.matrix.msc2965.authentication":
       issuer: {{ printf "https://%s.%s/" .Values.global.hostname.mas .Values.global.domain | quote }}
       account: {{ printf "https://%s.%s/account/" .Values.global.hostname.mas .Values.global.domain | quote }}
+    {{- end }}
+    {{- if .Values.application.element.call.enabled }}
+    # MSC4143: announce the LiveKit focus (via lk-jwt-service) for MatrixRTC /
+    # Element Call. Clients resolve this from the homeserver well-known.
+    "org.matrix.msc4143.rtc_foci":
+      - type: livekit
+        livekit_service_url: {{ printf "https://%s.%s" (index .Values.global.hostname "livekit-jwt") .Values.global.domain | quote }}
+    {{- end }}
   {{- end }}
 
 defaultInitContainers:

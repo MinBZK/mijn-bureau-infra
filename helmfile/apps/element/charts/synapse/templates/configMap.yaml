@@ -148,6 +148,24 @@ data:
     # Needed for MatrixRTC to avoid stuck calls
     max_event_delay_duration: {{ .Values.synapse.maxEventDelayDuration | quote }}
 
+    {{- if .Values.synapse.matrixRtc }}
+    # MatrixRTC transports (MSC4143/MSC4519). Clients learn the LiveKit JWT
+    # service from the /rtc/transports endpoint; requires
+    # experimental_features.msc4143_enabled.
+    matrix_rtc: {{- .Values.synapse.matrixRtc | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- if .Values.synapse.rateLimiting.delayedEventMgmt }}
+    # MSC4140 delayed event management rate limiting; Element Call heartbeats
+    # delayed leave events every 5 seconds per participant.
+    rc_delayed_event_mgmt: {{- .Values.synapse.rateLimiting.delayedEventMgmt | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- if .Values.synapse.appServiceConfigFiles }}
+    # Application service registrations (e.g. lk-jwt-service for MatrixRTC).
+    app_service_config_files: {{- .Values.synapse.appServiceConfigFiles | toYaml | nindent 6 }}
+    {{- end }}
+
     serve_server_wellknown: {{ .Values.synapse.serveServerWellknown }}
     max_avatar_size: {{ .Values.synapse.avatar.maxSize | quote }}
     allowed_avatar_mimetypes: {{- .Values.synapse.avatar.allowedMimeTypes | toYaml | nindent 6 }}

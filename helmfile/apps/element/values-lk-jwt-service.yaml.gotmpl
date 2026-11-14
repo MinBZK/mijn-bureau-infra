@@ -1,0 +1,140 @@
+# Values for the lk-jwt-service release (MatrixRTC authorization service).
+# It verifies Matrix OpenID tokens and mints LiveKit JWTs for Element Call.
+
+{{- /*
+  $serverName is the Matrix server_name; element/users derive their identity
+  from it and lk-jwt restricts room creation to this homeserver.
+  $lkKey/$lkSecret hold the dedicated LiveKit key pair for Element Call,
+  separate from the apikey/meet keys so they can be rotated independently.
+*/ -}}
+{{- $serverName := .Values.global.matrixDomain | default (printf "%s.%s" .Values.global.hostname.synapse .Values.global.domain) -}}
+{{- $lkKey := "elementcall" -}}
+{{- $lkSecret := index .Values.application.livekit.keys "elementcall" -}}
+{{- if and .Values.livekit.elementcall.apiKey .Values.livekit.elementcall.apiSecret -}}
+{{- $lkKey = .Values.livekit.elementcall.apiKey -}}
+{{- $lkSecret = .Values.livekit.elementcall.apiSecret -}}
+{{- else if .Values.livekit.elementcall.apiSecret -}}
+{{- $lkSecret = .Values.livekit.elementcall.apiSecret -}}
+{{- end -}}
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+global:
+  imageRegistry: {{ (coalesce .Values.container.lk_jwt_service.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.lk_jwt_service.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - name: {{ . | quote }}
+  {{- end }}
+  security:
+    allowInsecureImages: true
+  compatibility:
+    openshift:
+      adaptSecurityContext: auto
+
+commonLabels:
+  app.kubernetes.io/part-of: matrix
+  app.kubernetes.io/component: lk-jwt-service
+
+image:
+  registry: {{ (coalesce .Values.container.lk_jwt_service.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.lk_jwt_service.repository | quote }}
+  tag: {{ .Values.container.lk_jwt_service.tag | quote }}
+  pullPolicy: Always
+  {{- with (coalesce .Values.container.lk_jwt_service.imagePullSecret .Values.container.default.imagePullSecret) }}
+  pullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+
+replicaCount: 1
+
+resourcesPreset: {{ coalesce (index .Values.global.resourcesPresetPerApp "livekit-jwt") .Values.global.resourcesPreset | quote }}
+
+resources: {{ (index .Values.resource.element "lkJwt" | default dict) | toYaml | nindent 2 }}
+
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
+
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
+
+{{- if .Values.cluster.runtimeClassName }}
+runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+{{- end }}
+
+livekit:
+  # Public LiveKit SFU endpoint; clients hand the issued JWT to this URL.
+  url: {{ printf "wss://%s.%s" .Values.global.hostname.livekit .Values.global.domain | quote }}
+  key: {{ $lkKey | quote }}
+  secret: {{ $lkSecret | quote }}
+  # Only this homeserver's users may auto-create LiveKit rooms.
+  fullAccessHomeservers: {{ $serverName | quote }}
+  logLevel: "info"
+  # Run as a Synapse application service (MSC4502/MSC4512): tokens must match
+  # the registration file mounted into Synapse (see values-synapse.yaml.gotmpl).
+  asToken: {{ .Values.application.element.call.asToken | quote }}
+  hsToken: {{ .Values.application.element.call.hsToken | quote }}
+  hsServerName: {{ $serverName | quote }}
+  # Pull-based presence re-checks for delegated delayed leave, in lieu of
+  # LiveKit webhook wiring (the SFU's single webhook block already signs for
+  # meet's key).
+  sanityCheckIntervalSeconds: "60"
+
+service:
+  type: ClusterIP
+  ports:
+    http: 80
+
+serviceAccount:
+  create: true
+  name: ""
+
+networkPolicy:
+  enabled: true
+  # Public API: Element apps and embedded Element Call widgets call /sfu/get
+  # from the browser. The default-deny baseline plus ingress/gateway routing
+  # provide the external exposure.
+  allowExternal: true
+  allowExternalEgress: false
+  extraEgress:
+    # OpenID verification against the homeserver and WebSocket signalling
+    # towards the LiveKit SFU; both resolve to the cluster's public LB.
+    - ports:
+        - port: 443
+          protocol: TCP
+
+ingress:
+  enabled: true
+  hostname: {{ printf "%s.%s" (index .Values.global.hostname "livekit-jwt") .Values.global.domain | quote }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ index .Values.tls "livekit-jwt" | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ "{{ .Release.Namespace }}" }}-hsts-header@kubernetescrd'
+    {{- end }}
+    {{- if and (hasKey .Values.cluster "certificate") (hasKey .Values.cluster.certificate "issuerRef") }}
+    {{- if eq .Values.cluster.certificate.issuerRef.kind "ClusterIssuer" }}
+    cert-manager.io/cluster-issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- else if eq .Values.cluster.certificate.issuerRef.kind "Issuer" }}
+    cert-manager.io/issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- end }}
+    {{- end }}
+
+# labels for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity rules for pod assignment
+affinity: {}

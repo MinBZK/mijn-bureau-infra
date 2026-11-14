@@ -1,0 +1,27 @@
+#
+# Modified from the Bitnami Charts Template https://github.com/bitnami/charts/tree/main/template
+# SPDX-License-Identifier: EUPL-1.2
+
+annotations:
+  category: Communication
+  licenses: EUPL-1.2
+apiVersion: v2
+name: element-call
+description: "Element Call embedded MatrixRTC client SPA (element-hq/element-call-embedded), embedded by Element Web for in-app group calls"
+type: application
+version: 0.1.0
+appVersion: 0.28.2
+keywords:
+  - element
+  - matrix
+  - matrixrtc
+  - webrtc
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+sources:
+  - https://github.com/element-hq/element-call
+dependencies:
+  - name: common
+    repository: "file://../../../common/charts/common"
+    version: 2.31.1

@@ -1,0 +1,89 @@
+# Default values for lk-jwt-service.
+# The deployment-facing configuration lives in the helmfile values file
+# helmfile/apps/element/values-lk-jwt-service.yaml.gotmpl.
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+# GHCR publishes no version tags; the shas below point at tagged releases.
+image:
+  registry: ghcr.io
+  repository: element-hq/lk-jwt-service
+  tag: sha-66d6685
+  pullPolicy: Always
+  pullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+
+commonLabels: {}
+commonAnnotations: {}
+
+replicaCount: 1
+revisionHistoryLimit: 10
+
+livekit:
+  # Public WebSocket URL of the LiveKit SFU, e.g. wss://livekit.example.com
+  url: ""
+  # LiveKit API key/secret pair this service signs tokens with. Must be one of
+  # the pairs in the SFU's `keys:` config.
+  key: ""
+  secret: ""
+  # Comma-separated Matrix server names whose users may auto-create LiveKit
+  # rooms (standalone mode, legacy endpoints). Set to this deployment's own
+  # homeserver server_name.
+  fullAccessHomeservers: ""
+  logLevel: "info"
+  livekitJwtBind: ":8080"
+  # Application service wiring (MSC4502/MSC4512). Tokens must match Synapse's
+  # registration file for this service.
+  asToken: ""
+  hsToken: ""
+  hsServerName: ""
+  # Seconds between pull-based presence re-checks for delegated delayed leave
+  # (guards against missed SFU webhooks; 0/empty disables).
+  sanityCheckIntervalSeconds: ""
+
+containerPorts:
+  http: 8080
+
+service:
+  type: ClusterIP
+  ports:
+    http: 80
+
+serviceAccount:
+  create: true
+  name: ""
+
+resources: {}
+resourcesPreset: "none"
+
+podSecurityContext: {}
+containerSecurityContext: {}
+
+# Plain templates: no probes abstraction, keep /healthz
+probes:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+ingress:
+  enabled: false
+  hostname: ""
+  pathType: Prefix
+  ingressClassName: ""
+  annotations: {}
+  tls: false
+  selfSigned: false
+  extraTls: []
+
+networkPolicy:
+  enabled: true
+  # Public API: clients (Widget iframes / Element apps) call /sfu/get directly.
+  allowExternal: true
+  # Egress: DNS + HTTPS/WSS to the homeserver (OpenID verification) and the
+  # LiveKit SFU; overridden through extraEgress when restricting further.
+  allowExternalEgress: false
+  extraEgress: []

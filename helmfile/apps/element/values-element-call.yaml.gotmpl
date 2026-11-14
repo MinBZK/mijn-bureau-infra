@@ -1,0 +1,115 @@
+# Values for the element-call release: the Element Call embedded MatrixRTC
+# client SPA (ghcr.io/element-hq/element-call-embedded), running directly on
+# the image's bundled nginx-unprivileged server.
+
+{{- /*
+  $serverName is the Matrix server_name used by Element Call's default_server_config
+  $hostname is where the element-call SPA is exposed
+  $jwtUrl is the public URL of the lk-jwt-service (MatrixRTC authorization)
+*/ -}}
+{{- $serverName := .Values.global.matrixDomain | default (printf "%s.%s" .Values.global.hostname.synapse .Values.global.domain) -}}
+{{- $hostname := printf "%s.%s" (index .Values.global.hostname "element-call") .Values.global.domain -}}
+{{- $jwtUrl := printf "https://%s.%s" (index .Values.global.hostname "livekit-jwt") .Values.global.domain -}}
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+global:
+  imageRegistry: {{ (coalesce .Values.container.element_call.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.element_call.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - name: {{ . | quote }}
+  {{- end }}
+  security:
+    allowInsecureImages: true
+
+commonLabels:
+  app.kubernetes.io/part-of: matrix
+  app.kubernetes.io/component: element-call
+
+image:
+  registry: {{ (coalesce .Values.container.element_call.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.element_call.repository | quote }}
+  tag: {{ .Values.container.element_call.tag | quote }}
+  pullPolicy: Always
+  {{- with (coalesce .Values.container.element_call.imagePullSecret .Values.container.default.imagePullSecret) }}
+  pullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+
+replicaCount: 1
+
+resourcesPreset: {{ coalesce (index .Values.global.resourcesPresetPerApp "element-call") .Values.global.resourcesPreset | quote }}
+
+resources: {{ (index .Values.resource.element "call" | default dict) | toYaml | nindent 2 }}
+
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
+
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
+
+{{- if .Values.cluster.runtimeClassName }}
+runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+{{- end }}
+
+config:
+  homeserverBaseUrl: {{ printf "https://%s.%s" .Values.global.hostname.synapse .Values.global.domain | quote }}
+  homeserverServerName: {{ $serverName | quote }}
+  livekitServiceUrl: {{ $jwtUrl | quote }}
+  # Pure MatrixRTC mode: no legacy 1:1 call stack (Element Web forces
+  # everything through Element Call via element_call.use_exclusively).
+  matrixRtcMode: "livekit"
+
+service:
+  type: ClusterIP
+  ports:
+    http: 80
+
+serviceAccount:
+  create: true
+  name: ""
+
+networkPolicy:
+  enabled: true
+  # Public static SPA: Element Web embeds it in an iframe; browsers fetch it
+  # directly through the ingress/gateway.
+  allowExternal: true
+  allowExternalEgress: false
+  extraEgress: []
+
+ingress:
+  enabled: true
+  hostname: {{ $hostname }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ index .Values.tls "element-call" | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ "{{ .Release.Namespace }}" }}-hsts-header@kubernetescrd'
+    {{- end }}
+    {{- if and (hasKey .Values.cluster "certificate") (hasKey .Values.cluster.certificate "issuerRef") }}
+    {{- if eq .Values.cluster.certificate.issuerRef.kind "ClusterIssuer" }}
+    cert-manager.io/cluster-issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- else if eq .Values.cluster.certificate.issuerRef.kind "Issuer" }}
+    cert-manager.io/issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- end }}
+    {{- end }}
+
+# labels for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity rules for pod assignment
+affinity: {}

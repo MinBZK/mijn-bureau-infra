@@ -1,11 +1,24 @@
+{{- /*
+  Meet's key name must be resolved deterministically: `keys | first` is not
+  ordered, so prefer the historical "apikey" entry and only fall back to the
+  first key for legacy single-key configurations without it.
+*/ -}}
 {{- $livekitKeys := deepCopy .Values.application.livekit.keys -}}
-{{- $firstKeyName := $livekitKeys | keys | first -}}
-{{- $livekitKeyName := $firstKeyName -}}
+{{- $meetKeyName := "apikey" -}}
+{{- if not (hasKey $livekitKeys "apikey") -}}
+{{- $meetKeyName = $livekitKeys | keys | first -}}
+{{- end -}}
+{{- $livekitKeyName := $meetKeyName -}}
 {{- if and .Values.livekit.meet.apiKey .Values.livekit.meet.apiSecret -}}
 {{- $livekitKeyName = .Values.livekit.meet.apiKey -}}
 {{- $_ := set $livekitKeys $livekitKeyName .Values.livekit.meet.apiSecret -}}
 {{- else if .Values.livekit.meet.apiSecret -}}
-{{- $_ := set $livekitKeys $firstKeyName .Values.livekit.meet.apiSecret -}}
+{{- $_ := set $livekitKeys $meetKeyName .Values.livekit.meet.apiSecret -}}
+{{- end -}}
+{{- if and .Values.livekit.elementcall.apiKey .Values.livekit.elementcall.apiSecret -}}
+{{- $_ := set $livekitKeys .Values.livekit.elementcall.apiKey .Values.livekit.elementcall.apiSecret -}}
+{{- else if .Values.livekit.elementcall.apiSecret -}}
+{{- $_ := set $livekitKeys "elementcall" .Values.livekit.elementcall.apiSecret -}}
 {{- end -}}
 global:
   ## Global Docker image parameters
