@@ -5,10 +5,13 @@ metadata:
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
     app.kubernetes.io/component: conversations-migrate
-  {{- if .Values.commonAnnotations }}
-  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
-  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
-  {{- end }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: {{ .Values.job.migrate.weight | default "-10" | quote }}
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
 spec:
   ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished | default 100 }}
   backoffLimit:  {{ .Values.job.backoffLimit | default 6 }}
@@ -16,12 +19,9 @@ spec:
     metadata:
       labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component: conversations-migrate
-      annotations:
-        {{- if .Values.job.podAnnotations }}
-        {{- include "common.tplvalues.render" (dict "value" .Values.job.podAnnotations "context" $) | nindent 8 }}
-        {{- end }}
-        helm.sh/hook: post-install,post-upgrade
-        helm.sh/hook-delete-policy: before-hook-creation
+      {{- if .Values.job.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.job.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
     spec:
       {{- include "conversations.imagePullSecrets" . | nindent 6 }}
       restartPolicy: {{ .Values.job.restartPolicy | default "OnFailure" }}

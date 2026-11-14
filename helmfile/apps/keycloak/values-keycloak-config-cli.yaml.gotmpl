@@ -69,6 +69,7 @@ import:
     MB_CLIENT_SECRET_NEXTCLOUD: {{ .Values.authentication.client.nextcloud.client_secret | quote }}
     MB_CLIENT_SECRET_DOCS: {{ .Values.authentication.client.docs.client_secret | quote }}
     MB_CLIENT_SECRET_BUREAUBLAD: {{ .Values.authentication.client.bureaublad.client_secret | quote }}
+    MB_SMTP_PASSWORD: {{ .Values.smtp.password | quote }}
     {{- if eq .Environment.Name "demo" }}
     {{- range $user := .Values.user }}
     MB_USER_PASSWORD_{{ regexReplaceAll "[^A-Z0-9_]" (upper $user.username) "_" }}: {{ $user.password | quote }}
@@ -93,6 +94,20 @@ import:
         "editUsernameAllowed": false,
         "registrationAllowed": false,
         "duplicateEmailsAllowed": false,
+        "smtpServer": {
+          {{- if .Values.smtp.host }}
+          "host" : {{ .Values.smtp.host | quote }},
+          "port" : {{ .Values.smtp.port | quote }},
+          "from" : {{ .Values.smtp.from.email | quote }},
+          {{- if .Values.smtp.username }}
+          "user" : {{ .Values.smtp.username | quote }},
+          "password" : "$(env:MB_SMTP_PASSWORD)",
+          "auth" : "true",
+          {{- end }}
+          "starttls" : {{ ternary "true" "false" .Values.smtp.tls.enabled | quote }},
+          "ssl" : "false"
+          {{- end }}
+        },
         "rememberMe": true,
         "loginWithEmailAllowed": true,
         "bruteForceProtected": true,

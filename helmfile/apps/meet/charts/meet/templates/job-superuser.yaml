@@ -5,10 +5,13 @@ metadata:
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
     app.kubernetes.io/component: meet-superuser
-  {{- if .Values.commonAnnotations }}
-  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.commonAnnotations) "context" .) }}
-  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
-  {{- end }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: {{ .Values.job.superuser.weight | default "0" | quote }}
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
 spec:
   ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished | default 100 }}
   backoffLimit:  {{ .Values.job.backoffLimit | default 6 }}
@@ -17,12 +20,10 @@ spec:
       labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component: meet-superuser
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         {{- if .Values.job.podAnnotations }}
         {{- include "common.tplvalues.render" (dict "value" .Values.job.podAnnotations "context" $) | nindent 8 }}
         {{- end }}
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        helm.sh/hook: post-install,post-upgrade
-        helm.sh/hook-delete-policy: before-hook-creation
     spec:
       {{- include "meet_backend.imagePullSecrets" . | nindent 6 }}
       restartPolicy: {{ .Values.job.restartPolicy | default "OnFailure" }}
