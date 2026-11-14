@@ -1289,6 +1289,16 @@ jobs:
   ttlSecondsAfterFinished: 300
   backoffLimit: 6
   restartPolicy: Never
+  ## Helm hook ordering for the post-install/post-upgrade jobs: migrate runs
+  ## before superuser.
+  ## @param jobs.migrate.weight Helm hook weight of the database migrate job
+  ## @param jobs.superuser.weight Helm hook weight of the superuser job
+  ##
+  migrate:
+    weight: "-10"
+  superuser:
+    weight: "0"
+
 
 ## @param cronJobs List of maintenance CronJobs
 ##

@@ -33,17 +33,41 @@ conversations:
 
   secretKey: {{ .Values.application.conversations.secretKey | quote }}
 
-  {{- if and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
-  {{- $icapHost := printf "%s.%s.svc.cluster.local" .Values.antivirus.icap.host (.Values.application.clamav.namespace | default "mijnbureau-clamav") }}
-  # Malware detection: scan chat attachments with ClamAV through the ICAP
-  # sidecar of the ClamAV release (django-lasuite ICAPBackend). The same
-  # variables are injected into the Celery worker below; the analysis task
-  # runs there while the callback is invoked from the backend.
+  {{- if or .Values.smtp.host (and .Values.application.clamav.enabled .Values.antivirus.icap.enabled) }}
   extraEnvVars:
+    {{- if .Values.smtp.host }}
+    # Invitation and notification e-mail (conversations only mails when its
+    # EMAIL_* settings are present; by default the backend is SMTP-disabled).
+    - name: EMAIL_HOST
+      value: {{ .Values.smtp.host | quote }}
+    - name: EMAIL_PORT
+      value: {{ .Values.smtp.port | quote }}
+    - name: EMAIL_HOST_USER
+      value: {{ .Values.smtp.username | quote }}
+    - name: EMAIL_HOST_PASSWORD
+      value: {{ .Values.smtp.password | quote }}
+    - name: EMAIL_USE_TLS
+      value: {{ .Values.smtp.tls.enabled | quote }}
+    - name: EMAIL_USE_SSL
+      value: "false"
+    - name: EMAIL_FROM
+      value: {{ .Values.smtp.from.email | quote }}
+    - name: EMAIL_BRAND_NAME
+      value: {{ .Values.smtp.from.name | quote }}
+    - name: EMAIL_LOGO_IMG
+      value: {{ .Values.smtp.from.logoImage | quote }}
+    {{- end }}
+    {{- if and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
+    {{- $icapHost := printf "%s.%s.svc.cluster.local" .Values.antivirus.icap.host (.Values.application.clamav.namespace | default "mijnbureau-clamav") }}
+    # Malware detection: scan chat attachments with ClamAV through the ICAP
+    # sidecar of the ClamAV release (django-lasuite ICAPBackend). The same
+    # variables are injected into the Celery worker below; the analysis task
+    # runs there while the callback is invoked from the backend.
     - name: MALWARE_DETECTION_BACKEND
       value: "lasuite.malware_detection.backends.icap.ICAPBackend"
     - name: MALWARE_DETECTION_PARAMETERS
       value: {{ printf `{"callback_path": "core.file_upload.malware_detection.malware_detection_callback", "server_address": "%s", "server_port": %d, "service": "avscan"}` $icapHost (int .Values.antivirus.icap.port) | quote }}
+    {{- end }}
   {{- end }}
 
   CSRFTrustedOrigins: "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
@@ -67,13 +91,35 @@ conversations:
       hpa: {{ .Values.autoscaling.horizontal.conversations.celery | toYaml | nindent 8 }}
     pdb: {{ .Values.pdb.conversations.celery | toYaml | nindent 6 }}
     runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
-    {{- if and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
-    {{- $icapHost := printf "%s.%s.svc.cluster.local" .Values.antivirus.icap.host (.Values.application.clamav.namespace | default "mijnbureau-clamav") }}
+    {{- if or .Values.smtp.host (and .Values.application.clamav.enabled .Values.antivirus.icap.enabled) }}
     extraEnvVars:
+      {{- if .Values.smtp.host }}
+      - name: EMAIL_HOST
+        value: {{ .Values.smtp.host | quote }}
+      - name: EMAIL_PORT
+        value: {{ .Values.smtp.port | quote }}
+      - name: EMAIL_HOST_USER
+        value: {{ .Values.smtp.username | quote }}
+      - name: EMAIL_HOST_PASSWORD
+        value: {{ .Values.smtp.password | quote }}
+      - name: EMAIL_USE_TLS
+        value: {{ .Values.smtp.tls.enabled | quote }}
+      - name: EMAIL_USE_SSL
+        value: "false"
+      - name: EMAIL_FROM
+        value: {{ .Values.smtp.from.email | quote }}
+      - name: EMAIL_BRAND_NAME
+        value: {{ .Values.smtp.from.name | quote }}
+      - name: EMAIL_LOGO_IMG
+        value: {{ .Values.smtp.from.logoImage | quote }}
+      {{- end }}
+      {{- if and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
+      {{- $icapHost := printf "%s.%s.svc.cluster.local" .Values.antivirus.icap.host (.Values.application.clamav.namespace | default "mijnbureau-clamav") }}
       - name: MALWARE_DETECTION_BACKEND
         value: "lasuite.malware_detection.backends.icap.ICAPBackend"
       - name: MALWARE_DETECTION_PARAMETERS
         value: {{ printf `{"callback_path": "core.file_upload.malware_detection.malware_detection_callback", "server_address": "%s", "server_port": %d, "service": "avscan"}` $icapHost (int .Values.antivirus.icap.port) | quote }}
+      {{- end }}
     {{- end }}
 
   celeryBeat:

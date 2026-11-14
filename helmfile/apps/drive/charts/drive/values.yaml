@@ -949,6 +949,18 @@ job:
   ttlSecondsAfterFinished: 3600
   podAnnotations: {}
   resources: {}
+  ## Helm hook ordering for the post-install/post-upgrade jobs: migrate runs
+  ## before superuser, superuser before the WOPI client registration.
+  ## @param job.migrate.weight Helm hook weight of the database migrate job
+  ## @param job.superuser.weight Helm hook weight of the superuser job
+  ## @param job.wopi.weight Helm hook weight of the WOPI configuration job
+  ##
+  migrate:
+    weight: "-10"
+  superuser:
+    weight: "0"
+  wopi:
+    weight: "10"
 ## @section Traffic Exposure Parameters
 ##
 

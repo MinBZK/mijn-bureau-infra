@@ -877,6 +877,15 @@ job:
   ttlSecondsAfterFinished: 3600
   podAnnotations: {}
   resources: {}
+  ## Helm hook ordering for the post-install/post-upgrade jobs: migrate runs
+  ## before superuser.
+  ## @param job.migrate.weight Helm hook weight of the database migrate job
+  ## @param job.superuser.weight Helm hook weight of the superuser job
+  ##
+  migrate:
+    weight: "-10"
+  superuser:
+    weight: "0"
 ## @section Meet agents Parameters
 ##
 

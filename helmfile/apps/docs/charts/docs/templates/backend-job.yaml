@@ -23,7 +23,10 @@ metadata:
     # name with before-hook-creation recreates the Job on each release instead
     # of patching it (or timestamped names, which make every render unique).
     helm.sh/hook: post-install,post-upgrade
-    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    {{- if $config.weight }}
+    helm.sh/hook-weight: {{ $config.weight | quote }}
+    {{- end }}
     {{- if or $config.annotations $.Values.commonAnnotations }}
     {{- $annotations := include "common.tplvalues.merge" (dict "values" (list $config.annotations $.Values.commonAnnotations) "context" .) }}
     {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}

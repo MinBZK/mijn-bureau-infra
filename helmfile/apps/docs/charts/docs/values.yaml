@@ -573,6 +573,7 @@ backend:
       - name: migrate
         annotations:
           argocd.argoproj.io/sync-options: Replace=true,Force=true
+        weight: "-10"
         command:
           - /bin/sh
           - "-c"
@@ -590,6 +591,7 @@ backend:
       - name: createSuperUser
         annotations:
           argocd.argoproj.io/sync-options: Replace=true,Force=true
+        weight: "0"
         command:
           - "/bin/sh"
           - "-c"

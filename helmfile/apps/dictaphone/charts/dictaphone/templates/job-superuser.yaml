@@ -11,8 +11,11 @@ metadata:
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
     app.kubernetes.io/component: backend-superuser
   annotations:
+    # post-install only: re-running createsuperuser on every upgrade would race
+    # user-customized credentials. Migrations order before it via hook-weight.
     helm.sh/hook: post-install
-    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: {{ .Values.jobs.superuser.weight | default "0" | quote }}
     {{- if .Values.commonAnnotations }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
     {{- end }}
