@@ -54,6 +54,12 @@ pvc:
   # Override it here to match the test's expected value.
   clamav:
     size: "42Gi"
+  # meet MinIO has an explicit pvc.meet.minio.size set in pvc.yaml.gotmpl,
+  # which takes priority over pvc.default.size in the coalesce chain.
+  # Override it here to match the test's expected value.
+  meet:
+    minio:
+      size: "42Gi"
   # Nextcloud also has explicit per-PVC sizes set in pvc.yaml.gotmpl
   # (config volume, postgres, MinIO). Override each to match the test.
   nextcloud:

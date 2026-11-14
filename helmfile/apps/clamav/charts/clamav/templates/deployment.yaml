@@ -177,6 +177,51 @@ spec:
           {{- if .Values.clamav.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.clamav.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
+        {{- if .Values.clamav.icap.enabled }}
+        # c-icap (virus_scan/clamd_mod) with its own embedded clamd/freshclam,
+        # exposing ClamAV over ICAP (RFC 3507) for django-lasuite's ICAPBackend.
+        # Self-contained on purpose: pointing clamd_mod at the main clamd
+        # requires sharing the TmpDir between containers with matching file
+        # permissions, which is brittle across images.
+        - name: icap
+          image: {{ include "clamav.icap.image" . | quote }}
+          imagePullPolicy: {{ .Values.clamav.icap.image.pullPolicy }}
+          {{- if .Values.clamav.icap.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.clamav.icap.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: icap
+              containerPort: {{ .Values.clamav.icap.port }}
+          startupProbe:
+            tcpSocket:
+              port: icap
+            # clamd must have loaded the virus database before the c-icap port
+            # listens; stay tolerant of slow freshclam cold starts.
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 24
+          readinessProbe:
+            tcpSocket:
+              port: icap
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          volumeMounts:
+            # Point the embedded clamd and clamd_mod at a dedicated port: the
+            # pod network namespace is shared with the main clamd which owns
+            # clamav.containerPorts.clamav.
+            - name: clamd-config
+              mountPath: /etc/clamav/clamd.conf
+              subPath: clamd-icap.conf
+            - name: clamd-config
+              mountPath: /etc/c-icap/clamd_mod.conf
+              subPath: clamd-mod-icap.conf
+          {{- if .Values.clamav.icap.resources }}
+          resources: {{- toYaml .Values.clamav.icap.resources | nindent 12 }}
+          {{- else if ne .Values.clamav.resourcesPreset "none" }}
+          # The embedded clamd has the same memory floor as the main clamd.
+          resources: {{- include "clamav.resources.preset" (dict "type" .Values.clamav.resourcesPreset) | nindent 12 }}
+          {{- end }}
+        {{- end }}
         {{- if .Values.clamav.sidecars }}
         {{- include "common.tplvalues.render" ( dict "value" .Values.clamav.sidecars "context" $) | nindent 8 }}
         {{- end }}

@@ -227,6 +227,15 @@ container:
     repository: "clamav/clamav"
     tag: "1.5.4"
     imagePullSecret: ~
+  clamav_icap:
+    registry: "registry-1.docker.io"
+    # c-icap (virus_scan/clamd_mod) in front of an embedded ClamAV daemon,
+    # exposing virus scanning over ICAP (RFC 3507) for LaSuite apps using
+    # django-lasuite's ICAPBackend. Self-contained: freshclam keeps its own
+    # virus database up to date.
+    repository: "opencloudeu/clamav-icap"
+    tag: "1.4.3"
+    imagePullSecret: ~
   cnpg_postgres:
     registry: "ghcr.io"
     repository: "cloudnative-pg/postgresql"

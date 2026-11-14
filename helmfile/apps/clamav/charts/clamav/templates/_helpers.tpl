@@ -11,6 +11,13 @@ Return the proper clamav image name
 {{- end -}}
 
 {{/*
+Return the proper ICAP sidecar image name
+*/}}
+{{- define "clamav.icap.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.clamav.icap.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "clamav.imagePullSecrets" -}}

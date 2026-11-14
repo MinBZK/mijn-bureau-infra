@@ -33,6 +33,19 @@ conversations:
 
   secretKey: {{ .Values.application.conversations.secretKey | quote }}
 
+  {{- if and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
+  {{- $icapHost := printf "%s.%s.svc.cluster.local" .Values.antivirus.icap.host (.Values.application.clamav.namespace | default "mijnbureau-clamav") }}
+  # Malware detection: scan chat attachments with ClamAV through the ICAP
+  # sidecar of the ClamAV release (django-lasuite ICAPBackend). The same
+  # variables are injected into the Celery worker below; the analysis task
+  # runs there while the callback is invoked from the backend.
+  extraEnvVars:
+    - name: MALWARE_DETECTION_BACKEND
+      value: "lasuite.malware_detection.backends.icap.ICAPBackend"
+    - name: MALWARE_DETECTION_PARAMETERS
+      value: {{ printf `{"callback_path": "core.file_upload.malware_detection.malware_detection_callback", "server_address": "%s", "server_port": %d, "service": "avscan"}` $icapHost (int .Values.antivirus.icap.port) | quote }}
+  {{- end }}
+
   CSRFTrustedOrigins: "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
   CORSAllowedOrigins: "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }},http://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
   AllowedHosts: "{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
@@ -54,6 +67,14 @@ conversations:
       hpa: {{ .Values.autoscaling.horizontal.conversations.celery | toYaml | nindent 8 }}
     pdb: {{ .Values.pdb.conversations.celery | toYaml | nindent 6 }}
     runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+    {{- if and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
+    {{- $icapHost := printf "%s.%s.svc.cluster.local" .Values.antivirus.icap.host (.Values.application.clamav.namespace | default "mijnbureau-clamav") }}
+    extraEnvVars:
+      - name: MALWARE_DETECTION_BACKEND
+        value: "lasuite.malware_detection.backends.icap.ICAPBackend"
+      - name: MALWARE_DETECTION_PARAMETERS
+        value: {{ printf `{"callback_path": "core.file_upload.malware_detection.malware_detection_callback", "server_address": "%s", "server_port": %d, "service": "avscan"}` $icapHost (int .Values.antivirus.icap.port) | quote }}
+    {{- end }}
 
   celeryBeat:
     resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.conversations.celeryBeat .Values.global.resourcesPreset | quote }}
@@ -176,4 +197,95 @@ job:
     limits:
       memory: 512Mi
       cpu: 200m
+{{- end }}
+
+{{- if and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
+# django-lasuite maintenance for the ICAP malware detection backend: recover
+# analyses stuck in PENDING/PROCESSING on worker restarts or ICAP timeouts.
+# Without these a lost analysis would leave the attachment stuck in ANALYZING.
+extraDeploy:
+  - apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: conversations-malware-check-pending
+      labels:
+        app.kubernetes.io/component: conversations-backend
+        app.kubernetes.io/part-of: conversations
+    spec:
+      schedule: "*/5 * * * *"
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 3
+      failedJobsHistoryLimit: 1
+      jobTemplate:
+        spec:
+          template:
+            metadata:
+              labels:
+                app.kubernetes.io/instance: conversations
+                app.kubernetes.io/name: conversations
+                app.kubernetes.io/component: conversations-backend
+            spec:
+              restartPolicy: Never
+              serviceAccountName: "conversations"
+              {{- with (coalesce .Values.container.conversations_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
+              imagePullSecrets:
+                - name: {{ . | quote }}
+              {{- end }}
+              {{- with .Values.cluster.runtimeClassName }}
+              runtimeClassName: {{ . | quote }}
+              {{- end }}
+              containers:
+                - name: check-pending-malware-analysis
+                  image: "{{ (coalesce .Values.container.conversations_backend.registry .Values.container.default.registry) }}/{{ .Values.container.conversations_backend.repository }}:{{ .Values.container.conversations_backend.tag }}"
+                  imagePullPolicy: IfNotPresent
+                  command: ["python", "manage.py", "check_analysis_pending"]
+                  securityContext: {{ omit .Values.security.default.containerSecurityContext "enabled" | toYaml | nindent 20 }}
+                  envFrom:
+                    - configMapRef:
+                        name: conversations
+                    - secretRef:
+                        name: conversations
+                  resources: {{ (index ((.Values.resource | default dict).conversations | default dict) "job" | default dict) | toYaml | nindent 20 }}
+  - apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: conversations-malware-reschedule-processing
+      labels:
+        app.kubernetes.io/component: conversations-backend
+        app.kubernetes.io/part-of: conversations
+    spec:
+      schedule: "0 4 * * *"
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 3
+      failedJobsHistoryLimit: 1
+      jobTemplate:
+        spec:
+          template:
+            metadata:
+              labels:
+                app.kubernetes.io/instance: conversations
+                app.kubernetes.io/name: conversations
+                app.kubernetes.io/component: conversations-backend
+            spec:
+              restartPolicy: Never
+              serviceAccountName: "conversations"
+              {{- with (coalesce .Values.container.conversations_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
+              imagePullSecrets:
+                - name: {{ . | quote }}
+              {{- end }}
+              {{- with .Values.cluster.runtimeClassName }}
+              runtimeClassName: {{ . | quote }}
+              {{- end }}
+              containers:
+                - name: reschedule-processing-malware-analysis
+                  image: "{{ (coalesce .Values.container.conversations_backend.registry .Values.container.default.registry) }}/{{ .Values.container.conversations_backend.repository }}:{{ .Values.container.conversations_backend.tag }}"
+                  imagePullPolicy: IfNotPresent
+                  command: ["python", "manage.py", "reschedule_processing_analysis"]
+                  securityContext: {{ omit .Values.security.default.containerSecurityContext "enabled" | toYaml | nindent 20 }}
+                  envFrom:
+                    - configMapRef:
+                        name: conversations
+                    - secretRef:
+                        name: conversations
+                  resources: {{ (index ((.Values.resource | default dict).conversations | default dict) "job" | default dict) | toYaml | nindent 20 }}
 {{- end }}

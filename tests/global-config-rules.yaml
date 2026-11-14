@@ -16,6 +16,9 @@ global:
     meet:
       backend: "xlarge"
       frontend: "xlarge"
+      # meet celeryBackend is pinned to "micro" in
+      # environments/default/global.yaml.gotmpl; override it for the test.
+      celeryBackend: "xlarge"
     docs:
       backend: "xlarge"
       frontend: "xlarge"
@@ -46,6 +49,10 @@ global:
     conversations:
       backend: "xlarge"
       frontend: "xlarge"
+      # conversations celery/celeryBeat are pinned to "micro" in
+      # environments/default/global.yaml.gotmpl; override them for the test.
+      celery: "xlarge"
+      celeryBeat: "xlarge"
     bureaublad:
       backend: "xlarge"
       frontend: "xlarge"

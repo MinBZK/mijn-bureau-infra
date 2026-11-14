@@ -2,6 +2,17 @@ antivirus:
   host: ~
   port: ~
   streamMaxLength: 1048576000
+  # ICAP endpoint (RFC 3507) for on-upload malware scanning, exposed as a
+  # c-icap sidecar on the ClamAV release. Consumed by LaSuite apps (Drive,
+  # Conversations, ...) through django-lasuite's ICAPBackend, which talks to
+  # the "avscan" virus_scan service alias. Set icap.enabled to false to
+  # remove the sidecar and keep the apps on their dummy malware backend.
+  icap:
+    enabled: true
+    # Service name inside application.clamav.namespace; consumers reach it as
+    # <host>.<namespace>.svc.cluster.local.
+    host: "clamav"
+    port: 1344
   mailFilter:
     enabled: false
     maxFileSize: 26214400

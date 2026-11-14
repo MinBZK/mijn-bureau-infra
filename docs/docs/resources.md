@@ -105,6 +105,7 @@ Some applications have hard minimum resource requirements that the standard pres
 - **Reason**: ClamAV needs to load the full virus signature database into memory. Below 3 GiB, the process will be OOM-killed.
 - **Floor**: All presets from `nano` to `large` are overridden to 1 CPU / 3Gi request, 2 CPU / 4Gi limit. Only `xlarge` and `2xlarge` scale beyond the floor.
 - **Reference**: [ClamAV System Requirements](https://docs.clamav.net/#recommended-system-requirements)
+- The optional ICAP sidecar (`antivirus.icap.enabled`) embeds a second clamd with its own database and is covered by the same preset floor. Set `resource.clamav.icap` to give it static resources instead (keep memory at 4 Gi or more).
 
 ### Collabora Online
 
