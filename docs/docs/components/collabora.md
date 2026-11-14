@@ -15,7 +15,7 @@ located in the folder `helmfile/environments/default`.
 | `application.collabora.namespace`             | The Kubernetes namespace name                       |
 | `application.collabora.enableInsecureCoolWSD` | Enable Insecure COOLWSD in Openshift                |
 | `tls.collabora.*`                             | The TLS settings for Collabora                      |
-| `autoscaling.horizontal.element.*`            | Autoscaling for Collabora.                          |
+| `autoscaling.horizontal.collabora.*`  | Autoscaling for Collabora.                          |
 | `container.collabora.*`                       | Container selection                                 |
 | `secret.collabora.*`                          | Authenticating with the Collabora                   |
 | `security.collabora.*`                        | Enable security context only for openshift          |

@@ -113,7 +113,7 @@ If you run tasks from VS Code, use:
 Notes:
 
 - `./scripts/test.sh` sets `MIJNBUREAU_MASTER_PASSWORD=test` internally. Rendering outside test.sh requires `MIJNBUREAU_MASTER_PASSWORD` to be set explicitly (there is no default).
-- `./scripts/policy.sh` accepts `-s` to set `SOPS_AGE_KEY` for decryption.
+- `./scripts/policy.sh` accepts `-e` to select the environment. For secrets decryption use `./scripts/test.sh -s "$SOPS_AGE_KEY"`.
 - If you change anything under `helmfile/`, also render every environment before reporting done:
   `MIJNBUREAU_MASTER_PASSWORD=test helmfile -e demo template`, `-e production template`, and `helmfile template` (default env). CI validates these via kubeconform and Conftest on the rendered manifests.
 

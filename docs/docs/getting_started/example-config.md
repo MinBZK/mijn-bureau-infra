@@ -24,15 +24,21 @@ global:
 
 Override the general resource settings for specific applications:
 
+Resource overrides use a three-level shape: `resource.<app>.<component>`, where the
+component name matches the component that consumes the values (e.g. `keycloak`'s
+server, `synapse`'s database pooler, `meet`'s backend). For example, to size the
+Keycloak server:
+
 ```yaml
 resource:
   keycloak:
-    requests:
-      memory: "64Mi"
-      cpu: "250m"
-    limits:
-      memory: "128Mi"
-      cpu: "500m"
+    keycloak:
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
 ```
 
 ## External Identity Providers
@@ -349,22 +355,6 @@ container:
     registry: "docker.io"
     repository: "yourcontainer"
     tag: "yourtag"
-```
-
-## Customizing Charts
-
-Replace default charts with your own:
-
-```yaml
-chart:
-  keycloak:
-    registry: registry-1.docker.io
-    repository: yourrepository
-    version: yourversion
-    verify: false
-    oci: true
-    username: ~
-    password: ~
 ```
 
 ## Email Application (Messages)

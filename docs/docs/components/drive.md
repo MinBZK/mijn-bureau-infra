@@ -14,12 +14,16 @@ located in the folder `helmfile/environments/default`.
 | `global.hostname.drive`          | The name of the subdomain for the drive client  |
 | `application.drive.enabled`      | Enable drive for your MijnBureau implementation |
 | `application.drive.namespace`    | The Kubernetes namespace name                   |
-| `authorization.drive.enabled`    | Enable drive for your MijnBureau implementation |
+| `authentication.client.drive.*`  | OIDC client configuration                       |
 | `tls.drive.*`                    | The TLS settings for drive                      |
+| `database.drive.*`               | Database configuration                          |
+| `cache.drive.*`                  | Cache (Valkey) configuration                    |
+| `objectstore.drive.*`            | Object store (S3/MinIO) configuration           |
 | `pvc.drive.*`                    | storage requirements                            |
-| `resources.drive.*`              | Resources for drive                             |
+| `resource.drive.*`               | Resources for drive                             |
 | `autoscaling.horizontal.drive.*` | Autoscaling for drive.                          |
-| `container.drive.*`              | Container selection                             |
+| `container.drive_backend.*`      | Container selection (backend)                   |
+| `container.drive_frontend.*`     | Container selection (frontend)                  |
 | `secret.drive.*`                 | Superuser credentials                           |
 
 ## More information

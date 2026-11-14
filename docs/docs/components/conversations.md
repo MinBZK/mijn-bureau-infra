@@ -11,15 +11,19 @@ located in the folder `helmfile/environments/default`.
 | ---------------------------------------- | ------------------------------------------------------- |
 | `global.domain`                          | The domain name of your MijnBureau instance             |
 | `global.hostname.conversations`          | The name of the subdomain for the conversations client  |
+| `global.hostname.conversations-static`   | The name of the subdomain for the static assets         |
 | `application.conversations.enabled`      | Enable conversations for your MijnBureau implementation |
 | `application.conversations.namespace`    | The Kubernetes namespace name                           |
-| `authorization.conversations.enabled`    | Enable conversations for your MijnBureau implementation |
+| `authentication.client.conversations.*`  | OIDC client configuration                               |
 | `tls.conversations.*`                    | The TLS settings for conversations                      |
+| `database.conversations.*`               | Database configuration                                  |
+| `cache.conversations.*`                  | Cache (Valkey) configuration                            |
 | `objectstore.conversations.*`            | Object store (S3/MinIO) configuration                   |
 | `pvc.conversations.*`                    | storage requirements                                    |
-| `resources.conversations.*`              | Resources for conversations                             |
+| `resource.conversations.*`               | Resources for conversations                             |
 | `autoscaling.horizontal.conversations.*` | Autoscaling for conversations.                          |
-| `container.conversations.*`              | Container selection                                     |
+| `container.conversations_backend.*`      | Container selection (backend)                           |
+| `container.conversations_frontend.*`     | Container selection (frontend)                          |
 | `secret.conversations.*`                 | Superuser credentials                                   |
 | `ai.llm.*`                               | AI used by conversations                                |
 

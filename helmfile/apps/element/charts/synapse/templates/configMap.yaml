@@ -151,6 +151,8 @@ data:
     serve_server_wellknown: {{ .Values.synapse.serveServerWellknown }}
     max_avatar_size: {{ .Values.synapse.avatar.maxSize | quote }}
     allowed_avatar_mimetypes: {{- .Values.synapse.avatar.allowedMimeTypes | toYaml | nindent 6 }}
+    enable_set_displayname: {{ .Values.synapse.profile.enableSetDisplayname }}
+    enable_set_avatar_url: {{ .Values.synapse.profile.enableSetAvatarUrl }}
     forgotten_room_retention_period: {{ .Values.synapse.forgottenRoomRetentionPeriod | quote }}
 
     retention:

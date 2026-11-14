@@ -13,16 +13,15 @@ located in the folder `helmfile/environments/default`.
 | `global.hostname.nextcloud`          | The subdomain name                             |
 | `application.nextcloud.enabled`      | Enable NextCloud                               |
 | `application.nextcloud.namespace`    | The Kubernetes namespace name                  |
-| `secrets.nextcloud.*`                | Secrets for NextCloud                          |
+| `secret.nextcloud.*`                 | Secrets for NextCloud                          |
 | `tls.nextcloud.*`                    | The TLS settings                               |
 | `authentication.client.nextcloud.*`  | The NextCloud OIDC clients created             |
 | `authentication.oidc.*`              | The MijnBureau OIDC settings                   |
 | `autoscaling.horizontal.nextcloud.*` | Scaling settings                               |
-| `chart.nextcloud.*`                  | Chart settings to overwrite the charts         |
 | `container.nextcloud.*`              | Container settings to overwrite                |
 | `database.nextcloud.*`               | Database configuration                         |
 | `pvc.nextcloud.*`                    | Storage configuration                          |
-| `resources.nextcloud.*`              | Resource configuration                         |
+| `resource.nextcloud.*`               | Resource configuration                         |
 | `objectstore.nextcloud.*`            | Object store configuration for primary storage |
 | `smtp.*`                             | Mail settings for NextCloud notifications      |
 

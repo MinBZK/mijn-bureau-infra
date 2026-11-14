@@ -15,19 +15,18 @@ located in the folder `helmfile/environments/default`.
 | `global.hostname.keycloak`          | The subdomain name                           |
 | `application.keycloak.enabled`      | Enable keycloak                              |
 | `application.keycloak.namespace`    | The Kubernetes namespace name                |
-| `secrets.keycloak.*`                | Secrets for keycloak                         |
+| `secret.keycloak.*`                 | Secrets for keycloak (admin user/password)   |
 | `tls.keycloak.*`                    | The TLS settings                             |
 | `authentication.client.*`           | The keycloak clients created                 |
 | `authentication.oidc.*`             | The MijnBureau OIDC settings                 |
 | `autoscaling.horizontal.keycloak.*` | Scaling settings                             |
-| `keycloak.yaml.gotmpl`              | Keycloak chart settings                      |
 | `container.keycloak.*`              | Container settings to overwrite              |
 | `database.keycloak.*`               | Database configuration                       |
 | `pvc.keycloak.*`                    | Storage configuration                        |
 | `resource.keycloak.*`               | Resource configuration                       |
 | `user.*`                            | Created users. Used in demo environment only |
 
-The database and object store are automaticly created when running in demo environment. For production environment you need to supply it.
+The database (a CloudNativePG PostgreSQL cluster) is automatically created when running in the demo environment. For production you need to supply an external database via `database.keycloak.*`. Keycloak has no object store.
 
 ## Your own Identity provider
 

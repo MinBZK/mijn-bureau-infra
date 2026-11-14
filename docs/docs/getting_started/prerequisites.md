@@ -16,12 +16,12 @@ MijnBureau has minimal prerequisites, requiring only a Kubernetes cluster and a 
 - AMD64 platform.
 - A LoadBalancer (or more) if you want to host video conferencing backend
 - A routing solution — one of:
-  - **Ingress controller**: Traefik or HAProxy (OpenShift).
+  - **Ingress controller**: Traefik (default) or HAProxy (OpenShift).
   - **Gateway API controller**: any [conformant Gateway API](https://gateway-api.sigs.k8s.io/) implementation (e.g. Nginx Gateway Fabric, Cilium, Envoy Gateway, Istio).
 - Access to DNS domain records
 
 > Ingress with Traefik is the primary and default routing option. Gateway API support is available as an alternative for clusters that already run a Gateway API controller.
-> Note: For ingress mode, currently only the Traefik and HAProxy controllers are supported. Additional controllers can be added if needed.
+> Note: For ingress mode, the Traefik (default), nginx and HAProxy (OpenShift) controllers are supported via `cluster.ingress.type`. Additional controllers can be added if needed.
 
 ### Kubernetes Resources
 

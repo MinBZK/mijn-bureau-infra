@@ -105,6 +105,11 @@ The following tables list the configurable parameters of the MAS chart and their
 | `config.clients`                             | Static OAuth2/OIDC clients (ULID client_id)      | `[]`                  |
 | `config.passwords.*`                         | Local password database settings                 | enabled, argon2id     |
 | `config.account.passwordRegistrationEnabled` | Self-service registration                        | `false`               |
+| `config.account.passwordChangeEnabled`       | Allow users to change their password             | `true`                |
+| `config.account.passwordRecoveryEnabled`     | Allow self-service password recovery             | `true`                |
+| `config.account.emailChangeAllowed`          | Allow users to change their email address        | `true`                |
+| `config.account.displaynameChangeAllowed`    | Allow users to change their display name         | `true`                |
+| `config.account.accountDeactivationAllowed`  | Allow users to deactivate their account          | `true`                |
 | `config.policy.extraData`                    | Extra OPA policy data                            | `{}`                  |
 | `config.branding.*`                          | Branding of the MAS UI                           | `null`                |
 | `config.upstreamOauth2.providers`            | Upstream OAuth2 providers                        | `[]`                  |

@@ -1707,6 +1707,11 @@ synapse:
   avatar:
     maxSize: null
     allowedMimeTypes: null
+  ## @param synapse.profile.enableSetDisplayname Whether users may change their own display name via the client API. Set to false when the display name is managed upstream (e.g. MAS/OIDC).
+  ## @param synapse.profile.enableSetAvatarUrl Whether users may change their own avatar via the client API. Set to false when the avatar is managed upstream (e.g. MAS/OIDC).
+  profile:
+    enableSetDisplayname: true
+    enableSetAvatarUrl: true
   ## @param synapse.forgottenRoomRetentionPeriod How long to keep locally forgotten rooms before purging them from the DB. A value of null means it's disabled.
   forgottenRoomRetentionPeriod: null
   retention:

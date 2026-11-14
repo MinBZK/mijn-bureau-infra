@@ -566,9 +566,19 @@ config:
     minimumComplexity: 3
   ## Account management settings
   ## @param config.account.passwordRegistrationEnabled Allow self-service password registration
+  ## @param config.account.passwordChangeEnabled Allow users to change their password
+  ## @param config.account.passwordRecoveryEnabled Allow self-service password recovery
+  ## @param config.account.emailChangeAllowed Allow users to change their email address
+  ## @param config.account.displaynameChangeAllowed Allow users to change their display name
+  ## @param config.account.accountDeactivationAllowed Allow users to deactivate their account
   ##
   account:
     passwordRegistrationEnabled: false
+    passwordChangeEnabled: true
+    passwordRecoveryEnabled: true
+    emailChangeAllowed: true
+    displaynameChangeAllowed: true
+    accountDeactivationAllowed: true
   ## Policy data (evaluated by the bundled OPA-style wasm policy)
   ## @param config.policy.extraData Extra policy data merged with the defaults
   ##

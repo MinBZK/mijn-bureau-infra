@@ -288,6 +288,11 @@ synapse:
   avatar:
     maxSize: "10M"
     allowedMimeTypes: ["image/png", "image/jpeg"]
+  # Profile display name and avatar are managed upstream (Keycloak via MAS);
+  # block client-side changes so they cannot drift out of sync.
+  profile:
+    enableSetDisplayname: false
+    enableSetAvatarUrl: false
   # How long to keep locally forgotten rooms before purging them from the DB.
   forgottenRoomRetentionPeriod: "28d"
   # Message retention policy at the server level.

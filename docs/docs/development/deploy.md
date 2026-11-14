@@ -15,7 +15,7 @@ This guide walks you through deploying MijnBureau to a local Kubernetes cluster 
 - [Go](https://go.dev/doc/install) (for installing cloud-provider-kind)
 - [Helm](https://helm.sh/docs/intro/install/)
 - [Helmfile](https://helmfile.readthedocs.io/en/latest/#installation)
-- [mkcerts](https://github.com/FiloSottile/mkcert)
+- [mkcert](https://github.com/FiloSottile/mkcert)
 
 ---
 
@@ -120,13 +120,19 @@ helmfile -e <environment> apply
 
 Replace `<environment>` with your target environment (e.g., `demo`, `production`). If omitted, the default environment is used.
 
-When the deployment is succesfull you will be able to connect to the tools. These URLS should work depending on which applications you enabled.
+When the deployment is successful you will be able to connect to the tools. These URLs should work depending on which applications you enabled:
 
-- [id](https://id.127.0.0.1.sslip.io)
-- [id-admin](https://chat.127.0.0.1.sslip.io)
-- [matrix](https://matrix.127.0.0.1.sslip.io)
-- [collabora](https://collabora.127.0.0.1.sslip.io)
+- [id](https://id.127.0.0.1.sslip.io) — Keycloak (user login and admin console)
+- [matrix](https://matrix.127.0.0.1.sslip.io) — Synapse (chat backend)
+- [element](https://element.127.0.0.1.sslip.io) — Element Web (chat client)
+- [bureaublad](https://bureaublad.127.0.0.1.sslip.io) — User portal/start page
+- [docs](https://docs.127.0.0.1.sslip.io) — Docs (notes)
+- [drive](https://drive.127.0.0.1.sslip.io) — Drive (file sharing)
+- [meet](https://meet.127.0.0.1.sslip.io) — Meet (video conferencing)
 - [nextcloud](https://nextcloud.127.0.0.1.sslip.io)
+- [collabora](https://collabora.127.0.0.1.sslip.io)
+
+See the [DNS](../dns.md) page for the full hostname map.
 
 ---
 
