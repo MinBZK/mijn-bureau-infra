@@ -14,8 +14,8 @@ located in the folder `helmfile/environments/default`.
 | `application.livekit.enabled`            | Enable Livekit                                                                                                  |
 | `application.livekit.namespace`          | The Kubernetes namespace name                                                                                   |
 | `application.livekit.loadBalancerIP`     | External IP of the loadbalancer                                                                                 |
-| `application.livekit.portRangeStart`   | Loadbalancer UDP port range start                                                                               |
-| `application.livekit.portRangeEnd`     | Loadbalancer UDP port range end                                                                                 |
+| `application.livekit.portRangeStart`     | Loadbalancer UDP port range start                                                                               |
+| `application.livekit.portRangeEnd`       | Loadbalancer UDP port range end                                                                                 |
 | `application.livekit.keys.*`             | Keys that are allowed to connect to livekit, you often want a key per external application                      |
 | `livekit.meet.apiKey`                    | Optional key name Meet uses; when combined with `livekit.meet.apiSecret` it is added to the LiveKit server keys |
 | `livekit.meet.apiSecret`                 | Optional secret for the Meet key; overrides the generated key secret on the LiveKit server                      |
@@ -23,7 +23,7 @@ located in the folder `helmfile/environments/default`.
 | `tls.livekit.*`                          | The TLS settings                                                                                                |
 | `autoscaling.horizontal.livekit.*`       | Scaling settings                                                                                                |
 | `autoscaling.horizontal.livekitEgress.*` | Scaling settings for egress                                                                                     |
-| `container.livekit_server.*`           | Container settings for the server                                                                               |
+| `container.livekit_server.*`             | Container settings for the server                                                                               |
 | `container.livekit_egress.*`             | Container settings for egress                                                                                   |
 | `pvc.livekit.*`                          | Storage configuration                                                                                           |
 | `resource.livekit.*`                     | Resource configuration                                                                                          |

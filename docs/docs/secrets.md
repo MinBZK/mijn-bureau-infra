@@ -6,16 +6,16 @@ sidebar_position: 6
 
 MijnBureau handles secrets in two layers:
 
-1. **Derived secrets** — all application and database passwords are *derived deterministically* from the master password `MIJNBUREAU_MASTER_PASSWORD`. Out of the box you do not need to store any password on disk.
-2. **SOPS secrets files** *(optional)* — for values that must be overridden per environment (for example SMTP relay credentials), you can add an encrypted `*.secrets.yaml` file to an environment.
+1. **Derived secrets** — all application and database passwords are _derived deterministically_ from the master password `MIJNBUREAU_MASTER_PASSWORD`. Out of the box you do not need to store any password on disk.
+2. **SOPS secrets files** _(optional)_ — for values that must be overridden per environment (for example SMTP relay credentials), you can add an encrypted `*.secrets.yaml` file to an environment.
 
 ---
 
 ## 1. Derived secrets (default)
 
-Every password in `helmfile/environments/default/secret.yaml.gotmpl` is generated with:
+Every password in `helmfile/environments/default/secret.yaml.gotmpl` is generated with a template call like:
 
-```yaml
+```
 {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "<app>" "<key>" | sha1sum }}
 ```
 

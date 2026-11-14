@@ -7,17 +7,17 @@ MijnBureau supplies an installation of [ClamAV](https://clamav.com/). ClamAV® i
 To configure this solution, you can override the default settings for your environment. The defaults are
 located in the folder `helmfile/environments/default`.
 
-| Name                           | Description                     |
-| ------------------------------ | ------------------------------- |
-| `application.clamav.enabled`   | Enable ClamAV                   |
-| `application.clamav.namespace` | The Kubernetes namespace name   |
-| `antivirus.*`                  | General antivirus settings      |
-| `antivirus.icap.*`             | ICAP server settings            |
+| Name                              | Description                     |
+| --------------------------------- | ------------------------------- |
+| `application.clamav.enabled`      | Enable ClamAV                   |
+| `application.clamav.namespace`    | The Kubernetes namespace name   |
+| `antivirus.*`                     | General antivirus settings      |
+| `antivirus.icap.*`                | ICAP server settings            |
 | `autoscaling.horizontal.clamav.*` | Autoscaling settings            |
-| `container.clamav.*`           | Container settings to overwrite |
-| `container.clamav_icap.*`      | ICAP sidecar image settings     |
-| `pvc.clamav.*`                 | Storage configuration           |
-| `resource.clamav.*`            | Resource configuration          |
+| `container.clamav.*`              | Container settings to overwrite |
+| `container.clamav_icap.*`         | ICAP sidecar image settings     |
+| `pvc.clamav.*`                    | Storage configuration           |
+| `resource.clamav.*`               | Resource configuration          |
 
 - NOTE: ClamAV requires 3-4GB memory when reading in a new database (see [documentation](https://docs.clamav.net/manual/Installing/Docker.html)). The ICAP sidecar embeds its own clamd and virus database and needs roughly the same amount on top.
 
