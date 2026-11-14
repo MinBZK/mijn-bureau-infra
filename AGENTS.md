@@ -101,18 +101,40 @@ If you run tasks from VS Code, use:
 
 ## Agent Workflow
 
-When you change infrastructure files, use this order:
+**Mandatory checklist — run ALL of these before reporting a change as done, in this order. Never skip them, never leave them to a later step, and never report "done" while any of them failed or was not run. The CI pipeline (`ci.yaml`) runs the equivalent checks on every push/PR, so skipping these locally means the change fails in CI.**
 
-1. Run `./scripts/format.sh` when formatting is needed.
-2. Run `./scripts/lint.sh` for lint checks.
-3. Run `./scripts/test.sh` for full policy validation.
-4. Run `./scripts/policy.sh` when you only need policy verification.
+```bash
+./scripts/format.sh               # Prettier over the repo; must produce no git diff afterwards
+./scripts/lint.sh                 # gitlint + helmfile lint
+./scripts/test.sh                 # full Conftest policy matrix against tests/*.yaml
+./scripts/policy.sh               # policy/ Rego rules against the rendered default environment
+```
+
+Notes:
+
+- `./scripts/test.sh` sets `MIJNBUREAU_MASTER_PASSWORD=test` internally. Rendering outside test.sh requires `MIJNBUREAU_MASTER_PASSWORD` to be set explicitly (there is no default).
+- `./scripts/policy.sh` accepts `-s` to set `SOPS_AGE_KEY` for decryption.
+- If you change anything under `helmfile/`, also render every environment before reporting done:
+  `MIJNBUREAU_MASTER_PASSWORD=test helmfile -e demo template`, `-e production template`, and `helmfile template` (default env). CI validates these via kubeconform and Conftest on the rendered manifests.
 
 When you change docs files:
 
 1. Run `cd docs && yarn` if dependencies are missing.
 2. Run `cd docs && yarn start` for local verification.
 3. Run `cd docs && yarn build` before finalizing changes.
+
+## Network isolation baseline
+
+When `cluster.networkPolicy.defaultDeny.enabled` is true (default), every
+enabled app with `application.<app>.namespace` set gets a
+`default-deny-ingress` NetworkPolicy from the `defaultdeny` release
+(`helmfile/apps/common/charts/defaultdeny`), allowing same-namespace traffic
+only. Routing into apps over Ingress/Gateway/LB depends on the chart's own
+NetworkPolicy (`allowExternal`, `ingressNSMatchLabels`) — chart-provided
+NetworkPolicies rely on namespaces carrying the `kubernetes.io/metadata.name`
+label (set by standard K8s / Fundament). The conftest policy
+`policy/netpol-namespaces.rego` warns when a NetworkPolicy selects a whole
+namespace without narrowing to pods.
 
 ## Troubleshooting
 

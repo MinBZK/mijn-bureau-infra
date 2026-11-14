@@ -1,0 +1,25 @@
+# Build the default-deny coverage from enabled applications with an explicit
+# namespace. Apps without a namespace land in whichever namespace helmfile
+# happens to target; baseline policies cannot cover them.
+namespaces:
+  {{- $entries := list }}
+  {{- range $app, $cfg := .Values.application }}
+    {{- if and (kindIs "map" $cfg) (dig "enabled" false $cfg) (dig "namespace" nil $cfg) }}
+      {{- $entries = append $entries (printf "- name: %s" (dig "namespace" nil $cfg | quote)) }}
+    {{- end }}
+  {{- end }}
+  {{- if $entries }}
+  {{- range $entries }}
+  {{ . }}
+  {{- end }}
+  {{- else }}
+  []
+  {{- end }}
+
+# The CloudNativePG operator (cnpg-system) must reach instance pods on the
+# instance-manager port; allow it in every isolated namespace.
+allowedCrossNamespaceIngress:
+  {{- range .Values.cluster.networkPolicy.defaultDeny.allow }}
+  - name: {{ .name | quote }}
+    ports: {{ .ports | toJson }}
+  {{- end }}

@@ -177,7 +177,7 @@ backend:
     DJANGO_EMAIL_URL_APP: {{ $baseUrl | quote }}
     DJANGO_EMAIL_USE_SSL: "false"
     DJANGO_EMAIL_USE_TLS: {{ .Values.smtp.tls.enabled | quote }}
-    DJANGO_SERVER_TO_SERVER_API_TOKENS: "secret-api-key"
+    DJANGO_SERVER_TO_SERVER_API_TOKENS: {{ .Values.application.docs.serverToServerApiToken | quote }}
     DJANGO_SECRET_KEY: {{ .Values.application.docs.backend.django.secretKey | quote }}
     DJANGO_SETTINGS_MODULE: "impress.settings"
     DJANGO_SUPERUSER_EMAIL: {{ .Values.secret.docs.superUser.email | quote }}

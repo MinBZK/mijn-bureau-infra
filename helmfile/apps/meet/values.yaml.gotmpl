@@ -51,7 +51,7 @@
   "IS_DOCS_INTEGRATION_ENABLED" "True"
   "IS_LASUITE_DOCS_INTEGRATION_ENABLED" "True"
   "LASUITE_DOCS_BASE_URL" (printf "https://%s.%s" .Values.global.hostname.docs .Values.global.domain)
-  "LASUITE_DOCS_SERVER_TO_SERVER_API_KEY" (dig "application" "docs" "serverToServerApiToken" "secret-api-key" .Values)
+  "LASUITE_DOCS_SERVER_TO_SERVER_API_KEY" (required "application.docs.serverToServerApiToken is not set" (dig "application" "docs" "serverToServerApiToken" nil .Values))
   "IS_SUMMARY_ENABLED" "True"
   "LLM_API_KEY" ""
   "LLM_BASE_URL" ""

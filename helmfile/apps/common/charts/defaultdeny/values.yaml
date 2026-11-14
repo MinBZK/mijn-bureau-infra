@@ -1,0 +1,36 @@
+# Baseline network isolation per application namespace.
+#
+# The chart creates one NetworkPolicy per namespace: inbound traffic is only
+# accepted from pods of the same namespace, or from sources an application
+# chart's own NetworkPolicy explicitly allows. Egress is intentionally not
+# restricted at this baseline level — component policies handle outbound
+# restrictions where they exist (denying egress here would also break DNS and
+# jobs that reach the Kubernetes API).
+
+## @param commonLabels Labels to add to all NetworkPolicies rendered by this chart
+##
+commonLabels: {}
+
+## @param commonAnnotations Annotations to add to all NetworkPolicies rendered by this chart
+##
+commonAnnotations: {}
+
+## @param allowedCrossNamespaceIngress Explicit cross-namespace inbound
+## exceptions applied to every covered namespace, e.g. an operator that must
+## manage workloads inside the application namespaces.
+## Example:
+## allowedCrossNamespaceIngress:
+##   - name: cnpg-system
+##     ports: [8000]
+##
+allowedCrossNamespaceIngress: []
+
+## @param namespaces Volumes to protect. Every entry creates a default-deny-ingress NetworkPolicy in that namespace.
+## Example:
+## namespaces:
+##   - name: mijnbureau-docs
+##   - name: mijnbureau-drive
+##     # Optionally disable the policy while keeping the namespace listed.
+##     enabled: true
+##
+namespaces: []

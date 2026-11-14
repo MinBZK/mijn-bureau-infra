@@ -30,6 +30,9 @@ spec:
           {{- include "cronjob.imagePullSecrets" . | nindent 10 }}
           restartPolicy: {{ .Values.cronjob.restartPolicy | default "OnFailure" }}
           serviceAccountName: {{ template "livekit_server.serviceAccountName" . }}
+          # kubectl inside the job must reach the Kubernetes API; the chart-wide
+          # default sets automountServiceAccountToken false for the server.
+          automountServiceAccountToken: true
           {{- if .Values.livekit.podSecurityContext.enabled }}
           securityContext: {{- omit .Values.livekit.podSecurityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
