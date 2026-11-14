@@ -12,6 +12,7 @@ dependencies:
     version: 2.31.1
 description: Assistant Transcripts (Dictaphone) transcription and meeting workflow
 home: https://minbzk.github.io/mijn-bureau-infra/
+icon: https://raw.githubusercontent.com/suitenumerique/dictaphone/main/src/frontend/public/assets/favicon-96x96.png
 keywords:
   - dictaphone
   - transcription

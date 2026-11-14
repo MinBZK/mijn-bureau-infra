@@ -1,21 +1,107 @@
-fullnameOverride: ""
+# SPDX-License-Identifier: APACHE-2.0
 
+## @section Global parameters
+
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## @param global.imageRegistry Global Docker Image registry
+## @param global.imagePullSecrets Global Docker registry secret names as an array
+##
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  ## Compatibility adaptations for Kubernetes platforms
+  ##
+  compatibility:
+    ## Compatibility adaptations for Openshift
+    ## @param global.compatibility.openshift.adaptSecurityContext Adapt the securityContext sections of the Job to make them compatible with Openshift restricted-v2 SCC: remove runAsUser, runAsGroup and fsGroup and let the platform use their allowed default IDs. Possible values: auto (apply if the detected running cluster is Openshift), force (perform the adaptation always), disabled (do not perform adaptation)
+    ##
+    openshift:
+      adaptSecurityContext: auto
+    ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
+    ##
+    omitEmptySeLinuxOptions: false
+
+## @section Common parameters
+
+## @param kubeVersion Override Kubernetes version reported by .Capabilities
+##
+kubeVersion: ""
+## @param apiVersions Override Kubernetes API versions reported by .Capabilities
+##
+apiVersions: []
+## @param nameOverride String to partially override common.names.name
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## Diagnostic mode
+## @param diagnosticMode.enabled Enable diagnostic mode (the command will be overridden)
+## @param diagnosticMode.command Command to override the Job container command
+## @param diagnosticMode.args Args to override the Job container command
+##
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section keycloak-config-cli parameters
+
+## keycloak-config-cli image
+## ref: https://hub.docker.com/r/adorsys/keycloak-config-cli/tags/
+## @param image.registry keycloak-config-cli image registry
+## @param image.repository keycloak-config-cli image repository
+## @param image.tag keycloak-config-cli image tag (immutable tags are recommended)
+## @param image.digest keycloak-config-cli image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag
+## @param image.pullPolicy keycloak-config-cli image pull policy
+##
 image:
   registry: docker.io
   repository: adorsys/keycloak-config-cli
   tag: 6.5.1-26.5.5
+  digest: ""
   pullPolicy: Always
 
+## @param imagePullSecrets Optionally specify an array of imagePullSecrets (evaluated as templates)
+## e.g:
+## imagePullSecrets:
+##   - name: myRegistryKeySecretName
+##
 imagePullSecrets: []
 
+## Keycloak connection parameters
+## @param keycloak.url Base URL of the Keycloak server. Use the headless/http service so the import does not depend on an ingress being ready
+## @param keycloak.user Keycloak admin user used for the import
+## @param keycloak.existingSecret Name of an existing secret holding the Keycloak admin password
+## @param keycloak.existingSecretKey Key in the existing secret holding the Keycloak admin password
+##
 keycloak:
-  # Base URL of the Keycloak server. Use the headless service so the import
-  # does not depend on an ingress being ready.
   url: http://keycloak-headless:80/
   user: admin
   existingSecret: keycloak-keycloak
   existingSecretKey: admin-password
 
+## Realm import parameters for keycloak-config-cli
+## ref: https://github.com/adorsys/keycloak-config-cli
+## @param import.filesLocations Locations of the realm import files inside the container
+## @param import.varSubstitutionEnabled Enable variable substitution in the import files
+## @param import.availabilityCheckEnabled Wait for Keycloak to be available before importing
+## @param import.availabilityCheckTimeout Timeout for the Keycloak availability check
+## @param import.files Map of import file names to (already rendered) file content, mounted at /config
+## @param import.secrets Map of environment variable names to secret values, exposed to the Job for variable substitution
+##
 import:
   filesLocations: /config/*
   varSubstitutionEnabled: true
@@ -24,19 +110,117 @@ import:
   files: {}
   secrets: {}
 
+## @param serviceAccountName Name of an existing ServiceAccount to use for the Job pods
+##
 serviceAccountName: keycloak
+## @param automountServiceAccountToken Mount Service Account token in keycloak-config-cli pods
+##
 automountServiceAccountToken: false
 
-podSecurityContext: {}
-securityContext: {}
+## @param command Override default keycloak-config-cli container command
+##
+command: []
+## @param args Override default keycloak-config-cli container args (useful when using custom images)
+##
+args: []
+
+## keycloak-config-cli resource requests and limits
+## ref: http://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+## @param resourcesPreset Set the keycloak-config-cli container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if resources is set (resources is recommended for production).
+## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl
+##
+resourcesPreset: "none"
+## @param resources Set keycloak-config-cli container requests and limits for different resources like CPU or memory (essential for production workloads)
+## Example:
+## resources:
+##   requests:
+##     cpu: 2
+##     memory: 512Mi
+##   limits:
+##     cpu: 3
+##     memory: 1024Mi
+##
 resources: {}
 
-networkPolicy:
-  enabled: true
-  egress:
-    - {}
+## @param podSecurityContext Configure Pods Security Context, rendered through common.compatibility.renderSecurityContext. Leave empty ({}) to disable
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+##
+podSecurityContext: {}
 
+## @param securityContext Configure the keycloak-config-cli container Security Context, rendered through common.compatibility.renderSecurityContext. Leave empty ({}) to disable
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+##
+securityContext: {}
+
+## @param jobAnnotations Annotations for the keycloak-config-cli Job
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+jobAnnotations: {}
+## @param podLabels Extra labels for keycloak-config-cli pods
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+##
+podLabels: {}
+## @param podAnnotations Annotations for keycloak-config-cli pods
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+podAnnotations: {}
+## @param affinity Affinity for keycloak-config-cli pods assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+##
+affinity: {}
+## @param nodeSelector Node labels for keycloak-config-cli pods assignment
+## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+##
+nodeSelector: {}
+## @param tolerations Tolerations for keycloak-config-cli pods assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+##
+tolerations: []
+## @param runtimeClassName Name of the runtime class name for keycloak-config-cli pods
+## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+##
+runtimeClassName: ""
+
+## @param extraEnvVars Array with extra environment variables to add to keycloak-config-cli containers
+## e.g:
+## extraEnvVars:
+##   - name: FOO
+##     value: "bar"
+##
+extraEnvVars: []
+## @param extraEnvVarsCM Name of existing ConfigMap containing extra env vars for keycloak-config-cli containers (evaluated as a template)
+##
+extraEnvVarsCM: ""
+## @param extraEnvVarsSecret Name of existing Secret containing extra env vars for keycloak-config-cli containers (evaluated as a template)
+##
+extraEnvVarsSecret: ""
+## @param extraVolumes Optionally specify extra list of additional volumes for the keycloak-config-cli pods (evaluated as a template)
+##
+extraVolumes: []
+## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for the keycloak-config-cli containers (evaluated as a template)
+##
+extraVolumeMounts: []
+
+## @section Job parameters
+
+## Job configuration. The Job runs as a post-install/post-upgrade/post-rollback Helm hook.
+## @param job.backoffLimit Number of retries before marking the Job as failed
+## @param job.ttlSecondsAfterFinished Time to keep finished Jobs before automatic cleanup
+## @param job.hookWeight Helm hook weight, controls the Job ordering across hook Jobs in the release
+##
 job:
   backoffLimit: 1
   ttlSecondsAfterFinished: 300
   hookWeight: "5"
+
+## @section Network policies
+
+## Network Policies
+## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
+## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+## @param networkPolicy.egress Array of egress rules for the NetworkPolicy
+##
+networkPolicy:
+  enabled: true
+  egress:
+    - {}

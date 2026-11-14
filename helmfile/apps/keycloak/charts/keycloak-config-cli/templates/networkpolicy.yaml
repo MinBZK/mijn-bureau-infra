@@ -1,15 +1,25 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
 {{- if .Values.networkPolicy.enabled }}
-apiVersion: networking.k8s.io/v1
+{{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.podLabels .Values.commonLabels) "context" .) }}
 kind: NetworkPolicy
+apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" . }}
 metadata:
-  name: {{ include "keycloak-config-cli.fullname" . }}
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "keycloak-config-cli.labels" . | nindent 4 }}
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: keycloak-config-cli
+    app.kubernetes.io/part-of: keycloak
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" .Values.commonAnnotations "context" $) | nindent 4 }}
+  {{- end }}
 spec:
   podSelector:
-    matchLabels:
-      {{- include "keycloak-config-cli.selectorLabels" . | nindent 6 }}
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" $podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: keycloak-config-cli
   policyTypes:
     - Egress
   egress:

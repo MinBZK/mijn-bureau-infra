@@ -1,6 +1,26 @@
+#
+# SPDX-License-Identifier: APACHE-2.0
+
+annotations:
+  category: Security
+  licenses: Apache-2.0
 apiVersion: v2
-name: keycloak-config-cli
+appVersion: "6.5.1"
+dependencies:
+  - name: common
+    repository: "file://../../../common/charts/common"
+    version: 2.31.1
 description: Import Keycloak realm configuration with adorsys/keycloak-config-cli
+home: https://minbzk.github.io/mijn-bureau-infra/
+keywords:
+  - keycloak
+  - realm
+  - config-cli
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: keycloak-config-cli
+sources:
+  - https://github.com/adorsys/keycloak-config-cli
 type: application
 version: 0.1.0
-appVersion: "6.5.1"

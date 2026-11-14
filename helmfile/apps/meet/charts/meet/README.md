@@ -171,6 +171,43 @@ Install the [Bitnami Kube Prometheus helm chart](https://github.com/bitnami/char
 
 To back up and restore Helm chart deployments on Kubernetes, you need to back up the persistent volumes from the source deployment and attach them to a new deployment using [Velero](https://velero.io/), a Kubernetes backup/restore tool.
 
+## Parameters
+
+| Parameter               | Description                                                  |
+| ----------------------- | ------------------------------------------------------------ |
+| `global`                | Global parameters shared with subcharts                      |
+| `kubeVersion`           | Override Kubernetes version reported by `.Capabilities`      |
+| `apiVersions`           | Override Kubernetes API versions reported by `.Capabilities` |
+| `nameOverride`          | String to partially override `common.names.name`             |
+| `fullnameOverride`      | String to fully override `common.names.fullname`             |
+| `namespaceOverride`     | String to fully override `common.names.namespace`            |
+| `commonLabels`          | Labels to add to all deployed objects                        |
+| `commonAnnotations`     | Annotations to add to all deployed objects                   |
+| `clusterDomain`         | Kubernetes cluster domain name                               |
+| `extraDeploy`           | Array of extra objects to deploy with the release            |
+| `diagnosticMode`        | Diagnostic mode to debug startup issues                      |
+| `meet`                  | Main Meet container parameters                               |
+| `meet_backend`          | Meet backend parameters                                      |
+| `job`                   | Database migration and bootstrap jobs                        |
+| `agent_metadata`        | LiveKit metadata collector agent                             |
+| `agent_subtitles`       | LiveKit subtitles agent                                      |
+| `celery_backend`        | Celery worker for the Meet backend                           |
+| `celery_summarize`      | Celery worker for transcript summarization                   |
+| `celery_transcribe`     | Celery worker for audio transcription                        |
+| `summary_api`           | Meeting summary API parameters                               |
+| `service`               | Meet service parameters                                      |
+| `networkPolicy`         | Network policy parameters                                    |
+| `ingress`               | Public hostname and TLS settings                             |
+| `persistence`           | Persistent volume storage parameters                         |
+| `defaultInitContainers` | Default init containers parameters                           |
+| `rbac`                  | RBAC configuration                                           |
+| `serviceAccount`        | Service account parameters                                   |
+| `metrics`               | Prometheus metrics                                           |
+| `externalRedis`         | External Redis connection details                            |
+| `externalMinio`         | External S3-compatible object storage configuration          |
+| `externalDatabase`      | External PostgreSQL connection details                       |
+| `authentication`        | OIDC issuer and client credentials                           |
+
 ## Troubleshooting
 
 Find more information about how to deal with common errors related to Bitnami's Helm charts in [this troubleshooting guide](https://docs.bitnami.com/general/how-to/troubleshoot-helm-chart-issues).

@@ -63,6 +63,10 @@ spec:
       {{- if .Values.backend.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.backend.terminationGracePeriodSeconds }}
       {{- end }}
+      {{- if .Values.calendars.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" .Values.calendars.initContainers "context" $) | nindent 8 }}
+      {{- end }}
       containers:
         - name: calendars
           image: {{ template "calendars.backend.image" . }}
@@ -141,6 +145,9 @@ spec:
             {{- if .Values.backend.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.backend.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
+        {{- if .Values.calendars.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.calendars.sidecars "context" $) | nindent 8 }}
+        {{- end }}
       volumes:
         - name: tmp
           emptyDir: {}

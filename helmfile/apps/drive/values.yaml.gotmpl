@@ -268,9 +268,17 @@ extraDeploy:
     kind: CronJob
     metadata:
       name: drive-malware-check-pending
+      # extraDeploy entries are rendered raw by this chart, so chase the
+      # release namespace and the common label set explicitly; the repo-wide
+      # conftest policies require it (policy/namespace.rego, policy/labels.rego).
+      namespace: {{ .Values.application.drive.namespace | default "mijnbureau-drive" | quote }}
       labels:
+        app.kubernetes.io/instance: drive
+        app.kubernetes.io/name: drive
+        app.kubernetes.io/version: {{ regexReplaceAll "^v" .Values.container.drive_backend.tag "" | quote }}
         app.kubernetes.io/component: drive-backend
         app.kubernetes.io/part-of: drive
+        app.kubernetes.io/managed-by: Helm
     spec:
       schedule: "*/5 * * * *"
       concurrencyPolicy: Forbid
@@ -310,9 +318,14 @@ extraDeploy:
     kind: CronJob
     metadata:
       name: drive-malware-reschedule-processing
+      namespace: {{ .Values.application.drive.namespace | default "mijnbureau-drive" | quote }}
       labels:
+        app.kubernetes.io/instance: drive
+        app.kubernetes.io/name: drive
+        app.kubernetes.io/version: {{ regexReplaceAll "^v" .Values.container.drive_backend.tag "" | quote }}
         app.kubernetes.io/component: drive-backend
         app.kubernetes.io/part-of: drive
+        app.kubernetes.io/managed-by: Helm
     spec:
       schedule: "0 4 * * *"
       concurrencyPolicy: Forbid

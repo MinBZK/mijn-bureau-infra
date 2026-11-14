@@ -9,6 +9,8 @@ annotations:
 apiVersion: v2
 name: collabora
 description: A Helm chart for Collabora Online
+home: https://minbzk.github.io/mijn-bureau-infra/
+icon: https://avatars.githubusercontent.com/u/22418908?v=4
 
 # A chart can be either an 'application' or a 'library' chart.
 #

@@ -131,7 +131,7 @@ clamav:
       registry: registry-1.docker.io
       repository: opencloudeu/clamav-icap
       tag: "1.4.3"
-      pullPolicy: IfNotPresent
+      pullPolicy: Always
     port: 1344
     # TCP port for the clamd embedded in the ICAP sidecar. Must differ from
     # clamav.containerPorts.clamav: pod containers share the network namespace.

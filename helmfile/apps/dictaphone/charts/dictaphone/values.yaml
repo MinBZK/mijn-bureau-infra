@@ -278,6 +278,20 @@ backend:
     enabled: true
     allowExternal: true
     allowExternalEgress: true
+    ## @param backend.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `allowExternal` is true.
+    ##
+    addExternalClientAccess: false
+    ## @param backend.networkPolicy.ingressNSMatchLabels Labels to match to allow traffic from other namespaces. Ignored if `allowExternal` is true.
+    ## @param backend.networkPolicy.ingressNSPodMatchLabels Pod labels to match to allow traffic from other namespaces. Ignored if `allowExternal` is true.
+    ##
+    ingressNSMatchLabels: {}
+    ingressNSPodMatchLabels: {}
+    ## @param backend.networkPolicy.ingressPodMatchLabels Labels to match to allow traffic from other pods. Ignored if `allowExternal` is true.
+    ## e.g:
+    ## ingressPodMatchLabels:
+    ##   my-client: "true"
+    ##
+    ingressPodMatchLabels: {}
     extraIngress: []
     extraEgress: []
 
@@ -488,6 +502,20 @@ frontend:
     enabled: true
     allowExternal: true
     allowExternalEgress: true
+    ## @param frontend.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `allowExternal` is true.
+    ##
+    addExternalClientAccess: false
+    ## @param frontend.networkPolicy.ingressNSMatchLabels Labels to match to allow traffic from other namespaces. Ignored if `allowExternal` is true.
+    ## @param frontend.networkPolicy.ingressNSPodMatchLabels Pod labels to match to allow traffic from other namespaces. Ignored if `allowExternal` is true.
+    ##
+    ingressNSMatchLabels: {}
+    ingressNSPodMatchLabels: {}
+    ## @param frontend.networkPolicy.ingressPodMatchLabels Labels to match to allow traffic from other pods. Ignored if `allowExternal` is true.
+    ## e.g:
+    ## ingressPodMatchLabels:
+    ##   my-client: "true"
+    ##
+    ingressPodMatchLabels: {}
     extraIngress: []
     extraEgress: []
 
@@ -663,6 +691,20 @@ celery:
     enabled: true
     allowExternal: true
     allowExternalEgress: true
+    ## @param celery.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `allowExternal` is true.
+    ##
+    addExternalClientAccess: false
+    ## @param celery.networkPolicy.ingressNSMatchLabels Labels to match to allow traffic from other namespaces. Ignored if `allowExternal` is true.
+    ## @param celery.networkPolicy.ingressNSPodMatchLabels Pod labels to match to allow traffic from other namespaces. Ignored if `allowExternal` is true.
+    ##
+    ingressNSMatchLabels: {}
+    ingressNSPodMatchLabels: {}
+    ## @param celery.networkPolicy.ingressPodMatchLabels Labels to match to allow traffic from other pods. Ignored if `allowExternal` is true.
+    ## e.g:
+    ## ingressPodMatchLabels:
+    ##   my-client: "true"
+    ##
+    ingressPodMatchLabels: {}
     extraIngress: []
     extraEgress: []
 
@@ -833,6 +875,20 @@ audioExtractor:
     enabled: true
     allowExternal: true
     allowExternalEgress: true
+    ## @param audioExtractor.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `allowExternal` is true.
+    ##
+    addExternalClientAccess: false
+    ## @param audioExtractor.networkPolicy.ingressNSMatchLabels Labels to match to allow traffic from other namespaces. Ignored if `allowExternal` is true.
+    ## @param audioExtractor.networkPolicy.ingressNSPodMatchLabels Pod labels to match to allow traffic from other namespaces. Ignored if `allowExternal` is true.
+    ##
+    ingressNSMatchLabels: {}
+    ingressNSPodMatchLabels: {}
+    ## @param audioExtractor.networkPolicy.ingressPodMatchLabels Labels to match to allow traffic from other pods. Ignored if `allowExternal` is true.
+    ## e.g:
+    ## ingressPodMatchLabels:
+    ##   my-client: "true"
+    ##
+    ingressPodMatchLabels: {}
     extraIngress: []
     extraEgress: []
 
@@ -1038,6 +1094,20 @@ s3Gateway:
     enabled: true
     allowExternal: true
     allowExternalEgress: true
+    ## @param s3Gateway.networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `allowExternal` is true.
+    ##
+    addExternalClientAccess: false
+    ## @param s3Gateway.networkPolicy.ingressNSMatchLabels Labels to match to allow traffic from other namespaces. Ignored if `allowExternal` is true.
+    ## @param s3Gateway.networkPolicy.ingressNSPodMatchLabels Pod labels to match to allow traffic from other namespaces. Ignored if `allowExternal` is true.
+    ##
+    ingressNSMatchLabels: {}
+    ingressNSPodMatchLabels: {}
+    ## @param s3Gateway.networkPolicy.ingressPodMatchLabels Labels to match to allow traffic from other pods. Ignored if `allowExternal` is true.
+    ## e.g:
+    ## ingressPodMatchLabels:
+    ##   my-client: "true"
+    ##
+    ingressPodMatchLabels: {}
     extraIngress: []
     extraEgress: []
 

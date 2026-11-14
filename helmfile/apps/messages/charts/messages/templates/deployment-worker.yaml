@@ -63,6 +63,10 @@ spec:
       {{- if .Values.worker.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.worker.terminationGracePeriodSeconds }}
       {{- end }}
+      {{- if .Values.messages.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" .Values.messages.initContainers "context" $) | nindent 8 }}
+      {{- end }}
       containers:
         - name: messages-worker
           image: {{ include "messages.worker.image" . }}
@@ -134,6 +138,9 @@ spec:
             {{- if .Values.worker.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.worker.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
+        {{- if .Values.messages.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.messages.sidecars "context" $) | nindent 8 }}
+        {{- end }}
       volumes:
         - name: tmp
           emptyDir: {}

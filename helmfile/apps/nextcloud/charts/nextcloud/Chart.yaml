@@ -8,6 +8,8 @@ annotations:
 apiVersion: v2
 appVersion: 35.0.2-apache
 description: "Nextcloud is a file sharing server that puts the control and security of your own data back into your hands."
+home: https://minbzk.github.io/mijn-bureau-infra/
+icon: https://avatars.githubusercontent.com/u/19211038?v=4
 keywords:
   - nextcloud
   - files

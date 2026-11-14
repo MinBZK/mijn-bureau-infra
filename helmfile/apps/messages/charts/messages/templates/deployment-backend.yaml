@@ -63,6 +63,10 @@ spec:
       {{- if .Values.backend.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.backend.terminationGracePeriodSeconds }}
       {{- end }}
+      {{- if .Values.messages.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" .Values.messages.initContainers "context" $) | nindent 8 }}
+      {{- end }}
       containers:
         - name: messages
           image: {{ include "messages.backend.image" . }}
@@ -142,6 +146,9 @@ spec:
             {{- if .Values.backend.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.backend.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
+        {{- if .Values.messages.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.messages.sidecars "context" $) | nindent 8 }}
+        {{- end }}
       volumes:
         - name: tmp
           emptyDir: {}

@@ -157,6 +157,34 @@ egress:
   extraEnvVarsCM: ""
   extraEnvVarsSecret: ""
 
+  ## @param egress.command Override default container command (useful when using custom images)
+  ## @param egress.args Override default container args (useful when using custom images)
+  ##
+  command: []
+  args: []
+
+  ## @param egress.sidecars Add additional sidecar containers to the egress pods
+  ## e.g:
+  ## sidecars:
+  ##   - name: your-image-name
+  ##     image: your-image
+  ##     imagePullPolicy: Always
+  ##     ports:
+  ##       - name: portname
+  ##         containerPort: 1234
+  ##
+  sidecars: []
+  ## @param egress.initContainers Add additional init containers to the egress pods (rendered after the writableDirs init container)
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ## e.g:
+  ## initContainers:
+  ##  - name: your-image-name
+  ##    image: your-image
+  ##    imagePullPolicy: Always
+  ##    command: ['sh', '-c', 'echo "hello world"']
+  ##
+  initContainers: []
+
   ## @param egress.extraVolumes Extra volumes for the egress pods
   ## @param egress.extraVolumeMounts Extra volume mounts for the egress container
   ##
@@ -214,6 +242,18 @@ egress:
     failureThreshold: 3
     successThreshold: 1
 
+  ## @param egress.customLivenessProbe Custom livenessProbe that overrides the default one
+  ## @param egress.customReadinessProbe Custom readinessProbe that overrides the default one
+  ## @param egress.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  customStartupProbe: {}
+
+  ## @param egress.lifecycleHooks for the egress container(s) to automate configuration before or after startup
+  ##
+  lifecycleHooks: {}
+
   ## @param egress.autoscaling.hpa.enabled Enable HPA for egress pods
   ## @param egress.autoscaling.hpa.minReplicas Minimum number of replicas
   ## @param egress.autoscaling.hpa.maxReplicas Maximum number of replicas
@@ -257,10 +297,31 @@ networkPolicy:
   ## @param networkPolicy.enabled Enable creation of NetworkPolicy resources
   ##
   enabled: true
+  ## @param networkPolicy.allowExternal Don't require server label for connections
+  ## The Policy model to apply. When set to false, only pods with the correct
+  ## server label will have network access to the ports server is listening
+  ## on. When true, server will accept connections from any source
+  ## (with the correct destination port).
+  ##
+  allowExternal: true
   ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations
   ## Egress needs external access for WebRTC media and optional RTMP streaming.
   ##
   allowExternalEgress: true
+  ## @param networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+  ##
+  addExternalClientAccess: false
+  ## @param networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+  ## @param networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+  ##
+  ingressNSMatchLabels: {}
+  ingressNSPodMatchLabels: {}
+  ## @param networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+  ## e.g:
+  ## ingressPodMatchLabels:
+  ##   my-client: "true"
+  ##
+  ingressPodMatchLabels: {}
   ## @param networkPolicy.extraIngress Additional ingress rules
   ## @param networkPolicy.extraEgress Additional egress rules (ignored when allowExternalEgress=true)
   ##
