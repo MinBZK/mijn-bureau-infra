@@ -55,6 +55,28 @@ releases:
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-element-web.yaml.gotmpl"
 
+  - name: "element-call"
+    chart: "charts/element-call"
+    installed: {{ and (.Values.application.element.enabled) (.Values.application.element.call.enabled | default false) | toYaml }}
+    {{- if .Values.application.element.namespace }}
+    namespace: {{ .Values.application.element.namespace | quote }}
+    {{- end }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values-element-call.yaml.gotmpl"
+
+  - name: "lk-jwt-service"
+    chart: "charts/lk-jwt-service"
+    installed: {{ and (.Values.application.element.enabled) (.Values.application.element.call.enabled | default false) .Values.application.livekit.enabled | toYaml }}
+    {{- if .Values.application.element.namespace }}
+    namespace: {{ .Values.application.element.namespace | quote }}
+    {{- end }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values-lk-jwt-service.yaml.gotmpl"
+
   - name: synapse
     chart: charts/synapse
     condition: application.element.enabled

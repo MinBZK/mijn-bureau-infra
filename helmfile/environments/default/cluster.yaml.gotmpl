@@ -39,7 +39,10 @@ cluster:
   routingMode: ingress
 
   ingress:                # ingress config (used when routingMode = ingress)
-    type: traefik       # traefik, nginx or haproxy-openshift
+    # traefik (default), nginx, haproxy-openshift or none; with
+    # routingMode=gateway-api set type to "none" — there is no ingress
+    # controller behind it and controller-specific middleware must not render.
+    type: traefik
     className: ~
     # Annotations applied to every Ingress resource.
     annotations: ~

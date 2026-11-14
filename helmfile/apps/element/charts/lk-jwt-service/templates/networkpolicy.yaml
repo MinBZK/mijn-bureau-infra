@@ -1,0 +1,40 @@
+{{- /*
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if .Values.networkPolicy.enabled }}
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: lk-jwt-service
+    app.kubernetes.io/part-of: matrix
+  {{- with .Values.commonAnnotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" .Values.commonLabels "context" $) | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    {{- if .Values.networkPolicy.allowExternalEgress }}
+    - {}
+    {{- else }}
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
+    {{- with .Values.networkPolicy.extraEgress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- end }}
+  ingress:
+    - ports:
+        - port: {{ .Values.containerPorts.http }}
+      {{- if not .Values.networkPolicy.allowExternal }}
+      from:
+        - podSelector:
+            matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" .Values.commonLabels "context" $) | nindent 14 }}
+      {{- end }}
+{{- end }}

@@ -302,18 +302,29 @@ config:
   features:
     feature_pinning: true
     feature_custom_themes: true
-    # Hide the voice/video call buttons in the room header.
-    feature_element_call_video_rooms: false
-    feature_group_calls: false
+    # Voice/video call buttons and Element Call video rooms; requires the
+    # element-call SPA and lk-jwt-service releases (application.element.call).
+    feature_element_call_video_rooms: {{ ternary "true" "false" (.Values.application.element.call.enabled | default false) }}
+    feature_group_calls: {{ ternary "true" "false" (.Values.application.element.call.enabled | default false) }}
     feature_html_topic: true
     feature_ask_to_join: true
+  {{- if .Values.application.element.call.enabled }}
+  # Embedded Element Call (MatrixRTC) configuration; url points at the
+  # element-call SPA release. use_exclusively replaces the legacy 1:1 call
+  # stack so all calls (incl. direct chats) go through MatrixRTC.
+  element_call:
+    url: {{ printf "https://%s.%s" (index .Values.global.hostname "element-call") .Values.global.domain | quote }}
+    participant_limit: null
+    use_exclusively: true
+    brand: "MijnBureau"
+  {{- end }}
   default_federate: true
   room_directory:
     servers:
       - {{ .Values.global.hostname.synapse | default "matrix-element" }}.{{ .Values.global.domain | default "example.com" }}
   setting_defaults:
     breadcrumbs: true
-    UIFeature.voip: false
+    UIFeature.voip: {{ ternary "true" "false" (.Values.application.element.call.enabled | default false) }}
   default_theme: "light"
   disable_guests: true
   force_verification: false

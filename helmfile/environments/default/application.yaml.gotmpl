@@ -36,6 +36,17 @@ application:
       # never rotate via the derives mechanism); change only if you must
       # re-bind the client registration.
       synapseClientUlid: "01JCCW00000000000000000000"
+    # Element Call: MatrixRTC video/audio calling in Element Web, backed by
+    # MatrixRTC transports announced through Synapse's well-known client data
+    # and authenticated by lk-jwt-service against the LiveKit SFU.
+    call:
+      enabled: true
+      # lk-jwt-service application service tokens (MSC4502/MSC4512 wiring with
+      # Synapse). as_token authenticates lk-jwt towards Synapse, hs_token is
+      # Synapse's credential towards the service; both sides read them from
+      # these values (lk-jwt Secret and Synapse's registration file).
+      asToken: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "lkjwt" "asToken" | sha1sum | quote }}
+      hsToken: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "lkjwt" "hsToken" | sha1sum | quote }}
 
   # Collabora Online is a standalone real-time collaborative document server  that runs in a browser, and integrates with file storage platforms Nextcloud via WOPI or WebSocket APIs.
   collabora:
@@ -61,6 +72,9 @@ application:
     turnTLSecretName: ~
     keys:
       apikey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "livekit" "apikey" | sha1sum | quote }}
+      # Dedicated key for Element Call (lk-jwt-service); deliberately separate
+      # from the apikey/meet key so credentials can be rotated independently.
+      elementcall: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "livekit" "elementcall" | sha1sum | quote }}
     # LiveKit Egress records rooms and streams them to S3/RTMP. Meet uses it
     # for room recordings; the upload target is objectstore.meet. All other
     # egress settings have sane defaults in the livekit-egress chart.

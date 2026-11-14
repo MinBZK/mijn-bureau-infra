@@ -40,6 +40,13 @@ backend:
   # TLS terminates at the gateway; redirecting in-cluster HTTP to :443 breaks
   # the audio-extractor's internal API polling.
   secureSslRedirect: "false"
+  # The mobile-app QR code (/api/v1.0/download-mobile-app/) redirects here;
+  # upstream defaults point at example.com. Point both at the web app itself.
+  extraEnvVars:
+    - name: MOBILE_APP_IOS_DOWNLOAD_LINK
+      value: {{ $baseUrl | quote }}
+    - name: MOBILE_APP_ANDROID_DOWNLOAD_LINK
+      value: {{ $baseUrl | quote }}
   replicaCount: 1
   resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.dictaphone.backend .Values.global.resourcesPreset | quote }}
   resources: {{ .Values.resource.dictaphone.backend | default dict | toYaml | nindent 4 }}

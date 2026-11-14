@@ -1,0 +1,113 @@
+{{- /*
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: lk-jwt-service
+    app.kubernetes.io/part-of: matrix
+  {{- with .Values.commonAnnotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" .Values.commonLabels "context" $) | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 8 }}
+        app.kubernetes.io/component: lk-jwt-service
+        app.kubernetes.io/part-of: matrix
+    spec:
+      {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) | nindent 6 }}
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "common.names.fullname" . }}
+      {{- else if .Values.serviceAccount.name }}
+      serviceAccountName: {{ .Values.serviceAccount.name | quote }}
+      {{- end }}
+      automountServiceAccountToken: false
+      {{- if .Values.runtimeClassName }}
+      runtimeClassName: {{ .Values.runtimeClassName | quote }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext: {{- include "common.tplvalues.render" (dict "value" (omit . "enabled") "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: lk-jwt-service
+          image: {{ include "lk-jwt-service.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.containerSecurityContext }}
+          securityContext: {{- include "common.tplvalues.render" (dict "value" (omit . "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: LIVEKIT_URL
+              value: {{ .Values.livekit.url | quote }}
+            - name: LIVEKIT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "common.names.fullname" . }}
+                  key: LIVEKIT_KEY
+            - name: LIVEKIT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "common.names.fullname" . }}
+                  key: LIVEKIT_SECRET
+            - name: LIVEKIT_FULL_ACCESS_HOMESERVERS
+              value: {{ .Values.livekit.fullAccessHomeservers | quote }}
+            - name: LIVEKIT_LOG_LEVEL
+              value: {{ .Values.livekit.logLevel | quote }}
+            - name: LIVEKIT_JWT_BIND
+              value: {{ .Values.livekit.livekitJwtBind | quote }}
+            {{- if .Values.livekit.asToken }}
+            - name: LIVEKIT_AS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "common.names.fullname" . }}
+                  key: LIVEKIT_AS_TOKEN
+            {{- end }}
+            {{- if .Values.livekit.hsToken }}
+            - name: LIVEKIT_HS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "common.names.fullname" . }}
+                  key: LIVEKIT_HS_TOKEN
+            {{- end }}
+            {{- if .Values.livekit.hsServerName }}
+            - name: LIVEKIT_HS_SERVER_NAME
+              value: {{ .Values.livekit.hsServerName | quote }}
+            {{- end }}
+            {{- if .Values.livekit.sanityCheckIntervalSeconds }}
+            - name: LIVEKIT_SANITY_CHECK_INTERVAL_SECONDS
+              value: {{ .Values.livekit.sanityCheckIntervalSeconds | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPorts.http }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+          resources: {{- include "lk-jwt-service.resources" . | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 8 }}
+      {{- end }}

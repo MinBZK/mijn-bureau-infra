@@ -82,6 +82,14 @@ container:
     registry: ""
     imagePullSecret: ""
 
+  element_call:
+    registry: ""
+    imagePullSecret: ""
+
+  lk_jwt_service:
+    registry: ""
+    imagePullSecret: ""
+
   synapse:
     registry: ""
     imagePullSecret: ""

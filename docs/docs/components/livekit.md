@@ -7,27 +7,29 @@ MijnBureau supplies an installation of [livekit](https://livekit.io/). Livekit i
 To configure this solution, you can override the default settings for your environment. The defaults are
 located in the folder `helmfile/environments/default`.
 
-| Name                                     | Description                                                                                                     |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `global.domain`                          | The domain name of your MijnBureau instance                                                                     |
-| `global.hostname.livekit`                | The subdomain name                                                                                              |
-| `application.livekit.enabled`            | Enable Livekit                                                                                                  |
-| `application.livekit.namespace`          | The Kubernetes namespace name                                                                                   |
-| `application.livekit.loadBalancerIP`     | External IP of the loadbalancer                                                                                 |
-| `application.livekit.portRangeStart`     | Loadbalancer UDP port range start                                                                               |
-| `application.livekit.portRangeEnd`       | Loadbalancer UDP port range end                                                                                 |
-| `application.livekit.keys.*`             | Keys that are allowed to connect to livekit, you often want a key per external application                      |
-| `livekit.meet.apiKey`                    | Optional key name Meet uses; when combined with `livekit.meet.apiSecret` it is added to the LiveKit server keys |
-| `livekit.meet.apiSecret`                 | Optional secret for the Meet key; overrides the generated key secret on the LiveKit server                      |
-| `application.livekit.egress.enabled`     | Deploy LiveKit Egress for recording and streaming                                                               |
-| `tls.livekit.*`                          | The TLS settings                                                                                                |
-| `autoscaling.horizontal.livekit.*`       | Scaling settings                                                                                                |
-| `autoscaling.horizontal.livekitEgress.*` | Scaling settings for egress                                                                                     |
-| `container.livekit_server.*`             | Container settings for the server                                                                               |
-| `container.livekit_egress.*`             | Container settings for egress                                                                                   |
-| `pvc.livekit.*`                          | Storage configuration                                                                                           |
-| `resource.livekit.*`                     | Resource configuration                                                                                          |
-| `cache.livekit.*`                        | Cache configuration                                                                                             |
+| Name                                     | Description                                                                                                                                |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `global.domain`                          | The domain name of your MijnBureau instance                                                                                                |
+| `global.hostname.livekit`                | The subdomain name                                                                                                                         |
+| `application.livekit.enabled`            | Enable Livekit                                                                                                                             |
+| `application.livekit.namespace`          | The Kubernetes namespace name                                                                                                              |
+| `application.livekit.loadBalancerIP`     | External IP of the loadbalancer                                                                                                            |
+| `application.livekit.portRangeStart`     | Loadbalancer UDP port range start                                                                                                          |
+| `application.livekit.portRangeEnd`       | Loadbalancer UDP port range end                                                                                                            |
+| `application.livekit.keys.*`             | Keys that are allowed to connect to livekit, you often want a key per external application                                                 |
+| `livekit.meet.apiKey`                    | Optional key name Meet uses; when combined with `livekit.meet.apiSecret` it is added to the LiveKit server keys                            |
+| `livekit.meet.apiSecret`                 | Optional secret for the Meet key; overrides the generated key secret on the LiveKit server                                                 |
+| `livekit.elementcall.apiKey`             | Optional key name Element Call's lk-jwt-service uses; combined with `livekit.elementcall.apiSecret` it is added to the LiveKit server keys |
+| `livekit.elementcall.apiSecret`          | Optional secret for the Element Call key; overrides the generated key secret on the LiveKit server                                         |
+| `application.livekit.egress.enabled`     | Deploy LiveKit Egress for recording and streaming                                                                                          |
+| `tls.livekit.*`                          | The TLS settings                                                                                                                           |
+| `autoscaling.horizontal.livekit.*`       | Scaling settings                                                                                                                           |
+| `autoscaling.horizontal.livekitEgress.*` | Scaling settings for egress                                                                                                                |
+| `container.livekit_server.*`             | Container settings for the server                                                                                                          |
+| `container.livekit_egress.*`             | Container settings for egress                                                                                                              |
+| `pvc.livekit.*`                          | Storage configuration                                                                                                                      |
+| `resource.livekit.*`                     | Resource configuration                                                                                                                     |
+| `cache.livekit.*`                        | Cache configuration                                                                                                                        |
 
 ## Egress
 

@@ -1,0 +1,23 @@
+{{- /*
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+    app.kubernetes.io/component: lk-jwt-service
+    app.kubernetes.io/part-of: matrix
+  {{- with .Values.commonAnnotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.ports.http }}
+      targetPort: http
+      protocol: TCP
+  selector: {{- include "common.labels.matchLabels" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}

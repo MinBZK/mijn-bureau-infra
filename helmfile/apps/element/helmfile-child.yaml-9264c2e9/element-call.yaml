@@ -1,0 +1,23 @@
+cluster:
+  gateway:
+    allowedRoutesNamespacesFrom: All
+    certManagerClusterIssuer: letsencrypt-prod-http
+    className: eg
+    name: envoy-gateway-system
+    namespace: mijnbureau-gatewayapi
+  ingress:
+    className: ""
+    type: traefik
+  routingMode: gateway-api
+  tls:
+    selfSigned: false
+global:
+  dns:
+    external:
+      port: 53
+    internal:
+      namespace: kube-system
+      port: 8053
+imageRegistry: ghcr.io
+security:
+  allowInsecureImages: true

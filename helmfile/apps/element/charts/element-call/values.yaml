@@ -1,0 +1,72 @@
+# Default values for element-call.
+# The deployment-facing configuration lives in the helmfile values file
+# helmfile/apps/element/values-element-call.yaml.gotmpl.
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+image:
+  registry: ghcr.io
+  repository: element-hq/element-call
+  tag: v0.28.2
+  pullPolicy: Always
+  pullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+
+commonLabels: {}
+commonAnnotations: {}
+
+replicaCount: 1
+revisionHistoryLimit: 10
+
+# Element Call runtime configuration, rendered as the SPA's config.json.
+# Keys follow config/config.sample.json upstream.
+config:
+  # Matrix homeserver defaults for default_server_config
+  homeserverBaseUrl: ""
+  homeserverServerName: ""
+  # MatrixRTC LiveKit JWT service URL (lk-jwt-service public endpoint)
+  livekitServiceUrl: ""
+  matrixRtcMode: "compatibility"
+  membershipEventExpiryMs: 180000000
+  networkErrorRetryMs: 100
+
+containerPorts:
+  http: 8080
+
+service:
+  type: ClusterIP
+  ports:
+    http: 80
+
+serviceAccount:
+  create: true
+  name: ""
+
+resources: {}
+resourcesPreset: "none"
+
+podSecurityContext: {}
+containerSecurityContext: {}
+
+ingress:
+  enabled: false
+  hostname: ""
+  pathType: Prefix
+  ingressClassName: ""
+  annotations: {}
+  tls: false
+  selfSigned: false
+  extraTls: []
+
+networkPolicy:
+  enabled: true
+  # Public static SPA: Element Web embeds it in an iframe; browsers fetch it
+  # directly through the ingress/gateway.
+  allowExternal: true
+  allowExternalEgress: false
+  extraEgress: []
