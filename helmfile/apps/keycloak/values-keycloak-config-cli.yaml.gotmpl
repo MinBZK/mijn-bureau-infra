@@ -69,6 +69,7 @@ import:
     MB_CLIENT_SECRET_NEXTCLOUD: {{ .Values.authentication.client.nextcloud.client_secret | quote }}
     MB_CLIENT_SECRET_DOCS: {{ .Values.authentication.client.docs.client_secret | quote }}
     MB_CLIENT_SECRET_BUREAUBLAD: {{ .Values.authentication.client.bureaublad.client_secret | quote }}
+    MB_CLIENT_SECRET_MAS: {{ .Values.authentication.client.mas.client_secret | quote }}
     MB_SMTP_PASSWORD: {{ .Values.smtp.password | quote }}
     {{- if eq .Environment.Name "demo" }}
     {{- range $user := .Values.user }}
@@ -514,6 +515,47 @@ import:
               "frontchannel.logout.session.required": "false",
               "oauth2.device.authorization.grant.enabled": "false",
               "display.on.consent.screen": "false"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.mas.client_id }}",
+            "name": "Matrix Authentication Service",
+            "description": "OIDC broker in front of Synapse (Element X / native Matrix clients)",
+            "rootUrl": "https://{{ .Values.global.hostname.mas }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.mas }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.mas }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_MAS)",
+            # MAS upstream OIDC callbacks end on /upstream/callback/<ulid>; the
+            # ULID of the MAS-managed provider entry lives in the element chart values.
+            "redirectUris": [
+              "https://{{ .Values.global.hostname.mas }}.{{ .Values.global.domain }}/upstream/callback/01JCCW0000000000000000000K"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.mas }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": false,
+            "publicClient": false,
+            "frontchannelLogout": true,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "client.secret.creation.time": "1759388679",
+              "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false",
+              "standard.token.exchange.enabled": "true",
+              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.mas }}.{{ .Values.global.domain }}/*"
             }
           },
           {

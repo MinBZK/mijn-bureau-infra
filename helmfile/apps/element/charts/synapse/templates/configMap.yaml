@@ -181,3 +181,13 @@ data:
       only_from_local_users: {{ .Values.synapse.autoAcceptInvites.onlyFromLocalUsers }}
 
     experimental_features: {{- .Values.synapse.experimentalFeatures | toYaml | nindent 6 }}
+
+    {{- if .Values.synapse.matrixAuthenticationService }}
+    # Top-level in Synapse >= 1.164 (MSC3861 was removed from
+    # experimental_features there). Values are passed through verbatim.
+    matrix_authentication_service: {{- .Values.synapse.matrixAuthenticationService | toYaml | nindent 6 }}
+    {{- end }}
+
+    {{- if .Values.synapse.extraWellKnownClientContent }}
+    extra_well_known_client_content: {{- .Values.synapse.extraWellKnownClientContent | toYaml | nindent 6 }}
+    {{- end }}

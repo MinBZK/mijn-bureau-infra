@@ -1,0 +1,341 @@
+# Default values for matrix-authentication-service (mas).
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+{{- /*
+  $serverName is the name of the server in the Matrix ecosystem
+  $hostName is the hostname MAS is available at
+  $synapseEndpoint is the in-cluster URL at which MAS reaches the Synapse master
+  service (release `synapse`, monolith architecture renders a Service named
+  `synapse` with port 8448).
+*/ -}}
+{{- $hostName := printf "%s.%s" .Values.global.hostname.mas .Values.global.domain -}}
+{{- $serverName := .Values.global.matrixDomain | default (printf "%s.%s" .Values.global.hostname.synapse .Values.global.domain) -}}
+{{- $synapseEndpoint := "http://synapse:8448" -}}
+{{- if .Values.application.element.namespace -}}
+{{- $synapseEndpoint = printf "http://synapse.%s.svc.%s:8448" .Values.application.element.namespace (.Values.cluster.networking.domain | default "cluster.local") -}}
+{{- end }}
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+global:
+  ## Global Docker image parameters
+  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+  ## @param global.imageRegistry Global Docker Image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: {{ .Values.container.default.registry | quote }}
+  imagePullSecrets: []
+  ## Security parameters
+  ## @param global.security.allowInsecureImages Allows skipping image verification
+  ##
+  security:
+    allowInsecureImages: true
+  ## Compatibility adaptations for Kubernetes platforms
+  ##
+  compatibility:
+    ## Compatibility adaptations for Openshift
+    ## @param global.compatibility.openshift.adaptSecurityContext Adapt the securityContext sections of the deployment to make them compatible with Openshift restricted-v2 SCC: remove runAsUser, runAsGroup and fsGroup and let the platform use their allowed default IDs. Possible values: auto (apply if the detected running cluster is Openshift), force (perform the adaptation always), disabled (do not perform adaptation)
+    ##
+    openshift:
+      adaptSecurityContext: auto
+    ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
+    ##
+    omitEmptySeLinuxOptions: false
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  registry: {{ coalesce .Values.container.matrix_auth_service.registry .Values.container.default.registry | quote }}
+  repository: {{ .Values.container.matrix_auth_service.repository }}
+  # This sets the pull policy for images.
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: {{ .Values.container.matrix_auth_service.tag }}
+  {{- with (coalesce .Values.container.matrix_auth_service.imagePullSecret .Values.container.default.imagePullSecret) }}
+  pullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+
+# Predefined resource configuration level like 'micro', 'small', etc.
+resourcesPreset: {{ coalesce (index .Values.global.resourcesPresetPerApp "mas") .Values.global.resourcesPreset | quote }}
+
+# MAS is configured from two files: /config/config.yaml (ConfigMap with the
+# public surface) and /etc/mas/secrets.yaml (Secret with credentials, matrix
+# secret and the upstream provider). Pass both to mas-cli server.
+args:
+  - server
+  - --config
+  - /config/config.yaml
+  - --config
+  - /etc/mas/secrets.yaml
+
+{{- if .Values.cluster.runtimeClassName }}
+runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+{{- end }}
+
+# CPU and memory requests and limits for the container (overrides resourcesPreset)
+resources: {{ index .Values.resource.element "mas" | toYaml | nindent 2 }}
+
+# Security context settings applied at the pod level
+podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 2 }}
+
+# Security context settings specific to the container
+containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 2 }}
+
+# Number of desired pod replicas
+replicaCount: 1
+
+# MAS runs database migrations at startup; allow enough startup time.
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 15
+  failureThreshold: 30
+
+networkPolicy:
+  enabled: true
+  # Restrict external access - only allow specific ingress sources
+  allowExternal: false
+  # Restrict external egress - only allow specific destinations
+  allowExternalEgress: false
+
+  extraIngress:
+    # Allow traffic from ingress controller namespace
+    - ports:
+        - port: 8080
+          protocol: TCP
+    {{- if .Values.metric.enabled }}
+    # Allow Prometheus to scrape metrics on the internal listener
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.metric.namespace }}
+      ports:
+        - port: 8081
+          protocol: TCP
+    {{- end }}
+
+  extraEgress:
+    # Allow https egress for OIDC/upstream connections
+    - ports:
+        - port: 443
+    # Keycloak OIDC connectivity (internal service and pod ports)
+    - ports:
+        - port: 80
+          protocol: TCP
+        - port: 8080
+          protocol: TCP
+      to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.application.keycloak.namespace | default "mijnbureau-keycloak" | quote }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: keycloak-keycloak
+              app.kubernetes.io/name: keycloak
+    # Synapse homeserver API (in-cluster)
+    - ports:
+        - port: 8448
+          protocol: TCP
+    # SMTP relay
+    - ports:
+        - port: {{ .Values.smtp.port | default 587 }}
+          protocol: TCP
+    {{- if .Values.database.mas }}
+    # PostgreSQL (element CNPG cluster) or external database
+    - ports:
+        - port: {{ .Values.database.mas.port }}
+      {{- if .Values.database.mas.isInternal }}
+      to:
+        - podSelector:
+            matchLabels:
+              cnpg.io/cluster: element-cluster
+              role: primary
+      {{- end }}
+    {{- end }}
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  hostname: {{ $hostName }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ index .Values.tls "mas" | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+
+# This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automountServiceAccountToken: false
+
+# Pod Disruption Budget (shared element budget; no mas-specific key exists)
+pdb: {{ .Values.pdb.element | toYaml | nindent 2 }}
+
+# Prometheus metrics on the internal listener
+metrics:
+  enabled: {{ .Values.metric.enabled | default false }}
+
+# MAS application-level configuration.
+# The http block is rendered into a ConfigMap; everything else is rendered into
+# a Secret. Secret material is referenced from the config via `*_file` paths
+# pointing at mounted Secret keys; the encryption secret and RSA signing key
+# are generated once by the keygen hook Job.
+config:
+  publicBase: {{ printf "https://%s/" $hostName | quote }}
+  # OIDC issuer advertised by MAS; keep it on the MAS host: the clients resolve
+  # <issuer>/.well-known/openid-configuration, so this must be publicly valid
+  # (not the bare base domain, which has no ingress).
+  issuer: {{ printf "https://%s.%s/" .Values.global.hostname.mas .Values.global.domain | quote }}
+  database:
+    host: {{ .Values.database.mas.host | quote }}
+    port: {{ .Values.database.mas.port }}
+    database: {{ .Values.database.mas.name | quote }}
+    username: {{ .Values.database.mas.user | quote }}
+    password: {{ .Values.database.mas.password | quote }}
+    maxConnections: 10
+    minConnections: 0
+    connectTimeout: 30
+    idleTimeout: 600
+    maxLifetime: 1800
+  email:
+    from: {{ printf "%s <%s>" .Values.smtp.from.name .Values.smtp.from.email | quote }}
+    replyTo: {{ printf "%s <%s>" .Values.smtp.from.name .Values.smtp.from.email | quote }}
+    transport: smtp
+    mode: {{ if .Values.smtp.tls.force }}tls{{ else if .Values.smtp.tls.enabled }}starttls{{ else }}plain{{ end }}
+    hostname: {{ .Values.smtp.host | quote }}
+    port: {{ .Values.smtp.port | default 587 }}
+    username: {{ .Values.smtp.username | quote }}
+    password: {{ .Values.smtp.password | quote }}
+  matrix:
+    homeserver: {{ $serverName | quote }}
+    endpoint: {{ $synapseEndpoint | quote }}
+    secret: {{ .Values.application.element.mas.sharedSecret | quote }}
+  clients:
+    # Static Synapse (MSC3861 delegation) client. The client_id is a ULID and
+    # must stay stable; override via application.element.mas.synapseClientUlid.
+    - clientId: {{ .Values.application.element.mas.synapseClientUlid | default "01JCCW00000000000000000000" | quote }}
+      clientAuthMethod: client_secret_basic
+      clientSecret: {{ .Values.application.element.mas.sharedSecret | quote }}
+  # OIDC-only: with enabled=false MAS hides the local username/password login
+  # and only shows the upstream providers (Mijn Bureau / Keycloak).
+  passwords:
+    enabled: false
+    minimumComplexity: 3
+  account:
+    passwordRegistrationEnabled: false
+  upstreamOauth2:
+    # Passthrough of the MAS `upstream_oauth2.providers` section — keys are
+    # the exact ones MAS expects (snake_case). MAS fronts Keycloak: users pick
+    # "Mijn Bureau" on the MAS login page, complete the Keycloak OIDC flow, and
+    # land on MAS-bound sessions. The ULID id is referenced by the Keycloak
+    # client's redirect URI in the realm configuration.
+    providers:
+      - id: "01JCCW0000000000000000000K"
+        # Old legacy Synapse users land on this provider through user_external_ids
+        # where the auth_provider was oidc-mijnbureau (Synapse's "oidc-" prefix
+        # + the idp_id of the legacy oidc_providers entry).
+        synapse_idp_id: "oidc-mijnbureau"
+        human_name: "Mijn Bureau"
+        issuer: {{ .Values.authentication.oidc.issuer | quote }}
+        client_id: {{ .Values.authentication.client.mas.client_id | quote }}
+        client_secret: {{ .Values.authentication.client.mas.client_secret | quote }}
+        token_endpoint_auth_method: client_secret_post
+        scope: "openid profile email"
+        claims_imports:
+          subject:
+            template: {{ print "{{ user.sub }}" | quote }}
+          localpart:
+            action: require
+            template: {{ print "{{ user.preferred_username }}" | quote }}
+            on_conflict: add
+          displayname:
+            action: suggest
+            template: {{ print "{{ user.name }}" | quote }}
+          email:
+            action: suggest
+            template: {{ print "{{ user.email }}" | quote }}
+  experimental:
+    accessTokenTtl: 86400
+    compatTokenTtl: 86400
+
+keygenJob:
+  enabled: true
+  kubectl:
+    image:
+      registry: {{ coalesce .Values.container.kubectl.registry .Values.container.default.registry | quote }}
+      repository: {{ .Values.container.kubectl.repository }}
+      tag: {{ .Values.container.kubectl.tag }}
+      pullPolicy: Always
+      {{- with (coalesce .Values.container.kubectl.imagePullSecret .Values.container.default.imagePullSecret) }}
+      pullSecrets:
+        - {{ . | quote }}
+      {{- end }}
+  shell:
+    image:
+      registry: {{ coalesce .Values.container.busybox.registry .Values.container.default.registry | quote }}
+      repository: {{ .Values.container.busybox.repository }}
+      tag: {{ .Values.container.busybox.tag }}
+      pullPolicy: Always
+      {{- with (coalesce .Values.container.busybox.imagePullSecret .Values.container.default.imagePullSecret) }}
+      pullSecrets:
+        - {{ . | quote }}
+      {{- end }}
+  {{- if ne .Values.global.resourcesPreset "none" }}
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+  {{- end }}
+
+# Create the `mas` role and database on the element CNPG cluster (demo only).
+databaseBootstrap:
+  enabled: {{ .Values.database.mas.isInternal | default false }}
+  host: {{ .Values.database.mas.host | quote }}
+  port: {{ .Values.database.mas.port }}
+  superuserSecret: element-cluster-superuser
+  image:
+    registry: {{ coalesce .Values.container.cnpg_postgres.registry .Values.container.default.registry | quote }}
+    repository: {{ .Values.container.cnpg_postgres.repository }}
+    tag: {{ .Values.container.cnpg_postgres.tag }}
+    pullPolicy: Always
+    {{- with (coalesce .Values.container.cnpg_postgres.imagePullSecret .Values.container.default.imagePullSecret) }}
+    pullSecrets:
+      - {{ . | quote }}
+    {{- end }}
+  {{- if ne .Values.global.resourcesPreset "none" }}
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+  {{- end }}
+
+# labels for pod assignment
+nodeSelector: {}
+
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity rules for pod assignment
+affinity: {}

@@ -323,6 +323,15 @@ config:
   disable_3pid_login: true
   default_widget_container_height: 280
   map_style_url: ""
+  {{- if .Values.application.element.mas.enabled }}
+  # OIDC-native login for Matrix clients (Element X); Synapse delegates auth to
+  # MAS via MSC3861.
+  msc2965:
+    issuer: {{ printf "https://%s.%s/" .Values.global.hostname.mas .Values.global.domain | quote }}
+    account_management_url: {{ printf "https://%s.%s/account/" .Values.global.hostname.mas .Values.global.domain | quote }}
+    account_manage_grants_url: {{ printf "https://%s.%s/connections/" .Values.global.hostname.mas .Values.global.domain | quote }}
+    registration_supported: false
+  {{- end }}
 
 # labels for pod assignment
 nodeSelector: {}

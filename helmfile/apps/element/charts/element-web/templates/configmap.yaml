@@ -57,4 +57,7 @@ data:
       "default_widget_container_height": {{ .Values.config.default_widget_container_height }},
       "show_labs_settings": {{ .Values.config.show_labs_settings }},
       "map_style_url": "{{ .Values.config.map_style_url }}"
+      {{- with .Values.config.msc2965 }},
+      "org.matrix.msc2965.authentication": {{ . | toJson }}
+      {{- end }}
     }

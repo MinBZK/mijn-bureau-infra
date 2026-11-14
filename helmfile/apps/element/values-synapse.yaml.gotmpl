@@ -303,7 +303,12 @@ synapse:
   # Users who register on this homeserver will automatically be joined to the rooms listed under this option.
   autoJoinRooms: [{{ (printf "#%s:%s" "welkom" $serverName) | quote }}]
   # List of OpenID Connect (OIDC) / OAuth 2.0 identity providers, for registration and login.
+  # Mutually exclusive with MAS: when application.element.mas.enabled is true,
+  # Synapse delegates auth to it via matrix_authentication_service.
   oidcProviders:
+    {{- if .Values.application.element.mas.enabled }}
+    []
+    {{- else }}
     - idp_id: mijnbureau
       idp_name: "MijnBureau authenticatie"
       backchannel_logout_enabled: true
@@ -332,6 +337,7 @@ synapse:
           display_name_template: {{`'{{ user.`}}{{ .Values.authentication.oidc.claims.username }}{{` }}'`}}
           {{- end }}
           email_template: {{`'{{ user.`}}{{ .Values.authentication.oidc.claims.email }}{{` }}'`}}
+    {{- end }}
   # Disable password configuration, we only allow OIDC
   passwordConfig:
     enabled: false
@@ -352,6 +358,26 @@ synapse:
     msc3266_enabled: true
     # MSC4222 needed for syncv2 state_after. This allows clients to correctly track the state of the room.
     msc4222_enabled: true
+
+  {{- if .Values.application.element.mas.enabled }}
+  # Matrix Authentication Service integration (stable since Synapse 1.164;
+  # supersedes the removed experimental_features.msc3861 delegation). The
+  # endpoint must reach the MAS web listener serving the `discovery` and
+  # `oauth` resources. Element X/native clients discover the MAS issuer
+  # through Synapse's /.well-known/matrix/client.
+  matrixAuthenticationService:
+    enabled: true
+    {{- $masNs := .Values.application.element.namespace | default "mijnbureau-element" }}
+    endpoint: {{ printf "http://element-mas.%s.svc.cluster.local:8080" $masNs | quote }}
+    secret: {{ .Values.application.element.mas.sharedSecret | quote }}
+
+  # Serve /.well-known/matrix/client with the MAS redirect so native clients
+  # discover the OIDC provider on their own.
+  extraWellKnownClientContent:
+    "org.matrix.msc2965.authentication":
+      issuer: {{ printf "https://%s.%s/" .Values.global.hostname.mas .Values.global.domain | quote }}
+      account: {{ printf "https://%s.%s/account/" .Values.global.hostname.mas .Values.global.domain | quote }}
+  {{- end }}
 
 defaultInitContainers:
   ## 'volume-permissions' init container

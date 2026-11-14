@@ -1,0 +1,95 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if and .Values.databaseBootstrap.enabled .Values.databaseBootstrap.superuserSecret }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "common.names.fullname" . }}-db-bootstrap
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: mas-db-bootstrap
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/hook-weight": "5"
+  {{- if .Values.commonAnnotations }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.databaseBootstrap.ttlSecondsAfterFinished }}
+  backoffLimit: {{ .Values.databaseBootstrap.backoffLimit }}
+  template:
+    metadata:
+      labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: mas-db-bootstrap
+      {{- if .Values.databaseBootstrap.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.databaseBootstrap.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+{{- with (include "mas.imagePullSecrets" . | trim) }}
+{{ . | indent 6 }}
+{{- end }}
+      restartPolicy: {{ .Values.databaseBootstrap.restartPolicy }}
+      serviceAccountName: {{ template "mas.serviceAccountName" . }}
+      automountServiceAccountToken: false
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: db-bootstrap
+          image: {{ template "mas.databaseBootstrap.image" . }}
+          imagePullPolicy: {{ .Values.databaseBootstrap.image.pullPolicy }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              psql "host=$DB_HOST port=$DB_PORT user=postgres dbname=postgres" \
+                -v ON_ERROR_STOP=1 \
+                -v dbuser="$DB_USER" \
+                -v dbname="$DB_NAME" \
+                -v dbpass="$DB_PASSWORD" <<'PSQL'
+              SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'dbuser', :'dbpass') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'dbuser')\gexec
+              SELECT format('ALTER ROLE %I LOGIN PASSWORD %L', :'dbuser', :'dbpass')\gexec
+              SELECT format('CREATE DATABASE %I OWNER %I', :'dbname', :'dbuser') WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = :'dbname')\gexec
+              PSQL
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.databaseBootstrap.superuserSecret | quote }}
+                  key: password
+            - name: DB_HOST
+              value: {{ .Values.databaseBootstrap.host | quote }}
+            - name: DB_PORT
+              value: {{ .Values.databaseBootstrap.port | quote }}
+            - name: DB_NAME
+              value: {{ .Values.config.database.database | quote }}
+            - name: DB_USER
+              value: {{ .Values.config.database.username | quote }}
+            - name: DB_PASSWORD
+              value: {{ .Values.config.database.password | quote }}
+          {{- if .Values.databaseBootstrap.resources }}
+          resources:
+            {{- toYaml .Values.databaseBootstrap.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+{{- end }}
