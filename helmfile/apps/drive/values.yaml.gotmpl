@@ -73,6 +73,17 @@ drive:
     - name: SDK_CORS_ALLOWED_ORIGINS
       value: "https://{{ .Values.global.hostname.messages }}.{{ .Values.global.domain }}"
     {{- end }}
+    {{- if and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
+    {{- $icapHost := printf "%s.%s.svc.cluster.local" .Values.antivirus.icap.host (.Values.application.clamav.namespace | default "mijnbureau-clamav") }}
+    # Malware detection: scan uploads with ClamAV through the ICAP sidecar of
+    # the ClamAV release (django-lasuite ICAPBackend). The ClamAV namespace
+    # must be allowed by its NetworkPolicy (addExternalClientAccess or an
+    # ingress rule for this namespace).
+    - name: MALWARE_DETECTION_BACKEND
+      value: "lasuite.malware_detection.backends.icap.ICAPBackend"
+    - name: MALWARE_DETECTION_PARAMETERS
+      value: {{ printf `{"callback_path": "core.malware_detection.malware_detection_callback", "server_address": "%s", "server_port": %d, "service": "avscan"}` $icapHost (int .Values.antivirus.icap.port) | quote }}
+    {{- end }}
   frontendCssUrl: "https://static-{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/iframe-hide.css"
   frontendJsUrl: "https://static-{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/bureaublad-button.js"
   logoutRedirectUrl: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
@@ -246,3 +257,95 @@ job:
       memory: 512Mi
       cpu: 200m
   {{- end }}
+
+{{- if and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
+# django-lasuite maintenance for the ICAP malware detection backend: recover
+# analyses stuck in PENDING/PROCESSING on worker restarts or ICAP timeouts.
+# Without these a lost analysis would leave the upload stuck in ANALYZING.
+# Same maintenance cronjobs as the upstream Drive chart ships.
+extraDeploy:
+  - apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: drive-malware-check-pending
+      labels:
+        app.kubernetes.io/component: drive-backend
+        app.kubernetes.io/part-of: drive
+    spec:
+      schedule: "*/5 * * * *"
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 3
+      failedJobsHistoryLimit: 1
+      jobTemplate:
+        spec:
+          template:
+            metadata:
+              labels:
+                app.kubernetes.io/instance: drive
+                app.kubernetes.io/name: drive
+                app.kubernetes.io/component: drive-backend
+            spec:
+              restartPolicy: Never
+              serviceAccountName: "drive"
+              {{- with (coalesce .Values.container.drive_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
+              imagePullSecrets:
+                - name: {{ . | quote }}
+              {{- end }}
+              {{- with .Values.cluster.runtimeClassName }}
+              runtimeClassName: {{ . | quote }}
+              {{- end }}
+              containers:
+                - name: check-pending-malware-analysis
+                  image: "{{ (coalesce .Values.container.drive_backend.registry .Values.container.default.registry) }}/{{ .Values.container.drive_backend.repository }}:{{ .Values.container.drive_backend.tag }}"
+                  imagePullPolicy: IfNotPresent
+                  command: ["python", "manage.py", "check_analysis_pending"]
+                  securityContext: {{ omit .Values.security.default.containerSecurityContext "enabled" | toYaml | nindent 20 }}
+                  envFrom:
+                    - configMapRef:
+                        name: drive
+                    - secretRef:
+                        name: drive
+                  resources: {{ (index ((.Values.resource | default dict).drive | default dict) "job" | default dict) | toYaml | nindent 20 }}
+  - apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: drive-malware-reschedule-processing
+      labels:
+        app.kubernetes.io/component: drive-backend
+        app.kubernetes.io/part-of: drive
+    spec:
+      schedule: "0 4 * * *"
+      concurrencyPolicy: Forbid
+      successfulJobsHistoryLimit: 3
+      failedJobsHistoryLimit: 1
+      jobTemplate:
+        spec:
+          template:
+            metadata:
+              labels:
+                app.kubernetes.io/instance: drive
+                app.kubernetes.io/name: drive
+                app.kubernetes.io/component: drive-backend
+            spec:
+              restartPolicy: Never
+              serviceAccountName: "drive"
+              {{- with (coalesce .Values.container.drive_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
+              imagePullSecrets:
+                - name: {{ . | quote }}
+              {{- end }}
+              {{- with .Values.cluster.runtimeClassName }}
+              runtimeClassName: {{ . | quote }}
+              {{- end }}
+              containers:
+                - name: reschedule-processing-malware-analysis
+                  image: "{{ (coalesce .Values.container.drive_backend.registry .Values.container.default.registry) }}/{{ .Values.container.drive_backend.repository }}:{{ .Values.container.drive_backend.tag }}"
+                  imagePullPolicy: IfNotPresent
+                  command: ["python", "manage.py", "reschedule_processing_analysis"]
+                  securityContext: {{ omit .Values.security.default.containerSecurityContext "enabled" | toYaml | nindent 20 }}
+                  envFrom:
+                    - configMapRef:
+                        name: drive
+                    - secretRef:
+                        name: drive
+                  resources: {{ (index ((.Values.resource | default dict).drive | default dict) "job" | default dict) | toYaml | nindent 20 }}
+{{- end }}

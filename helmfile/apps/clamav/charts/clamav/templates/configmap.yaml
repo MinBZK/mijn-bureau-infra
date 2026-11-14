@@ -55,3 +55,27 @@ data:
     LogClean Basic
     {{- end }}
   {{- end }}
+
+  {{- if .Values.clamav.icap.enabled }}
+  # clamd config for the embedded ClamAV daemon of the ICAP sidecar. Containers
+  # in a pod share the network namespace, so it must use its own TCP port; the
+  # main clamd keeps 3310. The embedded daemon runs inside the same container
+  # as c-icap, so the zSCAN temp files under /tmp are visible to it directly.
+  clamd-icap.conf: |
+    DatabaseDirectory /var/lib/clamav
+    LogTime yes
+    ExtendedDetectionInfo yes
+    LogFile /var/log/clamav/clamd-icap.log
+    LocalSocket /tmp/clamd-icap.sock
+    TCPAddr 127.0.0.1
+    TCPSocket {{ .Values.clamav.icap.clamdPort }}
+    StreamMaxLength {{ .Values.clamav.configuration.streamMaxLength }}
+    TemporaryDirectory /tmp
+
+  # clamd_mod connects to the embedded clamd over its dedicated TCP port.
+  # Ref: https://c-icap.sourceforge.net/c-icap-modules.conf.html
+  clamd-mod-icap.conf: |
+    Module common clamd_mod.so
+    clamd_mod.ClamdHost 127.0.0.1
+    clamd_mod.ClamdPort {{ .Values.clamav.icap.clamdPort }}
+  {{- end }}

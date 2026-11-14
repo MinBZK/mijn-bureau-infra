@@ -111,3 +111,8 @@ resource:
     minio:
 
   clamav:
+    # Static resources for the ICAP sidecar (embedded clamd + freshclam).
+    # When empty, the ClamAV resourcesPreset floor (1 CPU / 3 Gi) applies;
+    # the embedded clamd keeps the virus database in memory, so keep the
+    # memory limit at 4 Gi or more when overriding.
+    icap:

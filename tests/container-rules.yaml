@@ -138,6 +138,10 @@ container:
     registry: ""
     imagePullSecret: ""
 
+  clamav_icap:
+    registry: ""
+    imagePullSecret: ""
+
   drive_backend:
     registry: ""
     imagePullSecret: ""

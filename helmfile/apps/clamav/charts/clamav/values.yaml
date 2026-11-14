@@ -115,6 +115,43 @@ clamav:
   ##     containerPort: 9090
   ##
   extraContainerPorts: []
+  ## ICAP sidecar: c-icap (virus_scan/clamd_mod) with an embedded ClamAV
+  ## daemon and freshclam, exposing virus scanning over ICAP (RFC 3507) for
+  ## clients such as django-lasuite's ICAPBackend. When enabled, also open the
+  ## port via clamav.extraContainerPorts and service.extraPorts.
+  ## @param clamav.icap.enabled Deploy the ICAP (c-icap) scanning sidecar
+  ## @param clamav.icap.image.* Image for the ICAP sidecar
+  ## @param clamav.icap.port ICAP TCP port
+  ## @param clamav.icap.resources Static resources for the sidecar; when empty,
+  ## the `clamav.resourcesPreset` (with the ClamAV memory floor) is applied
+  ##
+  icap:
+    enabled: false
+    image:
+      registry: registry-1.docker.io
+      repository: opencloudeu/clamav-icap
+      tag: "1.4.3"
+      pullPolicy: IfNotPresent
+    port: 1344
+    # TCP port for the clamd embedded in the ICAP sidecar. Must differ from
+    # clamav.containerPorts.clamav: pod containers share the network namespace.
+    clamdPort: 3311
+    # The image runs as its own /etc/passwd "clamav" user (non-numeric), so
+    # neither runAsUser+numeric-uid pinning nor runAsNonRoot apply here. The
+    # container keeps a writable root filesystem for freshclam / c-icap state.
+    containerSecurityContext:
+      enabled: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - "ALL"
+      privileged: false
+      readOnlyRootFilesystem: false
+      seccompProfile:
+        type: RuntimeDefault
+    ## Static resources for the sidecar; when empty the clamav.resourcesPreset
+    ## (with the ClamAV 3Gi memory floor) is applied.
+    resources: {}
   ## Configure extra options for ClamAv containers' liveness and readiness probes
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
   ## @param clamav.livenessProbe.enabled Enable livenessProbe on ClamAv containers

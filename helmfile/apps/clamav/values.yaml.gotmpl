@@ -24,8 +24,34 @@ clamav:
     repository: {{ .Values.container.clamav.repository | quote }}
     tag: {{ .Values.container.clamav.tag | quote }}
 
+  # Recreate: the virus database PVC is RWO, a RollingUpdate would deadlock
+  # waiting for the old pod to release the volume before the new pod starts.
+  updateStrategy:
+    type: Recreate
+
+  {{- if .Values.antivirus.icap.enabled }}
+  # Only to include the ICAP port in the pod NetworkPolicy ingress rules; the
+  # actual port lives on the chart-rendered icap sidecar container. Keep the
+  # entry nameless: container port names must be unique pod-wide, and the
+  # sidecar already declares an "icap" port.
+  extraContainerPorts:
+    - containerPort: {{ int .Values.antivirus.icap.port }}
+  {{- end }}
+
+  # ICAP sidecar (c-icap + embedded clamd/freshclam) serving LaSuite apps via
+  # django-lasuite's ICAPBackend. See the chart's clamav.icap block.
+  icap:
+    enabled: {{ .Values.antivirus.icap.enabled }}
+    image:
+      registry: {{(coalesce .Values.container.clamav_icap.registry .Values.container.default.registry) | quote }}
+      repository: {{ .Values.container.clamav_icap.repository | quote }}
+      tag: {{ .Values.container.clamav_icap.tag | quote }}
+    port: {{ int .Values.antivirus.icap.port }}
+    resources: {{ (index (.Values.resource.clamav | default dict) "icap") | toYaml | nindent 6 }}
+
   resourcesPreset: {{ .Values.global.resourcesPreset | quote }}
-  resources: {{ .Values.resource.clamav | toYaml | nindent 4 }}
+  # omit the icap subkey: that configures the ICAP sidecar, not clamd itself.
+  resources: {{ omit (.Values.resource.clamav | default dict) "icap" | toYaml | nindent 4 }}
   podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
   containerSecurityContext:  {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
   autoscaling:
@@ -55,3 +81,12 @@ networkPolicy:
     - ports:
         - port: 443
           protocol: TCP
+
+{{- if .Values.antivirus.icap.enabled }}
+service:
+  extraPorts:
+    - name: icap
+      port: {{ int .Values.antivirus.icap.port }}
+      targetPort: icap
+      protocol: TCP
+{{- end }}
