@@ -7,24 +7,24 @@ MijnBureau supplies an installation of [Docs](https://github.com/suitenumerique/
 To configure this solution, you can override the default settings for your environment. The defaults are
 located in the folder `helmfile/environments/default`.
 
-| Name                         | Description                                    |
-| ---------------------------- | ---------------------------------------------- |
-| `global.domain`              | The domain name of your MijnBureau instance    |
-| `global.hostname.docs`       | The name of the subdomain for the docs client  |
-| `application.docs.enabled`   | Enable docs for your MijnBureau implementation |
-| `application.docs.namespace` | The Kubernetes namespace name                  |
-| `application.docs.*`         | Specific docs configuration options            |
-| `ai.llm.*`                   | Docs can make use of the configured AI model   |
-| `authentication.client.docs.*` | OIDC client configuration                    |
-| `autoscaling.*.docs.*`       | Autoscaling (horizontal and vertical)          |
-| `cache.docs.*`               | Cache configuration                            |
-| `container.docs.*`           | Container selection                            |
-| `database.docs.*`            | Database configuration                         |
-| `objectstore.docs.*`         | Object store (S3) configuration                |
-| `pvc.docs.*`                 | Persistent Volume Claim configuration          |
-| `resource.docs.*`            | Resources                                      |
-| `secret.docs.*`              | Superuser credentials                          |
-| `tls.docs.*`                 | The TLS settings                               |
+| Name                           | Description                                    |
+| ------------------------------ | ---------------------------------------------- |
+| `global.domain`                | The domain name of your MijnBureau instance    |
+| `global.hostname.docs`         | The name of the subdomain for the docs client  |
+| `application.docs.enabled`     | Enable docs for your MijnBureau implementation |
+| `application.docs.namespace`   | The Kubernetes namespace name                  |
+| `application.docs.*`           | Specific docs configuration options            |
+| `ai.llm.*`                     | Docs can make use of the configured AI model   |
+| `authentication.client.docs.*` | OIDC client configuration                      |
+| `autoscaling.*.docs.*`         | Autoscaling (horizontal and vertical)          |
+| `cache.docs.*`                 | Cache configuration                            |
+| `container.docs.*`             | Container selection                            |
+| `database.docs.*`              | Database configuration                         |
+| `objectstore.docs.*`           | Object store (S3) configuration                |
+| `pvc.docs.*`                   | Persistent Volume Claim configuration          |
+| `resource.docs.*`              | Resources                                      |
+| `secret.docs.*`                | Superuser credentials                          |
+| `tls.docs.*`                   | The TLS settings                               |
 
 ## More information
 

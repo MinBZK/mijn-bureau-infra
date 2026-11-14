@@ -32,7 +32,7 @@ located in the folder `helmfile/environments/default`.
 | `autoscaling.vertical.synapse.*`   | Autoscaling for synapse                                      |
 | `container.elementweb.*`           | Container selection                                          |
 | `container.synapse.*`              | Container selection                                          |
-| `container.matrix_auth_service.*`  | MAS container selection                                       |
+| `container.matrix_auth_service.*`  | MAS container selection                                      |
 
 The database and cache are automatically created when running in demo environment. For production environment you need to supply your own.
 
