@@ -1,4 +1,3 @@
-{{- $releaseId := now | unixEpoch }}
 {{- $hostname := printf "%s.%s" .Values.global.hostname.docs .Values.global.domain }}
 {{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
 {{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
@@ -106,7 +105,9 @@ backend:
       - ports:
           - port: 4444
   jobs:
-    releaseSuffix: {{ $releaseId | quote }}
+    # Jobs carry helm.sh/hook annotations (chart-level), so a fixed name +
+    # before-hook-creation recreates them on each release. No timestamp suffix.
+    releaseSuffix: ""
   envVars:
     AWS_S3_ENDPOINT_URL: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.docs.useSSL) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port | quote }}
     AWS_S3_ACCESS_KEY_ID: {{ .Values.objectstore.docs.username | quote }}

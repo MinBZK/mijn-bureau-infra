@@ -1,0 +1,1452 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "description": "Schema for the calendars chart values.",
+  "properties": {
+    "apiVersions": {
+      "type": "array"
+    },
+    "authentication": {
+      "properties": {
+        "authorization_endpoint": {
+          "type": "string"
+        },
+        "claims": {
+          "properties": {
+            "display_name": {
+              "type": "string"
+            },
+            "family_name": {
+              "type": "string"
+            },
+            "given_name": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "client": {
+          "properties": {
+            "client_id": {
+              "type": "string"
+            },
+            "client_secret": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "end_session_endpoint": {
+          "type": "string"
+        },
+        "issuer": {
+          "type": "string"
+        },
+        "jwks_uri": {
+          "type": "string"
+        },
+        "token_endpoint": {
+          "type": "string"
+        },
+        "userinfo_endpoint": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "backend": {
+      "properties": {
+        "affinity": {
+          "type": "object"
+        },
+        "allowedHosts": {
+          "type": "string"
+        },
+        "args": {
+          "type": "array"
+        },
+        "autoscaling": {
+          "properties": {
+            "hpa": {
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "baseUrl": {
+          "type": "string"
+        },
+        "command": {
+          "type": "array"
+        },
+        "containerPorts": {
+          "properties": {
+            "http": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "containerSecurityContext": {
+          "properties": {
+            "allowPrivilegeEscalation": {
+              "type": "boolean"
+            },
+            "capabilities": {
+              "type": "object"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "privileged": {
+              "type": "boolean"
+            },
+            "readOnlyRootFilesystem": {
+              "type": "boolean"
+            },
+            "runAsGroup": {
+              "type": "integer"
+            },
+            "runAsNonRoot": {
+              "type": "boolean"
+            },
+            "runAsUser": {
+              "type": "integer"
+            },
+            "seLinuxOptions": {
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "csrfTrustedOrigins": {
+          "type": "string"
+        },
+        "customLivenessProbe": {
+          "type": "object"
+        },
+        "customReadinessProbe": {
+          "type": "object"
+        },
+        "customStartupProbe": {
+          "type": "object"
+        },
+        "deploymentAnnotations": {
+          "type": "object"
+        },
+        "extraContainerPorts": {
+          "type": "array"
+        },
+        "extraEnvVars": {
+          "type": "array"
+        },
+        "extraEnvVarsCM": {
+          "type": "string"
+        },
+        "extraEnvVarsSecret": {
+          "type": "string"
+        },
+        "extraVolumeMounts": {
+          "type": "array"
+        },
+        "extraVolumes": {
+          "type": "array"
+        },
+        "frontendSilentLoginEnabled": {
+          "type": "boolean"
+        },
+        "frontendTheme": {
+          "type": "string"
+        },
+        "image": {
+          "properties": {
+            "digest": {
+              "type": "string"
+            },
+            "pullPolicy": {
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "type": "string"
+            },
+            "pullSecrets": {
+              "type": "array"
+            },
+            "registry": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "languageCode": {
+          "type": "string"
+        },
+        "livenessProbe": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "successThreshold": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "logoutRedirectUrl": {
+          "type": "string"
+        },
+        "meetBaseUrl": {
+          "type": "string"
+        },
+        "messagesIntegration": {
+          "properties": {
+            "apiKey": {
+              "type": "string"
+            },
+            "apiUrl": {
+              "type": "string"
+            },
+            "channelId": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "nodeSelector": {
+          "type": "object"
+        },
+        "pdb": {
+          "properties": {
+            "create": {
+              "type": "boolean"
+            },
+            "maxUnavailable": {
+              "type": ["null", "string", "integer"]
+            },
+            "minAvailable": {
+              "type": ["null", "string", "integer"]
+            }
+          },
+          "type": "object"
+        },
+        "podAnnotations": {
+          "type": "object"
+        },
+        "podLabels": {
+          "type": "object"
+        },
+        "podSecurityContext": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "fsGroup": {
+              "type": "integer"
+            },
+            "fsGroupChangePolicy": {
+              "type": "string"
+            },
+            "supplementalGroups": {
+              "type": "array"
+            },
+            "sysctls": {
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "readinessProbe": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "successThreshold": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "replicaCount": {
+          "type": "integer"
+        },
+        "resources": {
+          "type": "object"
+        },
+        "resourcesPreset": {
+          "enum": [
+            "",
+            "none",
+            "nano",
+            "micro",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge"
+          ],
+          "type": "string"
+        },
+        "runtimeClassName": {
+          "type": "string"
+        },
+        "saltKey": {
+          "type": "string"
+        },
+        "secretKey": {
+          "type": "string"
+        },
+        "startupProbe": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "successThreshold": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "tolerations": {
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "caldav": {
+      "properties": {
+        "affinity": {
+          "type": "object"
+        },
+        "args": {
+          "type": "array"
+        },
+        "autoscaling": {
+          "properties": {
+            "hpa": {
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "baseUri": {
+          "type": "string"
+        },
+        "callbackBaseUrl": {
+          "type": "string"
+        },
+        "command": {
+          "type": "array"
+        },
+        "containerPorts": {
+          "properties": {
+            "http": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "containerSecurityContext": {
+          "properties": {
+            "allowPrivilegeEscalation": {
+              "type": "boolean"
+            },
+            "capabilities": {
+              "type": "object"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "privileged": {
+              "type": "boolean"
+            },
+            "readOnlyRootFilesystem": {
+              "type": "boolean"
+            },
+            "runAsGroup": {
+              "type": "integer"
+            },
+            "runAsNonRoot": {
+              "type": "boolean"
+            },
+            "runAsUser": {
+              "type": "integer"
+            },
+            "seLinuxOptions": {
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "customLivenessProbe": {
+          "type": "object"
+        },
+        "customReadinessProbe": {
+          "type": "object"
+        },
+        "customStartupProbe": {
+          "type": "object"
+        },
+        "dbSchema": {
+          "type": "string"
+        },
+        "deploymentAnnotations": {
+          "type": "object"
+        },
+        "extraContainerPorts": {
+          "type": "array"
+        },
+        "extraEnvVars": {
+          "type": "array"
+        },
+        "extraEnvVarsCM": {
+          "type": "string"
+        },
+        "extraEnvVarsSecret": {
+          "type": "string"
+        },
+        "extraVolumeMounts": {
+          "type": "array"
+        },
+        "extraVolumes": {
+          "type": "array"
+        },
+        "image": {
+          "properties": {
+            "digest": {
+              "type": "string"
+            },
+            "pullPolicy": {
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "type": "string"
+            },
+            "pullSecrets": {
+              "type": "array"
+            },
+            "registry": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "inboundApiKey": {
+          "type": "string"
+        },
+        "internalApiKey": {
+          "type": "string"
+        },
+        "livenessProbe": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "successThreshold": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "nodeSelector": {
+          "type": "object"
+        },
+        "outboundApiKey": {
+          "type": "string"
+        },
+        "pdb": {
+          "properties": {
+            "create": {
+              "type": "boolean"
+            },
+            "maxUnavailable": {
+              "type": ["null", "string", "integer"]
+            },
+            "minAvailable": {
+              "type": ["null", "string", "integer"]
+            }
+          },
+          "type": "object"
+        },
+        "podAnnotations": {
+          "type": "object"
+        },
+        "podLabels": {
+          "type": "object"
+        },
+        "podSecurityContext": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "fsGroup": {
+              "type": "integer"
+            },
+            "fsGroupChangePolicy": {
+              "type": "string"
+            },
+            "supplementalGroups": {
+              "type": "array"
+            },
+            "sysctls": {
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "readinessProbe": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "successThreshold": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "replicaCount": {
+          "type": "integer"
+        },
+        "resources": {
+          "type": "object"
+        },
+        "resourcesPreset": {
+          "enum": [
+            "",
+            "none",
+            "nano",
+            "micro",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge"
+          ],
+          "type": "string"
+        },
+        "runtimeClassName": {
+          "type": "string"
+        },
+        "sanitizerMaxDescriptionBytes": {
+          "type": "integer"
+        },
+        "sanitizerMaxResourceSize": {
+          "type": "integer"
+        },
+        "sanitizerStripBinaryAttachments": {
+          "type": "boolean"
+        },
+        "startupProbe": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "successThreshold": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "tolerations": {
+          "type": "array"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "calendars": {
+      "properties": {
+        "initContainers": {
+          "type": "array"
+        },
+        "sidecars": {
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "cluster": {
+      "properties": {
+        "gateway": {
+          "type": "object"
+        },
+        "ingress": {
+          "properties": {
+            "annotations": {
+              "type": "object"
+            },
+            "className": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "routingMode": {
+          "type": "string"
+        },
+        "tls": {
+          "properties": {
+            "selfSigned": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "clusterDomain": {
+      "type": "string"
+    },
+    "commonAnnotations": {
+      "type": "object"
+    },
+    "commonLabels": {
+      "type": "object"
+    },
+    "defaultLanguage": {
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "cron": {
+          "properties": {
+            "concurrencyPolicy": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "failedJobsHistoryLimit": {
+              "type": "integer"
+            },
+            "schedule": {
+              "type": "string"
+            },
+            "successfulJobsHistoryLimit": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "diagnosticMode": {
+      "properties": {
+        "args": {
+          "type": "array"
+        },
+        "command": {
+          "type": "array"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "externalDatabase": {
+      "properties": {
+        "database": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "logging": {
+          "type": "boolean"
+        },
+        "password": {
+          "type": "string"
+        },
+        "port": {
+          "type": ["string", "integer"]
+        },
+        "type": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "externalRedis": {
+      "properties": {
+        "host": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "port": {
+          "type": ["string", "integer"]
+        }
+      },
+      "type": "object"
+    },
+    "extraDeploy": {
+      "type": "array"
+    },
+    "frontend": {
+      "properties": {
+        "affinity": {
+          "type": "object"
+        },
+        "args": {
+          "type": "array"
+        },
+        "autoscaling": {
+          "properties": {
+            "hpa": {
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "command": {
+          "type": "array"
+        },
+        "containerPorts": {
+          "properties": {
+            "http": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "containerSecurityContext": {
+          "properties": {
+            "allowPrivilegeEscalation": {
+              "type": "boolean"
+            },
+            "capabilities": {
+              "type": "object"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "privileged": {
+              "type": "boolean"
+            },
+            "readOnlyRootFilesystem": {
+              "type": "boolean"
+            },
+            "runAsGroup": {
+              "type": "integer"
+            },
+            "runAsNonRoot": {
+              "type": "boolean"
+            },
+            "runAsUser": {
+              "type": "integer"
+            },
+            "seLinuxOptions": {
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "customLivenessProbe": {
+          "type": "object"
+        },
+        "customReadinessProbe": {
+          "type": "object"
+        },
+        "customStartupProbe": {
+          "type": "object"
+        },
+        "deploymentAnnotations": {
+          "type": "object"
+        },
+        "extraContainerPorts": {
+          "type": "array"
+        },
+        "extraEnvVars": {
+          "type": "array"
+        },
+        "extraEnvVarsCM": {
+          "type": "string"
+        },
+        "extraEnvVarsSecret": {
+          "type": "string"
+        },
+        "extraVolumeMounts": {
+          "type": "array"
+        },
+        "extraVolumes": {
+          "type": "array"
+        },
+        "image": {
+          "properties": {
+            "digest": {
+              "type": "string"
+            },
+            "pullPolicy": {
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "type": "string"
+            },
+            "pullSecrets": {
+              "type": "array"
+            },
+            "registry": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "livenessProbe": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "successThreshold": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "nodeSelector": {
+          "type": "object"
+        },
+        "pdb": {
+          "properties": {
+            "create": {
+              "type": "boolean"
+            },
+            "maxUnavailable": {
+              "type": ["null", "string", "integer"]
+            },
+            "minAvailable": {
+              "type": ["null", "string", "integer"]
+            }
+          },
+          "type": "object"
+        },
+        "podAnnotations": {
+          "type": "object"
+        },
+        "podLabels": {
+          "type": "object"
+        },
+        "podSecurityContext": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "fsGroup": {
+              "type": "integer"
+            },
+            "fsGroupChangePolicy": {
+              "type": "string"
+            },
+            "supplementalGroups": {
+              "type": "array"
+            },
+            "sysctls": {
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "readinessProbe": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "successThreshold": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "replicaCount": {
+          "type": "integer"
+        },
+        "resources": {
+          "type": "object"
+        },
+        "resourcesPreset": {
+          "enum": [
+            "",
+            "none",
+            "nano",
+            "micro",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge"
+          ],
+          "type": "string"
+        },
+        "runtimeClassName": {
+          "type": "string"
+        },
+        "startupProbe": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "successThreshold": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "tolerations": {
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
+    "global": {
+      "properties": {
+        "compatibility": {
+          "properties": {
+            "omitEmptySeLinuxOptions": {
+              "type": "boolean"
+            },
+            "openshift": {
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "defaultStorageClass": {
+          "type": "string"
+        },
+        "imagePullSecrets": {
+          "type": "array"
+        },
+        "imageRegistry": {
+          "type": "string"
+        },
+        "security": {
+          "properties": {
+            "allowInsecureImages": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "ingress": {
+      "properties": {
+        "annotations": {
+          "type": "object"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "extraHosts": {
+          "type": "array"
+        },
+        "extraPaths": {
+          "type": "array"
+        },
+        "extraRules": {
+          "type": "array"
+        },
+        "extraTls": {
+          "type": "array"
+        },
+        "hostname": {
+          "type": "string"
+        },
+        "ingressClassName": {
+          "type": "string"
+        },
+        "pathType": {
+          "type": "string"
+        },
+        "secrets": {
+          "type": "array"
+        },
+        "selfSigned": {
+          "type": "boolean"
+        },
+        "tls": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "job": {
+      "properties": {
+        "argsMigrate": {
+          "type": "array"
+        },
+        "argsSuperuser": {
+          "type": "array"
+        },
+        "backoffLimit": {
+          "type": "integer"
+        },
+        "caldavMessagesChannel": {
+          "properties": {
+            "weight": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "commandMigrate": {
+          "type": "array"
+        },
+        "commandSuperuser": {
+          "type": "array"
+        },
+        "defaultLanguage": {
+          "properties": {
+            "weight": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "migrate": {
+          "properties": {
+            "weight": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "podAnnotations": {
+          "type": "object"
+        },
+        "resources": {
+          "type": "object"
+        },
+        "restartPolicy": {
+          "type": "string"
+        },
+        "superuser": {
+          "properties": {
+            "weight": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "ttlSecondsAfterFinished": {
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "kubeVersion": {
+      "type": "string"
+    },
+    "messagesChannel": {
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "nameOverride": {
+      "type": "string"
+    },
+    "namespaceOverride": {
+      "type": "string"
+    },
+    "networkPolicy": {
+      "properties": {
+        "addExternalClientAccess": {
+          "type": "boolean"
+        },
+        "allowExternal": {
+          "type": "boolean"
+        },
+        "allowExternalEgress": {
+          "type": "boolean"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "extraEgress": {
+          "type": "array"
+        },
+        "extraIngress": {
+          "type": "array"
+        },
+        "ingressNSMatchLabels": {
+          "type": "object"
+        },
+        "ingressNSPodMatchLabels": {
+          "type": "object"
+        },
+        "ingressPodMatchLabels": {
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "service": {
+      "properties": {
+        "annotations": {
+          "type": "object"
+        },
+        "ports": {
+          "properties": {
+            "http": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "serviceAccount": {
+      "properties": {
+        "annotations": {
+          "type": "object"
+        },
+        "automountServiceAccountToken": {
+          "type": "boolean"
+        },
+        "create": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "smtp": {
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "port": {
+          "type": ["string", "integer"]
+        },
+        "secure": {
+          "type": "boolean"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "superuser": {
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "worker": {
+      "properties": {
+        "affinity": {
+          "type": "object"
+        },
+        "args": {
+          "type": "array"
+        },
+        "autoscaling": {
+          "properties": {
+            "hpa": {
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "command": {
+          "type": "array"
+        },
+        "containerSecurityContext": {
+          "properties": {
+            "allowPrivilegeEscalation": {
+              "type": "boolean"
+            },
+            "capabilities": {
+              "type": "object"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "privileged": {
+              "type": "boolean"
+            },
+            "readOnlyRootFilesystem": {
+              "type": "boolean"
+            },
+            "runAsGroup": {
+              "type": "integer"
+            },
+            "runAsNonRoot": {
+              "type": "boolean"
+            },
+            "runAsUser": {
+              "type": "integer"
+            },
+            "seLinuxOptions": {
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "deploymentAnnotations": {
+          "type": "object"
+        },
+        "extraEnvVars": {
+          "type": "array"
+        },
+        "extraEnvVarsCM": {
+          "type": "string"
+        },
+        "extraEnvVarsSecret": {
+          "type": "string"
+        },
+        "extraVolumeMounts": {
+          "type": "array"
+        },
+        "extraVolumes": {
+          "type": "array"
+        },
+        "nodeSelector": {
+          "type": "object"
+        },
+        "pdb": {
+          "properties": {
+            "create": {
+              "type": "boolean"
+            },
+            "maxUnavailable": {
+              "type": ["null", "string", "integer"]
+            },
+            "minAvailable": {
+              "type": ["null", "string", "integer"]
+            }
+          },
+          "type": "object"
+        },
+        "podAnnotations": {
+          "type": "object"
+        },
+        "podLabels": {
+          "type": "object"
+        },
+        "podSecurityContext": {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "fsGroup": {
+              "type": "integer"
+            },
+            "fsGroupChangePolicy": {
+              "type": "string"
+            },
+            "supplementalGroups": {
+              "type": "array"
+            },
+            "sysctls": {
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "replicaCount": {
+          "type": "integer"
+        },
+        "resources": {
+          "type": "object"
+        },
+        "resourcesPreset": {
+          "enum": [
+            "",
+            "none",
+            "nano",
+            "micro",
+            "small",
+            "medium",
+            "large",
+            "xlarge",
+            "2xlarge"
+          ],
+          "type": "string"
+        },
+        "runtimeClassName": {
+          "type": "string"
+        },
+        "terminationGracePeriodSeconds": {
+          "type": "integer"
+        },
+        "tolerations": {
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "title": "calendars Helm chart values",
+  "type": "object"
+}

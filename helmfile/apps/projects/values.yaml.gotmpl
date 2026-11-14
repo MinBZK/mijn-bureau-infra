@@ -9,7 +9,7 @@ global:
   imageRegistry: {{ (coalesce .Values.container.projects.registry .Values.container.default.registry) | quote }}
   {{- with (coalesce .Values.container.projects.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
-    - {{ . | quote }}
+    - name: {{ . | quote }}
   {{- end }}
   ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
   ##
