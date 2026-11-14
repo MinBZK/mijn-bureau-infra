@@ -25,7 +25,6 @@ global:
       ## @param global.compatibility.openshift.adaptSecurityContext Adapt the securityContext sections of the deployment to make them compatible with Openshift restricted-v2 SCC
       ##
       adaptSecurityContext: auto
-
 ## @section Common parameters
 
 ## @param kubeVersion Override Kubernetes version reported by .Capabilities
@@ -63,7 +62,6 @@ diagnosticMode:
     - sleep
   args:
     - infinity
-
 ## @section Backend parameters
 
 ## Dictaphone backend (Django) configuration.
@@ -77,7 +75,7 @@ backend:
   image:
     registry: docker.io
     repository: lasuite/dictaphone-backend
-    tag: "v0.15.4"
+    tag: "v0.16.0"
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -294,7 +292,6 @@ backend:
     ingressPodMatchLabels: {}
     extraIngress: []
     extraEgress: []
-
 ## @section Frontend parameters
 
 ## Dictaphone frontend (static SPA served by nginx) configuration.
@@ -308,7 +305,7 @@ frontend:
   image:
     registry: docker.io
     repository: lasuite/dictaphone-frontend
-    tag: "v0.15.4"
+    tag: "v0.16.0"
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -518,7 +515,6 @@ frontend:
     ingressPodMatchLabels: {}
     extraIngress: []
     extraEgress: []
-
 ## @section Celery parameters
 
 ## Dictaphone Celery worker configuration.
@@ -532,7 +528,7 @@ celery:
   image:
     registry: docker.io
     repository: lasuite/dictaphone-backend
-    tag: "v0.15.4"
+    tag: "v0.16.0"
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -707,7 +703,6 @@ celery:
     ingressPodMatchLabels: {}
     extraIngress: []
     extraEgress: []
-
 ## @section Audio extractor parameters
 
 ## Audio extraction workers.
@@ -721,7 +716,7 @@ audioExtractor:
   image:
     registry: docker.io
     repository: lasuite/dictaphone-audio-extractor
-    tag: "v0.15.4"
+    tag: "v0.16.0"
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -891,7 +886,6 @@ audioExtractor:
     ingressPodMatchLabels: {}
     extraIngress: []
     extraEgress: []
-
 ## @section S3 gateway parameters
 
 ## Restricted S3 proxy used by audio extraction workers.
@@ -908,7 +902,7 @@ s3Gateway:
   image:
     registry: docker.io
     repository: lasuite/dictaphone-audio-extractor
-    tag: "v0.15.4"
+    tag: "v0.16.0"
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -1110,7 +1104,6 @@ s3Gateway:
     ingressPodMatchLabels: {}
     extraIngress: []
     extraEgress: []
-
 ## @section Traffic exposure parameters
 
 ## @param service.backend.type Backend service type
@@ -1129,7 +1122,6 @@ service:
     ports:
       http: 80
     annotations: {}
-
 ## Ingress parameters
 ## @param ingress.enabled Enable ingress record generation
 ## @param ingress.pathType Ingress path type
@@ -1153,7 +1145,6 @@ ingress:
   extraTls: []
   secrets: []
   extraRules: []
-
 ## External database parameters
 ## @param externalDatabase.type Database type
 ## @param externalDatabase.username Username to connect as
@@ -1169,7 +1160,6 @@ externalDatabase:
   host: ""
   port: 5432
   database: ""
-
 ## External Redis parameters
 ## @param externalRedis.host Redis host
 ## @param externalRedis.port Redis port
@@ -1179,7 +1169,6 @@ externalRedis:
   host: ""
   port: 6379
   password: ""
-
 ## Object storage parameters
 ## @param objectstore.endpoint Internal S3 endpoint URL
 ## @param objectstore.publicUrl Public S3 endpoint URL used in pre-signed URLs
@@ -1195,7 +1184,6 @@ objectstore:
   region: us-east-1
   accessKey: ""
   secretKey: ""
-
 ## OpenID Connect authentication
 ## @param authentication.issuer OpenID issuer URL
 ## @param authentication.authorization_endpoint OpenID authorization endpoint
@@ -1227,7 +1215,6 @@ authentication:
   client:
     client_id: ""
     client_secret: ""
-
 ## Application secrets and configuration
 ## @param application.secretKey Django secret key
 ## @param application.jwtSigningKey Simple JWT signing key
@@ -1257,7 +1244,6 @@ application:
   superuser:
     email: ""
     password: ""
-
 ## SMTP parameters
 ## @param smtp.host SMTP server host
 ## @param smtp.port SMTP server port
@@ -1279,7 +1265,6 @@ smtp:
     logoImage: ""
   tls:
     enabled: true
-
 ## Jobs parameters
 ## @param jobs.ttlSecondsAfterFinished Period to wait before removing completed jobs
 ## @param jobs.backoffLimit Number of job retries
@@ -1289,7 +1274,6 @@ jobs:
   ttlSecondsAfterFinished: 300
   backoffLimit: 6
   restartPolicy: Never
-
 ## @param cronJobs List of maintenance CronJobs
 ##
 cronJobs:
@@ -1323,7 +1307,6 @@ cronJobs:
       - "/bin/sh"
       - "-c"
       - "python manage.py purge_transcription_usage"
-
 ## @section Other parameters
 
 ## ServiceAccount configuration
@@ -1337,7 +1320,6 @@ serviceAccount:
   name: ""
   annotations: {}
   automountServiceAccountToken: false
-
 ## @param cluster Kubernetes cluster routing configuration (populated by shared values)
 ##
 cluster:
