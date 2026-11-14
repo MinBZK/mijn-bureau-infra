@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Observability dashboards chart values",
+  "type": "object",
+  "properties": {
+    "global": {
+      "type": "object",
+      "properties": {
+        "imageRegistry": { "type": "string" },
+        "imagePullSecrets": { "type": "array" },
+        "defaultStorageClass": { "type": "string" },
+        "commonLabels": { "type": "object" },
+        "commonAnnotations": { "type": "object" }
+      }
+    },
+    "kubeVersion": { "type": "string" },
+    "apiVersions": { "type": "array" },
+    "nameOverride": { "type": "string" },
+    "fullnameOverride": { "type": "string" },
+    "namespaceOverride": { "type": "string" },
+    "commonLabels": { "type": "object" },
+    "commonAnnotations": { "type": "object" },
+    "clusterDomain": { "type": "string" },
+    "dashboard": {
+      "type": "object",
+      "properties": {
+        "instanceSelector": { "type": "object" },
+        "folder": { "type": "string" },
+        "resyncPeriod": { "type": "string" },
+        "allowCrossNamespaceImport": { "type": "boolean" },
+        "datasources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "inputName": { "type": "string" },
+              "datasourceName": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["instanceSelector"]
+    }
+  }
+}

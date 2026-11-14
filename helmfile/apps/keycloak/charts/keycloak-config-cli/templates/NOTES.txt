@@ -1,0 +1,34 @@
+CHART NAME: {{ .Chart.Name }}
+CHART VERSION: {{ .Chart.Version }}
+APP VERSION: {{ .Chart.AppVersion }}
+
+** Please be patient while the chart is being deployed **
+
+The Keycloak realm configuration is imported by a Job that runs as a Helm
+hook after every install, upgrade or rollback.
+
+Watch the import Job with:
+
+  kubectl get jobs --namespace {{ include "common.names.namespace" . | quote }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+Get the logs of the import with:
+
+  kubectl logs --namespace {{ include "common.names.namespace" . | quote }} -l app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=keycloak-config-cli
+
+{{- if .Values.diagnosticMode.enabled }}
+The chart has been deployed in diagnostic mode. The command has been overwritten with:
+
+  command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 4 }}
+  args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 4 }}
+
+Get the list of pods by executing:
+
+  kubectl get pods --namespace {{ include "common.names.namespace" . | quote }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+Access the pod you want to debug by executing
+
+  kubectl exec --namespace {{ include "common.names.namespace" . | quote }} -ti <NAME OF THE POD> -- bash
+
+{{- end }}
+
+{{- include "common.warnings.resources" (dict "sections" (list "") "context" .) }}

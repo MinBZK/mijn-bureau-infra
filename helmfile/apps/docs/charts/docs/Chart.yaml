@@ -7,6 +7,7 @@ annotations:
 apiVersion: v2
 appVersion: 6.0.4
 description: "Docs is a collaborative text editor designed to address common challenges in knowledge building and sharing."
+home: https://minbzk.github.io/mijn-bureau-infra/
 icon: https://docs.numerique.gouv.fr/assets/favicon-light.png
 keywords:
   - government

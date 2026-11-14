@@ -4,6 +4,7 @@ bases:
 
 ---
 
+# Sub-helmfiles are applied sequentially in this listing order;
 helmfiles:
   - path: "helmfile/apps/common/helmfile-gateway.yaml.gotmpl"
     values: &appvalues
@@ -14,7 +15,17 @@ helmfiles:
     values: *appvalues
   - path: "helmfile/apps/clamav/helmfile-child.yaml.gotmpl"
     values: *appvalues
+  - path: "helmfile/apps/livekit/helmfile-child.yaml.gotmpl"
+    values: *appvalues
+  - path: "helmfile/apps/docs/helmfile-child.yaml.gotmpl"
+    values: *appvalues
+  - path: "helmfile/apps/drive/helmfile-child.yaml.gotmpl"
+    values: *appvalues
   - path: "helmfile/apps/meet/helmfile-child.yaml.gotmpl"
+    values: *appvalues
+  - path: "helmfile/apps/conversations/helmfile-child.yaml.gotmpl"
+    values: *appvalues
+  - path: "helmfile/apps/dictaphone/helmfile-child.yaml.gotmpl"
     values: *appvalues
   - path: "helmfile/apps/element/helmfile-child.yaml.gotmpl"
     values: *appvalues
@@ -22,19 +33,9 @@ helmfiles:
     values: *appvalues
   - path: "helmfile/apps/nextcloud/helmfile-child.yaml.gotmpl"
     values: *appvalues
-  - path: "helmfile/apps/livekit/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/conversations/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/docs/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/drive/helmfile-child.yaml.gotmpl"
-    values: *appvalues
   - path: "helmfile/apps/projects/helmfile-child.yaml.gotmpl"
     values: *appvalues
   - path: "helmfile/apps/calendars/helmfile-child.yaml.gotmpl"
-    values: *appvalues
-  - path: "helmfile/apps/dictaphone/helmfile-child.yaml.gotmpl"
     values: *appvalues
   - path: "helmfile/apps/messages/helmfile-child.yaml.gotmpl"
     values: *appvalues

@@ -149,6 +149,55 @@ ollama:
       - llama2
 ```
 
+## Parameters
+
+Top-level parameter groups. See the [Helm Values](#helm-values) table below for the
+full list of parameters and their defaults.
+
+| Parameter                   | Description                                                   |
+| --------------------------- | ------------------------------------------------------------- |
+| `replicaCount`              | Number of replicas                                            |
+| `knative`                   | Knative configuration                                         |
+| `image`                     | Docker image (repository, pull policy and tag)                |
+| `imagePullSecrets`          | Docker registry secret names as an array                      |
+| `nameOverride`              | String to partially override template name                    |
+| `fullnameOverride`          | String to fully override template name                        |
+| `namespaceOverride`         | String to fully override namespace                            |
+| `ollama`                    | Ollama parameters (models, GPU, storage mount path, port)     |
+| `serviceAccount`            | Service account parameters                                    |
+| `podAnnotations`            | Map of annotations to add to the pods                         |
+| `podLabels`                 | Map of labels to add to the pods                              |
+| `podSecurityContext`        | Pod Security Context                                          |
+| `securityContext`           | Container Security Context                                    |
+| `runtimeClassName`          | Runtime class for the pods                                    |
+| `service`                   | Service parameters                                            |
+| `deployment`                | Deployment parameters                                         |
+| `ingress`                   | Ingress resource parameters                                   |
+| `resourcesPreset`           | Resource preset name                                          |
+| `resources`                 | Pod resource requests and limits                              |
+| `livenessProbe`             | Liveness probe parameters                                     |
+| `readinessProbe`            | Readiness probe parameters                                    |
+| `autoscaling`               | Autoscaling configuration                                     |
+| `volumes`                   | Additional volumes on the Deployment definition               |
+| `volumeMounts`              | Additional volumeMounts on the Deployment definition          |
+| `extraArgs`                 | Additional arguments on the Deployment definition             |
+| `extraEnv`                  | Additional environment variables on the Deployment definition |
+| `extraEnvFrom`              | Additional environment variables from external sources        |
+| `persistentVolume`          | Ollama server data persistent volume parameters               |
+| `nodeSelector`              | Node labels for pod assignment                                |
+| `tolerations`               | Tolerations for pod assignment                                |
+| `affinity`                  | Affinity for pod assignment                                   |
+| `lifecycle`                 | Lifecycle hooks (override `ollama.models` startup pull/run)   |
+| `updateStrategy`            | Deployment strategy (`Recreate` or `RollingUpdate`)           |
+| `topologySpreadConstraints` | Topology Spread Constraints for pod assignment                |
+| `initContainers`            | Init containers to add to the pod                             |
+| `hostIPC`                   | Use the host's IPC namespace                                  |
+| `hostPID`                   | Use the host's PID namespace                                  |
+| `hostNetwork`               | Use the host's network namespace                              |
+| `extraObjects`              | Extra K8s manifests to deploy                                 |
+| `tests`                     | Test connection pods                                          |
+| `networkPolicy`             | Network policy parameters                                     |
+
 ## Helm Values
 
 - See [values.yaml](values.yaml) to see the Chart's default values.

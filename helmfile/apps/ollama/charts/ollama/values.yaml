@@ -274,6 +274,15 @@ readinessProbe:
   # -- Success threshold for readinessProbe
   successThreshold: 1
 
+# -- Custom livenessProbe that overrides the default one
+customLivenessProbe: {}
+
+# -- Custom readinessProbe that overrides the default one
+customReadinessProbe: {}
+
+# -- Custom startupProbe that overrides the default one
+customStartupProbe: {}
+
 # Configure autoscaling
 autoscaling:
   # -- Enable autoscaling
@@ -435,6 +444,8 @@ networkPolicy:
   allowExternal: false
   # -- Allow the pod to access any range of port and all destinations.
   allowExternalEgress: false
+  # -- Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+  addExternalClientAccess: true
   # -- Additional annotations for the NetworkPolicy
   annotations: {}
   # -- Add extra ingress rules to the NetworkPolicy
@@ -461,3 +472,5 @@ networkPolicy:
   ingressNSMatchLabels: {}
   # -- Pod labels to match to allow traffic from other namespaces
   ingressNSPodMatchLabels: {}
+  # -- Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+  ingressPodMatchLabels: {}

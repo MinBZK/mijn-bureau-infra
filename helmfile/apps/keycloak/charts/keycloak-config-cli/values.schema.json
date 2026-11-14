@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "keycloak-config-cli chart values",
+  "type": "object",
+  "properties": {
+    "global": {
+      "type": "object",
+      "properties": {
+        "imageRegistry": { "type": "string" },
+        "imagePullSecrets": { "type": "array" },
+        "compatibility": {
+          "type": "object",
+          "properties": {
+            "openshift": {
+              "type": "object",
+              "properties": {
+                "adaptSecurityContext": {
+                  "type": "string",
+                  "enum": ["auto", "force", "disabled"]
+                }
+              }
+            },
+            "omitEmptySeLinuxOptions": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "kubeVersion": { "type": "string" },
+    "apiVersions": { "type": "array" },
+    "nameOverride": { "type": "string" },
+    "fullnameOverride": { "type": "string" },
+    "namespaceOverride": { "type": "string" },
+    "commonLabels": { "type": "object" },
+    "commonAnnotations": { "type": "object" },
+    "diagnosticMode": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "command": { "type": "array" },
+        "args": { "type": "array" }
+      }
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "registry": { "type": "string" },
+        "repository": { "type": "string" },
+        "tag": { "type": "string" },
+        "digest": { "type": "string" },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"]
+        }
+      }
+    },
+    "imagePullSecrets": { "type": "array" },
+    "keycloak": {
+      "type": "object",
+      "properties": {
+        "url": { "type": "string" },
+        "user": { "type": "string" },
+        "existingSecret": { "type": "string" },
+        "existingSecretKey": { "type": "string" }
+      },
+      "required": ["url", "user", "existingSecret", "existingSecretKey"]
+    },
+    "import": {
+      "type": "object",
+      "properties": {
+        "filesLocations": { "type": "string" },
+        "varSubstitutionEnabled": { "type": "boolean" },
+        "availabilityCheckEnabled": { "type": "boolean" },
+        "availabilityCheckTimeout": { "type": "string" },
+        "files": { "type": "object" },
+        "secrets": { "type": "object" }
+      },
+      "required": [
+        "filesLocations",
+        "varSubstitutionEnabled",
+        "availabilityCheckEnabled",
+        "availabilityCheckTimeout"
+      ]
+    },
+    "serviceAccountName": { "type": "string" },
+    "automountServiceAccountToken": { "type": "boolean" },
+    "command": { "type": "array" },
+    "args": { "type": "array" },
+    "resourcesPreset": {
+      "type": "string",
+      "enum": [
+        "",
+        "none",
+        "nano",
+        "micro",
+        "small",
+        "medium",
+        "large",
+        "xlarge",
+        "2xlarge"
+      ]
+    },
+    "resources": { "type": "object" },
+    "podSecurityContext": { "type": "object" },
+    "securityContext": { "type": "object" },
+    "jobAnnotations": { "type": "object" },
+    "podLabels": { "type": "object" },
+    "podAnnotations": { "type": "object" },
+    "affinity": { "type": "object" },
+    "nodeSelector": { "type": "object" },
+    "tolerations": { "type": "array" },
+    "runtimeClassName": { "type": "string" },
+    "extraEnvVars": { "type": "array" },
+    "extraEnvVarsCM": { "type": "string" },
+    "extraEnvVarsSecret": { "type": "string" },
+    "extraVolumes": { "type": "array" },
+    "extraVolumeMounts": { "type": "array" },
+    "job": {
+      "type": "object",
+      "properties": {
+        "backoffLimit": { "type": "integer", "minimum": 0 },
+        "ttlSecondsAfterFinished": { "type": "integer", "minimum": 0 },
+        "hookWeight": { "type": "string" }
+      },
+      "required": ["backoffLimit", "ttlSecondsAfterFinished", "hookWeight"]
+    },
+    "networkPolicy": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "egress": { "type": "array" }
+      }
+    }
+  },
+  "required": ["image", "keycloak", "import", "job"]
+}

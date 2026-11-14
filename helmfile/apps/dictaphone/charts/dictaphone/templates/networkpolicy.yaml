@@ -41,6 +41,24 @@ spec:
       from:
         - podSelector:
             matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 14 }}
+        {{- if $config.networkPolicy.addExternalClientAccess }}
+        - podSelector:
+            matchLabels:
+              {{ template "common.names.fullname" $ }}-client: "true"
+        {{- end }}
+        {{- if $config.networkPolicy.ingressPodMatchLabels }}
+        - podSelector:
+            matchLabels: {{- include "common.tplvalues.render" (dict "value" $config.networkPolicy.ingressPodMatchLabels "context" $ ) | nindent 14 }}
+        {{- end }}
+        {{- if $config.networkPolicy.ingressNSMatchLabels }}
+        - namespaceSelector:
+            matchLabels: {{- include "common.tplvalues.render" (dict "value" $config.networkPolicy.ingressNSMatchLabels "context" $ ) | nindent 14 }}
+          {{- if $config.networkPolicy.ingressNSPodMatchLabels }}
+          podSelector:
+            matchLabels:
+              matchLabels: {{- include "common.tplvalues.render" (dict "value" $config.networkPolicy.ingressNSPodMatchLabels "context" $ ) | nindent 14 }}
+          {{- end }}
+        {{- end }}
       {{- end }}
     {{- if $config.networkPolicy.extraIngress }}
     {{- include "common.tplvalues.render" ( dict "value" $config.networkPolicy.extraIngress "context" $ ) | nindent 4 }}
@@ -84,6 +102,24 @@ spec:
       from:
         - podSelector:
             matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 14 }}
+        {{- if .Values.audioExtractor.networkPolicy.addExternalClientAccess }}
+        - podSelector:
+            matchLabels:
+              {{ template "common.names.fullname" . }}-client: "true"
+        {{- end }}
+        {{- if .Values.audioExtractor.networkPolicy.ingressPodMatchLabels }}
+        - podSelector:
+            matchLabels: {{- include "common.tplvalues.render" (dict "value" .Values.audioExtractor.networkPolicy.ingressPodMatchLabels "context" $ ) | nindent 14 }}
+        {{- end }}
+        {{- if .Values.audioExtractor.networkPolicy.ingressNSMatchLabels }}
+        - namespaceSelector:
+            matchLabels: {{- include "common.tplvalues.render" (dict "value" .Values.audioExtractor.networkPolicy.ingressNSMatchLabels "context" $ ) | nindent 14 }}
+          {{- if .Values.audioExtractor.networkPolicy.ingressNSPodMatchLabels }}
+          podSelector:
+            matchLabels:
+              matchLabels: {{- include "common.tplvalues.render" (dict "value" .Values.audioExtractor.networkPolicy.ingressNSPodMatchLabels "context" $ ) | nindent 14 }}
+          {{- end }}
+        {{- end }}
       {{- end }}
     {{- if .Values.audioExtractor.networkPolicy.extraIngress }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.audioExtractor.networkPolicy.extraIngress "context" $ ) | nindent 4 }}
@@ -127,6 +163,24 @@ spec:
       from:
         - podSelector:
             matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 14 }}
+        {{- if .Values.s3Gateway.networkPolicy.addExternalClientAccess }}
+        - podSelector:
+            matchLabels:
+              {{ template "common.names.fullname" . }}-client: "true"
+        {{- end }}
+        {{- if .Values.s3Gateway.networkPolicy.ingressPodMatchLabels }}
+        - podSelector:
+            matchLabels: {{- include "common.tplvalues.render" (dict "value" .Values.s3Gateway.networkPolicy.ingressPodMatchLabels "context" $ ) | nindent 14 }}
+        {{- end }}
+        {{- if .Values.s3Gateway.networkPolicy.ingressNSMatchLabels }}
+        - namespaceSelector:
+            matchLabels: {{- include "common.tplvalues.render" (dict "value" .Values.s3Gateway.networkPolicy.ingressNSMatchLabels "context" $ ) | nindent 14 }}
+          {{- if .Values.s3Gateway.networkPolicy.ingressNSPodMatchLabels }}
+          podSelector:
+            matchLabels:
+              matchLabels: {{- include "common.tplvalues.render" (dict "value" .Values.s3Gateway.networkPolicy.ingressNSPodMatchLabels "context" $ ) | nindent 14 }}
+          {{- end }}
+        {{- end }}
       {{- end }}
     {{- if .Values.s3Gateway.networkPolicy.extraIngress }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.s3Gateway.networkPolicy.extraIngress "context" $ ) | nindent 4 }}

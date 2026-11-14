@@ -28,7 +28,15 @@ spec:
   template:
     metadata:
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-env-vars.yaml") . | sha256sum }}
+        checksum/config-apache: {{ include (print $.Template.BasePath "/apache-configmap.yaml") . | sha256sum }}
+        checksum/config-post-install: {{ include (print $.Template.BasePath "/configmap-script-post-install.yaml") . | sha256sum }}
+        checksum/config-nextcloud: {{ include (print $.Template.BasePath "/nextcloud-configmap.yaml") . | sha256sum }}
+        checksum/config-php: {{ include (print $.Template.BasePath "/nextcloud-php-configmap.yaml") . | sha256sum }}
         checksum/secret: {{ include (print $.Template.BasePath "/secret-nextcloud.yaml") . | sha256sum }}
+        checksum/secret-database: {{ include (print $.Template.BasePath "/secret-database.yaml") . | sha256sum }}
+        checksum/secret-minio: {{ include (print $.Template.BasePath "/secret-minio.yaml") . | sha256sum }}
+        checksum/secret-redis: {{ include (print $.Template.BasePath "/secret-redis.yaml") . | sha256sum }}
         {{- if .Values.podAnnotations }}
         {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
         {{- end }}

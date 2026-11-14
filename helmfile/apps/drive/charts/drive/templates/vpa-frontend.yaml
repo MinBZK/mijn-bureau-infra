@@ -1,0 +1,44 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if and (include "common.capabilities.apiVersions.has" ( dict "version" "autoscaling.k8s.io/v1/VerticalPodAutoscaler" "context" . )) .Values.drive_frontend.autoscaling.vpa.enabled }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: {{ include "common.names.fullname" . }}-frontend
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: drive-frontend
+  {{- if or .Values.drive_frontend.autoscaling.vpa.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list .Values.drive_frontend.autoscaling.vpa.annotations .Values.commonAnnotations ) "context" . ) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  resourcePolicy:
+    containerPolicies:
+    - containerName: drive
+      {{- with .Values.drive_frontend.autoscaling.vpa.controlledResources }}
+      controlledResources:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.drive_frontend.autoscaling.vpa.maxAllowed }}
+      maxAllowed:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.drive_frontend.autoscaling.vpa.minAllowed }}
+      minAllowed:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  targetRef:
+    apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+    kind: Deployment
+    name: {{ include "common.names.fullname" . }}-frontend
+  {{- if .Values.drive_frontend.autoscaling.vpa.updatePolicy }}
+  updatePolicy:
+    {{- with .Values.drive_frontend.autoscaling.vpa.updatePolicy.updateMode }}
+    updateMode: {{ . }}
+    {{- end }}
+  {{- end }}
+{{- end }}

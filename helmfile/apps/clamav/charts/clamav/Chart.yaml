@@ -7,6 +7,7 @@ annotations:
 apiVersion: v2
 appVersion: 1.5.4
 description: "ClamAV is an open source (GPLv2) anti-virus toolkit, designed especially for e-mail scanning on mail gateways. It provides a number of utilities including a flexible and scalable multi-threaded daemon, a command line scanner and advanced tool for automatic database updates."
+home: https://minbzk.github.io/mijn-bureau-infra/
 icon: https://www.clamav.net/assets/favicon.ico
 keywords:
   - virus scanner

@@ -2,7 +2,10 @@ annotations:
   category: video
   licenses: Apache-2.0
 apiVersion: v2
-appVersion: v1.15.0
+# appVersion feeds app.kubernetes.io/version labels; the repo policy
+# (policy/labels.rego) requires plain semver without a leading "v", so keep
+# this stripped even though the image tag itself is "v1.15.0".
+appVersion: 1.15.0
 dependencies:
   - name: common
     repository: "file://../../../common/charts/common"
@@ -17,4 +20,6 @@ maintainers:
   - name: mijn-bureau-infra
     url: "https://minbzk.github.io/mijn-bureau/"
 name: livekit-egress
+sources:
+  - https://github.com/livekit/livekit
 version: 0.1.0

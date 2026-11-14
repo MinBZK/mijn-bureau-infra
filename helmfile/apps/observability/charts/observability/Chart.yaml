@@ -7,6 +7,7 @@ annotations:
 apiVersion: v2
 appVersion: "1.0.0"
 description: "Ships Grafana dashboards as GrafanaDashboard custom resources for the grafana-operator. Each JSON file under dashboards/ becomes a GrafanaDashboard, picked up by any Grafana instance whose labels match the configured instanceSelector."
+home: https://minbzk.github.io/mijn-bureau-infra/
 icon: https://grafana.com/static/img/menu/grafana2.svg
 keywords:
   - grafana

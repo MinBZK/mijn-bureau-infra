@@ -44,10 +44,20 @@ spec:
         - podSelector:
             matchLabels:
               {{- include "ollama.selectorLabels" . | nindent 14 }}
+        {{- if .Values.networkPolicy.addExternalClientAccess }}
         # Allow access from pods with client label
         - podSelector:
             matchLabels:
               {{ include "ollama.fullname" . }}-client: "true"
+        {{- end }}
+        {{- if .Values.networkPolicy.ingressPodMatchLabels }}
+        # Allow access from pods with custom match labels
+        - podSelector:
+            matchLabels:
+              {{- range $key, $value := .Values.networkPolicy.ingressPodMatchLabels }}
+              {{ $key | quote }}: {{ $value | quote }}
+              {{- end }}
+        {{- end }}
         {{- if .Values.networkPolicy.ingressNSMatchLabels }}
         # Allow access from specific namespaces
         - namespaceSelector:

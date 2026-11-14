@@ -555,7 +555,7 @@ backend:
   ## Docs backend job configurations dedicated to run a specific management command, for example after a deployment
   ## @param backend.jobs.ttlSecondsAfterFinished Period to wait before remove jobs
   ## @param backend.jobs.backoffLimit Numbers of jobs retries
-  ## @param backend.jobs.releaseSuffix String to make jobs unique per install, to prevent immutability errors
+  ## @param backend.jobs.releaseSuffix DEPRECATED, ignored. Jobs are helm hooks with a fixed name and before-hook-creation delete policy; Job pod specs are immutable so updating them fails.
   ## @param backend.jobs.jobs [array] A list of job configurations.
   ## Example:
   ##   jobs:

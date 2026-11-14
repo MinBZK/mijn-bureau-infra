@@ -27,6 +27,7 @@ spec:
   template:
     metadata:
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
         {{- if .Values.egress.podAnnotations }}
         {{- include "common.tplvalues.render" (dict "value" .Values.egress.podAnnotations "context" $) | nindent 8 }}
@@ -64,8 +65,9 @@ spec:
       {{- if .Values.egress.terminationGracePeriodSeconds }}
       terminationGracePeriodSeconds: {{ .Values.egress.terminationGracePeriodSeconds }}
       {{- end }}
-      {{- if .Values.egress.writableDirs.enabled }}
+      {{- if or .Values.egress.writableDirs.enabled .Values.egress.initContainers }}
       initContainers:
+        {{- if .Values.egress.writableDirs.enabled }}
         - name: prepare-egress-dirs
           image: {{ include "livekit-egress.dirsInitImage" . }}
           imagePullPolicy: {{ .Values.egress.dirsInitContainer.image.pullPolicy }}
@@ -101,11 +103,21 @@ spec:
               mountPath: /var/run
             - name: egress-var-lib-pulse
               mountPath: /var/lib/pulse
+        {{- end }}
+        {{- if .Values.egress.initContainers }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.egress.initContainers "context" $) | nindent 8 }}
+        {{- end }}
       {{- end }}
       containers:
         - name: livekit-egress
           image: {{ include "livekit-egress.image" . }}
           imagePullPolicy: {{ .Values.egress.image.pullPolicy }}
+          {{- if .Values.egress.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.egress.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.egress.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.egress.args "context" $) | nindent 12 }}
+          {{- end }}
           {{- if .Values.egress.containerSecurityContext.enabled }}
           securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.egress.containerSecurityContext "context" $) | nindent 12 }}
           {{- end }}
@@ -142,7 +154,9 @@ spec:
               containerPort: {{ .Values.egress.config.prometheus_port }}
               protocol: TCP
             {{- end }}
-          {{- if .Values.egress.livenessProbe.enabled }}
+          {{- if .Values.egress.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.egress.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.egress.livenessProbe.enabled }}
           livenessProbe:
             httpGet:
               path: /
@@ -153,7 +167,9 @@ spec:
             failureThreshold: {{ .Values.egress.livenessProbe.failureThreshold }}
             successThreshold: {{ .Values.egress.livenessProbe.successThreshold }}
           {{- end }}
-          {{- if .Values.egress.readinessProbe.enabled }}
+          {{- if .Values.egress.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.egress.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.egress.readinessProbe.enabled }}
           readinessProbe:
             httpGet:
               path: /
@@ -163,6 +179,12 @@ spec:
             timeoutSeconds: {{ .Values.egress.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.egress.readinessProbe.failureThreshold }}
             successThreshold: {{ .Values.egress.readinessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.egress.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.egress.customStartupProbe "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.egress.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.egress.lifecycleHooks "context" $) | nindent 12 }}
           {{- end }}
           volumeMounts:
             - name: egress-config
@@ -183,6 +205,9 @@ spec:
             {{- if .Values.egress.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.egress.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
+        {{- if .Values.egress.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.egress.sidecars "context" $) | nindent 8 }}
+        {{- end }}
       volumes:
         - name: egress-config
           secret:
