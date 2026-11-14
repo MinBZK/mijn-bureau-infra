@@ -1,0 +1,53 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- range .Values.namespaces }}
+{{- if or (not (hasKey . "enabled")) .enabled }}
+# Namespace isolation: inbound traffic is only accepted from pods of the same
+# namespace or from sources an application chart's NetworkPolicy explicitly
+# allows. Same-namespace flows stay working (this protects cross-namespace
+# access, e.g. another tenant's pods calling your databases). Egress is left
+# untouched; component policies govern it where needed.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: {{ .name | quote }}
+  labels:
+    app.kubernetes.io/name: defaultdeny
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/version: {{ $.Chart.AppVersion | quote }}
+    app.kubernetes.io/component: networkpolicy
+    app.kubernetes.io/part-of: mijn-bureau
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    {{- with $.Values.commonLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with $.Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # pods of the same namespace
+        - podSelector: {}
+    {{- range $.Values.allowedCrossNamespaceIngress }}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .name | quote }}
+      ports:
+        {{- range .ports }}
+        - port: {{ . }}
+          protocol: TCP
+        {{- end }}
+    {{- end }}
+---
+{{- end }}
+{{- end }}

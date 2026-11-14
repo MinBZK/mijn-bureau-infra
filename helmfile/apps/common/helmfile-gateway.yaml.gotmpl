@@ -10,3 +10,12 @@ releases:
     {{- end }}
     values:
       - "values-gateway.yaml.gotmpl"
+
+  # Baseline ingress isolation: every enabled app namespace gets a
+  # default-deny-ingress NetworkPolicy unless explicitly opted out.
+  - name: defaultdeny
+    chart: ../common/charts/defaultdeny
+    installed: {{ .Values.cluster.networkPolicy.defaultDeny.enabled | toYaml }}
+    namespace: kube-system
+    values:
+      - "values-defaultdeny.yaml.gotmpl"

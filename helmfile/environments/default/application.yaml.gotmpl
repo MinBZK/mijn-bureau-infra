@@ -86,6 +86,10 @@ application:
   docs:
     enabled: true
     namespace: ~
+    # Token used for server-to-server calls into docs (dictaphone reads
+    # details on processed audio, meet fetches meeting notes). Shared as an
+    # env var; rotate it by rotating the master derivation seed.
+    serverToServerApiToken: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "serverToServerApiToken" | sha1sum | quote }}
     backend:
       django:
         secretKey: {{ print ( derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "djangoSecretKey" | sha1sum ) ( derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "djangoSecretKey2" | sha1sum ) | trunc 63 | quote }}

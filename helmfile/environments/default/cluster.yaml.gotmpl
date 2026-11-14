@@ -16,6 +16,23 @@ cluster:
         port: ~
         namespace: ~  # Leave unset to allow the internal port to any destination.
 
+  # Baseline network isolation.
+  networkPolicy:
+    defaultDeny:
+      # When enabled, every enabled application's explicit namespace receives a
+      # default-deny-ingress NetworkPolicy: inbound traffic is only accepted
+      # from pods of the same namespace or via the chart-provided policies
+      # (charts set allowExternal/ingress match labels). One-off non-app
+      # namespaces stay unaffected. Egress is component-policy territory.
+      enabled: true
+      # Cross-namespace ingress exceptions applied in every isolated
+      # namespace. CloudNativePG's operator (in its own namespace) needs to
+      # reach instance-manager (8000) on PostgreSQL clusters; metrics scraping
+      # (9187) is included for producers that run the CNPG exporter.
+      allow:
+        - name: cnpg-system
+          ports: [8000, 9187]
+
   # routingMode selects the routing technology.
   # Allowed values: ingress, gateway-api, none.
   # For ingress mode, set cluster.ingress.type to nginx or haproxy-openshift, traefik

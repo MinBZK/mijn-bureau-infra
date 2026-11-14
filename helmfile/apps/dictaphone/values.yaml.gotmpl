@@ -201,9 +201,9 @@ application:
     webhookApiKey: {{ .Values.ai.dictaphone.webhookApiKey | quote }}
   docs:
     baseUrl: {{ printf "https://%s.%s" .Values.global.hostname.docs .Values.global.domain | quote }}
-    # Must match docs' DJANGO_SERVER_TO_SERVER_API_TOKENS.
-    # TODO: rotate to a derived value in sync with the docs chart value.
-    serverToServerApiKey: {{ dig "application" "docs" "serverToServerApiToken" "secret-api-key" .Values | quote }}
+    # Must match docs' DJANGO_SERVER_TO_SERVER_API_TOKENS. Sourced from
+    # application.docs.serverToServerApiToken (derived from master password).
+    serverToServerApiKey: {{ required "application.docs.serverToServerApiToken is not set" (dig "application" "docs" "serverToServerApiToken" nil .Values) | quote }}
 
 smtp:
   host: {{ .Values.smtp.host | quote }}

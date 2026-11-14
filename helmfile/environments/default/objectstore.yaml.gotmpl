@@ -9,7 +9,7 @@ objectstore:
     useSSL: false
     region: "eu-west-1"
     isInternal: true
-    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "nextcloud" | sha1sum | quote }}
+    rootPassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "minio" "nextcloud" | sha1sum | quote }}
 
   docs:
     bucket: "docs"
@@ -18,7 +18,7 @@ objectstore:
     port: 9000
     useSSL: false
     isInternal: true
-    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "docs" | sha1sum | quote }}
+    rootPassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "minio" "docs" | sha1sum | quote }}
 
   drive:
     bucket: "drive"
@@ -27,7 +27,7 @@ objectstore:
     port: 9000
     useSSL: false
     isInternal: true
-    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "drive" | sha1sum | quote }}
+    rootPassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "minio" "drive" | sha1sum | quote }}
 
   meet:
     bucket: "meet-media-storage"
@@ -37,7 +37,7 @@ objectstore:
     useSSL: false
     region: "eu-west-1"
     isInternal: true
-    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "meet" | sha1sum | quote }}
+    rootPassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "minio" "meet" | sha1sum | quote }}
 
   projects:
     bucket: "projects"
@@ -46,7 +46,7 @@ objectstore:
     port: 9000
     useSSL: false
     isInternal: true
-    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "projects" | sha1sum | quote }}
+    rootPassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "minio" "projects" | sha1sum | quote }}
 
   dictaphone:
     bucket: "dictaphone"
@@ -56,7 +56,7 @@ objectstore:
     useSSL: false
     region: "eu-west-1"
     isInternal: true
-    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "dictaphone" | sha1sum | quote }}
+    rootPassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "minio" "dictaphone" | sha1sum | quote }}
 
   conversations:
     bucket: "conversations-media-storage"
@@ -66,7 +66,7 @@ objectstore:
     useSSL: false
     region: "eu-west-1"
     isInternal: true
-    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "conversations" | sha1sum | quote }}
+    rootPassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "minio" "conversations" | sha1sum | quote }}
 
   messages:
     username: "admin"
@@ -75,7 +75,7 @@ objectstore:
     useSSL: false
     region: "eu-west-1"
     isInternal: true
-    rootPassword: {{ derivePassword 1 "long" (env "MIJNBUREAU_MASTER_PASSWORD" | default "mijn-bureau") "minio" "messages" | sha1sum | quote }}
+    rootPassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "minio" "messages" | sha1sum | quote }}
     # Public endpoint used to rewrite presigned import upload URLs. In the
     # demo environment this defaults to messages-minio.<global.domain>.
     publicUrl: ~
