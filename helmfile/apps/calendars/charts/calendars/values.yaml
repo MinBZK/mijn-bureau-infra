@@ -21,9 +21,7 @@ global:
     openshift:
       adaptSecurityContext: auto
     omitEmptySeLinuxOptions: false
-
 ## @section Common parameters
-
 kubeVersion: ""
 apiVersions: []
 nameOverride: ""
@@ -39,7 +37,6 @@ diagnosticMode:
     - sleep
   args:
     - infinity
-
 ## @section Cluster parameters
 
 ## Cluster routing configuration. Helmfile overrides these values through
@@ -54,9 +51,7 @@ cluster:
   gateway: {}
   tls:
     selfSigned: false
-
 ## @section Calendars parameters
-
 calendars:
   ## @param calendars.sidecars Add additional sidecar containers to the calendars pods
   ## e.g:
@@ -79,7 +74,6 @@ calendars:
   ##    command: ['sh', '-c', 'echo "hello world"']
   ##
   initContainers: []
-
 ## @section Calendars backend parameters
 
 ## Django API server (gunicorn)
@@ -88,7 +82,7 @@ backend:
   image:
     registry: ghcr.io
     repository: suitenumerique/calendars-backend
-    tag: main
+    tag: 0.2.0
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -181,7 +175,6 @@ backend:
     apiUrl: ""
     channelId: ""
     apiKey: ""
-
 ## @section Calendars worker parameters
 
 ## Dramatiq background worker
@@ -238,7 +231,6 @@ worker:
   extraVolumeMounts: []
   extraVolumes: []
   terminationGracePeriodSeconds: 620
-
 ## @section Calendars frontend parameters
 
 ## Static React single-page application served by Caddy
@@ -247,7 +239,7 @@ frontend:
   image:
     registry: ghcr.io
     repository: suitenumerique/calendars-frontend
-    tag: main
+    tag: 0.2.0
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -326,7 +318,6 @@ frontend:
   extraEnvVarsSecret: ""
   extraVolumeMounts: []
   extraVolumes: []
-
 ## @section CalDAV server parameters
 
 ## SabreDAV CalDAV server. The Django backend proxies /caldav to this service.
@@ -335,7 +326,7 @@ caldav:
   image:
     registry: ghcr.io
     repository: suitenumerique/calendars-caldav
-    tag: main
+    tag: 0.2.0
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -424,9 +415,7 @@ caldav:
   sanitizerStripBinaryAttachments: true
   sanitizerMaxDescriptionBytes: 102400
   sanitizerMaxResourceSize: 1048576
-
 ## @section Database jobs
-
 job:
   backoffLimit: 6
   ttlSecondsAfterFinished: 300
@@ -459,7 +448,6 @@ job:
     weight: "1"
   defaultLanguage:
     weight: "2"
-
 ## @section Default user language
 ## Post-install/upgrade hook that sets the default interface/email language
 ## for users without a language preference. The invitation mailer otherwise
@@ -477,7 +465,6 @@ defaultLanguage:
     concurrencyPolicy: Forbid
     successfulJobsHistoryLimit: 1
     failedJobsHistoryLimit: 3
-
 ## @section Messages-app CalDAV channel
 ## Global "caldav" channel provisioned for the LaSuite messages app.
 ## Password seen by messages = "<id><token>" (concatenated, no separator).
@@ -486,15 +473,12 @@ messagesChannel:
   enabled: false
   id: ""
   token: ""
-
 ## @section Traffic exposure parameters
-
 service:
   type: ClusterIP
   ports:
     http: 80
   annotations: {}
-
 ingress:
   enabled: true
   pathType: Prefix
@@ -508,9 +492,7 @@ ingress:
   extraTls: []
   secrets: []
   extraRules: []
-
 ## @section Network policy parameters
-
 networkPolicy:
   enabled: true
   allowExternal: true
@@ -529,24 +511,18 @@ networkPolicy:
   ingressPodMatchLabels: {}
   extraIngress: []
   extraEgress: []
-
 ## @section Service account parameters
-
 serviceAccount:
   create: true
   name: ""
   annotations: {}
   automountServiceAccountToken: false
-
 ## @section External Redis parameters
-
 externalRedis:
   host: ""
   port: 6379
   password: ""
-
 ## @section External database parameters
-
 externalDatabase:
   type: postgresql
   username: ""
@@ -555,9 +531,7 @@ externalDatabase:
   port: 5432
   database: ""
   logging: false
-
 ## @section SMTP parameters
-
 smtp:
   host: ""
   port: 587
@@ -565,9 +539,7 @@ smtp:
   username: ""
   password: ""
   from: ""
-
 ## @section Authentication parameters
-
 authentication:
   issuer: ""
   authorization_endpoint: ""
@@ -583,9 +555,7 @@ authentication:
   client:
     client_id: calendars
     client_secret: ""
-
 ## @section Superuser parameters
-
 superuser:
   email: ""
   password: ""
