@@ -15,7 +15,7 @@ located in the folder `helmfile/environments/default`.
 | `application.docs.namespace` | The Kubernetes namespace name                  |
 | `application.docs.*`         | Specific docs configuration options            |
 | `ai.llm.*`                   | Docs can make use of the configured AI model   |
-| `authorization.docs.*`       | Authentication configration                    |
+| `authentication.client.docs.*` | OIDC client configuration                    |
 | `autoscaling.*.docs.*`       | Autoscaling (horizontal and vertical)          |
 | `cache.docs.*`               | Cache configuration                            |
 | `container.docs.*`           | Container selection                            |

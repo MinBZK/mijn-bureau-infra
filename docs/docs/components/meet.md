@@ -17,13 +17,13 @@ located in the folder `helmfile/environments/default`.
 | `application.meet.agents.enabled`           | Enable the LiveKit metadata agent                            |
 | `application.meet.agents.subtitles.enabled` | Enable the LiveKit subtitles agent (off by default)          |
 | `application.meet.summary.enabled`          | Enable AI summarization; transcription follows `ai.whisperx` |
-| `authorization.meet.enabled`                | Enable meet for your MijnBureau implementation               |
 | `tls.meet.*`                                | The TLS settings for meet                                    |
 | `livekit.meet.*`                            | Livekit connection                                           |
 | `pvc.meet.*`                                | storage requirements                                         |
-| `resources.meet.*`                          | Resources for meet                                           |
+| `resource.meet.*`                           | Resources for meet                                           |
 | `autoscaling.horizontal.meet.*`             | Autoscaling for meet.                                        |
-| `container.meet.*`                          | Container selection                                          |
+| `container.meet_backend.*`                  | Container selection (backend)                                |
+| `container.meet_frontend.*`                 | Container selection (frontend)                               |
 | `container.meet_agents.*`                   | Container selection for the LiveKit agents                   |
 | `container.meet_summary.*`                  | Container selection for transcription workers                |
 | `objectstore.meet.*`                        | MinIO bucket and credentials for Meet media                  |

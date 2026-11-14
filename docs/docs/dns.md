@@ -30,10 +30,12 @@ global:
     keycloak: "id"
     element: "element"
     synapse: "matrix"
+    mas: "mas"
     collabora: "collabora"
     nextcloud: "nextcloud"
     livekit: "livekit"
     meet: "meet"
+    meet-minio: "meet-minio"
     conversations: "conversations"
     docs: "docs"
     bureaublad: "bureaublad"
@@ -57,13 +59,14 @@ With this configuration, you need to create A and AAAA DNS records. A records ma
 Create the following DNS records (replace `kubernetes.local` with your configured domain):
 
 - `id.kubernetes.local`
-- `id-admin.kubernetes.local`
 - `element.kubernetes.local`
 - `matrix.kubernetes.local`
+- `mas.kubernetes.local` (Matrix Authentication Service, enabled by default with Element)
 - `collabora.kubernetes.local`
 - `nextcloud.kubernetes.local`
 - `livekit.kubernetes.local`
 - `meet.kubernetes.local`
+- `meet-minio.kubernetes.local` (public endpoint for Meet recording downloads)
 - `conversations.kubernetes.local`
 - `docs.kubernetes.local`
 - `bureaublad.kubernetes.local`

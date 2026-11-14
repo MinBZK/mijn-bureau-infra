@@ -13,7 +13,7 @@ located in the folder `helmfile/environments/default`.
 | `application.clamav.namespace` | The Kubernetes namespace name   |
 | `antivirus.*`                  | General antivirus settings      |
 | `antivirus.icap.*`             | ICAP server settings            |
-| `autoscaling.clamav.*`         | Autoscaling settings            |
+| `autoscaling.horizontal.clamav.*` | Autoscaling settings            |
 | `container.clamav.*`           | Container settings to overwrite |
 | `container.clamav_icap.*`      | ICAP sidecar image settings     |
 | `pvc.clamav.*`                 | Storage configuration           |

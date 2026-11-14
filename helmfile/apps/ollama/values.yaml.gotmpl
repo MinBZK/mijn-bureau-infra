@@ -48,6 +48,9 @@ ollama:
 extraEnv:
   - name: HOME
     value: "/home/ollama"
+  {{- with dig "container" "ollama" "extraEnv" (list) .Values }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
 
 autoscaling:
   enabled: {{ .Values.autoscaling.horizontal.ollama.enabled }}

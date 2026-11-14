@@ -6,7 +6,7 @@ values into Helm chart context so templates can reference .Values.cluster.routin
 cluster:
   routingMode: {{ .Values.cluster.routingMode | default "ingress" | quote }}
   ingress:
-    type: {{ .Values.cluster.ingress.type | default "nginx" | quote }}
+    type: {{ .Values.cluster.ingress.type | default "traefik" | quote }}
     className: {{ .Values.cluster.ingress.className | default "" | quote }}
     {{- with .Values.cluster.ingress.annotations }}
     annotations: {{ . | toYaml | nindent 6 }}

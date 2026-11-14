@@ -77,4 +77,4 @@ Resource limits can be adjusted via `resource.ollama.*` in your helmfile values.
 
 ## Your own AI LLM
 
-If you do not want to deploy Ollama but want to use your own AI system disable ollama by setting `application.ai.enabled` and configure your AI endpoint in `ai.llm.*`.
+If you do not want to deploy Ollama but want to use your own AI system disable ollama by setting `application.ollama.enabled: false` and configure your AI endpoint in `ai.llm.*`.

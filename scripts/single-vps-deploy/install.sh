@@ -14,7 +14,7 @@ DOMAIN="${1:?Usage: $0 <domain> <email> <master-password>}"
 EMAIL="${2:?Usage: $0 <domain> <email> <master-password>}"
 MASTER_PASSWORD="${3:?Usage: $0 <domain> <email> <master-password>}"
 
-BASE_URL="${BASE_URL:-https://raw.githubusercontent.com/ritza-co/mijn-bureau-infra/ritza/docs-single-vps-k3s-guide/scripts/single-vps-deploy}"
+BASE_URL="${BASE_URL:-https://raw.githubusercontent.com/MinBZK/mijn-bureau-infra/refs/heads/main/scripts/single-vps-deploy}"
 
 run_step() {
   # run_step <script> [args...]

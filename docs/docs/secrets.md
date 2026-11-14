@@ -4,58 +4,82 @@ sidebar_position: 6
 
 # Secrets
 
-Sensitive values, such as database passwords, can be securely stored for MijnBureau using [helm-secrets](https://github.com/jkroepke/helm-secrets). Secrets can be managed in various ways, including secret managers like HashiCorp Vault or encryption tools like [SOPS](https://getsops.io/) and Vals. MijnBureau supports secrets handling and provides an example configuration for SOPS. A similar setup can be created for other tools.
+MijnBureau handles secrets in two layers:
 
-### Example Secrets File
-
-```bash
-./helmfile/environments/{environment}/example.secrets.yaml
-```
+1. **Derived secrets** — all application and database passwords are *derived deterministically* from the master password `MIJNBUREAU_MASTER_PASSWORD`. Out of the box you do not need to store any password on disk.
+2. **SOPS secrets files** *(optional)* — for values that must be overridden per environment (for example SMTP relay credentials), you can add an encrypted `*.secrets.yaml` file to an environment.
 
 ---
 
-## SOPS
+## 1. Derived secrets (default)
 
-This section explains how to use SOPS for managing secrets. First, install [SOPS](https://getsops.io/) and [AGE](https://github.com/FiloSottile/age).
+Every password in `helmfile/environments/default/secret.yaml.gotmpl` is generated with:
 
-### Steps to Use SOPS
+```yaml
+{{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "<app>" "<key>" | sha1sum }}
+```
 
-1. **Generate an AGE Key Pair**:
+This means:
 
-   Run the following command to generate a key pair:
+- Only `MIJNBUREAU_MASTER_PASSWORD` must be kept secret and stable. All logins (Keycloak admin, Nextcloud admin, database passwords, LiveKit keys, etc.) are reproducible from it.
+- Changing `MIJNBUREAU_MASTER_PASSWORD` rotates **every** generated password and breaks access to existing data. Set it once for each deployment and keep it safe.
+- Override an individual value in your environment values file (e.g. `helmfile/environments/production/mijnbureau.yaml.gotmpl`) under the `secret:` key if you want a specific password instead of a derived one.
+
+Optional secret inputs consumed from the environment:
+
+- `MESSAGES_MTA_RELAY_PASSWORD` — SMTP relay password for Messages (only when `application.messages.relayHost` is set).
+
+---
+
+## 2. SOPS secrets files (optional)
+
+For secrets that cannot be derived (external credentials, federation keys, LDAP bind passwords, ...), MijnBureau supports SOPS-encrypted secrets files via [helm-secrets](https://github.com/jkroepke/helm-secrets).
+
+> **Note:** loading of secrets files is disabled by default. The `secrets:` entries in `helmfile/bases/environment.yaml.gotmpl` are commented out; uncomment the block for the environments that use a secrets file:
+>
+> ```yaml
+> demo:
+>   values:
+>     - "helmfile/environments/default/*.yaml*"
+>     - "helmfile/environments/demo/*.yaml.gotmpl"
+>   secrets:
+>     - "helmfile/environments/{{ .Environment.Name }}/*.secrets.yaml"
+> ```
+>
+> Secrets files must be named `*.secrets.yaml` in the environment directory; the default `values:` glob (`*.yaml.gotmpl`) does **not** pick them up.
+
+### Steps to use SOPS
+
+1. **Install the tools**: [SOPS](https://getsops.io/), [AGE](https://github.com/FiloSottile/age), and the [helm-secrets](https://github.com/jkroepke/helm-secrets) plugin. Running `helmfile init` installs the plugin.
+
+2. **Generate an AGE key pair**:
 
    ```bash
    age-keygen -o mykey.txt
    ```
 
-2. **Update `.sops.yaml`**:
+3. **Update `.sops.yaml`**: replace the `age:` entry in the repository root `.sops.yaml` with your public key. The path rule `.*secrets.yaml$` is already in place.
 
-   Replace the `age:` entry in `.sops.yaml` with your public key.
-
-3. **Encrypt a File**:
-
-   Add values to `example.secrets.yaml` and encrypt it:
+4. **Create and encrypt the secrets file**:
 
    ```bash
-   helm secrets encrypt -i ./helmfile/environments/{environment}/example.secrets.yaml
-   ```
-
-4. **Decrypt for Local Use**:
-
-   Decrypt the file for local use by running:
-
-   ```bash
+   # create helmfile/environments/<environment>/<name>.secrets.yaml with your values, then:
    export SOPS_AGE_KEY_FILE=./mykey.txt
-   helm secrets decrypt -i ./helmfile/environments/{environment}/example.secrets.yaml
+   helm secrets encrypt -i helmfile/environments/<environment>/<name>.secrets.yaml
    ```
 
-5. **Use with Helmfile**:
+   Encrypted secrets files can be committed to git; SOPS only leaves the public values readable.
 
-   Export the required environment variables and run Helmfile commands:
+5. **Deploy** (helm-secrets decrypts in memory via helmfile):
 
    ```bash
    export MIJNBUREAU_MASTER_PASSWORD=changethis
    export SOPS_AGE_KEY_FILE=./mykey.txt
-   helmfile template
-   helmfile apply
+   helmfile -e <environment> template
+   helmfile -e <environment> apply
    ```
+
+### Scripts integration
+
+- `./scripts/test.sh` accepts `-s "$SOPS_AGE_KEY"` for decryption in CI/test settings.
+- When available, `./scripts/policy.sh` reads the master password from `/run/secrets/mijnbureau-master-password`.

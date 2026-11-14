@@ -13,10 +13,10 @@ located in the folder `helmfile/environments/default`.
 | `global.hostname.bureaublad`          | The name of the subdomain for the bureaublad client  |
 | `application.bureaublad.enabled`      | Enable bureaublad for your MijnBureau implementation |
 | `application.bureaublad.namespace`    | The Kubernetes namespace name                        |
-| `authentication.bureaublad.*`         | OIDC client settings for bureaublad.                 |
+| `authentication.client.bureaublad.*`  | OIDC client settings for bureaublad.                 |
 | `tls.bureaublad.*`                    | The TLS settings for bureaublad                      |
 | `resource.bureaublad.*`               | Resources for bureaublad                             |
 | `autoscaling.horizontal.bureaublad.*` | Autoscaling for bureaublad.                          |
 | `container.bureaublad.*`              | Container selection                                  |
-| `secret.bureaublad.*`                 | Superuser credentials                                |
+| `application.bureaublad.backend.secretKey` | Backend Django secret key                       |
 | `ai.llm.*`                            | AI used by bureaublad                                |

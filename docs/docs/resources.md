@@ -8,7 +8,7 @@ This document describes how CPU and memory resources are managed across all Mijn
 
 ## How It Works
 
-Resources are managed through a three-tier system:
+Resources are managed through four mechanisms:
 
 1. **Global preset** (`global.resourcesPreset`) - a default preset applied to all applications and their dependencies (PostgreSQL, Valkey, MinIO)
 2. **Per-app preset** (`global.resourcesPresetPerApp`) - overrides the global preset for specific application components
@@ -24,6 +24,8 @@ When determining resources for a container, the system uses the following priori
 2. resourcesPresetPerApp.<app>   (per-app preset)
 3. global.resourcesPreset        (global fallback)
 ```
+
+(The custom resource helpers sit outside this chain — they always enforce their minimum floor.)
 
 ## Available Presets
 
@@ -55,13 +57,20 @@ global:
   resourcesPreset: "small" # default for all apps
 
   resourcesPresetPerApp:
+    collabora: "small"
     elementweb: "nano"
+    keycloak: "small"
+    ollama: "small"
     synapse: "large"
     livekit: "medium"
-    nextcloud: "medium"
+    livekitEgress: "xlarge"
     meet:
       backend: "micro"
       frontend: "nano"
+      celeryBackend: "micro"
+      agents: "micro"
+      summary: "micro"
+    nextcloud: "medium"
     docs:
       backend: "micro"
       frontend: "nano"
@@ -74,7 +83,14 @@ global:
     conversations:
       backend: "micro"
       frontend: "nano"
+      celery: "micro"
+      celeryBeat: "micro"
     projects: "micro"
+    calendars:
+      backend: "micro"
+      worker: "micro"
+      frontend: "nano"
+      caldav: "micro"
     dictaphone:
       backend: "micro"
       frontend: "nano"
@@ -141,9 +157,9 @@ The table below summarizes the minimum resource requirements for each applicatio
 | App       | Min CPU | Min RAM  | Mechanism                                       | Preset in config |
 | --------- | ------- | -------- | ----------------------------------------------- | ---------------- |
 | ClamAV    | 1 core  | 3 GiB    | Custom `_clamav_resources.tpl`                  | Global fallback  |
-| Collabora | 1 core  | 512 MiB  | Custom `_collabora_resources.tpl`               | Global fallback  |
-| Keycloak  | 1 vCPU  | 1280 MiB | Keycloak preset floor in `keycloak.yaml.gotmpl` | Global fallback  |
-| Ollama    | 2 cores | 8 GiB    | Custom `_ollama_resources.tpl`                  | Global fallback  |
+| Collabora | 1 core  | 512 MiB  | Custom `_collabora_resources.tpl`               | `small`          |
+| Keycloak  | 1 vCPU  | 1280 MiB | Keycloak preset floor in `keycloak.yaml.gotmpl` | `small`          |
+| Ollama    | 2 cores | 8 GiB    | Custom `_ollama_resources.tpl`                  | `small`          |
 
 These apps are safe at any preset -- the custom helper or values mapping enforces the minimum regardless.
 
@@ -151,12 +167,16 @@ These apps are safe at any preset -- the custom helper or values mapping enforce
 
 | App           | Component       | Preset   | Min CPU | Min RAM  | Notes                                             |
 | ------------- | --------------- | -------- | ------- | -------- | ------------------------------------------------- |
-| Element Web   | -               | `nano`   | 50m     | 64 MiB   | Static SPA served by nginx                        |
+| Element Web   | -               | `nano`   | 100m    | 128 MiB  | Static SPA served by nginx                        |
 | Synapse       | master + worker | `large`  | 1 core  | 2 GiB    | Matrix homeserver, memory scales with rooms/users |
-| LiveKit       | -               | `medium` | 500m    | 512 MiB  | WebRTC SFU, scales heavily with participants      |
-| Nextcloud     | -               | `medium` | 500m    | 512 MiB  | PHP memory limit is 512 MiB per process           |
+| LiveKit       | -               | `medium` | 500m    | 1024 MiB | WebRTC SFU, scales heavily with participants      |
+| LiveKit       | egress          | `xlarge` | 1 core  | 3 GiB    | Recording; ~4 CPU per composite recording         |
+| Nextcloud     | -               | `medium` | 500m    | 1024 MiB | PHP memory limit is 512 MiB per process           |
 | Meet          | backend         | `micro`  | 250m    | 256 MiB  | Lightweight Django app                            |
 | Meet          | frontend        | `nano`   | 100m    | 128 MiB  | Static React/Next.js                              |
+| Meet          | celeryBackend   | `micro`  | 250m    | 256 MiB  | Celery worker                                     |
+| Meet          | agents          | `micro`  | 250m    | 256 MiB  | LiveKit metadata/subtitles agents                 |
+| Meet          | summary         | `micro`  | 250m    | 256 MiB  | Transcription/summary workers                     |
 | Docs          | backend         | `micro`  | 250m    | 256 MiB  | Django app                                        |
 | Docs          | frontend        | `nano`   | 100m    | 128 MiB  | Static React/Next.js                              |
 | Docs          | celery          | `micro`  | 250m    | 256 MiB  | Background task worker                            |
@@ -166,6 +186,14 @@ These apps are safe at any preset -- the custom helper or values mapping enforce
 | Drive         | frontend        | `nano`   | 100m    | 128 MiB  | Static React/Next.js                              |
 | Conversations | backend         | `micro`  | 250m    | 256 MiB  | Django app                                        |
 | Conversations | frontend        | `nano`   | 100m    | 128 MiB  | Static React/Next.js                              |
+| Conversations | celery          | `micro`  | 250m    | 256 MiB  | Celery worker                                     |
+| Conversations | celeryBeat      | `micro`  | 250m    | 256 MiB  | Celery beat scheduler                             |
+| Dictaphone    | backend         | `micro`  | 250m    | 256 MiB  | Django app                                        |
+| Dictaphone    | frontend        | `nano`   | 100m    | 128 MiB  | Static frontend                                   |
+| Dictaphone    | celery          | `micro`  | 250m    | 256 MiB  | Celery worker                                     |
+| Dictaphone    | audioExtractor  | `micro`  | 250m    | 256 MiB  | Audio extraction worker                           |
+| Dictaphone    | s3Gateway       | `nano`   | 100m    | 128 MiB  | S3 gateway sidecar                                |
+| Projects      | -               | `micro`  | 250m    | 256 MiB  | Project management app                            |
 | Bureaublad    | backend         | `micro`  | 250m    | 256 MiB  | Dashboard backend                                 |
 | Bureaublad    | frontend        | `nano`   | 100m    | 128 MiB  | Dashboard frontend                                |
 | Calendars     | backend         | `micro`  | 250m    | 256 MiB  | Django app                                        |

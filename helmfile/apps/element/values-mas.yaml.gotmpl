@@ -237,8 +237,14 @@ config:
   passwords:
     enabled: false
     minimumComplexity: 3
+  # OIDC-only: identity fields come from Keycloak and are locked: users cannot
+  # change password, email, or display name in MAS (they manage those upstream).
   account:
     passwordRegistrationEnabled: false
+    passwordChangeEnabled: false
+    passwordRecoveryEnabled: false
+    emailChangeAllowed: false
+    displaynameChangeAllowed: false
   upstreamOauth2:
     # Passthrough of the MAS `upstream_oauth2.providers` section — keys are
     # the exact ones MAS expects (snake_case). MAS fronts Keycloak: users pick
@@ -264,12 +270,16 @@ config:
             action: require
             template: {{ print "{{ user.preferred_username }}" | quote }}
             on_conflict: add
+          # force: take the Keycloak claims as-is (never prompt the user) and
+          # re-sync them on every login; Keycloak is the source of truth.
           displayname:
-            action: suggest
+            action: force
             template: {{ print "{{ user.name }}" | quote }}
           email:
-            action: suggest
+            action: force
             template: {{ print "{{ user.email }}" | quote }}
+            # Keycloak is authoritative; skip MAS email verification.
+            set_email_verification_state: always
   experimental:
     accessTokenTtl: 86400
     compatTokenTtl: 86400
