@@ -1,0 +1,54 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mas.configMapName" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: mas
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  # Non-sensitive part of the MAS configuration only: all other sections
+  # (database, email, matrix, secrets, clients, ...) live in a Secret.
+  # Sensitive values are referenced via `*_file` paths.
+  config.yaml: |
+    http:
+      public_base: {{ .Values.config.publicBase | quote }}
+      issuer: {{ .Values.config.issuer | quote }}
+      {{- with .Values.config.trustedProxies }}
+      trusted_proxies: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      listeners:
+        - name: web
+          resources:
+            - name: discovery
+            - name: human
+            - name: oauth
+            - name: compat
+            - name: graphql
+            - name: assets
+          binds:
+            - address: "[::]:{{ .Values.containerPorts.http }}"
+          proxy_protocol: false
+        - name: internal
+          resources:
+            - name: health
+            {{- if .Values.metrics.enabled }}
+            - name: prometheus
+            {{- end }}
+          binds:
+            # kubelet reaches probes from the node — localhost bind would fail.
+            - host: 0.0.0.0
+              port: {{ .Values.containerPorts.internal }}
+          proxy_protocol: false
+    {{- if .Values.metrics.enabled }}
+    telemetry:
+      metrics:
+        exporter: prometheus
+    {{- end }}

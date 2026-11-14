@@ -25,6 +25,17 @@ application:
       architecture: monolith
       registrationSharedSecret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "synapse" "registrationSharedSecret" | sha1sum | quote }}
       formSecret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "synapse" "formSecret" | sha1sum | quote }}
+    # Matrix Authentication Service: OIDC broker in front of Synapse, needed
+    # by native clients (Element X). Enable to deploy MAS; Synapse delegates
+    # auth to it via MSC3861 when application.element.mas.enabled is true.
+    mas:
+      enabled: true
+      # Synapse↔MAS shared secret: lets MAS act on the homeserver as admin.
+      sharedSecret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "mas" "sharedSecret" | sha1sum | quote }}
+      # ULID for the synapse compat client in MAS. Static per client (ULIDs
+      # never rotate via the derives mechanism); change only if you must
+      # re-bind the client registration.
+      synapseClientUlid: "01JCCW00000000000000000000"
 
   # Collabora Online is a standalone real-time collaborative document server  that runs in a browser, and integrates with file storage platforms Nextcloud via WOPI or WebSocket APIs.
   collabora:

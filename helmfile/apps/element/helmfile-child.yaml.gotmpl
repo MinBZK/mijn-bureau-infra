@@ -33,6 +33,17 @@ releases:
       - "../common/values-valkey.yaml.gotmpl"
       - "values-valkey.yaml.gotmpl"
 
+  - name: mas-cluster-credentials
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.element.namespace }}
+    namespace: {{ .Values.application.element.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.element.enabled) (.Values.application.element.mas.enabled | default false) | toYaml }}
+    needs:
+      - {{ if .Values.application.element.namespace }}{{ .Values.application.element.namespace }}/{{ end }}element-cluster
+    values:
+      - "values-cnpg-cluster-credentials-mas.yaml.gotmpl"
+
   - name: "element-web"
     chart: "charts/element-web"
     condition: application.element.enabled
@@ -59,3 +70,19 @@ releases:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-synapse.yaml.gotmpl"
+
+  - name: element-mas
+    chart: charts/mas
+    installed: {{ and (.Values.application.element.enabled) (.Values.application.element.mas.enabled | default false) | toYaml }}
+    {{- if .Values.application.element.namespace }}
+    namespace: {{ .Values.application.element.namespace }}
+    {{- end }}
+    {{- if and (eq .Environment.Name "demo") (.Values.application.element.enabled) (.Values.application.element.mas.enabled | default false) }}
+    needs:
+      - {{ if .Values.application.element.namespace }}{{ .Values.application.element.namespace }}/{{ end }}element-cluster
+      - {{ if .Values.application.element.namespace }}{{ .Values.application.element.namespace }}/{{ end }}mas-cluster-credentials
+    {{- end }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values-mas.yaml.gotmpl"

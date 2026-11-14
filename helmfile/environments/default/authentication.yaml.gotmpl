@@ -28,6 +28,12 @@ authentication:
     synapse:
       client_id: "synapse"
       client_secret: {{ derivePassword 1 "long" ( requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "synapse_client_secret" | sha1sum | quote }}
+    # MAS is an OIDC client of Keycloak (upstream password flow) and the OIDC
+    # provider for Matrix clients. client_secret here is the MAS side of the
+    # keycloak federation.
+    mas:
+      client_id: "mas"
+      client_secret: {{ derivePassword 1 "long" ( requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "mas_client_secret" | sha1sum | quote }}
     nextcloud:
       client_id: "nextcloud"
       client_secret: {{ derivePassword 1 "long" ( requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "nextcloud_client_secret" | sha1sum | quote}}

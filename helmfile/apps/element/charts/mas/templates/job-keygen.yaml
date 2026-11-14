@@ -1,0 +1,165 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.keygenJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "common.names.fullname" . }}-keygen
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: mas-keygen
+  annotations:
+    # post-upgrade too: the job exits immediately when the secret exists, but
+    # re-running it after a failed install recreates them.
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+  {{- if .Values.commonAnnotations }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.keygenJob.ttlSecondsAfterFinished }}
+  backoffLimit: {{ .Values.keygenJob.backoffLimit }}
+  template:
+    metadata:
+      labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: mas-keygen
+      {{- if .Values.keygenJob.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.keygenJob.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+    spec:
+{{- with (include "mas.imagePullSecrets" . | trim) }}
+{{ . | indent 6 }}
+{{- end }}
+      restartPolicy: {{ .Values.keygenJob.restartPolicy }}
+      serviceAccountName: {{ include "common.names.fullname" . }}-keygen
+      # kubectl inside the job must reach the Kubernetes API; the chart-wide
+      # default sets automountServiceAccountToken false for the server.
+      automountServiceAccountToken: true
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.podSecurityContext "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      initContainers:
+        # MAS self-generates a sample config containing a fresh 32-byte
+        # encryption secret and fresh RSA+ECDSA signing keys.
+        - name: mas-generate
+          image: {{ template "mas.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          args:
+            - config
+            - generate
+            - --output
+            - /work/config.yaml
+          env:
+            - name: HOME
+              value: /work
+          {{- if .Values.keygenJob.resources }}
+          resources:
+            {{- toYaml .Values.keygenJob.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: work
+              mountPath: /work
+        # The kubectl image has no shell; copy busybox into a shared emptyDir.
+        - name: copy-shell
+          image: {{ template "mas.shell.image" . }}
+          imagePullPolicy: {{ .Values.keygenJob.shell.image.pullPolicy }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - cp /bin/busybox /shell/busybox && chmod 0755 /shell/busybox
+          {{- if .Values.keygenJob.resources }}
+          resources:
+            {{- toYaml .Values.keygenJob.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: shell
+              mountPath: /shell
+      containers:
+        - name: create-secrets
+          image: {{ template "mas.kubectl.image" . }}
+          imagePullPolicy: {{ .Values.keygenJob.kubectl.image.pullPolicy }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - /shell/busybox
+            - sh
+            - -c
+            - |
+              set -e
+
+              BB="/shell/busybox"
+
+              if /bin/kubectl get secret "$SECRET_NAME" -n "$POD_NAMESPACE" >/dev/null 2>&1; then
+                echo "Secret $SECRET_NAME already exists; not regenerating"
+                exit 0
+              fi
+
+              ENCRYPTION=$($BB awk '/^[[:space:]]+encryption:[[:space:]]/ { print $2; exit }' /work/config.yaml)
+              # busybox awk needs the applet explicitly (no PATH symlinks in
+              # this scratch image)
+              $BB awk '/BEGIN RSA PRIVATE KEY/,/END RSA PRIVATE KEY/' /work/config.yaml | $BB sed 's/^[[:space:]]*//' > /work/signing-key.pem
+
+              if [ -z "$ENCRYPTION" ] || [ ! -s /work/signing-key.pem ]; then
+                echo "Failed to extract key material from the generated MAS config"
+                exit 1
+              fi
+
+              $BB printf '%s' "$ENCRYPTION" > /work/encryption
+
+              /bin/kubectl create secret generic "$SECRET_NAME" -n "$POD_NAMESPACE" \
+                --from-file=/work/encryption \
+                --from-file=/work/signing-key.pem \
+                --from-literal=matrix-secret="$MATRIX_SHARED_SECRET" \
+              {{- range $index, $_ := .Values.config.clients }}
+                --from-literal={{ printf "client-secret-%d" $index | quote }}="$(eval "echo \$CLIENT_SECRET_{{ $index }}")" \
+              {{- end }}
+          env:
+            - name: HOME
+              value: /tmp
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SECRET_NAME
+              value: {{ include "mas.generatedSecretName" . | quote }}
+            - name: MATRIX_SHARED_SECRET
+              value: {{ .Values.config.matrix.secret | quote }}
+            {{- range $index, $client := .Values.config.clients }}
+            - name: {{ printf "CLIENT_SECRET_%d" $index | quote }}
+              value: {{ $client.clientSecret | quote }}
+            {{- end }}
+          {{- if .Values.keygenJob.resources }}
+          resources:
+            {{- toYaml .Values.keygenJob.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: work
+              mountPath: /work
+            - name: shell
+              mountPath: /shell
+            - name: empty-dir
+              mountPath: /tmp
+      volumes:
+        - name: work
+          emptyDir: {}
+        - name: shell
+          emptyDir: {}
+        - name: empty-dir
+          emptyDir: {}
+{{- end }}

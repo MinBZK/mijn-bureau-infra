@@ -1756,6 +1756,12 @@ synapse:
     workerToRunOn: null
   ## @param synapse.experimentalFeatures Enable experimental features by adding entries with format `<feature name>: true`.
   experimentalFeatures: {}
+  ## @param synapse.matrixAuthenticationService MAS (Matrix Authentication Service) integration block (Synapse >= 1.164). Rendered top-level as matrix_authentication_service; the only supported keys are enabled (bool), endpoint (string), secret (string), secret_path (string), force_http2 (bool).
+  ## ref: https://element-hq.github.io/synapse/latest/usage/configuration/config_documentation.html#matrix_authentication_service
+  matrixAuthenticationService: {}
+  ## @param synapse.extraWellKnownClientContent Extra map merged into /.well-known/matrix/client (e.g. org.matrix.msc2965.authentication)
+  ## ref: https://element-hq.github.io/synapse/latest/usage/configuration/config_documentation.html#extra_well_known_client_content
+  extraWellKnownClientContent: {}
   ## @section Database configuration
   ## @extra synapse.database The database setting defines the database that synapse uses to store all of its data
   ## ref: https://element-hq.github.io/synapse/latest/postgres.html
