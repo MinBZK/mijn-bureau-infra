@@ -71,6 +71,26 @@ frontend:
   autoscaling:
     hpa: {{ .Values.autoscaling.horizontal.dictaphone.frontend | toYaml | nindent 6 }}
   pdb: {{ .Values.pdb.dictaphone.frontend | toYaml | nindent 4 }}
+  # Header/home logo: the upstream logo (assets/logo-*.svg) has the LaSuite
+  # purple wordmark. The nginx static root is /usr/share/nginx/html; override
+  # all three LogoApp variants — single-line (anonymous BaseLayout header and
+  # home page), multiline (authenticated ConnectedLayout header) and picto
+  # (also used as SVG favicon) — with the MijnBureau logo from the chart's
+  # dictaphone-logo ConfigMap (templates/configmap-logo.yaml).
+  extraVolumeMounts:
+    - name: logo
+      mountPath: /usr/share/nginx/html/assets/logo-single-line.svg
+      subPath: app-logo.svg
+    - name: logo
+      mountPath: /usr/share/nginx/html/assets/logo-multiline.svg
+      subPath: app-logo-multiline.svg
+    - name: logo
+      mountPath: /usr/share/nginx/html/assets/logo-picto.svg
+      subPath: app-logo-picto.svg
+  extraVolumes:
+    - name: logo
+      configMap:
+        name: dictaphone-logo
 
 celery:
   image:

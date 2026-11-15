@@ -42,6 +42,30 @@ projects:
   adminPassword: {{ .Values.secret.projects.adminPassword | quote }}
   theme:
     {{- .Values.application.projects.theme | default dict | toYaml | nindent 4 }}
+  # Header/login logo: the Sails app serves the client build from /app/public
+  # and, with the white-label theme (THEME={}), falls back to
+  # /oss/{light,dark}/logo.svg (+ logomark.svg on narrow screens). Override
+  # those with the MijnBureau logo from the chart's projects-logo ConfigMap
+  # (templates/configmap-logo.yaml). Not done via THEME.header.logo on
+  # purpose: that needs the branding host hardcoded in the theme JSON and was
+  # observed not to take effect.
+  extraVolumeMounts:
+    - name: logo
+      mountPath: /app/public/oss/light/logo.svg
+      subPath: app-logo-light.svg
+    - name: logo
+      mountPath: /app/public/oss/dark/logo.svg
+      subPath: app-logo-dark.svg
+    - name: logo
+      mountPath: /app/public/oss/light/logomark.svg
+      subPath: app-logo-icon.svg
+    - name: logo
+      mountPath: /app/public/oss/dark/logomark.svg
+      subPath: app-logo-icon.svg
+  extraVolumes:
+    - name: logo
+      configMap:
+        name: projects-logo
 
   replicaCount: {{ .Values.autoscaling.horizontal.projects.minReplicas | default 1 }}
   resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.projects .Values.global.resourcesPreset | quote }}

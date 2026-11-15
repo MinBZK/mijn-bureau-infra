@@ -1,0 +1,16 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}-logo
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: projects
+data:
+  app-logo-light.svg: {{ .Files.Get "files/app-logo-light.svg" | quote }}
+  app-logo-dark.svg: {{ .Files.Get "files/app-logo-dark.svg" | quote }}
+  app-logo-icon.svg: {{ .Files.Get "files/app-logo-icon.svg" | quote }}

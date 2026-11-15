@@ -1,4 +1,8 @@
 /* Calendars (kalender) placeholder — not loaded yet.
    The Calendars frontend has no FRONTEND_CSS_URL hook (FRONTEND_THEME only
    selects between baked-in themes), so nothing references this file today.
-   Header logo assets live here already: v3-kalender.svg. */
+   The header/home logo is replaced by mounting v3-kalender.svg over the
+   upstream assets in the frontend container: see apps/calendars/charts/
+   calendars (files/app-logotype.svg, files/app-icon.svg,
+   templates/configmap-logo.yaml) and the frontend.extraVolumes mounts in
+   apps/calendars/values.yaml.gotmpl. Keep both copies of the logo in sync. */

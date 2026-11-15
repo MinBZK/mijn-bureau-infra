@@ -1,0 +1,16 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}-logo
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: dictaphone-frontend
+data:
+  app-logo.svg: {{ .Files.Get "files/app-logo.svg" | quote }}
+  app-logo-multiline.svg: {{ .Files.Get "files/app-logo-multiline.svg" | quote }}
+  app-logo-picto.svg: {{ .Files.Get "files/app-logo-picto.svg" | quote }}

@@ -186,6 +186,23 @@ frontend:
   {{- if .Values.cluster.runtimeClassName }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   {{- end }}
+  # Header/login logo: the white-label app logo baked into the frontend image
+  # (images/<theme>/app-logo-{light,dark}.svg, served by Caddy from /app) is
+  # purple (#4844ad); override it with the MijnBureau logo (brand blue) from
+  # the chart's messages-logo ConfigMap (templates/configmap-logo.yaml). The
+  # theme stays white-label; if frontend theme config ever switches to anct or
+  # dsfr these mounts must move to that images/<theme>/ directory.
+  extraVolumeMounts:
+    - name: logo
+      mountPath: /app/images/white-label/app-logo-light.svg
+      subPath: app-logo-light.svg
+    - name: logo
+      mountPath: /app/images/white-label/app-logo-dark.svg
+      subPath: app-logo-dark.svg
+  extraVolumes:
+    - name: logo
+      configMap:
+        name: messages-logo
 
 mta:
   image:
