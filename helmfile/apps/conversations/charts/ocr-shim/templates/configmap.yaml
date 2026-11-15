@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ocr-shim.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ocr-shim.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  app.py: |
+    import os
+
+    import httpx
+    from fastapi import FastAPI, Request
+    from fastapi.responses import JSONResponse
+
+    UPSTREAM_URL = os.environ.get(
+        "UPSTREAM_URL", "https://openrouter.ai/api/v1/chat/completions"
+    )
+    # Any cheap chat model; the file-parser plugin does the actual OCR.
+    UPSTREAM_MODEL = os.environ.get("UPSTREAM_MODEL", "mistralai/ministral-3b-2512")
+    PDF_ENGINE = os.environ.get("PDF_ENGINE", "mistral-ocr")
+    API_KEY = os.environ.get("API_KEY", "")
+
+    app = FastAPI()
+
+
+    @app.get("/healthz")
+    async def healthz():
+        return {"status": "ok"}
+
+
+    def upstream_error(data, status_code):
+        message = ((data.get("error") or {}).get("message")) or "no parsed content"
+        return JSONResponse(
+            content={"error": {"message": message}},
+            status_code=status_code if status_code >= 400 else 502,
+        )
+
+
+    @app.post("/ocr")
+    @app.post("/v1/ocr")
+    async def ocr(request: Request):
+        """Translate a Mistral OCR request (conversations AdaptivePdfParser)
+        into an OpenRouter chat completion with the file-parser plugin, and map
+        the parsed-file annotations back onto the Mistral OCR response shape.
+        """
+        body = await request.json()
+        document = (body or {}).get("document") or {}
+        data_url = document.get("document_url")
+        if not data_url:
+            return JSONResponse(
+                content={"error": {"message": "missing document.document_url"}},
+                status_code=400,
+            )
+        filename = document.get("document_name") or "document.pdf"
+
+        payload = {
+            "model": UPSTREAM_MODEL,
+            "max_tokens": 8,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Reply with OK."},
+                        {
+                            "type": "file",
+                            "file": {"filename": filename, "file_data": data_url},
+                        },
+                    ],
+                }
+            ],
+            "plugins": [{"id": "file-parser", "pdf": {"engine": PDF_ENGINE}}],
+        }
+
+        async with httpx.AsyncClient(timeout=httpx.Timeout(300.0, connect=60.0)) as client:
+            resp = await client.post(
+                UPSTREAM_URL,
+                json=payload,
+                headers={"authorization": f"Bearer {API_KEY}"},
+            )
+
+        try:
+            data = resp.json()
+        except ValueError:
+            return upstream_error({}, resp.status_code)
+
+        # The parsed file comes back as file annotations on the assistant
+        # message. If every inference provider failed after parsing, they are
+        # still present under error.metadata — the OCR result is usable either
+        # way.
+        annotations = []
+        try:
+            annotations = data["choices"][0]["message"].get("annotations") or []
+        except (KeyError, IndexError):
+            annotations = []
+        if not annotations:
+            annotations = (
+                ((data.get("error") or {}).get("metadata") or {}).get(
+                    "file_annotations"
+                )
+                or []
+            )
+
+        texts = [
+            part["text"]
+            for annotation in annotations
+            for part in ((annotation.get("file") or {}).get("content") or [])
+            if part.get("type") == "text" and not part.get("text", "").startswith("<file")
+        ]
+
+        if not texts:
+            return upstream_error(data, resp.status_code)
+
+        # The parser joins pages with a blank line; one entry per batch is fine.
+        return JSONResponse(
+            content={
+                "pages": [{"index": 0, "markdown": "\n\n".join(texts)}],
+                "model": body.get("model"),
+                "usage_info": {"pages_processed": 1},
+            }
+        )

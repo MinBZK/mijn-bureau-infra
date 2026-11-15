@@ -47,10 +47,7 @@ global:
     dictaphone-minio: "dictaphone-minio"
     messages: "messages"
     messages-minio: "messages-minio"
-    conversations-static: "static-conversations"
-    drive-static: "static-drive"
-    meet-static: "static-meet"
-    docs-static: "static-docs"
+    branding: "static"
     drive-minio: "drive-minio"
 ```
 
@@ -78,10 +75,7 @@ Create the following DNS records (replace `kubernetes.local` with your configure
 - `dictaphone-minio.kubernetes.local`
 - `messages.kubernetes.local`
 - `messages-minio.kubernetes.local`
-- `static-conversations.kubernetes.local`
-- `static-drive.kubernetes.local`
-- `static-meet.kubernetes.local`
-- `static-docs.kubernetes.local`
+- `static.kubernetes.local` (central branding assets host)
 - `drive-minio.kubernetes.local`
 
 ## Email (Messages)

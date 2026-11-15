@@ -22,6 +22,11 @@ spec:
         - path:
             type: PathPrefix
             value: {{ .Values.ingress.backendPath | default "/api" | quote }}
+        # External API (resource server), used by integrations such as the
+        # conversations "Edit in Docs" export.
+        - path:
+            type: PathPrefix
+            value: /external_api
       filters:
         {{- include "common.httproute.hstsFilter" . | nindent 8 }}
       backendRefs:

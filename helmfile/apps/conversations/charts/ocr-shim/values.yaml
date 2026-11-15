@@ -1,0 +1,26 @@
+image:
+  repository: python
+  tag: 3.13-slim
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  port: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# OpenRouter upstream: the PDF batch is OCR'd server-side by the file-parser
+# plugin; the chat model only has to acknowledge, so any cheap model works.
+upstream:
+  url: https://openrouter.ai/api/v1/chat/completions
+  model: mistralai/ministral-3b-2512
+  pdfEngine: mistral-ocr
+  # OpenRouter API key, mounted into the container from the ocr-shim Secret.
+  apiKey: ""

@@ -1,0 +1,22 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- if .Values.documents.upload.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}-local-rag
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: conversations
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  # Local cache-backed RAG backend, mounted at /opt/conversations-local and
+  # enabled via RAG_DOCUMENT_SEARCH_BACKEND=local_rag.LocalRagBackend.
+  local_rag.py: |
+{{ .Files.Get "files/local_rag.py" | nindent 4 }}
+{{- end }}

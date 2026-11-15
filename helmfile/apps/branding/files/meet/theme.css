@@ -1,0 +1,9 @@
+/* Meet (videobellen) runtime styling, loaded via meet.frontendCssUrl from the
+   branding host. Replaces the header logo (<img class="Header-logo"
+   src="/assets/logo.svg">) with the MijnBureau header image. Brand colors are
+   Meet's own. */
+
+.Header-logo {
+  content: url("v3-videobellen.svg");
+  object-fit: contain;
+}

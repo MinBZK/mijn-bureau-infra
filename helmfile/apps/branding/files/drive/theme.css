@@ -1,0 +1,11 @@
+/* Drive (bestanden) runtime styling, loaded via drive.frontendCssUrl from the
+   branding host. The left header logo is a styled <div class
+   ="drive__header__logo" /> (background image upstream); it is replaced here
+   with the MijnBureau header image. Brand colors are Drive's own. */
+
+.drive__header__logo {
+  background: url("v3-bestanden.svg") no-repeat center !important;
+  background-size: contain;
+  width: 182px;
+  height: 40px;
+}

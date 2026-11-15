@@ -14,6 +14,17 @@ releases:
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-minio.yaml.gotmpl"
 
+  # OCR shim for chat attachments: speaks Mistral OCR towards the conversations
+  # backend and OpenRouter (file-parser plugin) upstream.
+  - name: conversations-ocr-shim
+    chart: charts/ocr-shim
+    installed: {{ and .Values.application.conversations.enabled (.Values.ai.ocr.enabled | default false) | toYaml }}
+    {{- if .Values.application.conversations.namespace }}
+    namespace: {{ .Values.application.conversations.namespace }}
+    {{- end }}
+    values:
+      - "values-ocr-shim.yaml.gotmpl"
+
   - name: "conversations"
     chart: "charts/conversations"
     condition: application.conversations.enabled
@@ -61,14 +72,3 @@ releases:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-valkey.yaml.gotmpl"
       - "values-valkey.yaml.gotmpl"
-
-  - name: conversations-static
-    chart: ../common/charts/nginx
-    {{- if .Values.application.conversations.namespace }}
-    namespace: {{ .Values.application.conversations.namespace }}
-    {{- end }}
-    installed: {{ .Values.application.conversations.enabled | toYaml }}
-    values:
-      - "../common/values-cluster-dns.yaml.gotmpl"
-      - "../common/values-cluster-ingress.yaml.gotmpl"
-      - "values-static-nginx.yaml.gotmpl"

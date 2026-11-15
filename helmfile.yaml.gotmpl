@@ -9,6 +9,8 @@ helmfiles:
   - path: "helmfile/apps/common/helmfile-gateway.yaml.gotmpl"
     values: &appvalues
       - {{ toYaml .Values | nindent 8 }}
+  - path: "helmfile/apps/branding/helmfile-child.yaml.gotmpl"
+    values: *appvalues
   - path: "helmfile/apps/keycloak/helmfile-child.yaml.gotmpl"
     values: *appvalues
   - path: "helmfile/apps/ollama/helmfile-child.yaml.gotmpl"

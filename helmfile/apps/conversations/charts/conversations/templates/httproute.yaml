@@ -33,6 +33,11 @@ spec:
       backendRefs:
         - name: {{ printf "%s-backend" (include "common.names.fullname" .) }}
           port: 80
+      # Chat answers stream for tens of seconds and agent turns with documents
+      # can take minutes; Envoy's default route timeout would cut the SSE
+      # stream off mid-turn, surfacing as an error in the UI.
+      timeouts:
+        request: {{ .Values.ingress.apiRequestTimeout | default "600s" | quote }}
     - matches:
         - path:
             type: PathPrefix
