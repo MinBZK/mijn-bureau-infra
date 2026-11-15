@@ -149,7 +149,7 @@ backend:
     DOCUMENT_IMAGE_MAX_SIZE: "10485760"
     # Central branding host (branding release, per-app folder "docs").
     FRONTEND_CSS_URL: "https://{{ index .Values.global.hostname "branding" }}.{{ .Values.global.domain }}/docs/theme.css"
-    FRONTEND_HOMEPAGE_FEATURE_ENABLED: "true"
+    FRONTEND_HOMEPAGE_FEATURE_ENABLED: "false"
     FRONTEND_SILENT_LOGIN_ENABLED: "true"
     FRONTEND_THEME: ""
     DB_ENGINE: {{ .Values.database.docs.engine | quote}}

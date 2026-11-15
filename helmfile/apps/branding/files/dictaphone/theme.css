@@ -1,3 +1,7 @@
 /* Dictaphone (opnemen) placeholder — not loaded yet.
-   The Dictaphone frontend has no runtime theming/CSS hook. Header logo assets
-   live here already: v3-opnemen.svg. */
+   The Dictaphone frontend has no runtime theming/CSS hook. The header/home
+   logo is replaced by mounting v3-opnemen.svg over the upstream assets in the
+   frontend container: see apps/dictaphone/charts/dictaphone
+   (files/app-logo.svg, files/app-logo-picto.svg,
+   templates/configmap-logo.yaml) and the frontend.extraVolumes mounts in
+   apps/dictaphone/values.yaml.gotmpl. Keep both copies of the logo in sync. */

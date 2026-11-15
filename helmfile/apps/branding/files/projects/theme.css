@@ -1,4 +1,6 @@
 /* Projects (projecten) placeholder — not loaded yet.
-   Projects exposes a THEME json via backend config (footer/Gaufre/feedback
-   only — no header logo or custom CSS hook). Header logo assets live here
-   already: v3-projecten.svg. */
+   Projects' white-label header/login logo is compiled into the frontend JS
+   bundle as a data-URI, so it can ONLY be replaced through the THEME json:
+   apps/projects/values.yaml.gotmpl sets theme.header.default.logo to this
+   folder's v3-projecten.svg on the branding host. No custom CSS hook exists,
+   so this file is not referenced today. */

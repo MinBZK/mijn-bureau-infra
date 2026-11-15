@@ -103,6 +103,23 @@ frontend:
   {{- if .Values.cluster.runtimeClassName }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   {{- end }}
+  # Header/home logo: the Calendars frontend serves the upstream default
+  # logotype/icon (purple-ish ANCT branding) from /srv (Caddy static root).
+  # Override both with the MijnBureau logo (brand blue + red) from the chart's
+  # calendars-logo ConfigMap (templates/configmap-logo.yaml). The day number
+  # on the icon variant is overlaid by the frontend via CSS, so the mounted
+  # icon intentionally has no number.
+  extraVolumeMounts:
+    - name: logo
+      mountPath: /srv/cal_logotype_text_no_number.svg
+      subPath: app-logotype.svg
+    - name: logo
+      mountPath: /srv/cal_icon_no_number.svg
+      subPath: app-icon.svg
+  extraVolumes:
+    - name: logo
+      configMap:
+        name: calendars-logo
 
 caldav:
   image:

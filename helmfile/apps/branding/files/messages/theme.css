@@ -1,4 +1,7 @@
 /* Messages (email) placeholder — not loaded yet.
    The Messages frontend only supports baked-in themes (white-label/anct/dsfr
-   via NEXT_PUBLIC_THEME_CONFIG); there is no runtime CSS hook. Header logo
-   assets live here already: v3-email.svg. */
+   via FRONTEND_THEME_CONFIG); there is no runtime CSS hook. The header/login
+   logo is replaced by mounting v3-email.svg over the white-label assets in the
+   frontend container: see apps/messages/charts/messages (files/app-logo-*.svg,
+   templates/configmap-logo.yaml) and the frontend.extraVolumes mounts in
+   apps/messages/values.yaml.gotmpl. Keep both copies of the logo in sync. */
