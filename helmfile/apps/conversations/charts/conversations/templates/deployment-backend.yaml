@@ -141,6 +141,13 @@ spec:
                 secretKeyRef:
                   name: {{ include "conversations.secretName" . }}
                   key: OIDC_RP_CLIENT_SECRET
+            {{- if .Values.conversations.docsBaseUrl }}
+            - name: OIDC_STORE_REFRESH_TOKEN_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "conversations.secretName" . }}
+                  key: OIDC_STORE_REFRESH_TOKEN_KEY
+            {{- end }}
             - name: AI_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -206,6 +213,11 @@ spec:
             - name: llm-config
               mountPath: /configuration/llm
               readOnly: true
+            {{- if .Values.documents.upload.enabled }}
+            - name: local-rag
+              mountPath: /opt/conversations-local
+              readOnly: true
+            {{- end }}
           {{- if .Values.conversations.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.conversations.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
@@ -218,6 +230,11 @@ spec:
         - name: llm-config
           configMap:
             name: {{ template "common.names.fullname" . }}-llm-config
+        {{- if .Values.documents.upload.enabled }}
+        - name: local-rag
+          configMap:
+            name: {{ template "common.names.fullname" . }}-local-rag
+        {{- end }}
         {{- if .Values.conversations.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.conversations.extraVolumes "context" $) | nindent 8 }}
         {{- end }}

@@ -1,0 +1,20 @@
+annotations:
+  category: ai
+  licenses: Apache-2.0
+apiVersion: v2
+appVersion: 0.1.0
+description: Translation shim between the Conversations document OCR client
+  (Mistral OCR API schema) and the OpenRouter chat completions API with the
+  file-parser plugin (mistral-ocr engine)
+home: https://minbzk.github.io/mijn-bureau-infra/
+keywords:
+  - ocr
+  - openrouter
+  - conversations
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: ocr-shim
+sources:
+  - https://minbzk.github.io/mijn-bureau-infra/
+version: 0.1.0

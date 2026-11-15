@@ -38,6 +38,20 @@ data:
 
           "tools": "settings.AI_AGENT_TOOLS"
         }
+        {{- if .Values.documents.upload.enabled }},
+        {
+          "hrid": {{ .Values.documents.upload.ocr.hrid | quote }},
+          "model_name": "settings.OCR_MODEL",
+          "human_readable_name": "Document OCR",
+          "provider_name": "ocr-provider",
+          "profile": null,
+          "settings": {},
+          "is_active": false,
+          "supports_image": true,
+          "system_prompt": "",
+          "tools": []
+        }
+        {{- end }}
       ],
       "providers": [
         {
@@ -47,5 +61,14 @@ data:
           "kind": "openai",
           "co2_handling": null
         }
+        {{- if .Values.documents.upload.enabled }},
+        {
+          "hrid": "ocr-provider",
+          "base_url": {{ .Values.documents.upload.ocr.baseUrl | quote }},
+          "api_key": "unused-through-shim",
+          "kind": "openai",
+          "co2_handling": null
+        }
+        {{- end }}
       ]
     }

@@ -9,6 +9,26 @@ ai:
       isInternal: false
     apiKey: ~
 
+  # OCR for conversations document upload (chat attachments). Deploys the
+  # in-cluster ocr-shim, which translates the Mistral OCR schema that
+  # conversations' AdaptivePdfParser speaks into an OpenRouter chat
+  # completion using the file-parser plugin (mistral-ocr engine).
+  ocr:
+    enabled: false
+    # Model name sent to the OCR endpoint (OCR_MODEL). Informational for the
+    # shim; upstream the mistral-ocr engine is used regardless.
+    model: "mistral-ocr-latest"
+    # Cheap chat model used by the shim's completion call; the file-parser
+    # plugin (mistral-ocr) does the actual OCR, this model only replies "OK".
+    # Mistral keeps the whole request with one provider.
+    chatModel: "mistralai/ministral-3b-2512"
+    # Upstream chat-completions endpoint the shim calls. Any OpenAI-compatible
+    # endpoint whose file-parser plugin supports the mistral-ocr engine works;
+    # point it at a proxy or gateway here if traffic must not go direct.
+    endpoint: ~
+    # OpenRouter API key held by the shim. Empty falls back to ai.llm.apiKey.
+    apiKey: ~
+
   # WhisperX-compatible speech-to-text endpoint used for batch transcription.
   whisperx:
     baseUrl: ~

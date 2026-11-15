@@ -31,6 +31,7 @@ drive:
   pdb: {{ .Values.pdb.drive.backend | toYaml | nindent 4 }}
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   secretKey: {{ .Values.application.drive.secretKey | quote }}
+  languageCode: {{ ternary "nl-nl" "en-us" (eq (.Values.global.defaultLocale | default "nl") "nl") | quote }}
   # Env-load the full drive secret (contains DB passwords, S3 keys and the
   # DJANGO_EMAIL_HOST_PASSWORD rendered by this chart), same as the meet chart.
   extraEnvVarsSecret: drive
@@ -84,8 +85,8 @@ drive:
     - name: MALWARE_DETECTION_PARAMETERS
       value: {{ printf `{"callback_path": "core.malware_detection.malware_detection_callback", "server_address": "%s", "server_port": %d, "service": "avscan"}` $icapHost (int .Values.antivirus.icap.port) | quote }}
     {{- end }}
-  frontendCssUrl: "https://static-{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/iframe-hide.css"
-  frontendJsUrl: "https://static-{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/bureaublad-button.js"
+  # Central branding host (branding release, per-app folder "drive").
+  frontendCssUrl: "https://{{ index .Values.global.hostname "branding" }}.{{ .Values.global.domain }}/drive/theme.css"
   logoutRedirectUrl: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
   frontendExternalHomeUrl: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
 

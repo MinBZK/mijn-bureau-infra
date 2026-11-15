@@ -1,0 +1,17 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  # Central branding host: serves the MijnBureau header logos and per-app
+  # runtime styling, consumed by the apps through their FRONTEND_CSS_URL /
+  # theme-customization hooks.
+  - name: branding
+    chart: ../common/charts/nginx
+    condition: application.branding.enabled
+    {{- if .Values.application.branding.namespace }}
+    namespace: {{ .Values.application.branding.namespace }}
+    {{- end }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values.yaml.gotmpl"

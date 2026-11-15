@@ -32,6 +32,10 @@ conversations:
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
   secretKey: {{ .Values.application.conversations.secretKey | quote }}
+  languageCode: {{ ternary "nl-nl" "en-us" (eq (.Values.global.defaultLocale | default "nl") "nl") | quote }}
+  # Stable Fernet key for encrypting stored OIDC refresh tokens (edit-in-Docs):
+  # b64(first 32 chars of sha256(derived password)) decodes to exactly 32 bytes.
+  oidcStoreRefreshTokenKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "conversations" "oidc-refresh-token-key" | sha256sum | trunc 32 | b64enc | quote }}
 
   {{- if or .Values.smtp.host (and .Values.application.clamav.enabled .Values.antivirus.icap.enabled) }}
   extraEnvVars:
@@ -130,8 +134,8 @@ conversations:
     runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
 
 conversations_frontend:
-  frontendCssUrl: "https://static-{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/iframe-hide.css"
-  frontendJsUrl: "https://static-{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/bureaublad-button.js"
+  # Central branding host (branding release, per-app folder "conversations").
+  frontendCssUrl: "https://{{ index .Values.global.hostname "branding" }}.{{ .Values.global.domain }}/conversations/theme.css"
   image:
     registry: {{(coalesce .Values.container.conversations_frontend.registry .Values.container.default.registry) | quote }}
     repository: {{ .Values.container.conversations_frontend.repository | quote }}
@@ -234,6 +238,18 @@ ai:
   endpoint: {{ $aiEndpoint | quote }}
   apiKey: {{ .Values.ai.llm.apiKey | default "" | quote }}
 
+# Chat attachments: text PDFs are parsed locally, scanned/image PDFs go through
+# the in-cluster ocr-shim (Mistral OCR schema -> OpenRouter file-parser plugin).
+documents:
+  upload:
+    enabled: {{ .Values.ai.ocr.enabled | default false }}
+    ocr:
+      model: {{ .Values.ai.ocr.model | default "mistral-ocr-latest" | quote }}
+      baseUrl: "http://conversations-ocr-shim"
+  # An LLM endpoint outside the cluster cannot fetch presigned S3 URLs from
+  # the in-cluster object store, so inline attachments as base64 instead.
+  fileToLlmMode: {{ ternary "backend_base64" "" (not $aiEndpointIsInternal) | quote }}
+
 {{- if ne .Values.global.resourcesPreset "none" }}
 job:
   resources:
@@ -299,7 +315,29 @@ extraDeploy:
                         name: conversations
                     - secretRef:
                         name: conversations
+                  # Settings import loads the LLM configuration file (OCR
+                  # validation); the RAG backend module is imported by the
+                  # chat tasks. Both mounts are required for any manage.py
+                  # command while document upload is enabled.
+                  volumeMounts:
+                    - name: llm-config
+                      mountPath: /configuration/llm
+                      readOnly: true
+                    {{- if .Values.ai.ocr.enabled | default false }}
+                    - name: local-rag
+                      mountPath: /opt/conversations-local
+                      readOnly: true
+                    {{- end }}
                   resources: {{ (index ((.Values.resource | default dict).conversations | default dict) "job" | default dict) | toYaml | nindent 20 }}
+              volumes:
+                - name: llm-config
+                  configMap:
+                    name: conversations-llm-config
+                {{- if .Values.ai.ocr.enabled | default false }}
+                - name: local-rag
+                  configMap:
+                    name: conversations-local-rag
+                {{- end }}
   - apiVersion: batch/v1
     kind: CronJob
     metadata:
@@ -346,5 +384,27 @@ extraDeploy:
                         name: conversations
                     - secretRef:
                         name: conversations
+                  # Settings import loads the LLM configuration file (OCR
+                  # validation); the RAG backend module is imported by the
+                  # chat tasks. Both mounts are required for any manage.py
+                  # command while document upload is enabled.
+                  volumeMounts:
+                    - name: llm-config
+                      mountPath: /configuration/llm
+                      readOnly: true
+                    {{- if .Values.ai.ocr.enabled | default false }}
+                    - name: local-rag
+                      mountPath: /opt/conversations-local
+                      readOnly: true
+                    {{- end }}
                   resources: {{ (index ((.Values.resource | default dict).conversations | default dict) "job" | default dict) | toYaml | nindent 20 }}
+              volumes:
+                - name: llm-config
+                  configMap:
+                    name: conversations-llm-config
+                {{- if .Values.ai.ocr.enabled | default false }}
+                - name: local-rag
+                  configMap:
+                    name: conversations-local-rag
+                {{- end }}
 {{- end }}

@@ -10,11 +10,6 @@ releases:
     {{- end }}
     {{- if .Values.application.meet.enabled }}
     needs:
-      # meet-static creates the `meet-static-files` ConfigMap that meet's
-      # inject-bureaublad-button initContainer mounts. Without this needs,
-      # a fresh install applies meet first and its frontend pod hangs in
-      # ContainerCreating until meet-static catches up.
-      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-static
       {{- if eq .Environment.Name "demo" }}
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-cluster
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-valkey
@@ -69,13 +64,3 @@ releases:
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-minio.yaml.gotmpl"
 
-  - name: meet-static
-    chart: ../common/charts/nginx
-    {{- if .Values.application.meet.namespace }}
-    namespace: {{ .Values.application.meet.namespace }}
-    {{- end }}
-    installed: {{ .Values.application.meet.enabled | toYaml }}
-    values:
-      - "../common/values-cluster-dns.yaml.gotmpl"
-      - "../common/values-cluster-ingress.yaml.gotmpl"
-      - "values-static-nginx.yaml.gotmpl"

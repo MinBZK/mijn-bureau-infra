@@ -1,0 +1,8 @@
+# conversations-ocr-shim: translates the conversations AdaptivePdfParser's
+# Mistral OCR requests into OpenRouter chat completions using the file-parser
+# plugin (mistral-ocr engine). The key defaults to the chat LLM key, which is
+# already an OpenRouter key in environments that use OpenRouter for chat.
+upstream:
+  url: {{ .Values.ai.ocr.endpoint | default "https://openrouter.ai/api/v1/chat/completions" | quote }}
+  model: {{ .Values.ai.ocr.chatModel | default "mistralai/ministral-3b-2512" | quote }}
+  apiKey: {{ .Values.ai.ocr.apiKey | default (.Values.ai.llm.apiKey | default "") | quote }}

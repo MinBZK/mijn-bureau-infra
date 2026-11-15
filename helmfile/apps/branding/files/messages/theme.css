@@ -1,0 +1,4 @@
+/* Messages (email) placeholder — not loaded yet.
+   The Messages frontend only supports baked-in themes (white-label/anct/dsfr
+   via NEXT_PUBLIC_THEME_CONFIG); there is no runtime CSS hook. Header logo
+   assets live here already: v3-email.svg. */

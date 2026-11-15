@@ -14,11 +14,16 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 data:
+  {{- if and .Values.documents.upload.enabled (not .Values.documents.upload.ocr.baseUrl) }}
+  {{- fail "conversations documents.upload.enabled requires documents.upload.ocr.baseUrl (e.g. http://conversations-ocr-shim)" }}
+  {{- end }}
   HOME: "/tmp"
   CONVERSATIONS_BASE_URL: {{ .Values.conversations.baseUrl | quote }}
   DOCS_BASE_URL: {{ .Values.conversations.docsBaseUrl | quote }}
   {{- if .Values.conversations.docsBaseUrl }}
+  # Edit-in-Docs needs the user's token long after login: store + refresh it.
   OIDC_STORE_ACCESS_TOKEN: "true"
+  OIDC_STORE_REFRESH_TOKEN: "true"
   {{- end }}
   LOGIN_REDIRECT_URL: {{ .Values.conversations.baseUrl | quote }}
   LOGIN_REDIRECT_URL_FAILURE: {{ .Values.conversations.baseUrl | quote }}
@@ -39,6 +44,9 @@ data:
   AWS_S3_REGION_NAME: {{ .Values.externalObjectStore.region | quote }}
   AWS_STORAGE_BUCKET_NAME: {{ .Values.externalObjectStore.bucket | quote }}
   FILE_UPLOAD_MODE: "backend_to_s3"
+  {{- with .Values.documents.fileToLlmMode }}
+  FILE_TO_LLM_MODE: {{ . | quote }}
+  {{- end }}
   OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.client_id | quote }}
   OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.jwks_uri | quote }}
   OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.authorization_endpoint | quote }}
@@ -55,7 +63,23 @@ data:
   FRONTEND_JS_URL: {{ .Values.conversations_frontend.frontendJsUrl | quote }}
   FRONTEND_HOMEPAGE_FEATURE_ENABLED: "false"
   # FEATURE_FLAG_WEB_SEARCH: "false"
-  # FEATURE_FLAG_DOCUMENT_UPLOAD: "ENABLED"
+  {{- if .Values.documents.upload.enabled }}
+  # FeatureToggle lookup is by enum member name: must be uppercase.
+  FEATURE_FLAG_DOCUMENT_UPLOAD: "ENABLED"
+  # Local cache-backed RAG backend (valkey), mounted from the local-rag
+  # ConfigMap. Replaces the default Albert API backend, which requires a
+  # French government API key.
+  RAG_DOCUMENT_SEARCH_BACKEND: "local_rag.LocalRagBackend"
+  PYTHONPATH: "/opt/conversations-local"
+  # AdaptivePdfParser extracts text locally for text-based PDFs and routes
+  # scanned/image PDFs to the OCR provider below (must exist in the LLM
+  # configuration, see configmap-llm.yaml).
+  RAG_DOCUMENT_PARSER: "chat.agent_rag.document_converter.parser.AdaptivePdfParser"
+  OCR_HRID: {{ .Values.documents.upload.ocr.hrid | quote }}
+  OCR_MODEL: {{ .Values.documents.upload.ocr.model | quote }}
+  {{- else }}
+  FEATURE_FLAG_DOCUMENT_UPLOAD: "DISABLED"
+  {{- end }}
   FRONTEND_SILENT_LOGIN_ENABLED: "true"
   LLM_EVAL_JUDGE_MODEL_HRID: "default-model"
   LLM_SUMMARIZATION_MODEL_HRID: "default-model"

@@ -1,4 +1,11 @@
 application:
+  # branding hosts the MijnBureau header logos and per-app runtime styling,
+  # consumed runtime by the apps' FRONTEND_CSS_URL and
+  # theme-customization hooks
+  branding:
+    enabled: true
+    namespace: ~
+
   # this creates a self hosted AI LLM system using Ollama. It can handle small loads.
   ollama:
     enabled: true

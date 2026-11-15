@@ -74,6 +74,25 @@ diagnosticMode:
 
 ## %%MAIN_CONTAINER/POD_DESCRIPTION%%
 ##
+## @section Document upload / OCR
+## Enables chat attachments. Text-based PDFs are parsed locally; scanned or
+## image-only PDFs are routed to the OCR provider below (expected: the
+## in-cluster ocr-shim translating to OpenRouter's file-parser plugin).
+##
+documents:
+  upload:
+    ## @param documents.upload.enabled Enable file upload in chat (FEATURE_FLAG_DOCUMENT_UPLOAD + AdaptivePdfParser)
+    enabled: false
+    ocr:
+      ## @param documents.upload.ocr.hrid HRID of the (inactive) OCR model entry in the LLM configuration
+      hrid: "ocr-model"
+      ## @param documents.upload.ocr.model Model name sent to the OCR endpoint (OCR_MODEL)
+      model: "mistral-ocr-latest"
+      ## @param documents.upload.ocr.baseUrl Base URL of the OCR provider (required when upload is enabled)
+      baseUrl: ""
+  ## @param documents.fileToLlmMode How attachments are handed to the LLM: presigned_url, backend_temporary_url or backend_base64. Empty keeps the upstream default (presigned_url); use backend_base64 for LLM endpoints outside the cluster, which cannot fetch S3 URLs.
+  fileToLlmMode: ""
+
 conversations:
   ## Bitnami %%MAIN_CONTAINER%% image
   ## ref: https://hub.docker.com/r/bitnami/conversations/tags/
@@ -119,6 +138,13 @@ conversations:
     systemPrompt: |
       You are MijnBureau AI, a conversational assistant deployed by the MijnBureau
       for Dutch public servants, and hosted on sovereign infrastructure.
+
+      # Language
+
+      Always respond in Dutch, unless the user explicitly asks for another
+      language. This also applies when the user's message or an attached
+      document is in another language: answer in Dutch unless they explicitly
+      request otherwise.
 
       # Audience and role
 

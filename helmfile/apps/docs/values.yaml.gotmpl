@@ -147,8 +147,8 @@ backend:
     DOCSPEC_API_URL: http://docs-docspec:4000/conversion
     CRISP_WEBSITE_ID: ""
     DOCUMENT_IMAGE_MAX_SIZE: "10485760"
-    FRONTEND_CSS_URL: "https://static-{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/iframe-hide.css"
-    FRONTEND_JS_URL: "https://static-{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/bureaublad-button.js"
+    # Central branding host (branding release, per-app folder "docs").
+    FRONTEND_CSS_URL: "https://{{ index .Values.global.hostname "branding" }}.{{ .Values.global.domain }}/docs/theme.css"
     FRONTEND_HOMEPAGE_FEATURE_ENABLED: "true"
     FRONTEND_SILENT_LOGIN_ENABLED: "true"
     FRONTEND_THEME: ""
@@ -209,6 +209,19 @@ backend:
     OIDC_RP_SIGN_ALGO: "RS256"
     OIDC_RP_SCOPES: "openid email"
     OIDC_STORE_ID_TOKEN: "true"
+    # Edit-in-Docs (conversations): the external API is only mounted when the
+    # OIDC resource server is enabled. Conversations calls it with the user's
+    # stored OIDC access token; Docs introspects it in Keycloak with the docs
+    # client and requires the token's client_id to be the conversations client.
+    {{- $oidcOpUrl := .Values.authentication.oidc.issuer | default "" -}}
+    {{- if not $oidcOpUrl }}{{ $oidcOpUrl = regexReplaceAll "/protocol/openid-connect.*" (.Values.authentication.oidc.introspection_endpoint | default "") "" }}{{ end }}
+    OIDC_RESOURCE_SERVER_ENABLED: "true"
+    OIDC_OP_URL: {{ $oidcOpUrl | quote }}
+    OIDC_OP_INTROSPECTION_ENDPOINT: {{ .Values.authentication.oidc.introspection_endpoint | quote }}
+    OIDC_RS_CLIENT_ID: {{ .Values.authentication.client.docs.client_id | quote }}
+    OIDC_RS_CLIENT_SECRET: {{ .Values.authentication.client.docs.client_secret | quote }}
+    # ListValue in this image splits on commas, not JSON: plain string list.
+    OIDC_RS_ALLOWED_AUDIENCES: {{ .Values.authentication.client.conversations.client_id | quote }}
     OIDC_USE_NONCE: "true"
     OIDC_USERINFO_FULLNAME_FIELDS: "{{ .Values.authentication.oidc.claims.given_name }},{{ .Values.authentication.oidc.claims.family_name }}"
     OIDC_USERINFO_SHORTNAME_FIELD: {{ .Values.authentication.oidc.claims.display_name | quote }}
@@ -277,6 +290,197 @@ backend:
       concurrency:
         min: 3
         max: 9
+
+  # Theme customization: replaces the header icon (top-left logo) with the
+  # MijnBureau header image served by the branding release. The rest of the
+  # file mirrors the image's built-in default.json to keep footer/home/favicon
+  # behaviour unchanged.
+  themeCustomization:
+    enabled: true
+    fileContent: |
+      {
+        "footer": {
+          "default": {
+            "logo": {
+              "src": "/assets/icon-docs.svg",
+              "alt": "Docs Logo",
+              "width": 54,
+              "height": 63,
+              "style": { "width": "54px", "height": "auto" },
+              "withTitle": true
+            },
+            "externalLinks": [
+              {
+                "label": "GitHub",
+                "href": "https://github.com/suitenumerique/docs/"
+              },
+              {
+                "label": "DINUM",
+                "href": "https://www.numerique.gouv.fr/dinum/"
+              },
+              {
+                "label": "ZenDiS",
+                "href": "https://zendis.de/"
+              },
+              {
+                "label": "BlockNote.js",
+                "href": "https://www.blocknotejs.org/"
+              }
+            ],
+            "bottomInformation": {
+              "label": "Unless otherwise stated, all content on this site is under",
+              "link": {
+                "label": "licence etalab-2.0",
+                "href": "https://github.com/etalab/licence-ouverte/blob/master/LO.md"
+              }
+            }
+          },
+          "en": {
+            "legalLinks": [
+              {
+                "label": "Legal Notice",
+                "href": "#"
+              },
+              {
+                "label": "Personal data and cookies",
+                "href": "#"
+              },
+              {
+                "label": "Accessibility",
+                "href": "#"
+              }
+            ],
+            "bottomInformation": {
+              "label": "Unless otherwise stated, all content on this site is under",
+              "link": {
+                "label": "licence MIT",
+                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
+              }
+            }
+          },
+          "fr": {
+            "legalLinks": [
+              {
+                "label": "Mentions légales",
+                "href": "#"
+              },
+              {
+                "label": "Données personnelles et cookies",
+                "href": "#"
+              },
+              {
+                "label": "Accessibilité",
+                "href": "#"
+              }
+            ],
+            "bottomInformation": {
+              "label": "Sauf mention contraire, tout le contenu de ce site est sous",
+              "link": {
+                "label": "licence MIT",
+                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
+              }
+            }
+          },
+          "de": {
+            "legalLinks": [
+              {
+                "label": "Impressum",
+                "href": "#"
+              },
+              {
+                "label": "Personenbezogene Daten und Cookies",
+                "href": "#"
+              },
+              {
+                "label": "Barrierefreiheit",
+                "href": "#"
+              }
+            ],
+            "bottomInformation": {
+              "label": "Sofern nicht anders angegeben, steht der gesamte Inhalt dieser Webseite unter",
+              "link": {
+                "label": "licence MIT",
+                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
+              }
+            }
+          },
+          "nl": {
+            "legalLinks": [
+              {
+                "label": "Wettelijke bepalingen",
+                "href": "#"
+              },
+              {
+                "label": "Persoonlijke gegevens en cookies",
+                "href": "#"
+              },
+              {
+                "label": "Toegankelijkheid",
+                "href": "#"
+              }
+            ],
+            "bottomInformation": {
+              "label": "Tenzij anders vermeld, is alle inhoud van deze site ondergebracht onder",
+              "link": {
+                "label": "licence MIT",
+                "href": "https://github.com/suitenumerique/docs/blob/main/LICENSE"
+              }
+            }
+          }
+        },
+        "home": {
+          "with-proconnect": false,
+          "icon-banner": {
+            "src": "/assets/icon-docs.svg",
+            "width": 64,
+            "height": 74,
+            "style": {
+              "width": "64px",
+              "height": "auto"
+            },
+            "alt": ""
+          }
+        },
+        "header": {
+          "logo": {},
+          "icon": {
+            "src": "https://{{ index .Values.global.hostname "branding" }}.{{ .Values.global.domain }}/docs/v3-documents.svg",
+            "width": 120,
+            "height": 32,
+            "style": {
+              "width": "120px",
+              "height": "32px"
+            },
+            "alt": "MijnBureau Documents",
+            "withTitle": false
+          }
+        },
+        "favicon": {
+          "light": {
+            "href": "/assets/favicon-light.png",
+            "type": "image/png"
+          },
+          "dark": {
+            "href": "/assets/favicon-dark.png",
+            "type": "image/png"
+          }
+        },
+        "onboarding": {
+          "enabled": true,
+          "learn_more_url": "",
+          "ready_template_url": ""
+        },
+        "help": {
+          "documentation_url": "",
+          "support_mailto": "",
+          "legal_links": {
+            "personal_data": "",
+            "terms_of_use": "",
+            "accessibility_statement": "",
+            "legal_notice": ""
+          }
+        }
+      }
 
 frontend:
   image:

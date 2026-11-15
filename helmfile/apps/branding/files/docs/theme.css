@@ -1,0 +1,5 @@
+/* Docs (documents) runtime styling, loaded via FRONTEND_CSS_URL from the
+   branding host. Intentionally left without rules: Docs keeps its own brand
+   colors; only the header icon is replaced, through the backend
+   theme-customization file (backend.themeCustomization.fileContent ->
+   header.icon). */

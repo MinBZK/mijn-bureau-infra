@@ -1,0 +1,17 @@
+/* Conversations (ai-assistent) runtime styling, loaded via
+   conversations_frontend.frontendCssUrl from the branding host. The left
+   panel header renders the assistant logo as an inline SVG (width 160) inside
+   a '/' link; it is replaced here with the MijnBureau header image. Brand
+   colors are Conversations' own. */
+
+a[href="/"] > svg[width="160"] {
+  visibility: hidden;
+}
+
+a[href="/"]:has(> svg[width="160"]) {
+  background: url("v3-ai-assistent.svg") no-repeat center;
+  background-size: contain;
+  width: 160px;
+  height: 32px;
+  display: block;
+}
