@@ -29,7 +29,6 @@ global:
     ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
     ##
     omitEmptySeLinuxOptions: false
-
 ## @section Common parameters
 
 ## @param kubeVersion Override Kubernetes version reported by .Capabilities
@@ -70,7 +69,6 @@ diagnosticMode:
     - sleep
   args:
     - infinity
-
 ## Nextcloud image
 ## ref: https://hub.docker.com/_/nextcloud/tags
 ## @param image.registry [default: registry-1.docker.io] Nextcloud image registry
@@ -98,13 +96,11 @@ image:
   ##
   pullSecrets: []
   debug: false
-
 ## Nextcloud setup
 ## ref: https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/config_sample_php_parameters.html
 ##
 ## @param host Nextcloud host to create application URLs. This is added to `trusted_domains` at install only
 host: ""
-
 ## Nextcloud authentication parameters
 auth:
   ## @param auth.username Sets the admin username on installation.
@@ -186,7 +182,6 @@ mail:
     existingSecret: ""
     existingSecretUsernameKey: ""
     existingSecretPasswordKey: ""
-
 ## External Redis configuration
 ## @param externalRedis.host Redis host
 ## @param externalRedis.port Redis port number
@@ -200,7 +195,6 @@ externalRedis:
   password: ""
   existingSecret: ""
   existingSecretPasswordKey: "redis-password"
-
 ## External MinIO configuration
 ## @param externalMinio.endpoint MinIO endpoint
 ## @param externalMinio.port MinIO port
@@ -234,7 +228,6 @@ externalMinio:
   existingSecretUsernameKey: ""
   existingSecretPasswordKey: ""
   existingSecretSseCKeyKey: ""
-
 ## External Database configuration
 ## @param externalDatabase.type Set to 'mysql' or 'postgresql'
 ## @param externalDatabase.username Username to connect as
@@ -256,7 +249,6 @@ externalDatabase:
   existingSecret: ""
   existingSecretUsernameKey: ""
   existingSecretPasswordKey: ""
-
 ## Nextcloud default configuration
 ## @param builtinConfigs..htaccess To protect /var/www/html/config
 ## @param builtinConfigs.apache-pretty-urls.config.php Apache configuration for rewrite urls
@@ -285,18 +277,15 @@ builtinConfigs:
   upgrade-disable-web.config.php: true
   imaginary.config.php: false
   empty-skeleton.config.php: true
-
 ## Custom Configuration Files
 ## ref:  https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/config_sample_php_parameters.html#multiple-config-php-file
 ## @param extraConfigs Custom config files as key-value pairs (filename: content)
 ##
 extraConfigs: {}
-
 ## PHP Configuration files that will be created in /usr/local/etc/php/conf.d
 ## @param phpConfigs PHP configuration files as key-value pairs (filename: content)
 ##
 phpConfigs: {}
-
 ## PHP runtime limits passed as env vars to the upstream Nextcloud Apache image.
 ## The image's entrypoint writes them into /usr/local/etc/php/conf.d/nextcloud.ini
 ## as `upload_max_filesize` / `post_max_size` / `memory_limit`.
@@ -307,7 +296,6 @@ phpConfigs: {}
 ##
 phpUploadLimit: "512M"
 phpMemoryLimit: "512M"
-
 ## Nextcloud set-the-security-context-for-a-pod
 ## @param replicaCount Number of Nextcloud replicas to deploy
 ##
@@ -433,7 +421,6 @@ containerSecurityContext:
     drop: ["ALL"]
   seccompProfile:
     type: "RuntimeDefault"
-
 ## @param existingConfigmap The name of an existing ConfigMap with your custom configuration for Nextcloud
 ##
 existingConfigmap:
@@ -628,7 +615,6 @@ autoscaling:
     maxReplicas: 3
     targetCPU: 75
     targetMemory: ""
-
 ## @section Traffic Exposure Parameters
 ##
 
@@ -853,7 +839,6 @@ ingress:
   ##             name: http
   ##
   extraRules: []
-
 cronjob:
   command:
     - /bin/sh
@@ -876,7 +861,6 @@ cronjob:
     limits:
       memory: 128Mi
       cpu: 200m
-
 ## @section Persistence Parameters
 ##
 
@@ -922,7 +906,6 @@ persistence:
   ##     app: my-app
   ##
   selector: {}
-
 ## @section Other Parameters
 ##
 
@@ -943,7 +926,6 @@ serviceAccount:
   ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
   ##
   automountServiceAccountToken: false
-
 ## @section Metrics Parameters
 ##
 ## Prometheus metrics for Nextcloud.
@@ -974,7 +956,7 @@ metrics:
   image:
     registry: docker.io
     repository: xperimental/nextcloud-exporter
-    tag: "0.9.1"
+    tag: "0.9.2"
     digest: ""
     pullPolicy: IfNotPresent
     pullSecrets: []
@@ -1220,7 +1202,6 @@ metrics:
     ##   prometheus: my-prometheus
     ##
     selector: {}
-
 ## @param collabora.url The URL of your Collabora Online Server
 ## Used by the Nextcloud Office (richdocuments) app to connect automatically
 ## Example: "https://collabora.example.com/"
@@ -1228,7 +1209,6 @@ metrics:
 collabora:
   url: ""
   wopi_allowlist: ""
-
 ## @section Files Configuration Parameters
 
 ## Nextcloud Files app configuration
