@@ -13,9 +13,7 @@ global:
   defaultStorageClass: ""
   security:
     allowInsecureImages: true
-
 ## @section Common parameters
-
 kubeVersion: ""
 apiVersions: []
 nameOverride: ""
@@ -28,32 +26,26 @@ extraDeploy: []
 ## @param runtimeClassName RuntimeClassName for the OpenSearch pods
 ##
 runtimeClassName: ""
-
 diagnosticMode:
   enabled: false
   command:
     - sleep
   args:
     - infinity
-
 ## @section OpenSearch parameters
-
 image:
   registry: docker.io
   repository: opensearchproject/opensearch
-  tag: "2.19.2"
+  tag: "2.19.7"
   digest: ""
   pullPolicy: IfNotPresent
   pullSecrets: []
-
 ## @param replicaCount Number of OpenSearch replicas. Only one is supported by this chart (single-node).
 ##
 replicaCount: 1
-
 ## @param javaOpts JVM options for OpenSearch
 ##
 javaOpts: "-Xms512m -Xmx512m"
-
 ## @param extraEnvVars Additional environment variables for OpenSearch
 ##
 extraEnvVars:
@@ -65,11 +57,9 @@ extraEnvVars:
     value: "true"
   - name: bootstrap.memory_lock
     value: "false"
-
 containerPorts:
   http: 9200
   metrics: 9600
-
 livenessProbe:
   enabled: true
   initialDelaySeconds: 60
@@ -94,17 +84,14 @@ startupProbe:
 customLivenessProbe: {}
 customReadinessProbe: {}
 customStartupProbe: {}
-
 resourcesPreset: "small"
 resources: {}
-
 podSecurityContext:
   enabled: true
   fsGroupChangePolicy: Always
   sysctls: []
   supplementalGroups: []
   fsGroup: 1001
-
 containerSecurityContext:
   enabled: true
   seLinuxOptions: {}
@@ -119,7 +106,6 @@ containerSecurityContext:
       - "ALL"
   seccompProfile:
     type: "RuntimeDefault"
-
 ## @param command Override the container command
 ##
 command: []
@@ -132,7 +118,6 @@ extraEnvVarsCM: ""
 ## @param extraEnvVarsSecret Name of an existing Secret with extra environment variables
 ##
 extraEnvVarsSecret: ""
-
 deploymentAnnotations: {}
 podLabels: {}
 podAnnotations: {}
@@ -151,20 +136,16 @@ terminationGracePeriodSeconds: 120
 lifecycleHooks: {}
 extraVolumes: []
 extraVolumeMounts: []
-
 serviceAccount:
   create: true
   name: ""
   annotations: {}
   automountServiceAccountToken: false
-
 pdb:
   create: true
   minAvailable: ""
   maxUnavailable: 1
-
 ## @section Persistence parameters
-
 persistence:
   enabled: true
   mountPath: /usr/share/opensearch/data
@@ -174,17 +155,13 @@ persistence:
     - ReadWriteOnce
   size: 10Gi
   existingClaim: ""
-
 ## @section Traffic exposure parameters
-
 service:
   type: ClusterIP
   ports:
     http: 9200
   annotations: {}
-
 ## @section Network policy parameters
-
 networkPolicy:
   enabled: true
   allowExternal: false
