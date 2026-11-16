@@ -92,7 +92,6 @@ documents:
       baseUrl: ""
   ## @param documents.fileToLlmMode How attachments are handed to the LLM: presigned_url, backend_temporary_url or backend_base64. Empty keeps the upstream default (presigned_url); use backend_base64 for LLM endpoints outside the cluster, which cannot fetch S3 URLs.
   fileToLlmMode: ""
-
 conversations:
   ## Bitnami %%MAIN_CONTAINER%% image
   ## ref: https://hub.docker.com/r/bitnami/conversations/tags/
@@ -107,7 +106,7 @@ conversations:
   image:
     registry: docker.io
     repository: lasuite/conversations-backend
-    tag: v0.0.28
+    tag: v0.0.29
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1003,7 +1002,7 @@ conversations_frontend:
   image:
     registry: docker.io
     repository: lasuite/conversations-frontend
-    tag: v0.0.28
+    tag: v0.0.29
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
