@@ -39,14 +39,20 @@ spec:
     - name: turn-tls
       port: {{ .Values.livekit.config.turn.tls_port }}
       protocol: TCP
+      {{- /* Kubernetes only allows nodePorts in 30000-32767; let it auto-assign otherwise. */}}
+      {{- if and (ge (int .Values.livekit.config.turn.tls_port) 30000) (le (int .Values.livekit.config.turn.tls_port) 32767) }}
       nodePort: {{ .Values.livekit.config.turn.tls_port }}
+      {{- end }}
       targetPort: turn-tls
     {{- end }}
     {{- if .Values.livekit.config.turn.udp_port }}
     - name: turn-udp
       port: {{ .Values.livekit.config.turn.udp_port }}
       protocol: UDP
+      {{- /* Kubernetes only allows nodePorts in 30000-32767; let it auto-assign otherwise. */}}
+      {{- if and (ge (int .Values.livekit.config.turn.udp_port) 30000) (le (int .Values.livekit.config.turn.udp_port) 32767) }}
       nodePort: {{ .Values.livekit.config.turn.udp_port }}
+      {{- end }}
       targetPort: turn-udp
     {{- end }}
     {{- if .Values.service_turn.extraPorts }}
