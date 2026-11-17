@@ -5,12 +5,12 @@ container:
   ollama:
     registry: "docker.io"
     repository: "ollama/ollama"
-    tag: "0.40.14"
+    tag: "0.40.16"
     imagePullSecret: ~
   keycloak:
     registry: "quay.io"
     repository: "keycloak/keycloak"
-    tag: "26.8.1"
+    tag: "26.8.2"
     imagePullSecret: ~
   keycloak_cli:
     registry: "docker.io"
@@ -40,17 +40,17 @@ container:
   valkey_exporter:
     registry: "docker.io"
     repository: "oliver006/redis_exporter"
-    tag: "v1.88.0"
+    tag: "v1.97.0"
     imagePullSecret: ~
   elementweb:
     registry: "registry-1.docker.io"
     repository: "vectorim/element-web"
-    tag: "v1.12.33"
+    tag: "v1.12.35"
     imagePullSecret: ~
   synapse:
     registry: "registry-1.docker.io"
     repository: "matrixdotorg/synapse"
-    tag: "v1.164.1"
+    tag: "v1.165.0"
     imagePullSecret: ~
   matrix_auth_service:
     registry: "oci.element.io"
@@ -70,17 +70,17 @@ container:
   collabora:
     registry: "registry-1.docker.io"
     repository: "collabora/code"
-    tag: "26.04.5.1.1"
+    tag: "26.04.6.1.1"
     imagePullSecret: ~
   nextcloud:
     registry: "registry-1.docker.io"
     repository: "library/nextcloud"
-    tag: "35.0.2-apache"
+    tag: "35.0.3-apache"
     imagePullSecret: ~
   nextcloud_exporter:
     registry: "docker.io"
     repository: "xperimental/nextcloud-exporter"
-    tag: "0.9.1"
+    tag: "0.9.2"
     imagePullSecret: ~
   osShell:
     registry: "registry-1.docker.io"
@@ -100,12 +100,12 @@ container:
   kubectl:
     registry: registry.k8s.io
     repository: kubectl
-    tag: v1.33.4
+    tag: v1.37.2
     imagePullSecret: ~
   busybox:
     registry: docker.io
     repository: busybox
-    tag: "1.37.0-musl"
+    tag: "1.38.0-musl"
     imagePullSecret: ~
   # Used by the docs jwt-keys job (key generation and secret publishing).
   openssl:
@@ -141,21 +141,21 @@ container:
   conversations_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/conversations-backend"
-    tag: "v0.0.28"
+    tag: "v0.0.29"
     imagePullSecret: ~
   conversations_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/conversations-frontend"
-    tag: "v0.0.28"
+    tag: "v0.0.29"
   drive_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/drive-backend"
-    tag: "v0.26.0"
+    tag: "v1.0.0"
     imagePullSecret: ~
   drive_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/drive-frontend"
-    tag: "v0.26.0"
+    tag: "v1.0.0"
     imagePullSecret: ~
   projects:
     registry: "registry-1.docker.io"
@@ -165,32 +165,32 @@ container:
   calendars_backend:
     registry: "ghcr.io"
     repository: "suitenumerique/calendars-backend"
-    tag: "main"
+    tag: "0.2.0"
     imagePullSecret: ~
   calendars_frontend:
     registry: "ghcr.io"
     repository: "suitenumerique/calendars-frontend"
-    tag: "main"
+    tag: "0.2.0"
     imagePullSecret: ~
   calendars_caldav:
     registry: "ghcr.io"
     repository: "suitenumerique/calendars-caldav"
-    tag: "main"
+    tag: "0.2.0"
     imagePullSecret: ~
   dictaphone_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/dictaphone-backend"
-    tag: "v0.15.4"
+    tag: "v0.16.1"
     imagePullSecret: ~
   dictaphone_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/dictaphone-frontend"
-    tag: "v0.15.4"
+    tag: "v0.16.1"
     imagePullSecret: ~
   dictaphone_audio_extractor:
     registry: "registry-1.docker.io"
     repository: "lasuite/dictaphone-audio-extractor"
-    tag: "v0.15.4"
+    tag: "v0.16.1"
     imagePullSecret: ~
   messages_backend:
     registry: "ghcr.io"
@@ -219,12 +219,12 @@ container:
   opensearch:
     registry: "docker.io"
     repository: "opensearchproject/opensearch"
-    tag: "2.19.2"
+    tag: "2.19.7"
     imagePullSecret: ~
   nginx:
     registry: docker.io
     repository: nginx/nginx-unprivileged
-    tag: 1.30.6-alpine-slim
+    tag: 1.31.8-alpine-slim
     imagePullSecret: ~
   nginx_exporter:
     registry: "docker.io"
@@ -279,5 +279,5 @@ container:
   cnpg_postgres:
     registry: "ghcr.io"
     repository: "cloudnative-pg/postgresql"
-    tag: "17.9-standard-bookworm"
+    tag: "17.12-standard-bookworm"
     imagePullSecret: ~

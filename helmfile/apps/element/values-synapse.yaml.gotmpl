@@ -389,6 +389,12 @@ synapse:
   # clients error with MISSING_MATRIX_RTC_TRANSPORT.
   matrixRtc:
     transports:
+      # Stable MSC4195 transport (Synapse 1.165+); clients fetch it from
+      # /_matrix/client/v1/rtc/transports. Requires the SFU websocket URL.
+      - type: m.livekit
+        url: {{ printf "wss://%s.%s" (index .Values.global.hostname "livekit") .Values.global.domain | quote }}
+      # Deprecated unstable transport kept for clients that don't support
+      # the stable one yet.
       - type: livekit
         livekit_service_url: {{ printf "https://%s.%s" (index .Values.global.hostname "livekit-jwt") .Values.global.domain | quote }}
   # Application service wiring for lk-jwt-service: Synapse loads the
