@@ -1,0 +1,85 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if and .Values.jwtKeys.enabled (not .Values.jwtKeys.existingSecret) }}
+apiVersion: {{ include "common.capabilities.job.apiVersion" . }}
+kind: Job
+metadata:
+  name: {{ include "common.names.fullname" . }}-jwt-keys
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: jwt-keys
+  annotations:
+    # Pre-install/pre-upgrade: the secret must exist before any pod mounting
+    # it rolls. Idempotent: an existing secret is left untouched, key rotation
+    # is a deliberate delete of the secret plus a re-run.
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-10"
+    helm.sh/hook-delete-policy: before-hook-creation,job-succeeded
+spec:
+  ttlSecondsAfterFinished: {{ .Values.jwtKeys.job.ttlSecondsAfterFinished }}
+  backoffLimit: {{ .Values.jwtKeys.job.backoffLimit }}
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: jwt-keys
+    spec:
+      {{- include "docs.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "common.names.fullname" . }}-jwt-keys
+      automountServiceAccountToken: true
+      restartPolicy: Never
+      {{- if .Values.jwtKeys.job.podSecurityContext.enabled }}
+      securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.jwtKeys.job.podSecurityContext "context" $) | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: generate
+          image: {{ template "docs.jwtKeys.image" . }}
+          imagePullPolicy: {{ .Values.jwtKeys.image.pullPolicy }}
+          {{- if .Values.jwtKeys.job.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.jwtKeys.job.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          # alpine/openssl's entrypoint is openssl itself; override with a shell.
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:{{ .Values.jwtKeys.keySize }} -out /keys/{{ .Values.jwtKeys.backendKeyFilename }}
+              openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:{{ .Values.jwtKeys.keySize }} -out /keys/{{ .Values.jwtKeys.yhubKeyFilename }}
+          resources:
+            {{- toYaml (.Values.jwtKeys.job.resources | default (dict "requests" (dict "cpu" "10m" "memory" "32Mi") "limits" (dict "cpu" "100m" "memory" "64Mi"))) | nindent 12 }}
+          volumeMounts:
+            - name: keys
+              mountPath: /keys
+      containers:
+        - name: publish
+          image: {{ template "docs.jwtKeys.kubectlImage" . }}
+          imagePullPolicy: {{ .Values.jwtKeys.kubectlImage.pullPolicy }}
+          {{- if .Values.jwtKeys.job.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.jwtKeys.job.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              if kubectl get secret {{ include "docs.jwtKeys.secretName" . }} > /dev/null 2>&1; then
+                echo "secret {{ include "docs.jwtKeys.secretName" . }} already exists, keys unchanged"
+                exit 0
+              fi
+              kubectl create secret generic {{ include "docs.jwtKeys.secretName" . }} \
+                --from-file=/keys/{{ .Values.jwtKeys.backendKeyFilename }} \
+                --from-file=/keys/{{ .Values.jwtKeys.yhubKeyFilename }}
+          resources:
+            {{- toYaml (.Values.jwtKeys.job.resources | default (dict "requests" (dict "cpu" "10m" "memory" "32Mi") "limits" (dict "cpu" "100m" "memory" "64Mi"))) | nindent 12 }}
+          volumeMounts:
+            - name: keys
+              mountPath: /keys
+              readOnly: true
+      volumes:
+        - name: keys
+          emptyDir:
+            medium: Memory
+{{- end }}

@@ -47,6 +47,58 @@ Full name for Celery Worker
 {{- end -}}
 
 {{/*
+Full name for the yhub collaboration server
+*/}}
+{{- define "docs.yhub.fullname" -}}
+{{ include "common.names.fullname" . }}-yhub
+{{- end -}}
+
+{{/*
+Return the proper yhub image name
+*/}}
+{{- define "docs.yhub.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.yhub.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
+Return the proper jwt-keys job image names
+*/}}
+{{- define "docs.jwtKeys.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.jwtKeys.image "global" .Values.global) }}
+{{- end -}}
+
+{{- define "docs.jwtKeys.kubectlImage" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.jwtKeys.kubectlImage "global" .Values.global) }}
+{{- end -}}
+
+{{/*
+Name of the Secret holding the JWT signing keys of the backend and yhub.
+Generated once on the cluster by the jwt-keys job; never rendered with content.
+*/}}
+{{- define "docs.jwtKeys.secretName" -}}
+{{- .Values.jwtKeys.existingSecret | default (printf "%s-jwt-keys" (include "common.names.fullname" .)) -}}
+{{- end -}}
+
+{{/*
+Volume mounting the JWT signing keys, read-only
+*/}}
+{{- define "docs.jwtKeys.volume" -}}
+- name: jwt-keys
+  secret:
+    secretName: {{ include "docs.jwtKeys.secretName" . }}
+    defaultMode: 0444
+{{- end -}}
+
+{{/*
+VolumeMount matching docs.jwtKeys.volume
+*/}}
+{{- define "docs.jwtKeys.volumeMount" -}}
+- name: jwt-keys
+  mountPath: {{ .Values.jwtKeys.mountPath }}
+  readOnly: true
+{{- end -}}
+
+{{/*
 Return the proper frontend image name
 */}}
 {{- define "docs.frontend.image" -}}
@@ -138,6 +190,16 @@ Base URL for the deployment
 {{- end -}}
 
 {{/*
+In-cluster base URL of the backend service. NOTE: only usable for endpoints
+exempt from SECURE_SSL_REDIRECT (the Django Production config 301-redirects
+plain http to https); service calls like JWKS fetch must use the public
+https baseUrl instead.
+*/}}
+{{- define "docs.backend.baseUrl" -}}
+{{- printf "http://%s:%v" (include "docs.backend.fullname" .) .Values.backend.service.ports.http -}}
+{{- end -}}
+
+{{/*
 transform dictionary of environment variables
 Usage : {{ include "docs.env.transformDict" .Values.envVars }}
 
@@ -179,7 +241,7 @@ Return the name of the Secret that stores the docs credentials
 Names of environment variables whose values are stored in the chart Secret
 */}}
 {{- define "docs.secretEnvNames" -}}
-AI_API_KEY AWS_S3_ACCESS_KEY_ID AWS_S3_SECRET_ACCESS_KEY COLLABORATION_SERVER_SECRET DB_PASSWORD DJANGO_CELERY_BROKER_URL DJANGO_EMAIL_HOST_PASSWORD DJANGO_SECRET_KEY DJANGO_SERVER_TO_SERVER_API_TOKENS DJANGO_SUPERUSER_PASSWORD OIDC_RP_CLIENT_SECRET REDIS_URL Y_PROVIDER_API_KEY
+AI_API_KEY AWS_S3_ACCESS_KEY_ID AWS_S3_SECRET_ACCESS_KEY DB_PASSWORD DJANGO_CELERY_BROKER_URL DJANGO_EMAIL_HOST_PASSWORD DJANGO_SECRET_KEY DJANGO_SERVER_TO_SERVER_API_TOKENS DJANGO_SUPERUSER_PASSWORD LEGACY_S3_ACCESS_KEY_ID LEGACY_S3_SECRET_ACCESS_KEY OIDC_RP_CLIENT_SECRET OPENAI_SDK_API_KEY POSTGRES REDIS REDIS_URL Y_PROVIDER_API_KEY
 {{- end -}}
 
 {{/*

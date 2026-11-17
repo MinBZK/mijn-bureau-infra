@@ -1,0 +1,27 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if .Values.yhub.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "docs.yhub.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: y-hub
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.yhub.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.yhub.service.ports.http }}
+      targetPort: http
+      protocol: TCP
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.yhub.podLabels .Values.commonLabels) "context" .) | fromYaml }}
+  selector: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: y-hub
+{{- end }}

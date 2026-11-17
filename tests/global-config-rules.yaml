@@ -24,6 +24,7 @@ global:
       frontend: "xlarge"
       celery: "xlarge"
       yProvider: "xlarge"
+      yhub: "xlarge"
       docspec: "xlarge"
     drive:
       backend: "xlarge"

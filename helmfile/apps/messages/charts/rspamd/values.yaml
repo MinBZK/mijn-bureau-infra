@@ -1,0 +1,528 @@
+
+# SPDX-License-Identifier: APACHE-2.0
+
+## @section Global parameters
+
+global:
+  ## Global Docker image parameters
+  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+  ## @param global.imageRegistry Global Docker Image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ##
+  imageRegistry: ""
+  imagePullSecrets: []
+  ## Security parameters
+  ## @param global.security.allowInsecureImages Allows skipping image verification
+  ##
+  security:
+    allowInsecureImages: false
+  ## Compatibility adaptations for Kubernetes platforms
+  ##
+  compatibility:
+    ## Compatibility adaptations for Openshift
+    ## @param global.compatibility.openshift.adaptSecurityContext Adapt the securityContext sections of the deployment to make them compatible with Openshift restricted-v2 SCC: remove runAsUser, runAsGroup and fsGroup and let the platform use their allowed default IDs. Possible values: auto (apply if the detected running cluster is Openshift), force (perform the adaptation always), disabled (do not perform adaptation)
+    ##
+    openshift:
+      adaptSecurityContext: auto
+    ## @param global.compatibility.omitEmptySeLinuxOptions If set to true, removes the seLinuxOptions from the securityContexts when it is set to an empty object
+    ##
+    omitEmptySeLinuxOptions: false
+
+## @section Common parameters
+
+## @param kubeVersion Override Kubernetes version reported by .Capabilities
+##
+kubeVersion: ""
+## @param apiVersions Override Kubernetes API versions reported by .Capabilities
+##
+apiVersions: []
+## @param nameOverride String to partially override common.names.name
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: cluster.local
+## @param extraDeploy Array of extra objects to deploy with the release
+##
+extraDeploy: []
+## Diagnostic mode
+## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
+## @param diagnosticMode.command Command to override all containers in the chart release
+## @param diagnosticMode.args Args to override all containers in the chart release
+##
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section rspamd Parameters
+
+## rspamd scan engine parameters
+##
+rspamd:
+  ## rspamd image
+  ## ref: https://hub.docker.com/r/rspamd/rspamd/tags/
+  ## @param rspamd.image.registry [default: REGISTRY_NAME] rspamd image registry
+  ## @param rspamd.image.repository [default: REPOSITORY_NAME/rspamd] rspamd image repository
+  ## @skip rspamd.image.tag rspamd image tag (immutable tags are recommended)
+  ## @param rspamd.image.digest rspamd image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag image tag (immutable tags are recommended)
+  ## @param rspamd.image.pullPolicy rspamd image pull policy
+  ## @param rspamd.image.pullSecrets rspamd image pull secrets
+  ## @param rspamd.image.debug Enable rspamd image debug mode
+  ##
+  image:
+    registry: registry-1.docker.io
+    repository: rspamd/rspamd
+    tag: "4.3.0"
+    digest: ""
+    # Policy image.rego requires Always; the tag is mutable upstream.
+    pullPolicy: Always
+    pullSecrets: []
+    debug: false
+  ## @param rspamd.replicaCount Number of rspamd replicas to deploy
+  ##
+  replicaCount: 1
+  ## @param rspamd.containerPorts.http rspamd scan API container port (rspamd "normal" worker, /checkv2)
+  ##
+  containerPorts:
+    http: 11333
+  ## @param rspamd.extraContainerPorts Optionally specify extra list of additional ports for rspamd containers
+  ## e.g:
+  ## extraContainerPorts:
+  ##   - name: fuzzy
+  ##     containerPort: 11335
+  ##
+  extraContainerPorts: []
+  ## Configure extra options for rspamd containers' liveness and readiness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  ## @param rspamd.livenessProbe.enabled Enable livenessProbe on rspamd containers
+  ## @param rspamd.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+  ## @param rspamd.livenessProbe.periodSeconds Period seconds for livenessProbe
+  ## @param rspamd.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+  ## @param rspamd.livenessProbe.failureThreshold Failure threshold for livenessProbe
+  ## @param rspamd.livenessProbe.successThreshold Success threshold for livenessProbe
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param rspamd.readinessProbe.enabled Enable readinessProbe on rspamd containers
+  ## @param rspamd.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+  ## @param rspamd.readinessProbe.periodSeconds Period seconds for readinessProbe
+  ## @param rspamd.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+  ## @param rspamd.readinessProbe.failureThreshold Failure threshold for readinessProbe
+  ## @param rspamd.readinessProbe.successThreshold Success threshold for readinessProbe
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  ## @param rspamd.startupProbe.enabled Enable startupProbe on rspamd containers
+  ## @param rspamd.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+  ## @param rspamd.startupProbe.periodSeconds Period seconds for startupProbe
+  ## @param rspamd.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+  ## @param rspamd.startupProbe.failureThreshold Failure threshold for startupProbe
+  ## @param rspamd.startupProbe.successThreshold Success threshold for startupProbe
+  ##
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+  ## @param rspamd.customLivenessProbe Custom livenessProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  ## @param rspamd.customReadinessProbe Custom readinessProbe that overrides the default one
+  ##
+  customReadinessProbe: {}
+  ## @param rspamd.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customStartupProbe: {}
+  ## rspamd resource requests and limits
+  ## ref: http://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+  ## @param rspamd.resourcesPreset Set rspamd container resources according to one common preset (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge). This is ignored if rspamd.resources is set (rspamd.resources is recommended for production).
+  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  ##
+  resourcesPreset: "nano"
+  ## @param rspamd.resources Set rspamd container requests and limits for different resources like CPU or memory (essential for production workloads)
+  ## Example:
+  ## resources:
+  ##   requests:
+  ##     cpu: 100m
+  ##     memory: 256Mi
+  ##   limits:
+  ##     cpu: 500m
+  ##     memory: 1Gi
+  ##
+  resources: {}
+  ## Configure Pods Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+  ## @param rspamd.podSecurityContext.enabled Enable rspamd pods' Security Context
+  ## @param rspamd.podSecurityContext.fsGroupChangePolicy Set filesystem group change policy for rspamd pods
+  ## @param rspamd.podSecurityContext.sysctls Set kernel settings using the sysctl interface for rspamd pods
+  ## @param rspamd.podSecurityContext.supplementalGroups Set filesystem extra groups for rspamd pods
+  ## @param rspamd.podSecurityContext.fsGroup Set fsGroup in rspamd pods' Security Context
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    # The rspamd/rspamd image runs as 11333:11333.
+    fsGroup: 11333
+  ## Configure Container Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  ## @param rspamd.containerSecurityContext.enabled Enabled rspamd container' Security Context
+  ## @param rspamd.containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in rspamd container
+  ## @param rspamd.containerSecurityContext.runAsUser Set runAsUser in rspamd container' Security Context
+  ## @param rspamd.containerSecurityContext.runAsGroup Set runAsGroup in rspamd container' Security Context
+  ## @param rspamd.containerSecurityContext.runAsNonRoot Set runAsNonRoot in rspamd container' Security Context
+  ## @param rspamd.containerSecurityContext.readOnlyRootFilesystem Set readOnlyRootFilesystem in rspamd container' Security Context
+  ## @param rspamd.containerSecurityContext.privileged Set privileged in rspamd container' Security Context
+  ## @param rspamd.containerSecurityContext.allowPrivilegeEscalation Set allowPrivilegeEscalation in rspamd container' Security Context
+  ## @param rspamd.containerSecurityContext.capabilities.drop List of capabilities to be dropped in rspamd container
+  ## @param rspamd.containerSecurityContext.seccompProfile.type Set seccomp profile in rspamd container' Security Context
+  ##
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    # The rspamd/rspamd image runs as 11333:11333.
+    runAsUser: 11333
+    runAsGroup: 11333
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+
+  ## @param rspamd.command Override default rspamd container command (useful when using custom images)
+  ##
+  command: []
+  ## @param rspamd.args Override default rspamd container args (useful when using custom images)
+  ##
+  args: []
+  ## @param rspamd.automountServiceAccountToken Mount Service Account token in rspamd pods
+  ##
+  automountServiceAccountToken: false
+  ## @param rspamd.hostAliases rspamd pods host aliases
+  ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+  ##
+  hostAliases: []
+  ## @param rspamd.deploymentAnnotations Annotations for rspamd deployment
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  ##
+  deploymentAnnotations: {}
+  ## @param rspamd.podLabels Extra labels for rspamd pods
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+  ##
+  podLabels: {}
+  ## @param rspamd.podAnnotations Annotations for rspamd pods
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  ##
+  podAnnotations: {}
+  ## @param rspamd.affinity Affinity for rspamd pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ## NOTE: it will be overridden by the presets when they are set
+  ##
+  affinity: {}
+  ## @param rspamd.nodeSelector Node labels for rspamd pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+  ##
+  nodeSelector: {}
+  ## @param rspamd.tolerations Tolerations for rspamd pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+  ## @param rspamd.updateStrategy.type rspamd deployment strategy type
+  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  ##
+  updateStrategy:
+    ## Can be set to RollingUpdate or Recreate
+    ##
+    type: RollingUpdate
+  ## @param rspamd.priorityClassName rspamd pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param rspamd.topologySpreadConstraints Topology Spread Constraints for rspamd pod assignment spread across your cluster among failure-domains
+  ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
+  ##
+  topologySpreadConstraints: []
+  ## @param rspamd.schedulerName Name of the k8s scheduler (other than default) for rspamd pods
+  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+  ##
+  schedulerName: ""
+  ## @param rspamd.runtimeClassName Name of the runtime class name for rspamd pods
+  ## ref: https://kubernetes.io/docs/concepts/containers/runtime-class/#usage
+  ##
+  runtimeClassName: ""
+  ## @param rspamd.terminationGracePeriodSeconds Seconds rspamd pods need to terminate gracefully
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param rspamd.lifecycleHooks for rspamd containers to automate configuration before or after startup
+  ##
+  lifecycleHooks: {}
+  ## @param rspamd.extraEnvVars Array with extra environment variables to add to rspamd containers
+  ## e.g:
+  ## extraEnvVars:
+  ##   - name: FOO
+  ##     value: "bar"
+  ##
+  extraEnvVars: []
+  ## @param rspamd.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for rspamd containers
+  ##
+  extraEnvVarsCM: ""
+  ## @param rspamd.extraEnvVarsSecret Name of existing Secret containing extra env vars for rspamd containers
+  ##
+  extraEnvVarsSecret: ""
+  ## @param rspamd.extraVolumes Optionally specify extra list of additional volumes for the rspamd pods
+  ##
+  extraVolumes: []
+  ## @param rspamd.extraVolumeMounts Optionally specify extra list of additional volumeMounts for the rspamd containers
+  ##
+  extraVolumeMounts: []
+  ## @param rspamd.sidecars Add additional sidecar containers to the rspamd pods
+  ## e.g:
+  ## sidecars:
+  ##   - name: your-image-name
+  ##     image: your-image
+  ##     imagePullPolicy: Always
+  ##     ports:
+  ##       - name: portname
+  ##         containerPort: 1234
+  ##
+  sidecars: []
+  ## @param rspamd.initContainers Add additional init containers to the rspamd pods
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ## e.g:
+  ## initContainers:
+  ##  - name: your-image-name
+  ##    image: your-image
+  ##    imagePullPolicy: Always
+  ##    command: ['sh', '-c', 'echo "hello world"']
+  ##
+  initContainers: []
+  ## Pod Disruption Budget configuration
+  ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb
+  ## @param rspamd.pdb.create Enable/disable a Pod Disruption Budget creation
+  ## @param rspamd.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param rspamd.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable. Defaults to `1` if both `rspamd.pdb.minAvailable` and `rspamd.pdb.maxUnavailable` are empty.
+  ##
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+  ## Autoscaling configuration
+  ## ref: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+  ##
+  autoscaling:
+    ## @param rspamd.autoscaling.vpa.enabled Enable VPA for rspamd pods
+    ## @param rspamd.autoscaling.vpa.annotations Annotations for VPA resource
+    ## @param rspamd.autoscaling.vpa.controlledResources VPA List of resources that the vertical pod autoscaler can control. Defaults to cpu and memory
+    ## @param rspamd.autoscaling.vpa.maxAllowed VPA Max allowed resources for the pod
+    ## @param rspamd.autoscaling.vpa.minAllowed VPA Min allowed resources for the pod
+    ##
+    vpa:
+      enabled: false
+      annotations: {}
+      controlledResources: []
+      maxAllowed: {}
+      minAllowed: {}
+      ## @param rspamd.autoscaling.vpa.updatePolicy.updateMode Autoscaling update policy
+      ## Specifies whether recommended updates are applied when a Pod is started and whether recommended updates are applied during the life of a Pod
+      ## Possible values are "Off", "Initial", "Recreate", and "Auto".
+      ##
+      updatePolicy:
+        updateMode: Recreate
+    ## @param rspamd.autoscaling.hpa.enabled Enable HPA for rspamd pods
+    ## @param rspamd.autoscaling.hpa.minReplicas Minimum number of replicas
+    ## @param rspamd.autoscaling.hpa.maxReplicas Maximum number of replicas
+    ## @param rspamd.autoscaling.hpa.targetCPU Target CPU utilization percentage
+    ## @param rspamd.autoscaling.hpa.targetMemory Target Memory utilization percentage
+    ##
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: ""
+
+## ClamAV antivirus integration (rspamd antivirus module, clamd TCP socket).
+## A virus verdict makes rspamd return action "reject", which Messages maps to
+## the Junk folder (docs/spam.md). Disabled means spam scoring and DKIM/DMARC
+## still run, attachments are just not scanned for viruses.
+##
+clamav:
+  ## @param clamav.enabled Enable virus scanning of MIME parts via ClamAV
+  ##
+  enabled: true
+  ## @param clamav.host clamd service hostname (the ClamAV release's service)
+  ##
+  host: clamav.mijnbureau-clamav.svc.cluster.local
+  ## @param clamav.port clamd TCP port
+  ##
+  port: 3310
+
+## @section Traffic Exposure Parameters
+
+## rspamd service parameters
+##
+service:
+  ## @param service.type rspamd service type
+  ##
+  type: ClusterIP
+  ## @param service.ports.http rspamd service HTTP port
+  ##
+  ports:
+    http: 11333
+  ## @param service.clusterIP rspamd service Cluster IP
+  ## e.g.:
+  ## clusterIP: None
+  ##
+  clusterIP: ""
+  ## @param service.loadBalancerIP rspamd service Load Balancer IP
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
+  ##
+  loadBalancerIP: ""
+  ## @param service.loadBalancerSourceRanges rspamd service Load Balancer sources
+  ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+  ## e.g:
+  ## loadBalancerSourceRanges:
+  ##   - 10.10.10.0/24
+  ##
+  loadBalancerSourceRanges: []
+  ## @param service.externalTrafficPolicy rspamd service external traffic policy
+  ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+  ##
+  externalTrafficPolicy: Cluster
+  ## @param service.annotations Additional custom annotations for rspamd service
+  ##
+  annotations: {}
+  ## @param service.extraPorts Extra ports to expose in rspamd service (normally used with the `sidecars` value)
+  ##
+  extraPorts: []
+  ## @param service.sessionAffinity Control where client requests go, to the same pod or round-robin
+  ## Values: ClientIP or None
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/
+  ##
+  sessionAffinity: None
+  ## @param service.sessionAffinityConfig Additional settings for the sessionAffinity
+  ## sessionAffinityConfig:
+  ##   clientIP:
+  ##     timeoutSeconds: 300
+  ##
+  sessionAffinityConfig: {}
+## Network Policies
+## Ref: https://kubernetes.io/docs/concepts/services-networking/network-policies/
+##
+networkPolicy:
+  ## @param networkPolicy.enabled Specifies whether a NetworkPolicy should be created
+  ##
+  enabled: true
+  ## @param networkPolicy.allowExternal Don't require server label for connections
+  ## The Policy model to apply. When set to false, only pods with the correct
+  ## server label will have network access to the ports server is listening
+  ## on. When true, server will accept connections from any source
+  ## (with the correct destination port).
+  ##
+  allowExternal: true
+  ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
+  ##
+  allowExternalEgress: true
+  ## @param networkPolicy.addExternalClientAccess Allow access from pods with client label set to "true". Ignored if `networkPolicy.allowExternal` is true.
+  ##
+  addExternalClientAccess: true
+  ## @param networkPolicy.extraIngress [array] Add extra ingress rules to the NetworkPolicy
+  ## e.g:
+  ## extraIngress:
+  ##   - ports:
+  ##       - port: 1234
+  ##     from:
+  ##       - podSelector:
+  ##           - matchLabels:
+  ##               - role: frontend
+  ##
+  extraIngress: []
+  ## @param networkPolicy.extraEgress [array] Add extra ingress rules to the NetworkPolicy (ignored if allowExternalEgress=true)
+  ## e.g:
+  ## extraEgress:
+  ##   - ports:
+  ##       - port: 1234
+  ##     to:
+  ##       - podSelector:
+  ##           - matchLabels:
+  ##               - role: frontend
+  ##
+  extraEgress: []
+  ## @param networkPolicy.ingressPodMatchLabels [object] Labels to match to allow traffic from other pods. Ignored if `networkPolicy.allowExternal` is true.
+  ##
+  ingressPodMatchLabels: {}
+  ## @param networkPolicy.ingressNSMatchLabels [object] Labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+  ## @param networkPolicy.ingressNSPodMatchLabels [object] Pod labels to match to allow traffic from other namespaces. Ignored if `networkPolicy.allowExternal` is true.
+  ##
+  ingressNSMatchLabels: {}
+  ingressNSPodMatchLabels: {}
+
+## @section RBAC and ServiceAccount Parameters
+
+## RBAC configuration
+##
+rbac:
+  ## @param rbac.create Specifies whether RBAC resources should be created
+  ##
+  create: false
+  ## @param rbac.rules Custom RBAC rules to set
+  ## e.g:
+  ## rules:
+  ##   - apiGroups:
+  ##       - ""
+  ##     resources:
+  ##       - pods
+  ##     verbs:
+  ##       - get
+  ##       - list
+  ##
+  rules: []
+
+## ServiceAccount configuration
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+##
+serviceAccount:
+  ## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+  ##
+  create: true
+  ## @param serviceAccount.name The name of the ServiceAccount to use.
+  ## If not set and create is true, a name is generated using the common.names.fullname template
+  ##
+  name: ""
+  ## @param serviceAccount.annotations Additional Service Account annotations (evaluated as a template)
+  ##
+  annotations: {}
+  ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
+  ##
+  automountServiceAccountToken: false

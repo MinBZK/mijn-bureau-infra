@@ -19,6 +19,7 @@ global:
       frontend: "small"
       celery: "small"
       yProvider: "small"
+      yhub: "small"
       docspec: "small"
     drive:
       backend: "small"

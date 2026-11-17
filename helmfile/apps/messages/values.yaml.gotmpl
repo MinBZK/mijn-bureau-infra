@@ -40,6 +40,16 @@
   (dict "name" "FEATURE_THREAD_SNIPPET" "value" "true")
   (dict "name" "FRONTEND_LAGAUFRE_WIDGET_CONFIG" "value" "{}")
 }}
+{{- if .Values.application.messages.rspamd.enabled | default true }}
+{{- /* Spam/sender-auth pipeline (upstream docs/spam.md): every external
+  message is POSTed to rspamd's /checkv2. inbound_auth "_rspamd"_ reuses the
+  same scan's DKIM/DMARC symbols for the forged/unverified sender banners.
+  rspamd is fail-closed: when unreachable, mail is held (up to
+  MESSAGES_INBOUND_DEFERRAL_MAX_AGE, 48h), never silently delivered. Virus
+  scanning happens inside rspamd (antivirus module → ClamAV). Same
+  namespace, short service name is enough. */}}
+{{- $featureEnv = append $featureEnv (dict "name" "SPAM_CONFIG" "value" `{"rspamd_url": "http://messages-rspamd:11333", "rspamd_auth": "", "inbound_auth": "rspamd"}`) }}
+{{- end }}
 # FEATURE_THREAD_SNIPPET enables the preview line under each thread subject;
 # the backlog is rebuilt by the job.threadSnippetsBackfill hook job.
 # FRONTEND_LAGAUFRE_WIDGET_CONFIG={} kills the deprecated NEXT_PUBLIC_*

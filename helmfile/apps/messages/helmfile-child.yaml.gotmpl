@@ -54,6 +54,15 @@ releases:
     values:
       - "values-opensearch.yaml.gotmpl"
 
+  - name: messages-rspamd
+    chart: charts/rspamd
+    installed: {{ and .Values.application.messages.enabled (.Values.application.messages.rspamd.enabled | default true) | toYaml }}
+    {{- if .Values.application.messages.namespace }}
+    namespace: {{ .Values.application.messages.namespace }}
+    {{- end }}
+    values:
+      - "values-rspamd.yaml.gotmpl"
+
   - name: messages
     chart: charts/messages
     condition: application.messages.enabled
@@ -67,6 +76,11 @@ releases:
       - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-minio
       {{- if not .Values.search.messages.url }}
       - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-opensearch
+      {{- end }}
+      {{- if .Values.application.messages.rspamd.enabled | default true }}
+      # Mail is held (RETRY, fail-closed) while rspamd is down; install it
+      # before the backend starts scanning.
+      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-rspamd
       {{- end }}
     {{- end }}
     values:

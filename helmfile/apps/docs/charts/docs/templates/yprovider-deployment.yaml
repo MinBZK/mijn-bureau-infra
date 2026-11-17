@@ -98,22 +98,17 @@ spec:
           args: {{- include "common.tplvalues.render" (dict "value" .Values.yProvider.args "context" $) | nindent 12 }}
           {{- end }}
           env:
+            # v6 y-provider is converter-only: callers authenticate with a
+            # Bearer JWT verified against the backend's JWKS endpoint. The
+            # COLLABORATION_SERVER_SECRET / Y_PROVIDER_API_KEY env of v5 are no
+            # longer read by this component (Y_PROVIDER_API_KEY survives only
+            # as a throttle-bypass header on yhub→backend calls).
             - name: COLLABORATION_BACKEND_BASE_URL
               value: {{ include "docs.baseUrl" . | quote }}
             - name: COLLABORATION_LOGGING
               value: {{ .Values.yProvider.configuration.loggingEnabled | quote }}
             - name: COLLABORATION_SERVER_ORIGIN
               value: {{ include "docs.baseUrl" . | quote }}
-            - name: COLLABORATION_SERVER_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "docs.secretName" . }}
-                  key: COLLABORATION_SERVER_SECRET
-            - name: Y_PROVIDER_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "docs.secretName" . }}
-                  key: Y_PROVIDER_API_KEY
             {{- if .Values.yProvider.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.yProvider.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}

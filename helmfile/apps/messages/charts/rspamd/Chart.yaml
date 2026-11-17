@@ -1,0 +1,29 @@
+#
+# SPDX-License-Identifier: APACHE-2.0
+
+annotations:
+  category: security
+  licenses: Apache-2.0
+apiVersion: v2
+appVersion: "4.3.0"
+dependencies:
+  - name: common
+    repository: "file://../../../common/charts/common"
+    version: 2.31.1
+description: rspamd scan engine for the Messages inbound pipeline. Messages POSTs
+  each external message to its /checkv2 endpoint (SPAM_CONFIG); rspamd scores it,
+  verifies DKIM/DMARC and, when enabled, scans MIME attachments with ClamAV.
+home: https://minbzk.github.io/mijn-bureau-infra/
+keywords:
+  - rspamd
+  - spam
+  - antivirus
+  - messages
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: rspamd
+sources:
+  - https://github.com/rspamd/rspamd
+  - https://github.com/suitenumerique/messages/blob/main/docs/spam.md
+version: 0.1.0

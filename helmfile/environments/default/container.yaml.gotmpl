@@ -107,6 +107,17 @@ container:
     repository: busybox
     tag: "1.37.0-musl"
     imagePullSecret: ~
+  # Used by the docs jwt-keys job (key generation and secret publishing).
+  openssl:
+    registry: registry-1.docker.io
+    repository: alpine/openssl
+    tag: "3.5.7"
+    imagePullSecret: ~
+  helm_kubectl:
+    registry: registry-1.docker.io
+    repository: dtzar/helm-kubectl
+    tag: "3.16.2"
+    imagePullSecret: ~
   meet_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/meet-backend"
@@ -196,6 +207,15 @@ container:
     repository: "suitenumerique/messages-mta-in-py"
     tag: "main"
     imagePullSecret: ~
+  messages_rspamd:
+    registry: "registry-1.docker.io"
+    # rspamd scan engine for the Messages inbound pipeline (spam scoring,
+    # DKIM/DMARC verdicts and antivirus via the ClamAV clamd socket). See
+    # upstream docs/spam.md; the MPA image is not published, so we run the
+    # rspamd/rspamd image directly without its nginx proxy.
+    repository: "rspamd/rspamd"
+    tag: "4.3.0"
+    imagePullSecret: ~
   opensearch:
     registry: "docker.io"
     repository: "opensearchproject/opensearch"
@@ -221,13 +241,18 @@ container:
     registry: "registry-1.docker.io"
     backend:
       repository: "lasuite/impress-backend"
-      tag: "v5.7.0"
+      tag: "v6.1.0"
     frontend:
       repository: "lasuite/impress-frontend"
-      tag: "v5.7.0"
+      tag: "v6.1.0"
     yProvider:
       repository: "lasuite/impress-y-provider"
-      tag: "v5.7.0"
+      tag: "v6.1.0"
+    # The yhub collaboration server (v6+), replacing the y-provider for
+    # websockets and document state; the y-provider is now converter-only.
+    yhub:
+      repository: "lasuite/impress-yhub"
+      tag: "v6.1.0"
   bureaublad:
     imagePullSecret: ~
     registry: "ghcr.io"

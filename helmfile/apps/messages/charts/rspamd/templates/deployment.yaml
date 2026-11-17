@@ -1,0 +1,177 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: rspamd
+  {{- if or .Values.rspamd.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.rspamd.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.rspamd.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.rspamd.replicaCount }}
+  {{- end }}
+  {{- if .Values.rspamd.updateStrategy }}
+  strategy: {{- toYaml .Values.rspamd.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.rspamd.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: rspamd
+  template:
+    metadata:
+      {{- if .Values.rspamd.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: rspamd
+    spec:
+      {{- include "rspamd.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "rspamd.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.rspamd.automountServiceAccountToken }}
+      {{- if .Values.rspamd.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.rspamd.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.rspamd.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.rspamd.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.rspamd.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.rspamd.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.rspamd.priorityClassName }}
+      priorityClassName: {{ .Values.rspamd.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.rspamd.schedulerName }}
+      schedulerName: {{ .Values.rspamd.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.rspamd.runtimeClassName }}
+      runtimeClassName: {{ .Values.rspamd.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.rspamd.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.rspamd.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.rspamd.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.rspamd.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.rspamd.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.rspamd.initContainers }}
+      initContainers:
+          {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: rspamd
+          image: {{ template "rspamd.image" . }}
+          imagePullPolicy: {{ .Values.rspamd.image.pullPolicy }}
+          {{- if .Values.rspamd.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.rspamd.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.rspamd.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.rspamd.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.args "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: BITNAMI_DEBUG
+              value: {{ ternary "true" "false" (or .Values.rspamd.image.debug .Values.diagnosticMode.enabled) | quote }}
+            {{- if .Values.rspamd.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.rspamd.extraEnvVarsCM .Values.rspamd.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.rspamd.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.rspamd.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.rspamd.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.rspamd.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.rspamd.resources }}
+          resources: {{- toYaml .Values.rspamd.resources | nindent 12 }}
+          {{- else if ne .Values.rspamd.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.rspamd.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.rspamd.containerPorts.http }}
+              protocol: TCP
+            {{- if .Values.rspamd.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.rspamd.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.rspamd.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.rspamd.livenessProbe "enabled") "context" $) | nindent 12 }}
+            tcpSocket:
+              port: http
+          {{- end }}
+          {{- if .Values.rspamd.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.rspamd.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.rspamd.readinessProbe "enabled") "context" $) | nindent 12 }}
+            tcpSocket:
+              port: http
+          {{- end }}
+          {{- if .Values.rspamd.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.rspamd.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.rspamd.startupProbe "enabled") "context" $) | nindent 12 }}
+            tcpSocket:
+              port: http
+          {{- end }}
+          {{- end }}
+          {{- if .Values.rspamd.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/rspamd/local.d
+              readOnly: true
+            # rspamd keeps its state (stats cache, DKIM key cache) here; the
+            # root filesystem is read-only.
+            - name: data
+              mountPath: /var/lib/rspamd
+            # pidfile lives under /run/rspamd.
+            - name: run-dir
+              mountPath: /run/rspamd
+            - name: tmp
+              mountPath: /tmp
+          {{- if .Values.rspamd.extraVolumeMounts }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.extraVolumeMounts "context" $) | nindent 12 }}
+          {{- end }}
+        {{- if .Values.rspamd.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.rspamd.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "common.names.fullname" . }}
+            defaultMode: 0644
+        - name: data
+          emptyDir: {}
+        - name: run-dir
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.rspamd.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.rspamd.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

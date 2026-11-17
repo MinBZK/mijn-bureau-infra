@@ -39,6 +39,7 @@ targets:
         - "$.container.docs.backend.tag"
         - "$.container.docs.frontend.tag"
         - "$.container.docs.yProvider.tag"
+        - "$.container.docs.yhub.tag"
     sourceid: docs_latest_version
     scmid: default
 
@@ -52,6 +53,7 @@ targets:
         - "$.backend.image.tag"
         - "$.frontend.image.tag"
         - "$.yProvider.image.tag"
+        - "$.yhub.image.tag"
     sourceid: docs_latest_version
     scmid: default
 

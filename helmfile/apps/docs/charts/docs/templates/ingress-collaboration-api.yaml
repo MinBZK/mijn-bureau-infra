@@ -8,10 +8,10 @@ SPDX-License-Identifier: APACHE-2.0
 apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
-  name: {{ template "docs.yProvider.fullname" . }}-api
+  name: {{ template "docs.yhub.fullname" . }}-api
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-    app.kubernetes.io/component: y-provider
+    app.kubernetes.io/component: y-hub
   {{- if or .Values.ingressCollaborationApi.annotations .Values.commonAnnotations }}
   {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.ingressCollaborationApi.annotations .Values.commonAnnotations) "context" .) }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
@@ -28,9 +28,11 @@ spec:
           {{- if .Values.ingressCollaborationApi.extraPaths }}
           {{- toYaml .Values.ingressCollaborationApi.extraPaths | nindent 10 }}
           {{- end }}
-          - path: {{ .Values.ingressCollaborationApi.path }}
-            pathType: {{ .Values.ingressCollaborationApi.pathType }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "docs.yProvider.fullname" .) "servicePort" "http" "context" $)  | nindent 14 }}
+          {{- range .Values.ingressCollaborationApi.paths | default (list (.Values.ingressCollaborationApi.path | default "/collaboration/api/")) }}
+          - path: {{ . }}
+            pathType: {{ $.Values.ingressCollaborationApi.pathType }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "docs.yhub.fullname" $) "servicePort" "http" "context" $)  | nindent 14 }}
+          {{- end }}
     {{- end }}
     {{- range .Values.ingressCollaborationApi.extraHosts }}
     - host: {{ .name | quote }}
@@ -38,7 +40,7 @@ spec:
         paths:
           - path: {{ default "/" .path }}
             pathType: {{ default "ImplementationSpecific" .pathType }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "docs.yProvider.fullname" $) "servicePort" "http" "context" $) | nindent 14 }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "docs.yhub.fullname" $) "servicePort" "http" "context" $) | nindent 14 }}
     {{- end }}
     {{- if .Values.ingressCollaborationApi.extraRules }}
     {{- include "common.tplvalues.render" (dict "value" .Values.ingressCollaborationApi.extraRules "context" $) | nindent 4 }}

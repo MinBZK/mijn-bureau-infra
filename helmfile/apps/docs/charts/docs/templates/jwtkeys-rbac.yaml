@@ -1,0 +1,65 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if and .Values.jwtKeys.enabled (not .Values.jwtKeys.existingSecret) }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "common.names.fullname" . }}-jwt-keys
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: jwt-keys
+  annotations:
+    # Hook resources: any pre-upgrade hook runs before the regular manifest
+    # apply, so without these annotations the jwt-keys job would reference a
+    # service account that does not exist yet (deadlock: helm waits on the
+    # hook, the hook waits on the SA).
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-20"
+    helm.sh/hook-delete-policy: before-hook-creation
+---
+# Only the jwt-keys job may create the signing-key secret, and only read back
+# its own name; the running services mount it as a volume and can never read
+# it through the API (same design as the upstream chart).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "common.names.fullname" . }}-jwt-keys
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: jwt-keys
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-20"
+    helm.sh/hook-delete-policy: before-hook-creation
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    # create can not be limited to a resource name
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: [{{ include "docs.jwtKeys.secretName" . | quote }}]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "common.names.fullname" . }}-jwt-keys
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: jwt-keys
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-20"
+    helm.sh/hook-delete-policy: before-hook-creation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "common.names.fullname" . }}-jwt-keys
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "common.names.fullname" . }}-jwt-keys
+{{- end }}

@@ -218,6 +218,12 @@ autoscaling:
         maxReplicas: 1
         targetCPU: 80
         targetMemory: ""
+      rspamd:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 2
+        targetCPU: 80
+        targetMemory: ""
     clamav:
       enabled: true
       minReplicas: 1
