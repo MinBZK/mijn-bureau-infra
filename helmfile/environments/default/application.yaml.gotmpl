@@ -161,6 +161,13 @@ application:
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "projects" "secretkey" | sha1sum | quote }}
     theme: ~
 
+  # people is a self-care teams management application from LaSuite,
+  # currenlty stil disabled, but in the future super usefull
+  people:
+    enabled: false
+    namespace: ~
+    secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "people" "secretkey" | sha1sum | quote }}
+
   # calendars is a calendar and scheduling application from LaSuite
   calendars:
     enabled: true

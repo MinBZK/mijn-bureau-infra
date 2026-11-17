@@ -21,6 +21,11 @@ global:
       backend: "small"
       frontend: "small"
     projects: "small"
+    people:
+      backend: "small"
+      frontend: "small"
+      celery: "small"
+      celeryBeat: "small"
     calendars:
       backend: "small"
       worker: "small"

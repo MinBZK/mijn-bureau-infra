@@ -1,0 +1,22 @@
+annotations:
+  category: identity
+  licenses: MIT
+apiVersion: v2
+appVersion: 1.27.1
+dependencies:
+  - name: common
+    repository: "file://../../../common/charts/common"
+    version: 2.31.1
+description: User-centric and self-care teams management application from LaSuite (a.k.a. People)
+home: https://minbzk.github.io/mijn-bureau-infra/
+keywords:
+  - people
+  - teams
+  - contacts
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: desk
+sources:
+  - https://github.com/suitenumerique/people
+version: 0.0.7

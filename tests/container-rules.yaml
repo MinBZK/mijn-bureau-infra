@@ -163,6 +163,14 @@ container:
     registry: ""
     imagePullSecret: ""
 
+  people_backend:
+    registry: ""
+    imagePullSecret: ""
+
+  people_frontend:
+    registry: ""
+    imagePullSecret: ""
+
   calendars_backend:
     registry: ""
     imagePullSecret: ""
