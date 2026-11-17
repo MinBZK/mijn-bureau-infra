@@ -1,0 +1,123 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if .Values.yhub.enabled }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "docs.yhub.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: y-hub
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.yhub.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.yhub.replicaCount }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.yhub.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: y-hub
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      {{- if .Values.yhub.podAnnotations }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.yhub.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: y-hub
+    spec:
+      {{- include "docs.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "docs.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.yhub.automountServiceAccountToken }}
+      {{- if .Values.yhub.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.yhub.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.yhub.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.yhub.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.yhub.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.yhub.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.yhub.priorityClassName }}
+      priorityClassName: {{ .Values.yhub.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.yhub.runtimeClassName }}
+      runtimeClassName: {{ .Values.yhub.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.yhub.podSecurityContext.enabled }}
+      securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.yhub.podSecurityContext "context" $) | nindent 8 }}
+      {{- end }}
+      # Websocket pods need time to drain; the SIGTERM handler politely closes
+      # connections and flushes pending updates to the stream.
+      terminationGracePeriodSeconds: {{ .Values.yhub.terminationGracePeriodSeconds }}
+      containers:
+        - name: {{ template "docs.yhub.fullname" . }}
+          image: {{ template "docs.yhub.image" . }}
+          imagePullPolicy: {{ .Values.yhub.image.pullPolicy }}
+          {{- if .Values.yhub.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.yhub.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.yhub.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.yhub.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.yhub.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.yhub.args "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            {{- $envVars := include "docs.common.env" (list $ .Values.yhub) }}
+            {{- if $envVars }}
+            {{- $envVars | indent 12 }}
+            {{- end }}
+            {{- if and .Values.jwtKeys.enabled (not (hasKey .Values.yhub.envVars "YHUB_JWT_PRIVATE_KEY_FILE")) }}
+            - name: YHUB_JWT_PRIVATE_KEY_FILE
+              value: {{ printf "%s/%s" .Values.jwtKeys.mountPath .Values.jwtKeys.yhubKeyFilename | quote }}
+            {{- end }}
+          {{- if .Values.yhub.resources }}
+          resources: {{- toYaml .Values.yhub.resources | nindent 12 }}
+          {{- else if ne .Values.yhub.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.yhub.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.yhub.containerPorts.http }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          # ping proves the event loop is alive (liveness); ready asks postgres
+          # and redis (readiness). Never restart over an unreachable store:
+          # that would drop healthy websockets. See upstream yhub probes note.
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.yhub.livenessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /collaboration/ping/v1
+              port: {{ .Values.yhub.containerPorts.http }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.yhub.readinessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /collaboration/ready/v1
+              port: {{ .Values.yhub.containerPorts.http }}
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.jwtKeys.enabled }}
+            {{- include "docs.jwtKeys.volumeMount" . | nindent 12 }}
+            {{- end }}
+            {{- if .Values.yhub.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.yhub.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if .Values.yhub.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.yhub.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+      volumes:
+        {{- if .Values.jwtKeys.enabled }}
+        {{- include "docs.jwtKeys.volume" . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.yhub.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.yhub.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}
+{{- end }}

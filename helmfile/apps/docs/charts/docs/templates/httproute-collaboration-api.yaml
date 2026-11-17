@@ -5,13 +5,18 @@ SPDX-License-Identifier: EUPL-1.2
 
 {{- if eq .Values.cluster.routingMode "gateway-api" }}
 {{- if .Values.ingressCollaborationApi.enabled }}
+# v6: the public collaboration API paths are served by yhub. The legacy
+# /collaboration/api/ prefix is kept as a fallback alongside the v6 paths
+# (http-fallback, history, restore and the public yhub JWKS). Backend-internal
+# routes (prune, migrate, reset-connections, create-ydoc, ...) stay off the
+# gateway on purpose: the backend reaches them through the cluster service.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ template "docs.yProvider.fullname" . }}-api
+  name: {{ template "docs.yhub.fullname" . }}-api
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-    app.kubernetes.io/component: y-provider
+    app.kubernetes.io/component: y-hub
   {{- include "common.httproute.annotations" . | nindent 2 }}
 spec:
   parentRefs:
@@ -20,13 +25,15 @@ spec:
     - {{ .Values.ingressCollaborationApi.hostname | quote }}
   rules:
     - matches:
+        {{- range .Values.ingressCollaborationApi.paths | default (list (.Values.ingressCollaborationApi.path | default "/collaboration/api/")) }}
         - path:
             type: PathPrefix
-            value: {{ .Values.ingressCollaborationApi.path | default "/collaboration/api/" | quote }}
+            value: {{ . | quote }}
+        {{- end }}
       filters:
         {{- include "common.httproute.hstsFilter" . | nindent 8 }}
       backendRefs:
-        - name: {{ include "docs.yProvider.fullname" . }}
-          port: {{ .Values.yProvider.service.ports.http }}
+        - name: {{ include "docs.yhub.fullname" . }}
+          port: {{ .Values.yhub.service.ports.http }}
 {{- end }}
 {{- end }}

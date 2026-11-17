@@ -77,6 +77,12 @@ application:
     portRangeStart: 30001 # UDP port range for loadbalancer
     portRangeEnd: 30009
     turnTLSecretName: ~
+    # LiveKit's embedded TURN server (UDP). Helps participants behind
+    # firewalls that block the RTC high-port range. Enabling creates an extra
+    # LoadBalancer service (turn-hostname.domain must point at it via DNS).
+    turn:
+      enabled: false
+      loadBalancerIP: ~ # optional pin, otherwise the LB controller assigns
     keys:
       apikey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "livekit" "apikey" | sha1sum | quote }}
       # Dedicated key for Element Call (lk-jwt-service); deliberately separate
@@ -125,8 +131,6 @@ application:
     backend:
       django:
         secretKey: {{ print ( derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "djangoSecretKey" | sha1sum ) ( derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "djangoSecretKey2" | sha1sum ) | trunc 63 | quote }}
-    collaboration:
-      secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "collaborationSecret" | sha1sum | quote }}
     frontend:
       # When the GPLv3 is acceptable, this can be set to true. See https://github.com/suitenumerique/docs/blob/main/docs/env.md#impress-frontend-image
       publishAsMit: false
@@ -191,8 +195,15 @@ application:
     # Optional outbound SMTP relay host or host:port. Leave empty for direct
     relayHost: ~
     relayUsername: ~
-    # Extra environment variables for the backend and worker, e.g. SPAM_CONFIG.
+    # Extra environment variables for the backend and worker. Merged after the
+    # repo-spam defaults, so entries here override them (e.g. SPAM_CONFIG).
     extraEnvVars: []
+    # rspamd scan engine (helmfile/apps/messages/charts/rspamd): spam scoring,
+    # DKIM/DMARC sender-auth banners and virus scanning of attachments via the
+    # ClamAV clamd socket. While enabled, mail is held (RETRY, fail-closed)
+    # if rspamd is unreachable — disable rspamd to scan nothing instead.
+    rspamd:
+      enabled: true
 
   # Clam AV is a virus toolkit
   clamav:

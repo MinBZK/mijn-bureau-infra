@@ -8,10 +8,10 @@ SPDX-License-Identifier: APACHE-2.0
 apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
-  name: {{ template "docs.yProvider.fullname" . }}-ws
+  name: {{ template "docs.yhub.fullname" . }}-ws
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-    app.kubernetes.io/component: y-provider
+    app.kubernetes.io/component: y-hub
   {{- if or .Values.ingressCollaborationWS.annotations .Values.commonAnnotations }}
   {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.ingressCollaborationWS.annotations .Values.commonAnnotations) "context" .) }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
@@ -30,7 +30,7 @@ spec:
           {{- end }}
           - path: {{ .Values.ingressCollaborationWS.path }}
             pathType: {{ .Values.ingressCollaborationWS.pathType }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "docs.yProvider.fullname" .) "servicePort" "http" "context" $)  | nindent 14 }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "docs.yhub.fullname" .) "servicePort" "http" "context" $)  | nindent 14 }}
     {{- end }}
     {{- range .Values.ingressCollaborationWS.extraHosts }}
     - host: {{ .name | quote }}
@@ -38,7 +38,7 @@ spec:
         paths:
           - path: {{ default "/" .path }}
             pathType: {{ default "ImplementationSpecific" .pathType }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "docs.yProvider.fullname" $) "servicePort" "http" "context" $) | nindent 14 }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "docs.yhub.fullname" $) "servicePort" "http" "context" $) | nindent 14 }}
     {{- end }}
     {{- if .Values.ingressCollaborationWS.extraRules }}
     {{- include "common.tplvalues.render" (dict "value" .Values.ingressCollaborationWS.extraRules "context" $) | nindent 4 }}

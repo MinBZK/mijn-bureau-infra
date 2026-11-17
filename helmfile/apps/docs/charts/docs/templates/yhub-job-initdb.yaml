@@ -1,0 +1,60 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if and .Values.yhub.enabled .Values.yhub.initDb.enabled }}
+apiVersion: {{ include "common.capabilities.job.apiVersion" . }}
+kind: Job
+metadata:
+  name: {{ template "docs.yhub.fullname" . }}-init-db
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: y-hub
+  annotations:
+    # Same hook convention as the backend jobs: a fixed name with
+    # before-hook-creation recreates the Job on each release (the schema
+    # script is idempotent and must rerun on every yhub upgrade).
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: {{ .Values.yhub.jobs.ttlSecondsAfterFinished }}
+  backoffLimit: {{ .Values.yhub.jobs.backoffLimit }}
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: y-hub
+    spec:
+      {{- include "docs.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "docs.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.yhub.automountServiceAccountToken }}
+      restartPolicy: {{ .Values.yhub.initDb.restartPolicy }}
+      {{- if .Values.yhub.podSecurityContext.enabled }}
+      securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.yhub.podSecurityContext "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: init-db
+          image: {{ template "docs.yhub.image" . }}
+          imagePullPolicy: {{ .Values.yhub.image.pullPolicy }}
+          {{- if .Values.yhub.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.yhub.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          # The yhub image is distroless (node only); the init-db script
+          # creates and upgrades the yhub schema idempotently.
+          command:
+            {{- if .Values.yhub.initDb.command }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.yhub.initDb.command "context" $) | nindent 12 }}
+            {{- else }}
+            - node
+            - dist/init-db.js
+            - --attempts={{ .Values.yhub.initDb.retries }}
+            - --delay-seconds={{ .Values.yhub.initDb.retryDelaySeconds }}
+            {{- end }}
+          env:
+            {{- $envVars := include "docs.common.env" (list $ .Values.yhub) }}
+            {{- if $envVars }}
+            {{- $envVars | indent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml (.Values.yhub.initDb.resources | default (dict "requests" (dict "cpu" "25m" "memory" "64Mi") "limits" (dict "cpu" "250m" "memory" "256Mi"))) | nindent 12 }}
+{{- end }}

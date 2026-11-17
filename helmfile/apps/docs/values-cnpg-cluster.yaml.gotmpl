@@ -46,5 +46,12 @@ cluster:
       - CREATE EXTENSION IF NOT EXISTS pg_trgm;
       - CREATE EXTENSION IF NOT EXISTS unaccent;
 
+# v6: the yhub collaboration server persists document state to its own
+# database on this cluster, owned by the same app user. The yhub init-db job
+# creates/upgrades the schema inside it on every release.
+databases:
+  - name: yhub
+    owner: {{ .Values.database.docs.user }}
+
 backups:
   enabled: false

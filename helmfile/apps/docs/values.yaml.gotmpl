@@ -101,9 +101,28 @@ backend:
               matchLabels:
                 app.kubernetes.io/instance: keycloak-keycloak
                 app.kubernetes.io/name: keycloak
-      # Allow http egress for yProvider connection
+      {{- if and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
+      # ClamAV ICAP malware scanning (ICAP sidecar on the clamav release,
+      # cross-namespace). The celery-worker NetworkPolicy of this chart reuses
+      # backend.networkPolicy.extraEgress, so one entry covers both.
+      - ports:
+          - port: {{ int .Values.antivirus.icap.port }}
+            protocol: TCP
+        to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: {{ .Values.application.clamav.namespace | default "mijnbureau-clamav" | quote }}
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/name: clamav
+                app.kubernetes.io/instance: clamav
+      {{- end }}
+      # yProvider (converter) connection
       - ports:
           - port: 4444
+      # yhub (collaboration REST API) connection
+      - ports:
+          - port: 3002
   jobs:
     # Jobs carry helm.sh/hook annotations (chart-level), so a fixed name +
     # before-hook-creation recreates them on each release. No timestamp suffix.
@@ -131,15 +150,27 @@ backend:
     AI_API_KEY: {{ .Values.ai.llm.apiKey | quote }}
     AI_BASE_URL: {{ $aiEndpoint }}
     AI_MODEL: {{ .Values.ai.llm.model | quote }}
+    # BlockNote AI (current AI): agent-based in-editor editing, richer UX.
+    # ⚠️ BlockNote xl-ai is GPL licensed — enabling this means complying with
+    # the BlockNote license (https://www.blocknotejs.org/). The agent uses
+    # pydantic-ai with OpenAI SDK params; OPENAI_SDK_* are set explicitly
+    # instead of relying on the AI_API_KEY/AI_BASE_URL retrocompatibility
+    # fallbacks. Never set MISTRAL_SDK_* alongside these (backend rejects it).
+    AI_FEATURE_BLOCKNOTE_ENABLED: "true"
+    OPENAI_SDK_API_KEY: {{ .Values.ai.llm.apiKey | quote }}
+    OPENAI_SDK_BASE_URL: {{ $aiEndpoint }}
     {{- end }}
     API_USERS_LIST_LIMIT: "5"
     API_USERS_LIST_THROTTLE_RATE_BURST: "30/minute"
     API_USERS_LIST_THROTTLE_RATE_SUSTAINED: "180/hour"
     CACHES_DEFAULT_TIMEOUT: "30"
-    COLLABORATION_API_URL: {{ printf "http%s://%s%s" $sslPostfix $hostname "/collaboration/api/" | quote }}
-    COLLABORATION_SERVER_SECRET: {{ .Values.application.docs.collaboration.secret | quote }}
-    COLLABORATION_WS_URL: {{ printf "ws%s://%s%s" $sslPostfix $hostname "/collaboration/ws/" | quote }}
-    COLLABORATION_WS_NOT_CONNECTED_READY_ONLY: "true"
+    # v6: yhub serves /collaboration/. The ws url ends in the yhub org name
+    # (YHUB_ORG) and no longer carries the room in a query param. The backend
+    # reaches the yhub REST API in-cluster; client-facing urls keep the public
+    # hostname. COLLABORATION_SERVER_SECRET / _WS_NOT_CONNECTED_READY_ONLY /
+    # NO_WEBSOCKET_CACHE_TIMEOUT were removed upstream (service-to-service auth
+    # is now RS256 JWT, see the jwtKeys section).
+    COLLABORATION_WS_URL: {{ printf "ws%s://%s/collaboration/ws/v1/%s" $sslPostfix $hostname "docs" | quote }}
     CONVERSION_API_CONTENT_FIELD: "content"
     CONVERSION_API_ENDPOINT: "convert"
     CONVERSION_API_SECURE: "false"
@@ -158,7 +189,11 @@ backend:
     DB_NAME: {{ .Values.database.docs.name | quote }}
     DB_USER: {{ .Values.database.docs.user | quote }}
     DB_PASSWORD: {{ .Values.database.docs.password | quote }}
-    DJANGO_ALLOWED_HOSTS: {{ $hostname | quote }}
+    # The in-cluster service name must be allowed too: yhub and the y-provider
+    # call the backend REST API and fetch its JWKS from
+    # http://docs-backend (COLLABORATION_BACKEND_BASE_URL); Django rejects
+    # those calls with 400 when the Host is not listed here.
+    DJANGO_ALLOWED_HOSTS: {{ printf "%s,docs-backend" $hostname | quote }}
     DJANGO_CELERY_BROKER_URL: {{ $redisUrl | quote }}
     DJANGO_CELERY_BROKER_TRANSPORT_OPTIONS: ""
     DJANGO_CORS_ALLOW_ALL_ORIGINS: "false"
@@ -180,6 +215,10 @@ backend:
     DJANGO_SERVER_TO_SERVER_API_TOKENS: {{ .Values.application.docs.serverToServerApiToken | quote }}
     DJANGO_SECRET_KEY: {{ .Values.application.docs.backend.django.secretKey | quote }}
     DJANGO_SETTINGS_MODULE: "impress.settings"
+    # RS256 key the backend signs service tokens with (yhub, converter calls)
+    # and publishes on /api/v1.0/jwks. Mounted by the chart from the
+    # cluster-generated jwt-keys secret.
+    JWT_PRIVATE_KEY_FILE: "/data/jwt/private.pem"
     DJANGO_SUPERUSER_EMAIL: {{ .Values.secret.docs.superUser.email | quote }}
     DJANGO_SUPERUSER_PASSWORD: {{ .Values.secret.docs.superUser.password | quote }}
     LANGUAGE_CODE: {{ .Values.global.defaultLocale | default "nl" | quote }}
@@ -189,10 +228,20 @@ backend:
     LOGIN_REDIRECT_URL: {{ $baseUrl | quote }}
     LOGIN_REDIRECT_URL_FAILURE: {{ $baseUrl | quote }}
     LOGOUT_REDIRECT_URL: {{ printf "https://%s.%s" .Values.global.hostname.bureaublad .Values.global.domain | quote }}
+    {{- if and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
+    {{- $icapHost := printf "%s.%s.svc.cluster.local" .Values.antivirus.icap.host (.Values.application.clamav.namespace | default "mijnbureau-clamav") }}
+    # Malware detection: scan uploads with ClamAV through the ICAP sidecar of
+    # the ClamAV release (django-lasuite ICAPBackend), same as drive and
+    # conversations. The backend netpol gets matching egress to the ClamAV
+    # namespace (covered by backend.networkPolicy.extraEgress, which the
+    # celery-worker policy reuses in this chart).
+    MALWARE_DETECTION_BACKEND: "lasuite.malware_detection.backends.icap.ICAPBackend"
+    MALWARE_DETECTION_PARAMETERS: {{ printf `{"callback_path": "core.malware_detection.malware_detection_callback", "server_address": "%s", "server_port": %d, "service": "avscan"}` $icapHost (int .Values.antivirus.icap.port) | quote }}
+    {{- else }}
     MALWARE_DETECTION_BACKEND: "lasuite.malware_detection.backends.dummy.DummyBackend"
     MALWARE_DETECTION_PARAMETERS: '{"callback_path": "core.malware_detection.malware_detection_callback",}'
+    {{- end }}
     MEDIA_BASE_URL: {{ $baseUrl | quote }}
-    NO_WEBSOCKET_CACHE_TIMEOUT: "120"
     OIDC_ALLOW_DUPLICATE_EMAILS: "false"
     OIDC_AUTH_REQUEST_EXTRA_PARAMS: "{}"
     OIDC_CREATE_USER: "false"
@@ -236,7 +285,13 @@ backend:
     # (/app/impress/configuration/theme/default.json) matches the chart's
     # themeCustomization mount path. Setting it to "" disables customization.
     USER_OIDC_ESSENTIAL_CLAIMS: ""
+    # v6: the yhub collaboration server (REST API reached in-cluster).
+    # YHUB_ORG must match yhub's YHUB_ORG; it is the last segment of
+    # COLLABORATION_WS_URL.
+    YHUB_API_BASE_URL: "http://docs-yhub:443"
+    YHUB_ORG: "docs"
     Y_PROVIDER_API_BASE_URL: "http://docs-y-provider:443/api/"
+    # Throttle-bypass header value shared with yhub (X-Y-Provider-Key).
     Y_PROVIDER_API_KEY: {{ .Values.application.docs.yProvider.key | quote }}
   celery:
     livenessProbe:
@@ -567,11 +622,106 @@ yProvider:
       # Allow https egress for backend connection
       - ports:
           - port: 443
+      # Backend REST API in-cluster: the caller JWTs are verified against its
+      # JWKS endpoint (COLLABORATION_BACKEND_BASE_URL in v6).
+      - ports:
+          - port: 80
+        to:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/component: backend
   configuration:
     api:
       key: {{ .Values.application.docs.yProvider.key }}
-    collaboration:
-      serverSecret: {{ .Values.application.docs.collaboration.secret }}
+
+# v6 collaboration server in the same chart (websocket + document state).
+yhub:
+  image:
+    registry: {{(coalesce .Values.container.docs.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.docs.yhub.repository | quote }}
+    tag: {{ .Values.container.docs.yhub.tag | quote }}
+    pullPolicy: Always
+  replicaCount: 1
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.docs.yhub .Values.global.resourcesPreset "small" | quote }}
+  resources: {{ (.Values.resource.docs.yhub | default dict) | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  pdb: {{ (.Values.pdb.docs.yhub | default (dict "create" false)) | toYaml | nindent 4 }}
+  networkPolicy:
+    extraEgress:
+      # Database connectivity (own yhub database on the docs cluster)
+      - ports:
+          - port: {{ .Values.database.docs.port }}
+            protocol: TCP
+        {{- if .Values.database.docs.isInternal }}
+        to:
+          - podSelector:
+              matchLabels:
+                cnpg.io/cluster: docs-cluster
+                role: primary
+        {{- end }}
+      # Redis connectivity (live document state)
+      - ports:
+          - port: {{ .Values.cache.docs.port }}
+            protocol: TCP
+        {{- if .Values.cache.docs.isInternal }}
+        to:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: valkey
+                app.kubernetes.io/component: primary
+        {{- end }}
+      # Legacy S3 bucket for soft migration of pre-v6 documents
+      - ports:
+          - port: {{ .Values.objectstore.docs.port }}
+            protocol: TCP
+        {{- if .Values.objectstore.docs.isInternal }}
+        to:
+          - podSelector:
+              matchLabels:
+                app.kubernetes.io/name: minio
+        {{- end }}
+      # Backend via the public https hostname (see envVar note)
+      - ports:
+          - port: 443
+  envVars:
+    # Live document state. Prefix namespaced on the shared valkey instance.
+    REDIS: {{ printf "redis://default:%s@%s:%d/0" .Values.cache.docs.password .Values.cache.docs.host .Values.cache.docs.port | quote }}
+    REDIS_PREFIX: "yhub"
+    # Own database (created declaratively by the docs CNPG cluster release,
+    # see values-cnpg-cluster.yaml.gotmpl → databases). On an external database
+    # a "yhub" database owned by the docs user must exist.
+    POSTGRES: {{ printf "postgres://%s:%s@%s:%d/yhub" .Values.database.docs.user .Values.database.docs.password .Values.database.docs.host (.Values.database.docs.port | int) | quote }}
+    # The backend redirects plain http to https (SECURE_SSL_REDIRECT in the
+    # Production config), so in-cluster http is useless: route through the
+    # public https hostname instead.
+    COLLABORATION_BACKEND_BASE_URL: {{ $baseUrl | quote }}
+    COLLABORATION_SERVER_ORIGIN: {{ $baseUrl | quote }}
+    YHUB_ORG: "docs"
+    # Same value as the backend's Y_PROVIDER_API_KEY: throttle-bypass header.
+    Y_PROVIDER_API_KEY: {{ .Values.application.docs.yProvider.key | quote }}
+    # Seed rooms from the legacy Django/S3 document store on first access;
+    # keep on until `python manage.py migrate_documents` has backfilled every
+    # document, then flip to false.
+    SOFT_MIGRATION: "false"
+    LEGACY_S3_ENDPOINT_URL: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.docs.useSSL) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port | quote }}
+    LEGACY_S3_ACCESS_KEY_ID: {{ .Values.objectstore.docs.username | quote }}
+    LEGACY_S3_SECRET_ACCESS_KEY: {{ .Values.objectstore.docs.rootPassword | quote }}
+    LEGACY_S3_BUCKET_NAME: {{ .Values.objectstore.docs.bucket | quote }}
+    LEGACY_S3_REGION_NAME: "eu-west-1"
+
+jwtKeys:
+  image:
+    registry: {{(coalesce .Values.container.openssl.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.openssl.repository | quote }}
+    tag: {{ .Values.container.openssl.tag | quote }}
+    pullPolicy: Always
+  kubectlImage:
+    registry: {{(coalesce .Values.container.helm_kubectl.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.helm_kubectl.repository | quote }}
+    tag: {{ .Values.container.helm_kubectl.tag | quote }}
+    pullPolicy: Always
 
 ingress:
   enabled: true

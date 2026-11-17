@@ -88,7 +88,7 @@ backend:
   image:
     registry: docker.io
     repository: lasuite/impress-backend
-    tag: "v5.7.0"
+    tag: "v6.1.0"
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1031,7 +1031,7 @@ frontend:
   image:
     registry: docker.io
     repository: lasuite/impress-frontend
-    tag: v5.7.0
+    tag: v6.1.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1972,7 +1972,7 @@ yProvider:
   image:
     registry: docker.io
     repository: lasuite/impress-y-provider
-    tag: v5.7.0
+    tag: v6.1.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -2427,12 +2427,200 @@ yProvider:
   configuration:
     ## @param yProvider.configuration.loggingEnabled Enable logging
     loggingEnabled: true
-    ## @param yProvider.configuration.api.key Y provider API key
+    ## @param yProvider.configuration.api.key Y provider API key (v6: throttle-bypass header on yhub→backend calls, shared with backend.envVars.Y_PROVIDER_API_KEY)
     api:
       key: my-secret
-    ## @param yProvider.configuration.collaboration.serverSecret Collaboration server secret
-    collaboration:
-      serverSecret: server-secret
+## @section yhub collaboration server (v6+)
+##
+## yhub serves the whole /collaboration/ prefix (websocket included) and takes
+## that role over from the y-provider, which is converter-only since v6. It
+## keeps live document state in redis/valkey and persists it to its own
+## PostgreSQL database — set both through yhub.envVars.REDIS and
+## yhub.envVars.POSTGRES (there is nothing sensible to default them to).
+yhub:
+  ## @param yhub.enabled Deploy the yhub collaboration server, its service, networkpolicy and init-db job
+  enabled: true
+  image:
+    registry: docker.io
+    repository: lasuite/impress-yhub
+    tag: v6.1.0
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  ## @param yhub.replicaCount Number of yhub replicas
+  ## Clients editing the same document need not land on the same pod: updates
+  ## travel between replicas through redis. The worker role (draining the
+  ## stream into postgres) runs in the same process.
+  ##
+  replicaCount: 1
+  ## @param yhub.containerPorts.http yhub HTTP container port
+  ##
+  containerPorts:
+    http: 3002
+  extraContainerPorts: []
+  ## Websocket pods need a drain window on shutdown.
+  ## @param yhub.terminationGracePeriodSeconds Grace period given to a yhub pod to drain before it is killed
+  terminationGracePeriodSeconds: 60
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+    successThreshold: 1
+  ## The image is distroless without a declared user: pin a numeric uid/gid.
+  ##
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1000
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    privileged: false
+    capabilities:
+      drop: ["ALL"]
+    seLinuxOptions: {}
+    seccompProfile:
+      type: "RuntimeDefault"
+  automountServiceAccountToken: false
+  ## @param yhub.resourcesPreset yhub resource preset
+  ##
+  resourcesPreset: "small"
+  ## @param yhub.resources yhub resources (overrides resourcesPreset)
+  ##
+  resources: {}
+  pdb:
+    create: false
+    minAvailable: ""
+    maxUnavailable: 1
+  autoscaling:
+    vpa:
+      enabled: false
+      annotations: {}
+      controlledResources: []
+      maxAllowed: {}
+      minAllowed: {}
+      updatePolicy:
+        updateMode: Recreate
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 75
+      targetMemory: ""
+  networkPolicy:
+    enabled: true
+    allowExternal: true
+    allowExternalEgress: false
+    extraIngress: []
+    extraEgress: []
+    ingressNSMatchLabels: {}
+    ingressNSPodMatchLabels: {}
+  service:
+    ## @param yhub.service.type yhub service type
+    ##
+    type: ClusterIP
+    ## @param yhub.service.ports.http yhub service port
+    ##
+    ports:
+      http: 443
+  ## @skip yhub.envVars yhub environment variables. Strings that match a name
+  ## in the chart's secret env list are stored in the release secret instead
+  ## of the pod spec (POSTGRES, REDIS, LEGACY_S3_* credentials, ...).
+  envVars: {}
+  podLabels: {}
+  podAnnotations: {}
+  priorityClassName: ""
+  runtimeClassName: ""
+  command: []
+  args: []
+  sidecars: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  lifecycleHooks: {}
+  extraVolumes: []
+  extraVolumeMounts: []
+  ## Schema bootstrap of the yhub database; idempotent, reruns every release.
+  ##
+  initDb:
+    enabled: true
+    command: []
+    retries: 60
+    retryDelaySeconds: 5
+    restartPolicy: Never
+    resources: {}
+  jobs:
+    ttlSecondsAfterFinished: 30
+    backoffLimit: 2
+## @section JWT signing keys
+##
+## Backend and yhub sign the calls they make to each other with an RSA key of
+## their own (backend: JWT_PRIVATE_KEY_FILE, yhub: YHUB_JWT_PRIVATE_KEY_FILE)
+## and publish the public half on their JWKS endpoints. Enabling this creates
+## both keys once on the cluster through a job and mounts the secret read-only
+## in both services. No key is ever rendered into a manifest.
+jwtKeys:
+  ## @param jwtKeys.enabled Generate the JWT signing keys on the cluster and mount them in the backend and yhub
+  enabled: true
+  ## @param jwtKeys.existingSecret Secret already holding the keys; skips the job and mounts this name instead
+  ##
+  existingSecret: ""
+  ## @param jwtKeys.mountPath Path the keys are mounted at in every service reading them
+  mountPath: /data/jwt
+  ## @param jwtKeys.backendKeyFilename Filename of the key the backend signs tokens with
+  backendKeyFilename: private.pem
+  ## @param jwtKeys.yhubKeyFilename Filename of the key yhub signs its calls to the backend with
+  yhubKeyFilename: yhub-private.pem
+  ## @param jwtKeys.keySize RSA key size in bits
+  keySize: 2048
+  image:
+    registry: docker.io
+    repository: alpine/openssl
+    tag: "3.5.7"
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  ## kubectl-bearing image used to publish the keys into the secret; separate
+  ## because the openssl image has no kubectl.
+  ##
+  kubectlImage:
+    registry: docker.io
+    repository: dtzar/helm-kubectl
+    tag: "3.16.2"
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  job:
+    ttlSecondsAfterFinished: 30
+    backoffLimit: 2
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1000
+    containerSecurityContext:
+      enabled: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      runAsNonRoot: true
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+      privileged: false
+      capabilities:
+        drop: ["ALL"]
+      seLinuxOptions: {}
+      seccompProfile:
+        type: "RuntimeDefault"
+    resources: {}
 ## @section Traffic Exposure Parameters
 ##
 
@@ -2698,7 +2886,8 @@ ingressCollaborationWS:
     nginx.ingress.kubernetes.io/enable-websocket: "true"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "86400"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "86400"
-    nginx.ingress.kubernetes.io/upstream-hash-by: $arg_room
+    ## v6: no upstream-hash-by — the room query param is gone from the new ws
+    ## url and yhub replicas share updates through redis.
   ## @param ingressCollaborationWS.tls Enable TLS configuration for the host defined at `ingressCollaborationWS.hostname` parameter
   ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingressCollaborationWS.hostname }}`
   ## You can:
@@ -2790,10 +2979,18 @@ ingressCollaborationApi:
   ## ref: https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/
   ##
   ingressClassName: ""
-  ## @param ingressCollaborationApi.path Default path for the ingress record
-  ## NOTE: You may need to set this to '/*' in order to use this with ALB ingress controllers
+  ## @param ingressCollaborationApi.path Legacy single path for the ingress record; used when paths is empty
   ##
   path: /collaboration/api/
+  ## @param ingressCollaborationApi.paths Public yhub paths published through the ingress/HTTPRoute (v6+). Backend-internal yhub routes (prune, migrate, reset-connections, create-ydoc) are not published: the Docs backend reaches them through the cluster service
+  ##
+  paths:
+    - /collaboration/api/
+    - /collaboration/ydoc/
+    - /collaboration/activity/
+    - /collaboration/changeset/
+    - /collaboration/rollback/
+    - /collaboration/jwks/
   ## @extra ingressCollaborationApi.annotations Additional annotations for the Ingress resource. To enable certificate autogeneration, place here your cert-manager annotations.
   ## @skip ingressCollaborationApi.annotations.nginx
   ## Use this parameter to set the required annotations for cert-manager, see
@@ -2803,8 +3000,8 @@ ingressCollaborationApi:
   ##   kubernetes.io/ingress.class: nginx
   ##   cert-manager.io/cluster-issuer: cluster-issuer-name
   ##
-  annotations:
-    nginx.ingress.kubernetes.io/upstream-hash-by: $arg_room
+  ## v6: no upstream-hash-by — yhub replicas share updates through redis.
+  annotations: {}
   ## @param ingressCollaborationApi.tls Enable TLS configuration for the host defined at `ingress.hostname` parameter
   ## TLS certificates will be retrieved from a TLS secret with name: `{{- printf "%s-tls" .Values.ingress.hostname }}`
   ## You can:

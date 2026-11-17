@@ -1,0 +1,88 @@
+global:
+  ## Global Docker image parameters
+  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+  ##
+  imageRegistry: {{(coalesce .Values.container.messages_rspamd.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.messages_rspamd.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - name: {{ . | quote }}
+  {{- end }}
+
+commonLabels:
+  app.kubernetes.io/part-of: messages
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+rspamd:
+  image:
+    registry: {{(coalesce .Values.container.messages_rspamd.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.messages_rspamd.repository | quote }}
+    tag: {{ .Values.container.messages_rspamd.tag | quote }}
+    {{- with (coalesce .Values.container.messages_rspamd.imagePullSecret .Values.container.default.imagePullSecret) }}
+    pullSecrets:
+      - name: {{ . | quote }}
+    {{- end }}
+
+  replicaCount: 1
+
+  resourcesPreset: {{ coalesce (dig "messages" "rspamd" nil .Values.global.resourcesPresetPerApp) .Values.global.resourcesPreset | quote }}
+  resources: {{ (dig "messages" "rspamd" (dict) (.Values.resource | default dict)) | toYaml | nindent 4 }}
+  # The rspamd/rspamd image runs as uid/gid 11333; keep that while inheriting
+  # the rest of the shared security baseline.
+  podSecurityContext: {{ merge (dict "fsGroup" 11333) (.Values.security.default.podSecurityContext | default dict) | toYaml | nindent 4 }}
+  containerSecurityContext: {{ merge (dict "runAsUser" 11333 "runAsGroup" 11333) (.Values.security.default.containerSecurityContext | default dict) | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+
+  pdb: {{ (dig "messages" "rspamd" (dict) (.Values.pdb | default dict)) | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ (dig "messages" "rspamd" (dict) (dig "horizontal" (dict) (.Values.autoscaling | default dict))) | toYaml | nindent 6 }}
+
+# Virus scanning reuses the existing ClamAV release (clamd TCP socket). Its
+# NetworkPolicy allows external clients (allowExternal), so the cross-namespace
+# call needs no extra policy on the ClamAV side.
+clamav:
+  enabled: {{ and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
+  host: {{ printf "%s.%s.svc.cluster.local" .Values.antivirus.icap.host (.Values.application.clamav.namespace | default "mijnbureau-clamav") | quote }}
+
+networkPolicy:
+  enabled: true
+  allowExternal: false
+  addExternalClientAccess: false
+  allowExternalEgress: false
+  extraIngress:
+    # Only the Messages backend and worker call the scan API (same namespace;
+    # the defaultdeny policy already covers this, this makes it explicit).
+    - ports:
+        - port: 11333
+          protocol: TCP
+      from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: messages
+              app.kubernetes.io/component: messages-backend
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: messages
+              app.kubernetes.io/component: messages-worker
+  extraEgress:
+    # DNS is added by the chart; rspamd also fetches rule and map updates
+    # (phishing lists, public-suffix map, fuzzy feeds) over HTTP(S).
+    - ports:
+        - port: 443
+          protocol: TCP
+        - port: 80
+          protocol: TCP
+    {{- if and .Values.application.clamav.enabled .Values.antivirus.icap.enabled }}
+    # ClamAV clamd socket (virus scanning), cross-namespace.
+    - ports:
+        - port: 3310
+          protocol: TCP
+      to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.application.clamav.namespace | default "mijnbureau-clamav" | quote }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: clamav
+              app.kubernetes.io/instance: clamav
+    {{- end }}

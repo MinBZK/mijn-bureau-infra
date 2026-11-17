@@ -1,0 +1,35 @@
+CHART NAME: {{ .Chart.Name }}
+CHART VERSION: {{ .Chart.Version }}
+APP VERSION: {{ .Chart.AppVersion }}
+
+** Please be patient while the chart is being deployed **
+
+{{- if .Values.diagnosticMode.enabled }}
+
+The chart has been deployed in diagnostic mode. All probes have been disabled and the command has been overwritten with:
+
+  command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 4 }}
+  args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 4 }}
+
+Get the list of pods by executing:
+
+  kubectl get pods --namespace {{ include "common.names.namespace" . | quote }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+Access the pod you want to debug by executing
+
+  kubectl exec --namespace {{ include "common.names.namespace" . | quote }} -ti <NAME OF THE POD> -- bash
+
+{{- else }}
+
+rspamd is the scan engine behind Messages' inbound pipeline
+(SPAM_CONFIG rspamd_url), reachable inside the cluster at:
+
+  http://{{ include "common.names.fullname" . }}.{{ include "common.names.namespace" . }}:{{ .Values.service.ports.http }}/checkv2
+
+Messages is fail-closed: while rspamd is unreachable, external mail is held
+for retry (up to MESSAGES_INBOUND_DEFERRAL_MAX_AGE) instead of being
+delivered unchecked.
+
+{{- end }}
+
+{{- include "common.warnings.resources" (dict "sections" (list "rspamd") "context" .) }}

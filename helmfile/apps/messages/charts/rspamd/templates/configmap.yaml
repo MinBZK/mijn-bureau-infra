@@ -1,0 +1,52 @@
+{{- /*
+
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+
+{{- /* rspamd local.d overrides, mounted over /etc/rspamd/local.d. Messages reads
+  rspamd's `action` from the /checkv2 JSON (upstream docs/spam.md), so no header
+  rewriting is configured here — only scanning behaviour. */}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: rspamd
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  worker-normal.conf: |
+    # Scan API Messages talks to (SPAM_CONFIG rspamd_url).
+    bind_socket = "*:{{ .Values.rspamd.containerPorts.http }}";
+  worker-controller.conf: |
+    # No web UI / stats interface inside the cluster.
+    enabled = false;
+  worker-fuzzy.conf: |
+    # No fuzzy storage; checking is skipped when no servers are configured.
+    enabled = false;
+  classifier-bayes.conf: |
+    # Stateless pod, no training feedback loop from Messages yet (upstream
+    # issue #509 tracks learnspam/learnham), so Bayes can never converge.
+    enabled = false;
+  logging.conf: |
+    type = "console";
+    level = "notice";
+  options.inc: |
+    # Messages owns the delivery decision; keep rspamd's own rejection of
+    # oversized/raw-input edge cases permissive. Message size is enforced by
+    # pymta and the backend before a scan is attempted.
+    allow_raw_input = true;
+  {{- if .Values.clamav.enabled }}
+  antivirus.conf: |
+    # Virus scanning of MIME attachments through the ClamAV release's clamd
+    # socket.
+    clamav {
+      type = "clamav";
+      action = "reject";
+      scan_mime_parts = true;
+      symbol = "CLAM_VIRUS";
+      servers = "{{ .Values.clamav.host }}:{{ .Values.clamav.port }}";
+    }
+  {{- end }}

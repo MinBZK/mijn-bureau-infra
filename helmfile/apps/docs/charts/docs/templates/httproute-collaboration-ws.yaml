@@ -5,13 +5,16 @@ SPDX-License-Identifier: EUPL-1.2
 
 {{- if eq .Values.cluster.routingMode "gateway-api" }}
 {{- if .Values.ingressCollaborationWS.enabled }}
+# v6: the websocket is served by yhub, not the y-provider. Updates travel
+# between yhub replicas through redis, so no upstream-hash-by/sticky
+# session is needed (removed upstream for the same reason).
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ template "docs.yProvider.fullname" . }}-ws
+  name: {{ template "docs.yhub.fullname" . }}-ws
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
-    app.kubernetes.io/component: y-provider
+    app.kubernetes.io/component: y-hub
   {{- include "common.httproute.annotations" . | nindent 2 }}
 spec:
   parentRefs:
@@ -26,7 +29,7 @@ spec:
       filters:
         {{- include "common.httproute.hstsFilter" . | nindent 8 }}
       backendRefs:
-        - name: {{ include "docs.yProvider.fullname" . }}
-          port: {{ .Values.yProvider.service.ports.http }}
+        - name: {{ include "docs.yhub.fullname" . }}
+          port: {{ .Values.yhub.service.ports.http }}
 {{- end }}
 {{- end }}

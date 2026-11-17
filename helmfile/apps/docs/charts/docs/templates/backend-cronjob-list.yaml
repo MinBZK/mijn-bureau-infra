@@ -115,6 +115,9 @@ items:
                       mountPath: {{ $.Values.backend.themeCustomization.mountPath }}
                       readOnly: true
                     {{- end }}
+                    {{- if $.Values.jwtKeys.enabled }}
+                    {{- include "docs.jwtKeys.volumeMount" $ | nindent 20 }}
+                    {{- end }}
                     {{- if $.Values.backend.extraVolumeMounts }}
                     {{- include "common.tplvalues.render" (dict "value" $.Values.backend.extraVolumeMounts "context" $) | nindent 20 }}
                     {{- end }}
@@ -128,6 +131,9 @@ items:
                 - name: theme-customization
                   configMap:
                     name: {{ include "docs.theme.fullname" . }}
+                {{- end }}
+                {{- if $.Values.jwtKeys.enabled }}
+                {{- include "docs.jwtKeys.volume" $ | nindent 16 }}
                 {{- end }}
                 {{- if $.Values.backend.extraVolumes }}
                 {{- include "common.tplvalues.render" (dict "value" $.Values.backend.extraVolumes "context" $) | nindent 16 }}
