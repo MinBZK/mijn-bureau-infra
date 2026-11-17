@@ -88,7 +88,7 @@ backend:
   image:
     registry: ghcr.io
     repository: suitenumerique/calendars-backend
-    tag: main
+    tag: 0.2.0
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -247,7 +247,7 @@ frontend:
   image:
     registry: ghcr.io
     repository: suitenumerique/calendars-frontend
-    tag: main
+    tag: 0.2.0
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -335,7 +335,7 @@ caldav:
   image:
     registry: ghcr.io
     repository: suitenumerique/calendars-caldav
-    tag: main
+    tag: 0.2.0
     digest: ""
     pullPolicy: Always
     pullSecrets: []

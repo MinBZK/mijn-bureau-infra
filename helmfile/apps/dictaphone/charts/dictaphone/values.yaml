@@ -77,7 +77,7 @@ backend:
   image:
     registry: docker.io
     repository: lasuite/dictaphone-backend
-    tag: "v0.15.4"
+    tag: "v0.16.1"
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -308,7 +308,7 @@ frontend:
   image:
     registry: docker.io
     repository: lasuite/dictaphone-frontend
-    tag: "v0.15.4"
+    tag: "v0.16.1"
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -532,7 +532,7 @@ celery:
   image:
     registry: docker.io
     repository: lasuite/dictaphone-backend
-    tag: "v0.15.4"
+    tag: "v0.16.1"
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -721,7 +721,7 @@ audioExtractor:
   image:
     registry: docker.io
     repository: lasuite/dictaphone-audio-extractor
-    tag: "v0.15.4"
+    tag: "v0.16.1"
     digest: ""
     pullPolicy: Always
     pullSecrets: []
@@ -908,7 +908,7 @@ s3Gateway:
   image:
     registry: docker.io
     repository: lasuite/dictaphone-audio-extractor
-    tag: "v0.15.4"
+    tag: "v0.16.1"
     digest: ""
     pullPolicy: Always
     pullSecrets: []
