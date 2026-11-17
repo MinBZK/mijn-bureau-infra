@@ -8,8 +8,6 @@ metadata:
   name: {{ include "common.names.fullname" . }}
   namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
-    app.kubernetes.io/component: element-call
-    app.kubernetes.io/part-of: matrix
   {{- with .Values.commonAnnotations }}
   annotations: {{- toYaml . | nindent 4 }}
   {{- end }}
@@ -21,8 +19,6 @@ spec:
   template:
     metadata:
       labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 8 }}
-        app.kubernetes.io/component: element-call
-        app.kubernetes.io/part-of: matrix
     spec:
       {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) | nindent 6 }}
       {{- if .Values.serviceAccount.create }}
