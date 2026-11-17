@@ -1,0 +1,277 @@
+{{- $hostname := printf "%s.%s" .Values.global.hostname.people .Values.global.domain }}
+{{- $minioHostname := index .Values.global.hostname "people-minio" | default "people-minio" }}
+{{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
+{{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
+
+fullnameOverride: people
+
+image:
+  registry: {{ (coalesce .Values.container.people_backend.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.people_backend.repository | quote }}
+  tag: {{ .Values.container.people_backend.tag | quote }}
+  pullPolicy: Always
+
+imagePullSecrets:
+  {{- with (coalesce .Values.container.people_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
+  - name: {{ . | quote }}
+  {{- end }}
+
+runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+
+# Sensitive values, rendered into the `people` Secret (templates/secret.yaml)
+# and referenced from envVars via secretKeyRef.
+appSecrets:
+  DJANGO_SECRET_KEY: {{ .Values.application.people.secretKey | quote }}
+  DJANGO_SUPERUSER_EMAIL: {{ .Values.secret.people.adminUser | quote }}
+  DJANGO_SUPERUSER_PASSWORD: {{ .Values.secret.people.adminPassword | quote }}
+  DB_PASSWORD: {{ .Values.database.people.password | quote }}
+  OIDC_RP_CLIENT_SECRET: {{ .Values.authentication.client.people.client_secret | quote }}
+  REDIS_URL: "redis://default:{{ .Values.cache.people.password }}@{{ .Values.cache.people.host }}:{{ .Values.cache.people.port }}/1"
+  DJANGO_CELERY_BROKER_URL: "redis://default:{{ .Values.cache.people.password }}@{{ .Values.cache.people.host }}:{{ .Values.cache.people.port }}/0"
+  AWS_S3_ACCESS_KEY_ID: {{ .Values.objectstore.people.username | quote }}
+  AWS_S3_SECRET_ACCESS_KEY: {{ .Values.objectstore.people.rootPassword | quote }}
+  DJANGO_EMAIL_HOST_PASSWORD: {{ .Values.smtp.password | quote }}
+
+ingress:
+  enabled: true
+  className: {{ .Values.cluster.ingress.className }}
+  host: {{ $hostname }}
+  path: /
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+    {{- if and (hasKey .Values.cluster "certificate") (hasKey .Values.cluster.certificate "issuerRef") }}
+    {{- if eq .Values.cluster.certificate.issuerRef.kind "ClusterIssuer" }}
+    cert-manager.io/cluster-issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- else if eq .Values.cluster.certificate.issuerRef.kind "Issuer" }}
+    cert-manager.io/issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- end }}
+    {{- end }}
+  tls:
+    enabled: {{ .Values.global.tls.enabled | default true }}
+    additional: {{ .Values.tls.people | default list | toYaml | nindent 6 }}
+  # In classic ingress mode the desk chart routes /api, /o, /resource-server
+  # and /la-suite to the backend itself; add the remaining backend paths.
+  customBackends:
+    - path: /admin
+      pathType: Prefix
+      backend:
+        service:
+          name: people-backend
+          port:
+            number: 80
+    - path: /static
+      pathType: Prefix
+      backend:
+        service:
+          name: people-backend
+          port:
+            number: 80
+    - path: /__heartbeat__
+      pathType: Prefix
+      backend:
+        service:
+          name: people-backend
+          port:
+            number: 80
+    - path: /__lbheartbeat__
+      pathType: Prefix
+      backend:
+        service:
+          name: people-backend
+          port:
+            number: 80
+
+ingressAdmin:
+  enabled: false
+
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: true
+
+backend:
+  replicas: {{ .Values.autoscaling.horizontal.people.backend.minReplicas | default 2 }}
+  securityContext: {{ omit (.Values.security.default.containerSecurityContext | default dict) "enabled" | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | default dict | toYaml | nindent 4 }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.people.backend .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.people.backend | default dict | toYaml | nindent 4 }}
+  pdb:
+    enabled: {{ ((.Values.pdb.people | default dict).backend).create | default true }}
+  probes:
+    liveness:
+      path: /__heartbeat__
+      initialDelaySeconds: 10
+    readiness:
+      path: /__lbheartbeat__
+      initialDelaySeconds: 10
+  # readOnlyRootFilesystem: python/gunicorn need a writable scratch dir.
+  extraVolumes:
+    - name: tmp
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: tmp
+      mountPath: /tmp
+  envVars:
+    DJANGO_CONFIGURATION: Production
+    DJANGO_SETTINGS_MODULE: people.settings
+    DJANGO_SECRET_KEY:
+      secretKeyRef:
+        name: people
+        key: DJANGO_SECRET_KEY
+    DJANGO_SUPERUSER_EMAIL: {{ .Values.secret.people.adminUser | quote }}
+    DJANGO_SUPERUSER_PASSWORD:
+      secretKeyRef:
+        name: people
+        key: DJANGO_SUPERUSER_PASSWORD
+    DJANGO_ALLOWED_HOSTS: {{ $hostname }}
+    DJANGO_CSRF_TRUSTED_ORIGINS: {{ $baseUrl | quote }}
+    DJANGO_CORS_ALLOWED_ORIGINS: {{ $baseUrl | quote }}
+    # Database
+    DB_HOST: {{ .Values.database.people.host | quote }}
+    DB_PORT: {{ .Values.database.people.port | quote }}
+    DB_NAME: {{ .Values.database.people.name | quote }}
+    DB_USER: {{ .Values.database.people.user | quote }}
+    DB_PASSWORD:
+      secretKeyRef:
+        name: people
+        key: DB_PASSWORD
+    # Redis: sessions/cache (REDIS_URL) and Celery broker
+    REDIS_URL:
+      secretKeyRef:
+        name: people
+        key: REDIS_URL
+    DJANGO_CELERY_BROKER_URL:
+      secretKeyRef:
+        name: people
+        key: DJANGO_CELERY_BROKER_URL
+    # Media storage (contact avatars) on the bundled MinIO
+    AWS_S3_ENDPOINT_URL: {{ printf "https://%s.%s" $minioHostname .Values.global.domain | quote }}
+    AWS_STORAGE_BUCKET_NAME: {{ .Values.objectstore.people.bucket | quote }}
+    AWS_S3_REGION_NAME: {{ .Values.objectstore.people.region | default "us-east-1" | quote }}
+    AWS_S3_SIGNATURE_VERSION: s3v4
+    AWS_S3_ACCESS_KEY_ID:
+      secretKeyRef:
+        name: people
+        key: AWS_S3_ACCESS_KEY_ID
+    AWS_S3_SECRET_ACCESS_KEY:
+      secretKeyRef:
+        name: people
+        key: AWS_S3_SECRET_ACCESS_KEY
+    # OIDC
+    OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.people.client_id | quote }}
+    OIDC_RP_CLIENT_SECRET:
+      secretKeyRef:
+        name: people
+        key: OIDC_RP_CLIENT_SECRET
+    OIDC_RP_SIGN_ALGO: RS256
+    OIDC_RP_SCOPES: "openid email"
+    OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.oidc.jwks_uri | quote }}
+    OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.oidc.authorization_endpoint | quote }}
+    OIDC_OP_TOKEN_ENDPOINT: {{ .Values.authentication.oidc.token_endpoint | quote }}
+    OIDC_OP_USER_ENDPOINT: {{ .Values.authentication.oidc.userinfo_endpoint | quote }}
+    OIDC_OP_LOGOUT_ENDPOINT: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
+    OIDC_USERINFO_FULLNAME_FIELDS: "{{ .Values.authentication.oidc.claims.given_name }},{{ .Values.authentication.oidc.claims.family_name }}"
+    # Redirects after (failed) login/logout
+    LOGIN_REDIRECT_URL: {{ $baseUrl | quote }}
+    LOGIN_REDIRECT_URL_FAILURE: {{ $baseUrl | quote }}
+    LOGOUT_REDIRECT_URL: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
+    OIDC_REDIRECT_ALLOWED_HOSTS: {{ printf "[\"%s\"]" $baseUrl | quote }}
+    # Mail (invitations)
+    DJANGO_EMAIL_HOST: {{ .Values.smtp.host | quote }}
+    DJANGO_EMAIL_PORT: {{ .Values.smtp.port | quote }}
+    DJANGO_EMAIL_HOST_USER: {{ .Values.smtp.username | quote }}
+    DJANGO_EMAIL_HOST_PASSWORD:
+      secretKeyRef:
+        name: people
+        key: DJANGO_EMAIL_HOST_PASSWORD
+    DJANGO_EMAIL_USE_TLS: {{ ternary "true" "false" (dig "tls" "enabled" true (.Values.smtp | default dict)) | quote }}
+    DJANGO_EMAIL_FROM: {{ .Values.smtp.from.email | quote }}
+    # Mailbox provisioning (dimail, Open-XChange) is not part of MijnBureau.
+    FEATURE_MAILBOXES_CREATE: "False"
+
+celeryWorker:
+  replicas: {{ .Values.autoscaling.horizontal.people.celery.minReplicas | default 1 }}
+  securityContext: {{ omit (.Values.security.default.containerSecurityContext | default dict) "enabled" | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | default dict | toYaml | nindent 4 }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.people.celery .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.people.celery | default dict | toYaml | nindent 4 }}
+  # envVars are inherited from backend.envVars by the chart
+  envVars: {}
+  extraVolumes:
+    - name: tmp
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: tmp
+      mountPath: /tmp
+
+celeryBeat:
+  replicas: 1
+  securityContext: {{ omit (.Values.security.default.containerSecurityContext | default dict) "enabled" | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | default dict | toYaml | nindent 4 }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.people.celeryBeat .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.people.celeryBeat | default dict | toYaml | nindent 4 }}
+  envVars: {}
+  extraVolumes:
+    - name: tmp
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: tmp
+      mountPath: /tmp
+
+frontend:
+  replicas: {{ .Values.autoscaling.horizontal.people.frontend.minReplicas | default 2 }}
+  image:
+    registry: {{ (coalesce .Values.container.people_frontend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.people_frontend.repository | quote }}
+    tag: {{ .Values.container.people_frontend.tag | quote }}
+    pullPolicy: Always
+  securityContext: {{ omit (.Values.security.default.containerSecurityContext | default dict) "enabled" | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | default dict | toYaml | nindent 4 }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.people.frontend .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.people.frontend | default dict | toYaml | nindent 4 }}
+  pdb:
+    enabled: {{ ((.Values.pdb.people | default dict).frontend).create | default true }}
+  probes:
+    liveness:
+      path: /
+      initialDelaySeconds: 10
+    readiness:
+      path: /
+      initialDelaySeconds: 10
+  # The desk frontend is a static (nginx) export. NEXT_PUBLIC_API_ORIGIN is
+  # baked at build time; the published image falls back to same-origin API
+  # calls (window.location.origin), matching our single-host routing.
+  envVars: {}
+  # readOnlyRootFilesystem: nginx needs writable cache/run/tmp dirs.
+  extraVolumes:
+    - name: cache
+      emptyDir: {}
+    - name: run
+      emptyDir: {}
+    - name: tmp
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: cache
+      mountPath: /var/cache/nginx
+    - name: run
+      mountPath: /var/run
+    - name: tmp
+      mountPath: /tmp
+
+serviceAccount:
+  create: true
+  name: people
+  automountServiceAccountToken: false

@@ -1,0 +1,19 @@
+fullnameOverride: people-valkey
+
+auth:
+  aclUsers:
+    default:
+      permissions: "~* &* +@all"
+      password: {{ .Values.cache.people.password | quote }}
+
+dataStorage:
+  enabled: true
+  requestedSize: {{ coalesce .Values.pvc.people.valkey.size .Values.pvc.default.size "1Gi" | quote }}
+  {{- with (coalesce .Values.pvc.people.valkey.storageClass .Values.pvc.default.storageClass) }}
+  className: {{ . | quote }}
+  {{- end }}
+  accessModes: {{ coalesce .Values.pvc.people.valkey.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+
+{{- with .Values.resource.people.valkey }}
+resources: {{ toYaml . | nindent 2 }}
+{{- end }}

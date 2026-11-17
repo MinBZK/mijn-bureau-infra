@@ -88,6 +88,16 @@ database:
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "projects" "database" | sha1sum | quote}}
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "projects" "database_admin" | sha1sum | quote}}
 
+  people:
+    type: postgresql
+    host: people-cluster-rw
+    name: people
+    user: people
+    port: 5432
+    isInternal: true
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "people" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "people" "database_admin" | sha1sum | quote}}
+
   calendars:
     type: postgresql
     host: calendars-cluster-rw

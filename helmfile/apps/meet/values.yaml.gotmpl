@@ -438,3 +438,34 @@ summary_api:
   runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
   envVars:
     {{- $summaryEnv | toYaml | nindent 4 }}
+
+# The chart ships no NetworkPolicy for summary_api. Without one, the
+# default-deny baseline blocks dictaphone's celery from submitting
+# transcription jobs to meet-summary cross-namespace (connect timeouts).
+{{- if and (and $summaryEnabled (or $llmReady $whisperxReady)) (.Values.application.dictaphone.enabled | default false) }}
+extraDeploy:
+  - apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: allow-dictaphone-to-meet-summary
+      labels:
+        app.kubernetes.io/component: meet-summary
+    spec:
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/component: meet-summary
+      policyTypes:
+        - Ingress
+      ingress:
+        - from:
+            - namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: {{ .Values.application.dictaphone.namespace | default "mijnbureau-dictaphone" | quote }}
+              podSelector:
+                matchLabels:
+                  app.kubernetes.io/name: dictaphone
+          ports:
+            # summary_api pod port (svc port 80 -> targetPort http:8000)
+            - port: 8000
+              protocol: TCP
+{{- end }}

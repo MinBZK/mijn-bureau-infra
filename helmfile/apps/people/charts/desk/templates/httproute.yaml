@@ -1,0 +1,56 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if eq ((.Values.cluster | default dict).routingMode | default "ingress") "gateway-api" }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "desk.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "desk.labels" . | nindent 4 }}
+    app.kubernetes.io/component: desk
+    app.kubernetes.io/part-of: people
+  {{- include "common.httproute.annotations" . | nindent 2 }}
+spec:
+  parentRefs:
+    {{- include "common.httproute.parentRef" .Values.cluster.gateway | nindent 4 }}
+  hostnames:
+    - {{ .Values.ingress.host | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+        - path:
+            type: PathPrefix
+            value: /admin
+        - path:
+            type: PathPrefix
+            value: /resource-server
+        - path:
+            type: PathPrefix
+            value: /static
+        - path:
+            type: PathPrefix
+            value: /__heartbeat__
+        - path:
+            type: PathPrefix
+            value: /__lbheartbeat__
+      filters:
+        {{- include "common.httproute.hstsFilter" . | nindent 8 }}
+      backendRefs:
+        - name: {{ include "desk.backend.fullname" . }}
+          port: {{ .Values.backend.service.port }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        {{- include "common.httproute.hstsFilter" . | nindent 8 }}
+      backendRefs:
+        - name: {{ include "desk.frontend.fullname" . }}
+          port: {{ .Values.frontend.service.port }}
+{{- end }}

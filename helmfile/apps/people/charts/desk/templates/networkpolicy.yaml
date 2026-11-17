@@ -1,0 +1,49 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if .Values.networkPolicy.enabled }}
+{{- range $component := list "backend" "frontend" "celery-worker" "celery-beat" -}}
+{{- $fullName := printf "%s-%s" (include "desk.fullname" $) $component -}}
+---
+apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" $ }}
+kind: NetworkPolicy
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ $.Release.Namespace | quote }}
+  labels:
+    {{- include "desk.common.labels" (list $ $component) | nindent 4 }}
+    app.kubernetes.io/part-of: people
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "desk.common.selectorLabels" (list $ $component) | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    {{- if $.Values.networkPolicy.allowExternalEgress }}
+    - {}
+    {{- else }}
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
+    {{- end }}
+  ingress:
+    - ports:
+        - port: http
+      {{- if not $.Values.networkPolicy.allowExternal }}
+      from:
+        - podSelector:
+            matchLabels:
+              {{- include "desk.selectorLabels" $ | nindent 14 }}
+        {{- if $.Values.networkPolicy.ingressNSMatchLabels }}
+        - namespaceSelector:
+            matchLabels:
+              {{- include "common.tplvalues.render" (dict "value" $.Values.networkPolicy.ingressNSMatchLabels "context" $) | nindent 14 }}
+        {{- end }}
+      {{- end }}
+    {{- with $.Values.networkPolicy.extraIngress }}
+    {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+    {{- end }}
+{{- end }}
+{{- end }}

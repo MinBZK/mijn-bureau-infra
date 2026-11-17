@@ -1,0 +1,72 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  - name: people-cluster-credentials
+    labels:
+      app: people
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.people.namespace }}
+    namespace: {{ .Values.application.people.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.people.enabled) | toYaml }}
+    values:
+      - "values-cnpg-cluster-credentials.yaml.gotmpl"
+
+  - name: people-cluster
+    labels:
+      app: people
+    chart: ../common/charts/cluster
+    {{- if .Values.application.people.namespace }}
+    namespace: {{ .Values.application.people.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.people.enabled) | toYaml }}
+    needs:
+      - {{ if .Values.application.people.namespace }}{{ .Values.application.people.namespace }}/{{ end }}people-cluster-credentials
+    values:
+      - "values-cnpg-cluster.yaml.gotmpl"
+
+  - name: people-valkey
+    labels:
+      app: people
+    chart: ../common/charts/valkey
+    {{- if .Values.application.people.namespace }}
+    namespace: {{ .Values.application.people.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.people.enabled) | toYaml }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-valkey.yaml.gotmpl"
+
+  - name: people-minio
+    labels:
+      app: people
+    chart: ../common/charts/minio
+    version: "17.0.11"
+    {{- if .Values.application.people.namespace }}
+    namespace: {{ .Values.application.people.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.people.enabled) | toYaml }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values-minio.yaml.gotmpl"
+
+  - name: people
+    labels:
+      app: people
+    chart: charts/desk
+    condition: application.people.enabled
+    {{- if .Values.application.people.namespace }}
+    namespace: {{ .Values.application.people.namespace }}
+    {{- end }}
+    {{- if and (eq .Environment.Name "demo") ( .Values.application.people.enabled) }}
+    needs:
+      - {{ if .Values.application.people.namespace }}{{ .Values.application.people.namespace }}/{{ end }}people-cluster
+      - {{ if .Values.application.people.namespace }}{{ .Values.application.people.namespace }}/{{ end }}people-valkey
+      - {{ if .Values.application.people.namespace }}{{ .Values.application.people.namespace }}/{{ end }}people-minio
+    {{- end }}
+    values:
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values.yaml.gotmpl"

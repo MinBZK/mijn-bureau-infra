@@ -25,6 +25,11 @@ global:
       backend: "small"
       frontend: "small"
     projects: "small"
+    people:
+      backend: "small"
+      frontend: "small"
+      celery: "small"
+      celeryBeat: "small"
     calendars:
       backend: "small"
       worker: "small"
@@ -71,6 +76,9 @@ pvc:
     minio:
       size: "42Gi"
   projects:
+    minio:
+      size: "42Gi"
+  people:
     minio:
       size: "42Gi"
   dictaphone:
