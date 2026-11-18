@@ -1,0 +1,6 @@
+apiVersion: v2
+name: externalsecret
+description: ClusterSecretStore and ExternalSecret resources to sync OpenBao secrets via External Secrets Operator.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

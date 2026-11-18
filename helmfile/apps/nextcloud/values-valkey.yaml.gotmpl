@@ -1,10 +1,15 @@
 fullnameOverride: nextcloud-valkey
 
 auth:
+  {{- if eq (dig "secrets" "backend" "derived" .Values) "external" }}
+  usersExistingSecret: nextcloud-valkey-auth
+  {{- end }}
   aclUsers:
     default:
       permissions: "~* &* +@all"
+      {{- if not (eq (dig "secrets" "backend" "derived" .Values) "external") }}
       password: {{ .Values.cache.nextcloud.password | quote }}
+      {{- end }}
 
 dataStorage:
   enabled: true

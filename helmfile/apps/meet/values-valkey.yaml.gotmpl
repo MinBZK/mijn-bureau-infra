@@ -1,10 +1,15 @@
 fullnameOverride: meet-valkey
 
 auth:
+  {{- if eq (dig "secrets" "backend" "derived" .Values) "external" }}
+  usersExistingSecret: meet-valkey-auth
+  {{- end }}
   aclUsers:
     default:
       permissions: "~* &* +@all"
+      {{- if not (eq (dig "secrets" "backend" "derived" .Values) "external") }}
       password: {{ .Values.cache.meet.password | quote }}
+      {{- end }}
 
 dataStorage:
   enabled: true

@@ -1,10 +1,15 @@
 fullnameOverride: messages-valkey
 
 auth:
+  {{- if eq (dig "secrets" "backend" "derived" .Values) "external" }}
+  usersExistingSecret: messages-valkey-auth
+  {{- end }}
   aclUsers:
     default:
       permissions: "~* &* +@all"
+      {{- if not (eq (dig "secrets" "backend" "derived" .Values) "external") }}
       password: {{ .Values.cache.messages.password | quote }}
+      {{- end }}
 
 dataStorage:
   enabled: true

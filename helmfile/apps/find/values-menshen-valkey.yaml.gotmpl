@@ -1,10 +1,15 @@
 fullnameOverride: menshen-valkey
 
 auth:
+  {{- if eq (dig "secrets" "backend" "derived" .Values) "external" }}
+  usersExistingSecret: menshen-valkey-auth
+  {{- end }}
   aclUsers:
     default:
       permissions: "~* &* +@all"
+      {{- if not (eq (dig "secrets" "backend" "derived" .Values) "external") }}
       password: {{ .Values.cache.menshen.password | quote }}
+      {{- end }}
 
 dataStorage:
   enabled: true
