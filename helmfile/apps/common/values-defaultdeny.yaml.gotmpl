@@ -23,3 +23,24 @@ allowedCrossNamespaceIngress:
   - name: {{ .name | quote }}
     ports: {{ .ports | toJson }}
   {{- end }}
+
+# Baseline egress isolation for every covered namespace.
+egress:
+  enabled: {{ .Values.cluster.networkPolicy.defaultDeny.egress.enabled | default false }}
+
+# DNS egress allowed by the default-deny-egress policy; mirrors
+# cluster.networking.dns so pods can keep resolving names.
+dns: {{ .Values.cluster.networking.dns | toYaml | nindent 2 }}
+
+# Cluster-internal flows every application namespace relies on:
+# - Keycloak for OIDC authentication (service port 80 and 443)
+# - the Messages MTA for outbound mail submission (port 25)
+allowedCrossNamespaceEgress:
+  {{- if .Values.application.keycloak.enabled }}
+  - name: {{ .Values.application.keycloak.namespace | quote }}
+    ports: [80, 443]
+  {{- end }}
+  {{- if .Values.application.messages.enabled }}
+  - name: {{ .Values.application.messages.namespace | quote }}
+    ports: [25]
+  {{- end }}

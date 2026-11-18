@@ -2,7 +2,14 @@
 
 ## Status
 
-Accepted (supersedes ADR-MB-008)
+Accepted (supersedes the image-source part of ADR-MB-008; amended by ADR-MB-019 for
+pinning and verification)
+
+## Known exception
+
+Four `bitnamilegacy/*` images are still referenced for MinIO and its helper containers
+(`minio`, `os-shell`, `minio-object-browser`). They are unmaintained and must be migrated to
+vendor images before the next major release.
 
 ## Context
 

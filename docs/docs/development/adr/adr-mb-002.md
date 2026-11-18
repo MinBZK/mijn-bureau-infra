@@ -10,7 +10,10 @@ We need a reliable, scalable, and flexible deployment platform to run and manage
 
 ## Decision
 
-We will use Kubernetes as our standard deployment platform for all environments. We will assume a [Haven](https://haven.commonground.nl/) compliant cluster.
+We will use Kubernetes as our standard deployment platform for all environments. We will
+assume a [CNCF-conformant](https://www.cncf.io/training/certification/software-conformance/)
+cluster; [Haven](https://haven.commonground.nl/) compliance is one supported shape, not a
+requirement.
 
 ## Consequences
 

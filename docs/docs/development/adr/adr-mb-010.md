@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by ADR-MB-014
 
 ## Context
 

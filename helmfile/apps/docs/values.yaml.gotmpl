@@ -811,7 +811,9 @@ ingress:
   extraTls: {{ .Values.tls.docs | toYaml | nindent 4 }}
 
 ingressAdmin:
-  enabled: true
+  # Django admin is intentionally not exposed publicly; use
+  # `kubectl port-forward` to the backend service for break-glass access.
+  enabled: false
   hostname: {{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}
   ingressClassName: {{ .Values.cluster.ingress.className | quote }}
   annotations:

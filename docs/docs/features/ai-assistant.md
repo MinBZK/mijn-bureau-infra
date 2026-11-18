@@ -5,3 +5,6 @@ MijnBureau includes an AI Assistant based on LaSuite conversations. It is curren
 Below is a preview of the AI Assistant.
 
 ![AI Assistant Preview](/img/features/ai-assistant.png)
+
+For the available models, OCR, transcription and provider configuration, see
+[AI services](./ai-services.md).

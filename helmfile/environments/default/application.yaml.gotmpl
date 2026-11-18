@@ -43,6 +43,16 @@ application:
       # never rotate via the derives mechanism); change only if you must
       # re-bind the client registration.
       synapseClientUlid: "01JCCW00000000000000000000"
+    # Ketesa (github.com/etkecc/ketesa, formerly Synapse Admin): browser-based
+    # admin UI for users, rooms, media and federation. Static SPA with no
+    # backend; the browser talks to Synapse's admin API directly.
+    ketesa:
+      enabled: false
+      # Optional IP allowlist (CIDR ranges) for the Ketesa admin panel; renders
+      # an Envoy Gateway SecurityPolicy when routingMode is gateway-api. Leave
+      # empty to keep the panel publicly reachable (not recommended when
+      # ketesa is enabled, since the Synapse admin API it drives is powerful).
+      ipAllowlist: []
     # Element Call: MatrixRTC video/audio calling in Element Web, backed by
     # MatrixRTC transports announced through Synapse's well-known client data
     # and authenticated by lk-jwt-service against the LiveKit SFU.
@@ -179,6 +189,7 @@ application:
         find: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "find" "menshenClientFind" | sha1sum | quote }}
         docs: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "find" "menshenClientDocs" | sha1sum | quote }}
         drive: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "find" "menshenClientDrive" | sha1sum | quote }}
+        bureaublad: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "find" "menshenClientBureaublad" | sha1sum | quote }}
 
   # projects is a collaborative project management system from LaSuite
   # theme overrides branding (favicon, colors, fonts, header/footer, feedback
@@ -240,6 +251,10 @@ application:
     # if rspamd is unreachable — disable rspamd to scan nothing instead.
     rspamd:
       enabled: true
+    # DKIM/DMARC sender-auth banners ("identity could not be verified",
+    # "likely a forgery") from the rspamd scan's symbols. Set false to skip
+    # sender-auth checks so no banner is shown; spam scoring stays active.
+    inboundAuthEnabled: true
 
   # Clam AV is a virus toolkit
   clamav:

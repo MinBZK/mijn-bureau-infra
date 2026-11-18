@@ -1,0 +1,54 @@
+# The shim forwards document content to an upstream LLM (OCR), so its
+# network exposure is kept tight:
+# - ingress only from the conversations backend pods in the same namespace
+# - egress only to DNS and TCP/443 (upstream API, plus the PyPI bootstrap the
+#   entrypoint performs at container start)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "ocr-shim.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "ocr-shim.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "ocr-shim.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: conversations-backend
+      ports:
+        - port: 8080
+          protocol: TCP
+  egress:
+    {{- with .Values.cluster.networking.dns }}
+    {{- with .external }}
+    - ports:
+        - port: {{ .port | default 53 }}
+          protocol: UDP
+        - port: {{ .port | default 53 }}
+          protocol: TCP
+    {{- end }}
+    {{- with .internal }}
+    - ports:
+        - port: {{ .port | default 53 }}
+          protocol: UDP
+        - port: {{ .port | default 53 }}
+          protocol: TCP
+      {{- with .namespace }}
+      to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ . | quote }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+    - ports:
+        - port: 443
+          protocol: TCP

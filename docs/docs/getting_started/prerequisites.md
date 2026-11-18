@@ -16,12 +16,42 @@ MijnBureau has minimal prerequisites, requiring only a Kubernetes cluster and a 
 - AMD64 platform.
 - A LoadBalancer (or more) if you want to host video conferencing backend
 - A routing solution — one of:
-  - **Ingress controller**: Traefik (default) or HAProxy (OpenShift).
+  - **Ingress controller**: Traefik (default), NGINX or HAProxy (OpenShift).
   - **Gateway API controller**: any [conformant Gateway API](https://gateway-api.sigs.k8s.io/) implementation (e.g. Nginx Gateway Fabric, Cilium, Envoy Gateway, Istio).
 - Access to DNS domain records
 
 > Ingress with Traefik is the primary and default routing option. Gateway API support is available as an alternative for clusters that already run a Gateway API controller.
 > Note: For ingress mode, the Traefik (default), nginx and HAProxy (OpenShift) controllers are supported via `cluster.ingress.type`. Additional controllers can be added if needed.
+
+### Cluster Operators
+
+MijnBureau uses [CloudNativePG](https://cloudnative-pg.io/) for every PostgreSQL
+database. Install the operator and its CRDs **before** running `helmfile apply`,
+otherwise the `Cluster` resources are rejected:
+
+```bash
+helm repo add cnpg https://cloudnative-pg.github.io/charts
+helm repo update
+helm install cnpg cnpg \
+  --namespace cnpg-system \
+  --create-namespace \
+  --set crds.create=true
+```
+
+Verify the CRDs are present:
+
+```bash
+kubectl get crd clusters.postgresql.cnpg.io
+kubectl -n cnpg-system get pods
+```
+
+Each application gets its own CNPG `Cluster` in the demo environment. The operator
+needs a default StorageClass (or per-cluster `pvc.<app>.storageClass`) to provision the
+database volumes. See [PostgreSQL](../datastores/postgresql.md) for the database
+configuration.
+
+cert-manager is only required when you use the bundled TLS issuance, and a Gateway API
+controller only when `cluster.gateway` is enabled.
 
 ### Kubernetes Resources
 

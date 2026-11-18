@@ -24,3 +24,11 @@ upstream:
   pdfEngine: mistral-ocr
   # OpenRouter API key, mounted into the container from the ocr-shim Secret.
   apiKey: ""
+
+# Fallback cluster DNS config for the NetworkPolicy; helmfile overrides this
+# with the real cluster.networking.dns values.
+cluster:
+  networking:
+    dns:
+      external:
+        port: 53

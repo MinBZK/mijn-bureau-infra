@@ -6,6 +6,7 @@ message imports and outbound delivery.
 
 - [Messages component documentation](../components/messages.md)
 - [DNS and MX records](../dns.md#email-messages)
+- [Secure email setup](../security/email.md) — SPF, DKIM, DMARC, PTR and forwarding
 
 ## What you need
 

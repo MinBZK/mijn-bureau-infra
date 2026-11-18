@@ -43,7 +43,13 @@ resource:
 
 ## External Identity Providers
 
-Organizations often use external identity providers. To integrate them with MijnBureau:
+Organizations often use external identity providers. MijnBureau can either federate that
+provider into the bundled Keycloak (recommended, keeps single sign-on and organizations
+intact) or use it directly instead of Keycloak. Both approaches are described in
+[Identity federation](./../security/identity-federation.md); the configuration below is the
+direct replacement path.
+
+To integrate them with MijnBureau:
 
 1. Create a `client` for each application in the identity provider.
 2. Configure MijnBureau with the identity provider's URLs.

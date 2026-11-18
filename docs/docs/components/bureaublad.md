@@ -20,3 +20,17 @@ located in the folder `helmfile/environments/default`.
 | `container.bureaublad.*`                   | Container selection                                  |
 | `application.bureaublad.backend.secretKey` | Backend Django secret key                            |
 | `ai.llm.*`                                 | AI used by bureaublad                                |
+
+## Global search
+
+When [Find](./find.md) is enabled (`application.find.enabled`), Bureaublad shows a
+search bar that searches all enabled La Suite services (Docs and Drive today) via the
+Find API. The backend exchanges the user's OIDC access token with
+[Menshen](https://github.com/suitenumerique/menshen) (RFC 8693 token exchange) and
+proxies the query to Find; every result links through to its document in Docs or Drive.
+
+The helm values wire `FIND_URL`, `FIND_AUDIENCE`, `FIND_SEARCH_SCOPE`,
+`MENSHEN_URL`, `MENSHEN_CLIENT_ID` and `MENSHEN_CLIENT_SECRET` automatically. The
+bureaublad rule in Menshen grants `find:docs:search` and `find:drive:search` via
+plain scope grants (`openid` source scope) instead of an action scope, because
+Menshen actions can only yield one granted scope per target in the current versions.

@@ -40,6 +40,8 @@ Summary API. Set `ai.dictaphone.serviceUrl` to the service endpoint and provide
 matching API keys through `ai.dictaphone.serviceApiKey` and
 `ai.dictaphone.webhookApiKey`. When no AI service is configured, recordings and
 transcripts can still be managed, but new transcription jobs cannot be processed.
+See [AI services](../features/ai-services.md#batch-transcription-of-recordings) for the
+supported transcription backends.
 
 ## More information
 

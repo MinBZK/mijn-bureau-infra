@@ -24,7 +24,7 @@ Copy the template to the following directory:
 
 ## Charts
 
-External charts not maintained by Bitnami are not allowed. If you need to use an external chart, port the necessary parts into the provided template.
+External charts are not added as chart repositories. If you need an external chart, vendor the necessary templates into the in-repo template so it can be reviewed, policy-tested and upgraded here. The template lineage is the Bitnami chart structure (see ADR-MB-008 and ADR-MB-011), which says nothing about which upstream project the chart wraps.
 
 ---
 

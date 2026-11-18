@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted (amended by ADR-MB-015 for CloudNativePG)
 
 ## Context
 

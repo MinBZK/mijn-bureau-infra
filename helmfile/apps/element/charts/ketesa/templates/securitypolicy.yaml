@@ -1,0 +1,36 @@
+{{- /*
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+# Restrict access to the Ketesa admin panel by client source IP.
+# ipAllowlist is a list of CIDR ranges, e.g. ["203.0.113.10/32", "10.0.0.0/8"].
+# Only rendered on Gateway API routing; the allowlist has no effect with a
+# classic ingress controller (use ingress annotations there instead).
+#
+# The match is on the original client IP (derived from X-Forwarded-For or
+# PROXY protocol); if a load balancer or NAT in front of the gateway does not
+# preserve the source address, wire up a ClientTrafficPolicy with
+# clientIPDetection.xForwardedFor.numTrustedHops on the Gateway.
+{{- if and (eq .Values.cluster.routingMode "gateway-api") .Values.ingress.enabled (not (empty .Values.ipAllowlist)) }}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: {{ include "common.names.fullname" . }}-ip-allowlist
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" $) | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ include "common.names.fullname" . }}
+  authorization:
+    defaultAction: Deny
+    rules:
+      - name: allow-listed-source-ips
+        action: Allow
+        principal:
+          clientCIDRs:
+            {{- range .Values.ipAllowlist }}
+            - {{ . | quote }}
+            {{- end }}
+{{- end }}

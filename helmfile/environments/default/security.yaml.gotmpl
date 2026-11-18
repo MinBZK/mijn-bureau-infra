@@ -20,6 +20,30 @@ security:
       sysctls: []
       supplementalGroups: []
 
+  ketesa:
+    # The ketesa image is based on static-web-server, which runs as the `sws`
+    # user (uid/gid 1000) instead of the MijnBureau default 1001. Everything
+    # it serves is baked into the image; the only writable path is /tmp.
+    containerSecurityContext:
+      enabled: true
+      seLinuxOptions: {}
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - "ALL"
+      privileged: false
+      runAsUser: 1000
+      runAsGroup: 1000
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1000
+      fsGroupChangePolicy: Always
+      sysctls: []
+      supplementalGroups: []
+
   livekit_egress:
     # The livekit/egress image runs as its own `egress` user (uid 1000).
     # Writable paths are provided as emptyDir volumes by the chart.

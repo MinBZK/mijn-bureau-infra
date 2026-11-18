@@ -8,7 +8,7 @@ Accepted
 
 Our team requires a reliable, collaborative, and feature-rich platform to manage source code, handle version control, support continuous integration workflows, and facilitate open development.
 
-there are many providers like github, gitlab, codeberg, opencode and some self hosted options like gitea.
+there are many providers like github, gitlab, codeberg, and some self hosted options like gitea.
 
 ## Decision
 

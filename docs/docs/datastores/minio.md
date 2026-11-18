@@ -39,7 +39,7 @@ objectstore:
 
 ### Securing MinIO Credentials
 
-Storing credentials directly in configuration files is not recommended. Use a secrets file to manage credentials securely:
+Storing credentials directly in configuration files is not recommended. Use a secrets file to manage credentials securely. Loading a secrets file is disabled by default; enable the `secrets:` block in `helmfile/bases/environment.yaml.gotmpl` as described in [Secrets](../secrets.md).
 
 1. Add the credentials to a secrets file:
 
@@ -50,14 +50,14 @@ Storing credentials directly in configuration files is not recommended. Use a se
        rootPassword: yourpassword
    ```
 
-   Save this in `helmfile/environments/production/example.secrets.yaml`.
+   Save this in `helmfile/environments/production/secrets.yaml`.
 
 2. Remove the `username` (comparable to `accessKey`) and `rootPassword` (comparable to `secretKey`) fields from `mijnbureau.yaml.gotmpl`.
 
 3. Encrypt the secrets file using SOPS:
 
    ```bash
-   sops -e -i helmfile/environments/production/example.secrets.yaml
+   sops -e -i helmfile/environments/production/secrets.yaml
    ```
 
 4. Ensure your CI/CD system is configured to decrypt the secrets during deployment.

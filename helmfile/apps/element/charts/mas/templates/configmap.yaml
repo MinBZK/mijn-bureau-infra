@@ -33,6 +33,11 @@ data:
             - name: compat
             - name: graphql
             - name: assets
+            {{- if .Values.config.adminApi.enabled }}
+            # Admin API for admin UIs such as Ketesa (MAS mode). Authenticated;
+            # only answers MAS admin users.
+            - name: adminapi
+            {{- end }}
           binds:
             - address: "[::]:{{ .Values.containerPorts.http }}"
           proxy_protocol: false

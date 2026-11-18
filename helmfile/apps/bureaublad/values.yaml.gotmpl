@@ -119,6 +119,23 @@ backend:
     {{- if .Values.application.docs.enabled }}
     DOCS_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.docs .Values.global.domain | quote }}
     {{- end }}
+    {{- if and .Values.application.find.enabled .Values.application.find.menshen.enabled }}
+    # Global search via La Suite Find: the search bar exchanges the user's
+    # access token with Menshen (RFC 8693) and proxies the query to Find.
+    # Plain scope grants (no action:) so one exchange grants Docs+Drive search.
+    FIND_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.find .Values.global.domain | quote }}
+    FIND_AUDIENCE: "find"
+    FIND_SEARCH_SCOPE: "find:docs:search find:drive:search"
+    {{- if .Values.application.drive.enabled }}
+    # Drive template override: items/{id} is the folder view and 404s on files;
+    # most indexed Drive content is files, so default to the file viewer.
+    # Caveat: folder results then open the file preview page.
+    FIND_URL_TEMPLATES: {{ printf `{"drive": "http%s://%s.%s/explorer/items/files/{id}"}` $sslPostfix .Values.global.hostname.drive .Values.global.domain | quote }}
+    {{- end }}
+    MENSHEN_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.menshen .Values.global.domain | quote }}
+    MENSHEN_CLIENT_ID: "bureaublad"
+    MENSHEN_CLIENT_SECRET: {{ .Values.application.find.menshen.clientSecrets.bureaublad | quote }}
+    {{- end }}
     {{- if .Values.application.element.enabled }}
     MATRIX_URL: {{ printf "http%s://%s.%s" $sslPostfix .Values.global.hostname.element .Values.global.domain | quote }}
     {{- end }}

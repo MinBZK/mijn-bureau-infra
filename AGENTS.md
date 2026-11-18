@@ -136,6 +136,15 @@ label (set by standard K8s / Fundament). The conftest policy
 `policy/netpol-namespaces.rego` warns when a NetworkPolicy selects a whole
 namespace without narrowing to pods.
 
+When `cluster.networkPolicy.defaultDeny.egress.enabled` is true (default),
+every covered namespace additionally gets a `default-deny-egress`
+NetworkPolicy allowing only same-namespace pods, cluster DNS, TCP/443
+(Kubernetes API / HTTPS), and the cross-namespace exceptions wired in
+`helmfile/apps/common/values-defaultdeny.yaml.gotmpl` (Keycloak OIDC on
+80/443, Messages mail submission on 25). NetworkPolicies are additive, so app
+charts with their own egress rules are unaffected; the baseline only
+restricts pods no other egress policy covers.
+
 ## Troubleshooting
 
 - If `helmfile` fails on secrets, provide `-s "$SOPS_AGE_KEY"` to `./scripts/test.sh`.

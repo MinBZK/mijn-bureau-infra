@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "openai-shim.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "openai-shim.labels" . | nindent 4 }}
+data:
+  app.py: |
+    import os
+
+    import httpx
+    from fastapi import FastAPI, Request, Response
+
+    UPSTREAM_URL = os.environ.get(
+        "UPSTREAM_URL", "https://api.openai.com/v1/audio/transcriptions"
+    )
+    UPSTREAM_MODEL = os.environ.get("UPSTREAM_MODEL", "gpt-4o-transcribe-diarize")
+
+    # OpenAI identifies the audio format from the filename extension; remap
+    # extensions it does not support to an equivalent supported container.
+    EXTENSION_MAP = {".opus": ".ogg"}
+
+    app = FastAPI()
+
+
+    @app.get("/healthz")
+    async def healthz():
+        return {"status": "ok"}
+
+
+    @app.post("/audio/transcriptions")
+    @app.post("/v1/audio/transcriptions")
+    async def transcribe(request: Request):
+        form = await request.form()
+        upload = form.get("file")
+        if upload is None:
+            return Response(
+                content='{"error": {"message": "missing file field"}}',
+                status_code=400,
+                media_type="application/json",
+            )
+
+        filename = upload.filename or "audio"
+        base, ext = os.path.splitext(filename)
+        filename = base + EXTENSION_MAP.get(ext.lower(), ext)
+
+        # The Meet summary worker sends WhisperX-style parameters that the
+        # OpenAI API rejects. Force the diarization model and the chunking
+        # strategy it requires for recordings longer than 30 seconds, and
+        # drop timestamp_granularities (only valid for verbose_json).
+        data = {
+            "model": UPSTREAM_MODEL,
+            "response_format": "diarized_json",
+            "chunking_strategy": "auto",
+        }
+        language = form.get("language")
+        if language:
+            data["language"] = language
+
+        headers = {}
+        auth = request.headers.get("authorization")
+        if auth:
+            headers["authorization"] = auth
+
+        content = await upload.read()
+        async with httpx.AsyncClient(timeout=httpx.Timeout(600.0, connect=60.0)) as client:
+            resp = await client.post(
+                UPSTREAM_URL,
+                data=data,
+                files={"file": (filename, content)},
+                headers=headers,
+            )
+
+        return Response(
+            content=resp.content,
+            status_code=resp.status_code,
+            media_type=resp.headers.get("content-type", "application/json"),
+        )

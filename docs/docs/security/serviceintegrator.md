@@ -8,7 +8,10 @@ A Service Integrator is the organization responsible for making MijnBureau avail
 
 The security of MijnBureau is closely tied to the underlying Kubernetes cluster. Service integrators must apply Kubernetes security best practices. Below are several practices that are native to Kubernetes:
 
-1. **Enable "deny all" network policies** to restrict traffic by default.
+1. **Verify the default-deny network policies.** MijnBureau already creates a
+   `default-deny-ingress` policy per application namespace when
+   `cluster.networkPolicy.defaultDeny.enabled` is true (the default); review the
+   chart-provided allowances instead of relying on cluster-wide defaults.
 2. **Enforce Pod and Container Security Contexts** to ensure least privilege.
 3. **Deploy across multiple regions** to improve resilience.
 
@@ -20,7 +23,11 @@ Implement automated security controls using policies. [Kyverno](https://kyverno.
 
 ## Secret Rotation
 
-Regularly rotate secrets to minimize risk. The [External Secrets Operator](https://external-secrets.io/latest/) can automate secret management.
+Most MijnBureau credentials are derived from `MIJNBUREAU_MASTER_PASSWORD` and cannot be
+rotated individually; rotating the master password rotates every derived credential at
+once and is a planned migration, not routine maintenance (see
+[Secrets](../secrets.md) and ADR-MB-016). For values that are not derived, the
+[External Secrets Operator](https://external-secrets.io/latest/) can automate rotation.
 
 ## Container Sandboxes
 

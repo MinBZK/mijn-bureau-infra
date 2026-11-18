@@ -13,7 +13,9 @@ from the user's Keycloak access token, so a user only ever sees documents they m
 open. The exchange rules (`action:search-find-*` → `find:<service>:search/delete`) and
 service credentials are provisioned declaratively by the `setup-services` hook job in
 the `menshen` chart, and the `docs`/`drive` indexing services are registered by the
-`register-services` hook job in the `find` chart.
+`register-services` hook job in the `find` chart. The Bureaublad search bar exchanges
+with the `bureaublad` service provider and plain scope grants (`openid` →
+`find:docs:search`/`find:drive:search`) — see [Bureaublad > Global search](./bureaublad.md#global-search).
 
 ## Status
 

@@ -47,7 +47,7 @@ cache:
 
 ### Securing Valkey Passwords
 
-Storing passwords directly in configuration files is not recommended. Instead, use a separate secrets file:
+Storing passwords directly in configuration files is not recommended. Instead, use a separate secrets file. Loading a secrets file is disabled by default; enable the `secrets:` block in `helmfile/bases/environment.yaml.gotmpl` as described in [Secrets](../secrets.md).
 
 1. Add the password to a secrets file:
 
@@ -57,14 +57,14 @@ Storing passwords directly in configuration files is not recommended. Instead, u
        password: your valkey password
    ```
 
-   Save this in `helmfile/environments/production/example.secrets.yaml`.
+   Save this in `helmfile/environments/production/secrets.yaml`.
 
 2. Remove the `password` field from `mijnbureau.yaml.gotmpl`.
 
 3. Encrypt the secrets file using SOPS:
 
    ```bash
-   sops -e -i helmfile/environments/production/example.secrets.yaml
+   sops -e -i helmfile/environments/production/secrets.yaml
    ```
 
 4. Ensure your CI/CD system is configured to decrypt the secrets during deployment.

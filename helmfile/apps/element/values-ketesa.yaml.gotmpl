@@ -1,0 +1,110 @@
+{{- /*
+Deployment values for Ketesa, the admin UI for this Synapse homeserver
+(github.com/etkecc/ketesa, the actively maintained successor of
+Awesome-Technologies/synapse-admin).
+
+Ketesa is a static SPA: the browser talks straight to the homeserver's
+/_synapse/admin API, so the panel needs no backend, no database and no
+cluster-internal credentials.
+*/ -}}
+
+{{- /* $homeserverUrl is the public client/admin API URL the panel talks to */ -}}
+{{- $homeserverUrl := printf "https://%s.%s" .Values.global.hostname.synapse .Values.global.domain -}}
+{{- $hostName := printf "%s.%s" .Values.global.hostname.ketesa .Values.global.domain -}}
+
+global:
+  ## Global Docker image parameters
+  ## @param global.imageRegistry Global Docker Image registry
+  ##
+  imageRegistry: {{ .Values.container.default.registry | quote }}
+  imagePullSecrets: []
+  ## Security parameters
+  ## @param global.security.allowInsecureImages Allows skipping image verification
+  ##
+  security:
+    allowInsecureImages: true
+
+image:
+  registry: {{ coalesce .Values.container.ketesa.registry .Values.container.default.registry | quote }}
+  repository: {{ .Values.container.ketesa.repository }}
+  # The panel is a static build, so always pull to pick up the moved tag.
+  pullPolicy: Always
+  tag: {{ .Values.container.ketesa.tag }}
+  {{- with (coalesce .Values.container.ketesa.imagePullSecret .Values.container.default.imagePullSecret) }}
+  pullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+
+commonLabels:
+  app.kubernetes.io/part-of: element
+  app.kubernetes.io/component: ketesa
+
+replicaCount: 1
+
+# Predefined resource configuration level like 'micro', 'small', etc.
+resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.ketesa .Values.global.resourcesPreset | quote }}
+resources: {{ .Values.resource.element.ketesa | toYaml | nindent 2 }}
+
+# The static-web-server base image runs as uid/gid 1000 (not the MijnBureau
+# default 1001), hence the dedicated security.ketesa context.
+podSecurityContext: {{ .Values.security.ketesa.podSecurityContext | toYaml | nindent 2 }}
+containerSecurityContext: {{ .Values.security.ketesa.containerSecurityContext | toYaml | nindent 2 }}
+
+networkPolicy:
+  enabled: true
+  # Restrict external access - only allow specific ingress sources
+  allowExternal: false
+  # Restrict external egress - only allow specific destinations
+  allowExternalEgress: false
+
+  extraIngress:
+    # Allow traffic from ingress controller / gateway namespace
+    - ports:
+        - port: 8080
+          protocol: TCP
+
+# config.json served next to the SPA (see the chart's values.yaml for the
+# supported keys). Lock the panel to this homeserver so it cannot be used to
+# drive an arbitrary Matrix server from a MijnBureau hostname, and tell it
+# that authentication is delegated (Synapse has password login disabled and
+# hands auth to MAS).
+config:
+  restrictBaseUrl: {{ $homeserverUrl | quote }}
+  externalAuthProvider: true
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  hostname: {{ $hostName | quote }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.ketesa | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+
+# labels for pod assignment
+nodeSelector: {}
+
+# IP allowlist for the Ketesa admin panel (gateway-api only): list of CIDR
+# ranges allowed to reach ketesa.<domain>; everyone else gets a 403. Leave
+# empty to keep the panel publicly reachable.
+ipAllowlist: {{ .Values.application.element.ketesa.ipAllowlist | default list | toYaml | nindent 2 }}
+# Tolerations for pod assignment
+tolerations: []
+
+# Affinity rules for pod assignment
+affinity: {}

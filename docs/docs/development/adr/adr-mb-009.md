@@ -19,7 +19,10 @@ We will adopt the [Kubernetes recommended common labels](https://kubernetes.io/d
 - `app.kubernetes.io/part-of`
 - `app.kubernetes.io/managed-by`
 
-All new and existing resources should use these labels where applicable. Additional custom labels may be added as needed, but must not conflict with the recommended set.
+All new and existing resources should use these labels where applicable, limited to the
+charts and manifests maintained in this repository; upstream sub-charts are out of scope.
+Additional custom labels may be added as needed, but must not conflict with the recommended
+set.
 
 ## Consequences
 
