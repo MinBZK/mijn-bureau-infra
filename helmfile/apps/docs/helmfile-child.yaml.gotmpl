@@ -74,3 +74,15 @@ releases:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-nginx.yaml.gotmpl"
+
+  # ESO-synced infra secrets (OpenBao -> Kubernetes). Rendered only when
+  # the app is switched to external secrets; replaces the inline CNPG/
+  # valkey/minio Secrets rendered by the releases above.
+  - name: docs-externalsecret
+    chart: ../common/charts/externalsecret
+    {{- if .Values.application.docs.namespace }}
+    namespace: {{ .Values.application.docs.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.docs.enabled) (eq (dig "secrets" "backend" "derived" .Values) "external") | toYaml }}
+    values:
+      - "values-externalsecret.yaml.gotmpl"

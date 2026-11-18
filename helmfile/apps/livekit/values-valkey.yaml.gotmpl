@@ -1,10 +1,15 @@
 fullnameOverride: livekit-valkey
 
 auth:
+  {{- if eq (dig "secrets" "backend" "derived" .Values) "external" }}
+  usersExistingSecret: livekit-valkey-auth
+  {{- end }}
   aclUsers:
     default:
       permissions: "~* &* +@all"
+      {{- if not (eq (dig "secrets" "backend" "derived" .Values) "external") }}
       password: {{ .Values.cache.livekit.password | quote }}
+      {{- end }}
 
 dataStorage:
   enabled: true

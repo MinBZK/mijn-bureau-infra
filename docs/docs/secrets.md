@@ -4,10 +4,11 @@ sidebar_position: 6
 
 # Secrets
 
-MijnBureau handles secrets in two layers:
+MijnBureau handles secrets in three ways:
 
 1. **Derived secrets** — all application and database passwords are _derived deterministically_ from the master password `MIJNBUREAU_MASTER_PASSWORD`. Out of the box you do not need to store any password on disk.
 2. **SOPS secrets files** _(optional)_ — for values that must be overridden per environment (for example SMTP relay credentials), you can add an encrypted `*.secrets.yaml` file to an environment.
+3. **External secrets** _(optional)_ — store and generate secrets in OpenBao and sync them into Kubernetes with the External Secrets Operator. See [External secrets](./external-secrets.md).
 
 ---
 

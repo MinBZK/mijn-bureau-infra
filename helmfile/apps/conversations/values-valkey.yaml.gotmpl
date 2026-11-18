@@ -1,10 +1,15 @@
 fullnameOverride: conversations-valkey
 
 auth:
+  {{- if eq (dig "secrets" "backend" "derived" .Values) "external" }}
+  usersExistingSecret: conversations-valkey-auth
+  {{- end }}
   aclUsers:
     default:
       permissions: "~* &* +@all"
+      {{- if not (eq (dig "secrets" "backend" "derived" .Values) "external") }}
       password: {{ .Values.cache.conversations.password | quote }}
+      {{- end }}
 
 dataStorage:
   enabled: true

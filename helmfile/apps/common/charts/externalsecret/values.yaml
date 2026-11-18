@@ -1,0 +1,37 @@
+# ClusterSecretStore + ExternalSecret chart.
+#
+# Renders one ClusterSecretStore (cluster-scoped) and one ExternalSecret per
+# entry in `.Values.externalSecrets`. Each ExternalSecret copies a set of
+# OpenBao KV keys into a Kubernetes Secret consumed by the app charts when
+# `secrets.backend`/`secrets.external.<app>` is enabled.
+
+store:
+  # Whether to render the ClusterSecretStore (default true).
+  create: true
+  name: openbao
+  server: "https://openbao.example.internal"
+  # OpenBao KV v2 mount and path prefix: secret/data/<pathPrefix>/<owner>/<key>
+  mount: secret
+  pathPrefix: mijnbureau
+  version: v2
+  auth:
+    kubernetes:
+      mountPath: kubernetes
+      role: ""
+      serviceAccount: external-secrets
+      audience: vault
+
+# Each entry becomes an ExternalSecret.
+#   name            ExternalSecret name
+#   namespace       namespace (defaults to release namespace)
+#   target          Kubernetes Secret name to create
+#   store           ClusterSecretStore name (defaults to store.name)
+#   refreshInterval (default 1m)
+#   type            optional target.template.type (e.g. kubernetes.io/basic-auth)
+#   staticData      optional map of static key -> value merged into the target Secret
+#                   (for non-secret fields such as usernames)
+#   data            list of { secretKey, remoteKey, property }
+#     secretKey     key in the target Kubernetes Secret
+#     remoteKey     OpenBao KV path (relative to mount/pathPrefix), e.g. "demo/drive/database"
+#     property      key within that KV path (omit to map the whole path)
+externalSecrets: []

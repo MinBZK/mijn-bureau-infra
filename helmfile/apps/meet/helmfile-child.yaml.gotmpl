@@ -70,3 +70,15 @@ releases:
     namespace: {{ .Values.application.meet.namespace }}
     {{- end }}
     installed: {{ and .Values.application.meet.enabled .Values.ai.whisperx.shim | toYaml }}
+
+  # ESO-synced infra secrets (OpenBao -> Kubernetes). Rendered only when
+  # the app is switched to external secrets; replaces the inline CNPG/
+  # valkey/minio Secrets rendered by the releases above.
+  - name: meet-externalsecret
+    chart: ../common/charts/externalsecret
+    {{- if .Values.application.meet.namespace }}
+    namespace: {{ .Values.application.meet.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.meet.enabled) (eq (dig "secrets" "backend" "derived" .Values) "external") | toYaml }}
+    values:
+      - "values-externalsecret.yaml.gotmpl"

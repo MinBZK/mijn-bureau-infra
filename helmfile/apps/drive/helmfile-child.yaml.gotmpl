@@ -11,6 +11,18 @@ releases:
     values:
       - "values-cnpg-cluster-credentials.yaml.gotmpl"
 
+  # ESO-synced secrets (OpenBao -> Kubernetes). Rendered only when the drive app
+  # is switched to external secrets; replaces the inline `drive-cluster-*`
+  # Secrets rendered by the cnpg-cluster-credentials release above.
+  - name: drive-externalsecret
+    chart: ../common/charts/externalsecret
+    {{- if .Values.application.drive.namespace }}
+    namespace: {{ .Values.application.drive.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.drive.enabled) (eq (dig "secrets" "backend" "derived" .Values) "external") | toYaml }}
+    values:
+      - "values-externalsecret.yaml.gotmpl"
+
   - name: drive-cluster
     chart: ../common/charts/cluster
     {{- if .Values.application.drive.namespace }}

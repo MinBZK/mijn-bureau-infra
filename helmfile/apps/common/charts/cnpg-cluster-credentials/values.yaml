@@ -3,3 +3,6 @@ database: ""
 owner: ""
 password: ""
 adminPassword: ""
+# When true, the `-app` and `-superuser` Secrets are provisioned externally
+# (by External Secrets Operator) and this chart does not render them.
+external: false

@@ -47,3 +47,15 @@ releases:
       - {{ if .Values.application.keycloak.namespace }}{{ .Values.application.keycloak.namespace }}/{{ end }}keycloak-cluster-credentials
     values:
       - "values-cnpg-cluster.yaml.gotmpl"
+
+  # ESO-synced infra secrets (OpenBao -> Kubernetes). Rendered only when
+  # the app is switched to external secrets; replaces the inline CNPG/
+  # valkey/minio Secrets rendered by the releases above.
+  - name: keycloak-externalsecret
+    chart: ../common/charts/externalsecret
+    {{- if .Values.application.keycloak.namespace }}
+    namespace: {{ .Values.application.keycloak.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") ( .Values.application.keycloak.enabled) (eq (dig "secrets" "backend" "derived" .Values) "external") | toYaml }}
+    values:
+      - "values-externalsecret.yaml.gotmpl"

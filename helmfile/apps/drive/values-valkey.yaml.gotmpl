@@ -1,10 +1,15 @@
 fullnameOverride: drive-valkey
 
 auth:
+  {{- if eq (dig "secrets" "backend" "derived" .Values) "external" }}
+  usersExistingSecret: drive-valkey-auth
+  {{- end }}
   aclUsers:
     default:
       permissions: "~* &* +@all"
+      {{- if not (eq (dig "secrets" "backend" "derived" .Values) "external") }}
       password: {{ .Values.cache.drive.password | quote }}
+      {{- end }}
 
 dataStorage:
   enabled: true

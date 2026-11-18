@@ -1,10 +1,15 @@
 fullnameOverride: projects-valkey
 
 auth:
+  {{- if eq (dig "secrets" "backend" "derived" .Values) "external" }}
+  usersExistingSecret: projects-valkey-auth
+  {{- end }}
   aclUsers:
     default:
       permissions: "~* &* +@all"
+      {{- if not (eq (dig "secrets" "backend" "derived" .Values) "external") }}
       password: {{ .Values.cache.projects.password | quote }}
+      {{- end }}
 
 dataStorage:
   enabled: true
