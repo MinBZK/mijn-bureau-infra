@@ -1,0 +1,105 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+
+Find hook Jobs: run as helm hooks (post-install,post-upgrade) with a fixed
+name and before-hook-creation, so they are recreated on each release (Job pod
+specs are immutable).
+*/}}
+
+{{- $jobs := list -}}
+{{- if .Values.jobs.migrate.enabled }}
+{{- $jobs = append $jobs (dict
+  "name" "migrate"
+  "weight" -10
+  "command" (printf "%s" "while ! python manage.py check --database default > /dev/null 2>&1; do echo 'Database not ready'; sleep 2; done; python manage.py migrate --no-input")
+) -}}
+{{- end -}}
+{{- if .Values.jobs.createSuperUser.enabled }}
+{{- $jobs = append $jobs (dict
+  "name" "create-superuser"
+  "weight" -5
+  "command" (printf "%s" "while ! python manage.py check --database default > /dev/null 2>&1; do echo 'Database not ready'; sleep 2; done; python manage.py migrate --no-input; python manage.py shell -c \"from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='$DJANGO_SUPERUSER_USERNAME').exists() or User.objects.create_superuser('$DJANGO_SUPERUSER_USERNAME', '$DJANGO_SUPERUSER_EMAIL', '$DJANGO_SUPERUSER_PASSWORD')\"")
+) -}}
+{{- end -}}
+{{- if and .Values.jobs.registerServices.enabled .Values.services }}
+{{- $jobs = append $jobs (dict
+  "name" "register-services"
+  "weight" 0
+  "command" (printf "%s" "while ! python manage.py check --database default > /dev/null 2>&1; do echo 'Database not ready'; sleep 2; done; python manage.py migrate --no-input; python manage.py shell < /setup/register_services.py")
+  "scriptVolume" true
+) -}}
+{{- end -}}
+
+{{- range $config := $jobs }}
+---
+apiVersion: {{ include "common.capabilities.job.apiVersion" $ }}
+kind: Job
+metadata:
+  name: {{ print (include "common.names.fullname" $) "-" $config.name }}
+  namespace: {{ include "common.names.namespace" $ | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" $.Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ $config.name }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: {{ $config.weight | quote }}
+    {{- if $.Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" $.Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
+spec:
+  ttlSecondsAfterFinished: {{ $.Values.jobs.ttlSecondsAfterFinished }}
+  backoffLimit: {{ $.Values.jobs.backoffLimit }}
+  template:
+    metadata:
+      {{- if $.Values.find.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" $.Values.find.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list $.Values.find.podLabels $.Values.commonLabels) "context" $) }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: {{ $config.name }}
+    spec:
+      {{- include "find.imagePullSecrets" $ | nindent 6 }}
+      serviceAccountName: {{ template "find.serviceAccountName" $ }}
+      automountServiceAccountToken: {{ $.Values.find.automountServiceAccountToken }}
+      restartPolicy: OnFailure
+      {{- if $.Values.find.podSecurityContext.enabled }}
+      securityContext: {{- omit $.Values.find.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "common.names.fullname" $ }}
+          image: {{ template "find.image" $ }}
+          imagePullPolicy: {{ $.Values.find.image.pullPolicy }}
+          {{- if $.Values.find.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" $.Values.find.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          command:
+            - /bin/sh
+            - "-c"
+            - {{ $config.command | quote }}
+          envFrom:
+            - configMapRef:
+                name: {{ template "common.names.fullname" $ }}
+            - secretRef:
+                name: {{ include "find.secretName" $ }}
+          {{- if $.Values.find.resources }}
+          resources: {{- toYaml $.Values.find.resources | nindent 12 }}
+          {{- else if ne $.Values.find.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" $.Values.find.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if $config.scriptVolume }}
+            - name: setup
+              mountPath: /setup
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if $config.scriptVolume }}
+        - name: setup
+          configMap:
+            name: {{ include "find.setupConfigMapName" $ }}
+        {{- end }}
+{{- end }}

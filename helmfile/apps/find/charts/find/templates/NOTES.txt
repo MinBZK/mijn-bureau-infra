@@ -1,0 +1,25 @@
+CHART NAME: {{ .Chart.Name }}
+CHART VERSION: {{ .Chart.Version }}
+APP VERSION: {{ .Chart.AppVersion }}
+
+** Please be patient while the chart is being deployed **
+
+{{- if .Values.diagnosticMode.enabled }}
+The chart has been deployed in diagnostic mode. All probes have been disabled and the command has been overwritten with:
+
+  command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 4 }}
+  args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 4 }}
+{{- else }}
+
+{{- if and .Values.ingress.enabled .Values.ingress.hostname }}
+The find API and admin are available at https://{{ .Values.ingress.hostname }} (/admin)
+{{- else }}
+The find API is available in-cluster at http://{{ include "common.names.fullname" . }}:{{ .Values.service.ports.http }}
+{{- end }}
+
+Registered indexing services (hook job `register-services`):
+{{- range .Values.services }}
+  - {{ .name }}
+{{- end }}
+
+{{- end }}

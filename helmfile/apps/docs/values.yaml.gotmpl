@@ -127,6 +127,57 @@ backend:
     # Jobs carry helm.sh/hook annotations (chart-level), so a fixed name +
     # before-hook-creation recreates them on each release. No timestamp suffix.
     releaseSuffix: ""
+    jobs:
+      - name: migrate
+        annotations:
+          argocd.argoproj.io/sync-options: Replace=true,Force=true
+        weight: "-10"
+        command:
+          - /bin/sh
+          - "-c"
+          - |
+            while ! python manage.py check --database default > /dev/null 2>&1
+            do
+              echo "Database not ready"
+              sleep 2
+            done
+
+            echo "Database is ready"
+
+            python manage.py migrate --no-input
+        restartPolicy: OnFailure
+      - name: createSuperUser
+        annotations:
+          argocd.argoproj.io/sync-options: Replace=true,Force=true
+        weight: "0"
+        command:
+          - "/bin/sh"
+          - "-c"
+          - |
+            while ! python manage.py check --database default > /dev/null 2>&1
+            do
+              echo "Database not ready"
+              sleep 2
+            done
+
+            echo "Database is ready"
+
+            python manage.py createsuperuser --email $DJANGO_SUPERUSER_EMAIL --password $DJANGO_SUPERUSER_PASSWORD
+        restartPolicy: OnFailure
+      {{- if and .Values.application.find.enabled .Values.application.find.searchEnabled }}
+      # Enable the Find full-text/hybrid search feature flags for everyone
+      # (django-waffle). Safe to re-run; the find integration env vars in
+      # backend.envVars make these flags reach the Find API.
+      - name: find-search-flags
+        weight: "10"
+        command:
+          - /bin/sh
+          - "-c"
+          - |
+            python manage.py waffle_flag flag_find_full_text_search --everyone --create
+            python manage.py waffle_flag flag_find_hybrid_search --everyone --create
+        restartPolicy: OnFailure
+      {{- end }}
   envVars:
     AWS_S3_ENDPOINT_URL: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.docs.useSSL) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port | quote }}
     AWS_S3_ACCESS_KEY_ID: {{ .Values.objectstore.docs.username | quote }}
@@ -258,6 +309,20 @@ backend:
     OIDC_RP_SIGN_ALGO: "RS256"
     OIDC_RP_SCOPES: "openid email"
     OIDC_STORE_ID_TOKEN: "true"
+    {{- if .Values.application.find.enabled }}
+    # LaSuite Find global search (helmfile/apps/find). The backend indexes
+    # every document into Find and (when application.find.searchEnabled, via
+    # the waffle flags job below) proxies full-text search to it. Search needs
+    # the user's OIDC tokens stored in the session for Menshen exchange.
+    SEARCH_INDEXER_CLASS: "core.services.search_indexers.FindDocumentIndexer"
+    INDEXING_URL: {{ printf "http%s://%s.%s/api/v1.0/documents/index/" $sslPostfix .Values.global.hostname.find .Values.global.domain | quote }}
+    SEARCH_URL: {{ printf "http%s://%s.%s/api/v1.0/documents/search/" $sslPostfix .Values.global.hostname.find .Values.global.domain | quote }}
+    SEARCH_INDEXER_SECRET: {{ .Values.application.find.serviceTokens.docs | quote }}
+    SEARCH_INDEXER_COUNTDOWN: "10"
+    OIDC_STORE_ACCESS_TOKEN: "true"
+    OIDC_STORE_REFRESH_TOKEN: "true"
+    OIDC_STORE_REFRESH_TOKEN_KEY: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "docs" "oidcStoreRefreshTokenKey" | sha256sum | trunc 32 | b64enc | quote }}
+    {{- end }}
     # Edit-in-Docs (conversations): the external API is only mounted when the
     # OIDC resource server is enabled. Conversations calls it with the user's
     # stored OIDC access token; Docs introspects it in Keycloak with the docs

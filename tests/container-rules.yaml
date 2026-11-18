@@ -203,6 +203,14 @@ container:
     registry: ""
     imagePullSecret: ""
 
+  find:
+    registry: ""
+    imagePullSecret: ""
+
+  menshen:
+    registry: ""
+    imagePullSecret: ""
+
   dictaphone_backend:
     registry: ""
     imagePullSecret: ""

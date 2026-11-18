@@ -1,0 +1,115 @@
+bases:
+  - "../../bases/default.yaml.gotmpl"
+
+releases:
+  # Bundled PostgreSQL (CNPG), Valkey and OpenSearch for find and menshen,
+  # demo environment only — production is expected to provide them externally
+  # via database.*/cache.*/search.find.
+  - name: "find-cluster-credentials"
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.find.namespace }}
+    namespace: {{ .Values.application.find.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.find.enabled) | toYaml }}
+    values:
+      - "values-find-cluster-credentials.yaml.gotmpl"
+
+  - name: "find-cluster"
+    chart: ../common/charts/cluster
+    {{- if .Values.application.find.namespace }}
+    namespace: {{ .Values.application.find.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.find.enabled) | toYaml }}
+    needs:
+      - {{ if .Values.application.find.namespace }}{{ .Values.application.find.namespace }}/{{ end }}find-cluster-credentials
+    values:
+      - "values-find-cluster.yaml.gotmpl"
+
+  - name: "menshen-cluster-credentials"
+    chart: ../common/charts/cnpg-cluster-credentials
+    {{- if .Values.application.find.namespace }}
+    namespace: {{ .Values.application.find.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.find.enabled) (.Values.application.find.menshen.enabled) | toYaml }}
+    values:
+      - "values-menshen-cluster-credentials.yaml.gotmpl"
+
+  - name: "menshen-cluster"
+    chart: ../common/charts/cluster
+    {{- if .Values.application.find.namespace }}
+    namespace: {{ .Values.application.find.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.find.enabled) (.Values.application.find.menshen.enabled) | toYaml }}
+    needs:
+      - {{ if .Values.application.find.namespace }}{{ .Values.application.find.namespace }}/{{ end }}menshen-cluster-credentials
+    values:
+      - "values-menshen-cluster.yaml.gotmpl"
+
+  - name: "find-valkey"
+    chart: ../common/charts/valkey
+    {{- if .Values.application.find.namespace }}
+    namespace: {{ .Values.application.find.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.find.enabled) | toYaml }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-find-valkey.yaml.gotmpl"
+
+  - name: "menshen-valkey"
+    chart: ../common/charts/valkey
+    {{- if .Values.application.find.namespace }}
+    namespace: {{ .Values.application.find.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.find.enabled) (.Values.application.find.menshen.enabled) | toYaml }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-valkey.yaml.gotmpl"
+      - "values-menshen-valkey.yaml.gotmpl"
+
+  - name: "find-opensearch"
+    chart: ../common/charts/opensearch
+    {{- if .Values.application.find.namespace }}
+    namespace: {{ .Values.application.find.namespace }}
+    {{- end }}
+    installed: {{ and (eq .Environment.Name "demo") (.Values.application.find.enabled) (not .Values.search.find.url) | toYaml }}
+    values:
+      - "values-opensearch.yaml.gotmpl"
+
+  - name: "menshen"
+    chart: charts/menshen
+    installed: {{ and .Values.application.find.enabled .Values.application.find.menshen.enabled | toYaml }}
+    {{- if .Values.application.find.namespace }}
+    namespace: {{ .Values.application.find.namespace }}
+    {{- end }}
+    {{- if and (eq .Environment.Name "demo") (.Values.application.find.enabled) }}
+    needs:
+      - {{ if .Values.application.find.namespace }}{{ .Values.application.find.namespace }}/{{ end }}menshen-cluster
+      - {{ if .Values.application.find.namespace }}{{ .Values.application.find.namespace }}/{{ end }}menshen-valkey
+    {{- end }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values-menshen.yaml.gotmpl"
+
+  - name: "find"
+    chart: charts/find
+    condition: application.find.enabled
+    {{- if .Values.application.find.namespace }}
+    namespace: {{ .Values.application.find.namespace }}
+    {{- end }}
+    {{- if and (eq .Environment.Name "demo") (.Values.application.find.enabled) }}
+    needs:
+      - {{ if .Values.application.find.namespace }}{{ .Values.application.find.namespace }}/{{ end }}find-cluster
+      - {{ if .Values.application.find.namespace }}{{ .Values.application.find.namespace }}/{{ end }}find-valkey
+      {{- if not .Values.search.find.url }}
+      - {{ if .Values.application.find.namespace }}{{ .Values.application.find.namespace }}/{{ end }}find-opensearch
+      {{- end }}
+      {{- if .Values.application.find.menshen.enabled }}
+      - {{ if .Values.application.find.namespace }}{{ .Values.application.find.namespace }}/{{ end }}menshen
+      {{- end }}
+    {{- end }}
+    values:
+      - "../common/values-cluster-dns.yaml.gotmpl"
+      - "../common/values-cluster-ingress.yaml.gotmpl"
+      - "values-find.yaml.gotmpl"

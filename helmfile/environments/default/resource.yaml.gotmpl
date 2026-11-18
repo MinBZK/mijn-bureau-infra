@@ -129,3 +129,14 @@ resource:
     # the embedded clamd keeps the virus database in memory, so keep the
     # memory limit at 4 Gi or more when overriding.
     icap:
+
+  find:
+    backend:
+    postgresql:
+    valkey:
+    opensearch:
+
+  menshen:
+    backend:
+    postgresql:
+    valkey:

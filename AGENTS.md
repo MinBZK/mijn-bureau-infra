@@ -161,3 +161,6 @@ LaSuite Dictaphone: <https://github.com/suitenumerique/dictaphone/tree/main/src/
 Bureaublad: <https://github.com/MinBZK/bureaublad>
 Element Synaps and web: <https://github.com/element-hq/element-docker-demo>
 Livekit: <https://github.com/livekit/livekit>
+LaSuite People: <https://github.com/suitenumerique/people>
+LaSuite Find: <https://github.com/suitenumerique/find>
+LaSuite Menshen (find dependency, token exchange): <https://github.com/suitenumerique/menshen>

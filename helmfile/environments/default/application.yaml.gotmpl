@@ -151,6 +151,35 @@ application:
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secretkey" | sha1sum | quote }}
     secrettoServerKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "secrettoServerKey" | sha1sum | quote }}
 
+  # find is the global search service from LaSuite. It indexes Docs and Drive
+  # content in OpenSearch (one index per service) and exposes authenticated
+  # full-text search endpoints. Search/delete are authenticated with user
+  # tokens exchanged through Menshen, La Suite's OAuth 2.0 Token Exchange
+  # server, which ships as part of this app.
+  find:
+    enabled: true
+    namespace: ~
+    secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "find" "secretkey" | sha1sum | quote }}
+    # Whether Docs/Drive route their search API through Find. Indexing into
+    # Find is active whenever find is enabled. Search additionally needs
+    # Menshen token-exchange support in the deployed Docs/Drive images.
+    searchEnabled: true
+    # OpenSearch index prefix. Indices are named `{prefix}-{service}`.
+    opensearchIndexPrefix: "find"
+    # Service tokens Docs and Drive push their content with. Find requires
+    # tokens of exactly 50 characters; only their hash is stored.
+    serviceTokens:
+      docs: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "find" "serviceTokenDocs" | sha256sum | trunc 50 | quote }}
+      drive: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "find" "serviceTokenDrive" | sha256sum | trunc 50 | quote }}
+    # Menshen token-exchange server. Find introspects search tokens with the
+    # "find" client; Docs/Drive exchange user tokens with their own clients.
+    menshen:
+      enabled: true
+      clientSecrets:
+        find: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "find" "menshenClientFind" | sha1sum | quote }}
+        docs: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "find" "menshenClientDocs" | sha1sum | quote }}
+        drive: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "find" "menshenClientDrive" | sha1sum | quote }}
+
   # projects is a collaborative project management system from LaSuite
   # theme overrides branding (favicon, colors, fonts, header/footer, feedback
   # widgets) and is passed to the Projects THEME env var. Empty keeps nothing

@@ -1,0 +1,134 @@
+{{- $hostname := printf "%s.%s" .Values.global.hostname.find .Values.global.domain }}
+{{- $menshenHostname := printf "%s.%s" .Values.global.hostname.menshen .Values.global.domain }}
+{{- $findNs := .Values.application.find.namespace | default "mijnbureau-find" }}
+{{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
+
+# OpenSearch: bundled single-node (search.find.host:port) or an external
+# cluster when search.find.url is set.
+{{- $osHost := .Values.search.find.host | default "find-opensearch" }}
+{{- $osPort := .Values.search.find.port | default 9200 | int }}
+{{- $osUseSsl := "False" }}
+{{- if .Values.search.find.url }}
+{{- $u := urlParse .Values.search.find.url }}
+{{- $osHost = get $u "hostname" }}
+{{- if get $u "port" }}{{ $osPort = get $u "port" | int }}{{ end }}
+{{- $osUseSsl = ternary "True" "False" (eq (get $u "scheme") "https") }}
+{{- end }}
+
+global:
+  security:
+    allowInsecureImages: true
+  {{- with (coalesce .Values.container.find.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - name: {{ . | quote }}
+  {{- end }}
+
+commonLabels:
+  app.kubernetes.io/part-of: find
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+find:
+  image:
+    registry: {{ (coalesce .Values.container.find.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.find.repository | quote }}
+    tag: {{ .Values.container.find.tag | quote }}
+    pullPolicy: Always
+  replicaCount: {{ .Values.autoscaling.horizontal.find.backend.minReplicas | default 1 }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.find.backend .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.find.backend | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  pdb: {{ .Values.pdb.find.backend | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.find.backend | toYaml | nindent 6 }}
+    vpa: {{ .Values.autoscaling.vertical.find.backend | default dict | toYaml | nindent 6 }}
+  envVars:
+    DJANGO_SETTINGS_MODULE: "find.settings"
+    DJANGO_CONFIGURATION: "Production"
+    DJANGO_ALLOWED_HOSTS: {{ printf "%s,find,find.%s.svc.cluster.local" $hostname $findNs | quote }}
+    ALLOWED_HOSTS: {{ printf "%s,find,find.%s.svc.cluster.local" $hostname $findNs | quote }}
+    DJANGO_CSRF_TRUSTED_ORIGINS: {{ printf "http%s://%s" $sslPostfix $hostname | quote }}
+    CSRF_TRUSTED_ORIGINS: {{ printf "http%s://%s" $sslPostfix $hostname | quote }}
+    DJANGO_SUPERUSER_USERNAME: {{ .Values.secret.find.superUser.username | quote }}
+    DJANGO_SUPERUSER_EMAIL: {{ .Values.secret.find.superUser.email | quote }}
+    DB_ENGINE: "django.db.backends.postgresql_psycopg2"
+    DB_HOST: {{ .Values.database.find.host | quote }}
+    DB_PORT: {{ .Values.database.find.port | quote }}
+    DB_NAME: {{ .Values.database.find.name | quote }}
+    DB_USER: {{ .Values.database.find.user | quote }}
+    OPENSEARCH_HOST: {{ $osHost | quote }}
+    OPENSEARCH_PORT: {{ $osPort | quote }}
+    OPENSEARCH_USE_SSL: {{ $osUseSsl | quote }}
+    # The bundled single-node OpenSearch runs without the security plugin.
+    OPENSEARCH_VERIFY_CERTS: {{ ternary "True" "False" (not (empty .Values.search.find.url)) | quote }}
+    OPENSEARCH_INDEX_PREFIX: {{ .Values.application.find.opensearchIndexPrefix | default "find" | quote }}
+    LANGUAGE_DETECTION_CONFIDENCE_THRESHOLD: "0.75"
+    LOGGING_LEVEL_LOGGERS_ROOT: "INFO"
+    LOGGING_LEVEL_LOGGERS_APP: "INFO"
+    PYTHONPATH: "/app"
+    # API docs and OpenAPI schema, for operators integrating services.
+    API_DOCS_ENABLED: "true"
+    API_OPENAPI_ENABLED: "true"
+    {{- if .Values.application.find.menshen.enabled }}
+    # Menshen runs its Production configuration with SECURE_SSL_REDIRECT, so
+    # find reaches it through the public https hostname, not the in-cluster
+    # service.
+    MENSHEN_URL: {{ printf "http%s://%s" $sslPostfix $menshenHostname | quote }}
+    MENSHEN_CLIENT_ID: "find"
+    MENSHEN_AUDIENCE: "find"
+    {{- end }}
+
+services:
+  - name: docs
+    token: {{ .Values.application.find.serviceTokens.docs | quote }}
+  - name: drive
+    token: {{ .Values.application.find.serviceTokens.drive | quote }}
+
+secretEnvVars:
+  DJANGO_SECRET_KEY: {{ .Values.application.find.secretKey | quote }}
+  DJANGO_SUPERUSER_PASSWORD: {{ .Values.secret.find.superUser.password | quote }}
+  DB_PASSWORD: {{ .Values.database.find.password | quote }}
+  REDIS_URL: {{ printf "redis://default:%s@%s:%d/1" .Values.cache.find.password .Values.cache.find.host (.Values.cache.find.port | int) | quote }}
+  # Required by find's settings; ignored by the bundled OpenSearch, which runs
+  # without the security plugin.
+  OPENSEARCH_USER: "admin"
+  OPENSEARCH_PASSWORD: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "find" "opensearch" | sha1sum | quote }}
+  {{- if .Values.application.find.menshen.enabled }}
+  MENSHEN_CLIENT_SECRET: {{ .Values.application.find.menshen.clientSecrets.find | quote }}
+  {{- end }}
+
+service:
+  type: ClusterIP
+  ports:
+    http: 8000
+
+ingress:
+  enabled: true
+  hostname: {{ $hostname }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.find | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- else if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+    {{- if and (hasKey .Values.cluster "certificate") (hasKey .Values.cluster.certificate "issuerRef") }}
+    {{- if eq .Values.cluster.certificate.issuerRef.kind "ClusterIssuer" }}
+    cert-manager.io/cluster-issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- else if eq .Values.cluster.certificate.issuerRef.kind "Issuer" }}
+    cert-manager.io/issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- end }}
+    {{- end }}

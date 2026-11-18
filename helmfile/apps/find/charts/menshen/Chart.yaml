@@ -1,0 +1,26 @@
+#
+# SPDX-License-Identifier: EUPL-1.2
+
+annotations:
+  category: security
+  licenses: MIT
+apiVersion: v2
+appVersion: 0.6.0
+dependencies:
+  - name: common
+    repository: "file://../../../common/charts/common"
+    version: 2.31.1
+description: LaSuite Menshen - OAuth 2.0 Token Exchange server for La Suite services (used by Find)
+home: https://minbzk.github.io/mijn-bureau-infra/
+keywords:
+  - menshen
+  - oauth2
+  - token-exchange
+  - lasuite
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: menshen
+sources:
+  - https://github.com/suitenumerique/menshen
+version: 0.1.0

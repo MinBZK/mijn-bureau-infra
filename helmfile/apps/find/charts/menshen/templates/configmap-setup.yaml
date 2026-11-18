@@ -1,0 +1,66 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if and .Values.jobs.setupServices.enabled .Values.setup.services }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "menshen.setupConfigMapName" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: setup
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  setup.json: {{ include "menshen.setupSpecJson" . | quote }}
+  setup_services.py: |
+    """Create the service providers, credentials and token exchange rules.
+
+    Mirrors Menshen's create_lasuite_demo, but declarative and idempotent:
+    services/rules come from /setup/setup.json and client secrets from the env
+    vars each service's `secretEnv` names. Secrets are (re)applied on every
+    release.
+    """
+    import json
+    import os
+
+    from token_exchange import models as tx_models
+
+    with open("/setup/setup.json", encoding="utf-8") as spec_file:
+        spec = json.load(spec_file)
+
+    services = {}
+    for service in spec["services"]:
+        provider, _created = tx_models.ServiceProvider.objects.get_or_create(
+            audience_id=service["audienceId"],
+            defaults={"name": service["name"]},
+        )
+        credentials, _created = tx_models.ServiceProviderCredentials.objects.get_or_create(
+            service_provider=provider,
+            client_id=service["clientId"],
+        )
+        credentials.set_client_secret(os.environ[service["secretEnv"]], save=True)
+        services[service["audienceId"]] = provider
+        print(f"service provider {provider.audience_id} configured")
+
+    for rule in spec["rules"]:
+        exchange_rule, _created = tx_models.TokenExchangeRule.objects.get_or_create(
+            source_service=services[rule["source"]],
+            target_service=services[rule["target"]],
+        )
+        for action_name, granted_scope in rule["actions"].items():
+            action, _created = tx_models.ActionScope.objects.get_or_create(name=action_name)
+            tx_models.ActionScopeGrant.objects.get_or_create(
+                action=action,
+                target_service=services[rule["target"]],
+                granted_scope=granted_scope,
+            )
+            tx_models.TokenExchangeActionPermission.objects.get_or_create(
+                rule=exchange_rule,
+                action=action,
+            )
+        print(f"rule {rule['source']} -> {rule['target']} configured")
+{{- end }}

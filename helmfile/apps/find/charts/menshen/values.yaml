@@ -1,0 +1,240 @@
+# SPDX-License-Identifier: EUPL-1.2
+
+## @section Global parameters
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  defaultStorageClass: ""
+  security:
+    allowInsecureImages: false
+
+## @section Common parameters
+
+kubeVersion: ""
+apiVersions: []
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+clusterDomain: cluster.local
+extraDeploy: []
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## @section menshen parameters
+## Menshen has a single component: the Django ASGI backend (uvicorn) serving
+## the token exchange/introspection API under /auth/token/ plus the admin.
+
+menshen:
+  image:
+    registry: docker.io
+    repository: lasuite/menshen-backend
+    tag: v0.6.0
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  replicaCount: 1
+  containerPorts:
+    http: 8000
+  extraContainerPorts: []
+  command: []
+  args: []
+  automountServiceAccountToken: false
+  hostAliases: []
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 60
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  customStartupProbe: {}
+
+  resourcesPreset: "nano"
+  resources: {}
+  podSecurityContext:
+    enabled: true
+    fsGroupChangePolicy: Always
+    sysctls: []
+    supplementalGroups: []
+    fsGroup: 1001
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    privileged: false
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: "RuntimeDefault"
+
+  podLabels: {}
+  podAnnotations: {}
+  deploymentAnnotations: {}
+  updateStrategy:
+    type: RollingUpdate
+  podAffinityPreset: ""
+  podAntiAffinityPreset: soft
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  priorityClassName: ""
+  topologySpreadConstraints: []
+  schedulerName: ""
+  runtimeClassName: ""
+  terminationGracePeriodSeconds: ""
+  lifecycleHooks: {}
+  sidecars: []
+  initContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+
+  pdb:
+    create: true
+    minAvailable: ""
+    maxUnavailable: ""
+
+  autoscaling:
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 3
+      targetCPU: 80
+      targetMemory: ""
+    vpa:
+      enabled: false
+      annotations: {}
+      controlledResources: []
+      maxAllowed: {}
+      minAllowed: {}
+      updatePolicy:
+        updateMode: Recreate
+
+  ## Non-sensitive environment variables, rendered in the chart ConfigMap.
+  envVars: {}
+
+service:
+  type: ClusterIP
+  ports:
+    http: 8000
+  nodePorts:
+    http: ""
+  clusterIP: ""
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: Cluster
+  annotations: {}
+  extraPorts: []
+  sessionAffinity: None
+  sessionAffinityConfig: {}
+
+networkPolicy:
+  enabled: true
+  # Menshen is called by other apps' backends (token exchange/introspection).
+  allowExternal: true
+  allowExternalEgress: true
+  addExternalClientAccess: true
+  extraIngress: []
+  extraEgress: []
+  ingressPodMatchLabels: {}
+  ingressNSMatchLabels: {}
+  ingressNSPodMatchLabels: {}
+
+ingress:
+  enabled: false
+  pathType: Prefix
+  apiVersion: ""
+  hostname: menshen.local
+  ingressClassName: ""
+  path: /
+  annotations: {}
+  tls: true
+  selfSigned: false
+  extraHosts: []
+  extraPaths: []
+  extraTls: []
+  extraRules: []
+  secrets: []
+
+## @section menshen secrets
+## Rendered in the chart Secret and env-sourced by all pods (backend and jobs).
+secretEnvVars: {}
+
+## Declarative service providers and token-exchange rules, applied by the
+## setup-services hook job (idempotent, mirrors Menshen's create_lasuite_demo).
+setup:
+  ## services: [{audienceId, clientId, secretEnv}]
+  ## secretEnv names an environment variable (from secretEnvVars) holding the
+  ## client secret for that provider's credentials.
+  services: []
+  ## rules: [{source: <audienceId>, target: <audienceId>, actions: {<action
+  ## scope>: <granted scope>}}]
+  rules: []
+
+jobs:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 20
+  migrate:
+    enabled: true
+  createSuperUser:
+    enabled: true
+  setupServices:
+    enabled: true
+
+## JWT signing keys for exchanged tokens (TOKEN_EXCHANGE_JWT_SIGNING_KEYS):
+## RSA key(s) generated once on the cluster by a pre-install job and kept in a
+## secret the pods env-load. Rotation = delete the secret and re-run.
+jwtKeys:
+  enabled: true
+  ## @param jwtKeys.existingSecret Secret with a TOKEN_EXCHANGE_JWT_SIGNING_KEYS key; skips the generation job
+  existingSecret: ""
+  ## @param jwtKeys.currentKid Active key id, must be a key in TOKEN_EXCHANGE_JWT_SIGNING_KEYS
+  currentKid: "default"
+  image:
+    registry: registry-1.docker.io
+    repository: alpine/openssl
+    tag: 3.5.7
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  kubectlImage:
+    registry: registry-1.docker.io
+    repository: dtzar/helm-kubectl
+    tag: "3.16.2"
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
