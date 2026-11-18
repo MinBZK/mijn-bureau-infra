@@ -29,7 +29,7 @@ export MIJNBUREAU_MASTER_PASSWORD="paste-the-generated-value-here"
 ```
 
 :::warning Password Security
-This password is used to generate most application secrets. It must be at least 20 random characters (see [Secrets](../secrets.md#master-password-strength)) and stored securely, as it will be required for future operations.
+This password is used to generate most application secrets. It must be at least 20 random characters (see [Secrets](../secrets/derived.md#master-password-strength)) and stored securely, as it will be required for future operations.
 :::
 
 ---

@@ -39,7 +39,7 @@ objectstore:
 
 ### Securing MinIO Credentials
 
-Storing credentials directly in configuration files is not recommended. Use a secrets file to manage credentials securely. Loading a secrets file is disabled by default; enable the `secrets:` block in `helmfile/bases/environment.yaml.gotmpl` as described in [Secrets](../secrets.md).
+Storing credentials directly in configuration files is not recommended. Use a secrets file to manage credentials securely. Loading a secrets file is disabled by default; enable the `secrets:` block in `helmfile/bases/environment.yaml.gotmpl` as described in [Secrets](../secrets/sops.md).
 
 1. Add the credentials to a secrets file:
 
