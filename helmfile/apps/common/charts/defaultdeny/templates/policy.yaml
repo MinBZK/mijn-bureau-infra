@@ -3,8 +3,89 @@
 SPDX-License-Identifier: APACHE-2.0
 */}}
 
+---
+
 {{- range .Values.namespaces }}
 {{- if or (not (hasKey . "enabled")) .enabled }}
+{{- if $.Values.egress.enabled }}
+# Baseline egress isolation: outbound traffic is only accepted towards pods
+# of the same namespace, cluster DNS, the configured cross-namespace
+# exceptions (allowedCrossNamespaceEgress) and TCP/443 (any destination —
+# required for hook jobs and operators that talk to the Kubernetes API, which
+# lives outside the pod/service networks and cannot be selected by label).
+# Component charts that already render their own egress rules keep working:
+# NetworkPolicies are additive (union), so this policy only restricts pods
+# that no other egress-allowing policy covers.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress
+  namespace: {{ .name | quote }}
+  labels:
+    app.kubernetes.io/name: defaultdeny
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/version: {{ $.Chart.AppVersion | quote }}
+    app.kubernetes.io/component: networkpolicy
+    app.kubernetes.io/part-of: mijn-bureau
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    {{- with $.Values.commonLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with $.Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    # pods of the same namespace
+    - to:
+        - podSelector: {}
+    # DNS resolution (external resolver on the configured port, plus the
+    # optional internal/NodeLocal resolver in its namespace)
+    {{- with $.Values.dns.external }}
+    - ports:
+        - port: {{ .port | default 53 }}
+          protocol: UDP
+        - port: {{ .port | default 53 }}
+          protocol: TCP
+    {{- end }}
+    {{- with $.Values.dns.internal }}
+    {{- if or .port .namespace }}
+    - ports:
+        - port: {{ .port | default 53 }}
+          protocol: UDP
+        - port: {{ .port | default 53 }}
+          protocol: TCP
+      {{- with .namespace }}
+      to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ . | quote }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+    # Kubernetes API and other HTTPS endpoints (API server lives outside the
+    # cluster networks and is not selectable by namespace/pod labels). Tighten
+    # this if the platform exposes the API address as a known CIDR.
+    - ports:
+        - port: 443
+          protocol: TCP
+    {{- range $.Values.allowedCrossNamespaceEgress }}
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .name | quote }}
+      ports:
+        {{- range .ports }}
+        - port: {{ . }}
+          protocol: TCP
+        {{- end }}
+    {{- end }}
+---
+{{- end }}
 # Namespace isolation: inbound traffic is only accepted from pods of the same
 # namespace or from sources an application chart's NetworkPolicy explicitly
 # allows. Same-namespace flows stay working (this protects cross-namespace

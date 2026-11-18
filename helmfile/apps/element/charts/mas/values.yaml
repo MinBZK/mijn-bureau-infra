@@ -493,6 +493,14 @@ config:
     - 127.0.0.1/8
     - fd00::/8
     - ::1/128
+  ## Admin API on the public `web` listener. Required by Ketesa's MAS mode
+  ## (registration tokens, session and email management). The endpoint is
+  ## authenticated and only answers MAS admins, but it does widen the public
+  ## surface of the MAS listener.
+  ## @param config.adminApi.enabled Expose the MAS admin API resource on the web listener
+  ##
+  adminApi:
+    enabled: false
   ## Database configuration. The password is stored in the rendered Secret and
   ## referenced as `database.password_file`.
   ## @param config.database.host PostgreSQL host

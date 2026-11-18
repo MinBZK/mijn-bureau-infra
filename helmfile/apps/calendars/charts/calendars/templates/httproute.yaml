@@ -24,9 +24,6 @@ spec:
             value: /api
         - path:
             type: PathPrefix
-            value: /admin
-        - path:
-            type: PathPrefix
             value: /static
         - path:
             type: PathPrefix

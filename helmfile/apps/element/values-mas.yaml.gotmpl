@@ -198,6 +198,12 @@ metrics:
 # are generated once by the keygen hook Job.
 config:
   publicBase: {{ printf "https://%s/" $hostName | quote }}
+  # Expose the MAS admin API on the public listener for Ketesa's MAS mode
+  # (registration tokens, sessions, linked emails, upstream OAuth links). It is
+  # authenticated and only answers MAS admins, but it only makes sense to
+  # expose when an admin UI consumes it.
+  adminApi:
+    enabled: {{ .Values.application.element.ketesa.enabled | default false }}
   # OIDC issuer advertised by MAS; keep it on the MAS host: the clients resolve
   # <issuer>/.well-known/openid-configuration, so this must be publicly valid
   # (not the bare base domain, which has no ingress).

@@ -1,0 +1,30 @@
+image:
+  repository: python
+  tag: 3.13-slim
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  port: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# OpenAI transcription API settings.
+upstream:
+  url: https://api.openai.com/v1/audio/transcriptions
+  model: gpt-4o-transcribe-diarize
+
+# Fallback cluster DNS config for the NetworkPolicy; helmfile overrides this
+# with the real cluster.networking.dns values.
+cluster:
+  networking:
+    dns:
+      external:
+        port: 53

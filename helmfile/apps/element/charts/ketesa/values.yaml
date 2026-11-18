@@ -1,0 +1,94 @@
+# Default values for ketesa.
+# The deployment-facing configuration lives in the helmfile values file
+# helmfile/apps/element/values-ketesa.yaml.gotmpl.
+#
+# Ketesa is a static single page application (static-web-server image, no
+# database, no backend): the browser talks to the Synapse admin API directly.
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+# The official image runs static-web-server as the `sws` user (uid/gid 1000)
+# and serves the SPA from /home/sws/public on port 8080.
+image:
+  registry: ghcr.io
+  repository: etkecc/ketesa
+  tag: v1.5.2
+  pullPolicy: Always
+  pullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+
+commonLabels: {}
+commonAnnotations: {}
+
+replicaCount: 1
+revisionHistoryLimit: 10
+
+containerPorts:
+  http: 8080
+
+service:
+  type: ClusterIP
+  ports:
+    http: 80
+
+serviceAccount:
+  create: false
+  name: ""
+
+resources: {}
+resourcesPreset: "none"
+
+podSecurityContext: {}
+containerSecurityContext: {}
+
+probes:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+# Contents of config.json, rendered verbatim as JSON next to index.html.
+# Every key is optional; an empty map runs Ketesa unconfigured. Supported
+# keys (restrictBaseUrl, externalAuthProvider, wellKnownDiscovery,
+# corsCredentials, asManagedUsers, menu) are documented in
+# https://github.com/etkecc/ketesa/blob/main/docs/config.md
+config: {}
+
+ingress:
+  enabled: false
+  hostname: ""
+  pathType: Prefix
+  ingressClassName: ""
+  annotations: {}
+  tls: false
+  selfSigned: false
+  extraTls: []
+
+networkPolicy:
+  enabled: true
+  # Ketesa is deliberately not reachable from other pods, only through the
+  # gateway/ingress controller (extraIngress).
+  allowExternal: false
+  # No egress needed: DNS only.
+  allowExternalEgress: false
+  ingressPodMatchLabels: {}
+  ingressNSMatchLabels: {}
+  extraIngress: []
+  extraEgress: []
+
+# Optional client-IP allowlist (CIDR ranges) for the admin panel; renders an
+# Envoy Gateway SecurityPolicy when cluster.routingMode is gateway-api. Empty
+# means publicly reachable.
+ipAllowlist: []
+
+# Provided by helmfile in real deployments; default only so standalone
+# `helm lint`/`helm template` renders.
+cluster:
+  routingMode: ""
+  gateway: {}
+  ingress:
+    className: ""
+    type: ""

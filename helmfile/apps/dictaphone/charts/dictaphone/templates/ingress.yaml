@@ -31,9 +31,6 @@ spec:
           - path: /api
             pathType: {{ .Values.ingress.pathType }}
             backend: {{- include "common.ingress.backend" (dict "serviceName" (include "dictaphone.backend.fullname" .) "servicePort" "http" "context" $)  | nindent 14 }}
-          - path: /admin
-            pathType: {{ .Values.ingress.pathType }}
-            backend: {{- include "common.ingress.backend" (dict "serviceName" (include "dictaphone.backend.fullname" .) "servicePort" "http" "context" $)  | nindent 14 }}
           - path: /static
             pathType: {{ .Values.ingress.pathType }}
             backend: {{- include "common.ingress.backend" (dict "serviceName" (include "dictaphone.backend.fullname" .) "servicePort" "http" "context" $)  | nindent 14 }}

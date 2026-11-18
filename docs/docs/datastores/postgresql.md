@@ -86,9 +86,9 @@ database:
 
 ### Securing Database Passwords
 
-Storing passwords directly in configuration files is not recommended, as they might be accidentally checked in and exposed. Instead, move the password to a separate secrets file.
+Storing passwords directly in configuration files is not recommended, as they might be accidentally checked in and exposed. Instead, move the password to a separate secrets file. Loading a secrets file is disabled by default; enable the `secrets:` block in `helmfile/bases/environment.yaml.gotmpl` as described in [Secrets](../secrets.md).
 
-1. Add the following to `helmfile/environments/production/example.secrets.yaml`:
+1. Add the following to `helmfile/environments/production/secrets.yaml`:
 
    ```yaml
    database:
@@ -101,7 +101,7 @@ Storing passwords directly in configuration files is not recommended, as they mi
 3. Encrypt the secrets file using SOPS:
 
    ```bash
-   sops -e -i helmfile/environments/production/example.secrets.yaml
+   sops -e -i helmfile/environments/production/secrets.yaml
    ```
 
 4. Ensure your CI/CD system is configured to decrypt the secrets during deployment.

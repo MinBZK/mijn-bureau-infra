@@ -30,6 +30,10 @@ debug.log
 # Demo.yaml
 /helmfile/environments/demo/demo.yaml.gotmpl
 
+# Local deployment overlays and secrets — never commit these
+/helmfile/environments/*/*.secrets.yaml
+/helmfile/environments/demo/fundament.yaml.gotmpl
+
 # Local kind environment (personal, machine-specific)
 /helmfile/environments/local/
 

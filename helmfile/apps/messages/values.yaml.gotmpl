@@ -43,12 +43,20 @@
 {{- if .Values.application.messages.rspamd.enabled | default true }}
 {{- /* Spam/sender-auth pipeline (upstream docs/spam.md): every external
   message is POSTed to rspamd's /checkv2. inbound_auth "_rspamd"_ reuses the
-  same scan's DKIM/DMARC symbols for the forged/unverified sender banners.
-  rspamd is fail-closed: when unreachable, mail is held (up to
-  MESSAGES_INBOUND_DEFERRAL_MAX_AGE, 48h), never silently delivered. Virus
-  scanning happens inside rspamd (antivirus module → ClamAV). Same
-  namespace, short service name is enough. */}}
-{{- $featureEnv = append $featureEnv (dict "name" "SPAM_CONFIG" "value" `{"rspamd_url": "http://messages-rspamd:11333", "rspamd_auth": "", "inbound_auth": "rspamd"}`) }}
+  same scan's DKIM/DMARC symbols for the forged/unverified sender banners;
+  gate it with application.messages.inboundAuthEnabled (default true) to
+  drop the "identity could not be verified" banner. rspamd is fail-closed:
+  when unreachable, mail is held (up to MESSAGES_INBOUND_DEFERRAL_MAX_AGE,
+  48h), never silently delivered. Virus scanning happens inside rspamd
+  (antivirus module → ClamAV). Same namespace, short service name is
+  enough. hasKey instead of `default true`: sprig's default also fires on
+  an explicit false. */}}
+{{- $inboundAuthEnabled := ternary .Values.application.messages.inboundAuthEnabled true (hasKey .Values.application.messages "inboundAuthEnabled") }}
+{{- $spamConfig := `{"rspamd_url": "http://messages-rspamd:11333", "rspamd_auth": ""}` }}
+{{- if $inboundAuthEnabled }}
+{{- $spamConfig = `{"rspamd_url": "http://messages-rspamd:11333", "rspamd_auth": "", "inbound_auth": "rspamd"}` }}
+{{- end }}
+{{- $featureEnv = append $featureEnv (dict "name" "SPAM_CONFIG" "value" $spamConfig) }}
 {{- end }}
 # FEATURE_THREAD_SNIPPET enables the preview line under each thread subject;
 # the backlog is rebuilt by the job.threadSnippetsBackfill hook job.
@@ -181,6 +189,10 @@ worker:
   extraEnvVars: {{ $messagesExtraEnv | toYaml | nindent 4 }}
 
 frontend:
+  # The messages frontend nginx proxies the Django admin path (`/admin`) to the
+  # backend. Restrict it to loopback so it is unreachable through the gateway;
+  # admin access is port-forward-only, matching the other applications.
+  adminIpAllowlist: "127.0.0.1/32 ::1/128"
   image:
     registry: {{ (coalesce .Values.container.messages_frontend.registry .Values.container.default.registry) | quote }}
     repository: {{ .Values.container.messages_frontend.repository | quote }}

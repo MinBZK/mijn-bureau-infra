@@ -29,7 +29,7 @@ You only select a non-partner alternative when there is a strong, documented rea
 - Operational risk is unacceptable (for example reliability, supportability, or lifecycle concerns).
 - Total cost and delivery impact are demonstrably better, based on a transparent comparison.
 
-Each exception must include a written rationale, trade-off analysis, and review by architecture and product owners.
+Each exception must include a written rationale, trade-off analysis, and review by architecture and product owners. Recorded exceptions are listed in [ADR-MB-026](./adr-mb-026.md).
 
 ## Consequences
 

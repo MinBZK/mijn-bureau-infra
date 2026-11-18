@@ -8,7 +8,7 @@ sidebar_position: 10
 
 To access MijnBureau from the internet, you need a domain name (like `mijnbureau.mycompany.com`) and configure it in your DNS system.
 
-DNS is a service that translates domain names into IP addresses. When someone visits your domain, the DNS system directs them to the IP address of your server. You'll need to point your domain to the IP address of your Kubernetes cluster's ingress controller.
+DNS is a service that translates domain names into IP addresses. When someone visits your domain, the DNS system directs them to the IP address of your routing layer: the ingress controller in `ingress` mode or the Gateway in `gateway-api` mode.
 
 **What you need to do:**
 
@@ -31,6 +31,7 @@ global:
     element: "element"
     synapse: "matrix"
     mas: "mas"
+    ketesa: "ketesa"
     collabora: "collabora"
     nextcloud: "nextcloud"
     livekit: "livekit"
@@ -59,6 +60,7 @@ Create the following DNS records (replace `kubernetes.local` with your configure
 - `element.kubernetes.local`
 - `matrix.kubernetes.local`
 - `mas.kubernetes.local` (Matrix Authentication Service, enabled by default with Element)
+- `ketesa.kubernetes.local` (Ketesa, the Synapse admin UI, when `application.element.ketesa.enabled` is set)
 - `collabora.kubernetes.local`
 - `nextcloud.kubernetes.local`
 - `livekit.kubernetes.local`
@@ -71,6 +73,10 @@ Create the following DNS records (replace `kubernetes.local` with your configure
 - `projects.kubernetes.local`
 - `calendars.kubernetes.local`
 - `projects-minio.kubernetes.local`
+- `find.kubernetes.local` (Find search API and admin)
+- `menshen.kubernetes.local` (Menshen token exchange and admin)
+- `people.kubernetes.local` (when People is enabled)
+- `people-minio.kubernetes.local` (when People is enabled)
 - `dictaphone.kubernetes.local`
 - `dictaphone-minio.kubernetes.local`
 - `messages.kubernetes.local`
@@ -83,7 +89,9 @@ Create the following DNS records (replace `kubernetes.local` with your configure
 The Messages application needs more than HTTP records: inbound mail is delivered by a
 separate SMTP load balancer, and every mail domain needs MX, SPF, DKIM and DMARC records.
 The default technical domain is `mail.<global.domain>`. Override
-`application.messages.technicalDomain` if you use a different name.
+`application.messages.technicalDomain` if you use a different name. For the full
+authentication and deliverability checklist, see
+[Secure email setup](./security/email.md).
 
 Find the SMTP load balancer address:
 

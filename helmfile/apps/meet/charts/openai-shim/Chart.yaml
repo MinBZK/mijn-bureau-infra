@@ -1,0 +1,19 @@
+annotations:
+  category: ai
+  licenses: Apache-2.0
+apiVersion: v2
+appVersion: 0.1.0
+description: Translation shim between the Meet summary worker's WhisperX-style
+  requests and the OpenAI audio transcriptions API
+home: https://minbzk.github.io/mijn-bureau-infra/
+keywords:
+  - transcription
+  - openai
+  - meet
+maintainers:
+  - name: mijn-bureau-infra
+    url: "https://minbzk.github.io/mijn-bureau/"
+name: openai-shim
+sources:
+  - https://minbzk.github.io/mijn-bureau-infra/
+version: 0.1.0

@@ -23,7 +23,7 @@ cluster:
       # default-deny-ingress NetworkPolicy: inbound traffic is only accepted
       # from pods of the same namespace or via the chart-provided policies
       # (charts set allowExternal/ingress match labels). One-off non-app
-      # namespaces stay unaffected. Egress is component-policy territory.
+      # namespaces stay unaffected.
       enabled: true
       # Cross-namespace ingress exceptions applied in every isolated
       # namespace. CloudNativePG's operator (in its own namespace) needs to
@@ -32,6 +32,15 @@ cluster:
       allow:
         - name: cnpg-system
           ports: [8000, 9187]
+      # Baseline egress isolation: outbound traffic is limited to
+      # same-namespace pods, cluster DNS, TCP/443 (Kubernetes API / HTTPS
+      # endpoints) and the cross-namespace exceptions wired in
+      # helmfile/apps/common/values-defaultdeny.yaml.gotmpl (cluster-internal
+      # Keycloak OIDC and Messages mail submission). Disable if an app chart
+      # needs broader outbound access and cannot express it in its own
+      # NetworkPolicy.
+      egress:
+        enabled: true
 
   # routingMode selects the routing technology.
   # Allowed values: ingress, gateway-api, none.

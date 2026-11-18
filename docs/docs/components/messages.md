@@ -141,9 +141,11 @@ Notes:
 - Publish a matching PTR (reverse DNS) record for every outbound IP. It should resolve to the
   technical domain, for example `mail.example.com`.
 - DKIM keys are generated automatically when a mail domain is created. The private key is
-  encrypted with the installation's master password; keep `MIJNBUREAU_MASTER_PASSWORD` stable.
+  stored in PostgreSQL; keep `MIJNBUREAU_MASTER_PASSWORD` stable so the installation's
+  secrets do not change.
 
-See [DNS](../dns.md#email-messages) for the general MijnBureau DNS setup.
+See [DNS](../dns.md#email-messages) for the general MijnBureau DNS setup, and
+[Secure email setup](../security/email.md) for the full SPF/DKIM/DMARC checklist.
 
 ## Outbound mail
 

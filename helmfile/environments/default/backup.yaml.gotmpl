@@ -6,6 +6,28 @@ backup:
   retention: 720h0m0s
   namespace: velero
 
+  # Provide credentials here or via a SOPS secrets file under `backup.cnpg`.
+  cnpg:
+    endpointURL: ""            # e.g. "https://s3.example.com"
+    bucket: ""                 # e.g. "mijnbureau-backups"
+    region: "eu-west-1"
+    accessKey: ""
+    secretKey: ""
+    # Object-store destination prefix inside the bucket; each cluster appends
+    # its own name (<bucket>/<pathPrefix>/<app>).
+    pathPrefix: "postgresql"
+    # WAL/data transfer settings and retention for barman-cloud.
+    walCompression: "gzip"
+    walEncryption: "AES256"
+    dataCompression: "gzip"
+    dataEncryption: "AES256"
+    retentionPolicy: "30d"
+    scheduledBackups:
+      - name: daily-backup
+        schedule: "0 0 0 * * *"
+        backupOwnerReference: self
+        method: barmanObjectStore
+
   BackupStorageLocation:
     provider: aws
     objectStorage:

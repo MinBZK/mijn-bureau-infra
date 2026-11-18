@@ -24,9 +24,6 @@ spec:
             value: /api
         - path:
             type: PathPrefix
-            value: /admin
-        - path:
-            type: PathPrefix
             value: /static
       filters:
         {{- include "common.httproute.hstsFilter" . | nindent 8 }}

@@ -1,11 +1,14 @@
 # Baseline network isolation per application namespace.
 #
-# The chart creates one NetworkPolicy per namespace: inbound traffic is only
-# accepted from pods of the same namespace, or from sources an application
-# chart's own NetworkPolicy explicitly allows. Egress is intentionally not
-# restricted at this baseline level — component policies handle outbound
-# restrictions where they exist (denying egress here would also break DNS and
-# jobs that reach the Kubernetes API).
+# The chart creates one default-deny-ingress NetworkPolicy per namespace:
+# inbound traffic is only accepted from pods of the same namespace, or from
+# sources an application chart's own NetworkPolicy explicitly allows.
+#
+# With egress.enabled it also creates a default-deny-egress NetworkPolicy:
+# outbound traffic is only allowed to same-namespace pods, cluster DNS,
+# TCP/443 (Kubernetes API / HTTPS endpoints) and allowedCrossNamespaceEgress.
+# NetworkPolicies are additive, so this only restricts pods that no other
+# egress-allowing policy covers.
 
 ## @param commonLabels Labels to add to all NetworkPolicies rendered by this chart
 ##
@@ -24,6 +27,32 @@ commonAnnotations: {}
 ##     ports: [8000]
 ##
 allowedCrossNamespaceIngress: []
+
+## Egress baseline. When enabled, every covered namespace also gets a
+## default-deny-egress NetworkPolicy: outbound traffic is only allowed to
+## same-namespace pods, cluster DNS (dns.*), TCP/443 (Kubernetes API and
+## other HTTPS endpoints), and the entries in allowedCrossNamespaceEgress
+## (e.g. cluster-internal OIDC and mail submission).
+egress:
+  enabled: false
+
+## @param dns DNS egress settings for the default-deny-egress policy; mirrors
+## cluster.networking.dns.
+dns:
+  external:
+    port: 53
+  internal:
+    port: ~
+    namespace: ~
+
+## @param allowedCrossNamespaceEgress Cross-namespace outbound exceptions
+## applied in every covered namespace.
+## Example:
+## allowedCrossNamespaceEgress:
+##   - name: mijnbureau-keycloak
+##     ports: [80, 443]
+##
+allowedCrossNamespaceEgress: []
 
 ## @param namespaces Volumes to protect. Every entry creates a default-deny-ingress NetworkPolicy in that namespace.
 ## Example:

@@ -1,5 +1,14 @@
 authentication:
 
+  # Organization seeded into the in-cluster keycloak realm (demo environments
+  # only). Member seeding follows the demo user list; the email domain defaults
+  # to global.domain when `domain` is left empty.
+  organization:
+    name: "Mijn Bureau"
+    alias: "mijnbureau"
+    description: "Demo organization; all seeded demo users are members."
+    domain: ~
+
   # OpenID Connect (OIDC) endpoints. Default to the in-cluster keycloak;
   # override per environment to point at an external identity provider.
   oidc:

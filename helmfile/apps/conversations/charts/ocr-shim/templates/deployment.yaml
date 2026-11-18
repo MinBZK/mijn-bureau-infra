@@ -2,9 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "ocr-shim.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
-    app.kubernetes.io/name: {{ include "ocr-shim.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "ocr-shim.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -17,6 +17,8 @@ spec:
         app.kubernetes.io/name: {{ include "ocr-shim.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      serviceAccountName: {{ include "ocr-shim.serviceAccountName" . }}
+      automountServiceAccountToken: false
       containers:
         - name: shim
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

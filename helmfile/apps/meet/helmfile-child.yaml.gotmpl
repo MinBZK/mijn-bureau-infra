@@ -64,3 +64,9 @@ releases:
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-minio.yaml.gotmpl"
 
+  - name: meet-openai-shim
+    chart: charts/openai-shim
+    {{- if .Values.application.meet.namespace }}
+    namespace: {{ .Values.application.meet.namespace }}
+    {{- end }}
+    installed: {{ and .Values.application.meet.enabled .Values.ai.whisperx.shim | toYaml }}

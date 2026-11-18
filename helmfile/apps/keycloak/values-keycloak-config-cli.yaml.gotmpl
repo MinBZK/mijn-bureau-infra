@@ -93,7 +93,10 @@ import:
         "displayNameHtml": "<b>Mijn Bureau</b>",
         "defaultSignatureAlgorithm": "RS256",
         "enabled" : true,
+        "organizationsEnabled": true,
         "revokeRefreshToken": true,
+        "ssoSessionIdleTimeout": 43200,
+        "ssoSessionMaxLifespan": 43200,
         "editUsernameAllowed": false,
         "registrationAllowed": false,
         "duplicateEmailsAllowed": false,
@@ -175,7 +178,8 @@ import:
             "clientAuthenticatorType": "client-secret",
             "secret": "$(env:MB_CLIENT_SECRET_MEET)",
             "redirectUris": [
-              "/*"
+              "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/api/v1.0/callback/",
+              "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/api/v1.0/logout-callback/"
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}"
@@ -216,7 +220,8 @@ import:
             "clientAuthenticatorType": "client-secret",
             "secret": "$(env:MB_CLIENT_SECRET_CONVERSATIONS)",
             "redirectUris": [
-              "/*"
+              "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/api/v1.0/callback/",
+              "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}/api/v1.0/logout-callback/"
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.conversations }}.{{ .Values.global.domain }}"
@@ -282,7 +287,8 @@ import:
             "clientAuthenticatorType": "client-secret",
             "secret": "$(env:MB_CLIENT_SECRET_DRIVE)",
             "redirectUris": [
-              "/*"
+              "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/api/v1.0/callback/",
+              "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}/api/v1.0/logout-callback/"
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
@@ -337,7 +343,7 @@ import:
             "clientAuthenticatorType": "client-secret",
             "secret": "$(env:MB_CLIENT_SECRET_PROJECTS)",
             "redirectUris": [
-              "/*"
+              "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}/oidc-callback"
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.projects }}.{{ .Values.global.domain }}"
@@ -376,7 +382,8 @@ import:
             "clientAuthenticatorType": "client-secret",
             "secret": "$(env:MB_CLIENT_SECRET_PEOPLE)",
             "redirectUris": [
-              "/*"
+              "https://{{ .Values.global.hostname.people }}.{{ .Values.global.domain }}/api/v1.0/callback/",
+              "https://{{ .Values.global.hostname.people }}.{{ .Values.global.domain }}/api/v1.0/logout-callback/"
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.people }}.{{ .Values.global.domain }}"
@@ -415,7 +422,8 @@ import:
             "clientAuthenticatorType": "client-secret",
             "secret": "$(env:MB_CLIENT_SECRET_CALENDARS)",
             "redirectUris": [
-              "/*"
+              "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}/api/v1.0/callback/",
+              "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}/api/v1.0/logout-callback/"
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.calendars }}.{{ .Values.global.domain }}"
@@ -455,7 +463,8 @@ import:
             "clientAuthenticatorType": "client-secret",
             "secret": "$(env:MB_CLIENT_SECRET_DICTAPHONE)",
             "redirectUris": [
-              "/*"
+              "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}/api/v1.0/callback/",
+              "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}/api/v1.0/logout-callback/"
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.dictaphone }}.{{ .Values.global.domain }}"
@@ -495,7 +504,7 @@ import:
             "clientAuthenticatorType": "client-secret",
             "secret": "$(env:MB_CLIENT_SECRET_NEXTCLOUD)",
             "redirectUris": [
-              "/*"
+              "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}/index.php/apps/user_oidc/code"
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.nextcloud }}.{{ .Values.global.domain }}"
@@ -532,7 +541,8 @@ import:
             "clientAuthenticatorType": "client-secret",
             "secret": "$(env:MB_CLIENT_SECRET_DOCS)",
             "redirectUris": [
-              "/*"
+              "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/api/v1.0/callback/",
+              "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/api/v1.0/logout-callback/"
             ],
             "webOrigins": [
               "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}"
@@ -585,16 +595,17 @@ import:
             "alwaysDisplayInConsole": false,
             "clientAuthenticatorType": "client-secret",
             "secret": "$(env:MB_CLIENT_SECRET_MENSHEN)",
-            "redirectUris": [
-              "/*"
-            ],
+            # Service-account only: menshen introspects user tokens server-side
+            # and never runs a browser login flow, so standard flow and
+            # redirect URIs are deliberately disabled/empty.
+            "redirectUris": [],
             "webOrigins": [
               "https://{{ .Values.global.hostname.menshen }}.{{ .Values.global.domain }}"
             ],
             "notBefore": 0,
             "bearerOnly": false,
             "consentRequired": false,
-            "standardFlowEnabled": true,
+            "standardFlowEnabled": false,
             "implicitFlowEnabled": false,
             "directAccessGrantsEnabled": false,
             "serviceAccountsEnabled": true,
@@ -637,6 +648,20 @@ import:
             "publicClient": false,
             "frontchannelLogout": true,
             "protocol": "openid-connect",
+            "protocolMappers": [
+              {
+                "name": "audience-menshen",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-audience-mapper",
+                "consentRequired": false,
+                "config": {
+                  "included.client.audience": "{{ .Values.authentication.client.menshen.client_id }}",
+                  "id.token.claim": "false",
+                  "access.token.claim": "true",
+                  "lightweight.claim": "false"
+                }
+              }
+            ],
             "attributes": {
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
@@ -775,10 +800,31 @@ import:
           {{- end }}
         ],
         {{- end }}
+        {{- if eq .Environment.Name "demo" }}
+        "organizations": [
+          {
+            "name": {{ .Values.authentication.organization.name | quote }},
+            "alias": {{ .Values.authentication.organization.alias | quote }},
+            "description": {{ .Values.authentication.organization.description | quote }},
+            "enabled": true,
+            "domains": [
+              { "name": {{ coalesce .Values.authentication.organization.domain .Values.global.domain | quote }}, "verified": true }
+            ],
+            "members": [
+              {{- range $index, $user := .Values.user }}
+              { "username": {{ $user.username | quote }} }{{- if lt $index (sub (len $.Values.user) 1) }},{{- end }}
+              {{- end }}
+            ]
+          }
+        ],
+        {{- end }}
         "internationalizationEnabled": true,
         "eventsEnabled": true,
-        "eventsExpiration": 86400,
+        "eventsExpiration": 259200,
         "adminEventsEnabled": true,
+        "attributes": {
+          "adminEventsExpiration": "2592000"
+        },
         "supportedLocales": [
           "en",
           "{{ .Values.global.defaultLocale }}"

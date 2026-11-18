@@ -41,4 +41,27 @@ cluster:
       name: dictaphone-cluster-app
 
 backups:
-  enabled: false
+  # CloudNativePG object-store backups to the external store configured under
+  # backup.cnpg (helmfile/environments/default/backup.yaml.gotmpl). Active only
+  # when backup.enabled is true AND an endpoint is configured.
+  enabled: {{ and .Values.backup.enabled (not (empty (dig "cnpg" "endpointURL" "" .Values.backup))) }}
+  {{- if and .Values.backup.enabled (not (empty (dig "cnpg" "endpointURL" "" .Values.backup))) }}
+  provider: s3
+  endpointURL: {{ (dig "cnpg" "endpointURL" "" .Values.backup) | quote }}
+  destinationPath: s3://{{ (dig "cnpg" "bucket" "" .Values.backup) }}/{{ (dig "cnpg" "pathPrefix" "postgresql" .Values.backup) }}/dictaphone
+  s3:
+    region: {{ (dig "cnpg" "region" "eu-west-1" .Values.backup) | quote }}
+    bucket: {{ (dig "cnpg" "bucket" "" .Values.backup) | quote }}
+    path: /{{ (dig "cnpg" "pathPrefix" "postgresql" .Values.backup) }}/dictaphone
+    accessKey: {{ (dig "cnpg" "accessKey" "" .Values.backup) | quote }}
+    secretKey: {{ (dig "cnpg" "secretKey" "" .Values.backup) | quote }}
+  wal:
+    compression: {{ (dig "cnpg" "walCompression" "gzip" .Values.backup) | quote }}
+    encryption: {{ (dig "cnpg" "walEncryption" "AES256" .Values.backup) | quote }}
+  data:
+    compression: {{ (dig "cnpg" "dataCompression" "gzip" .Values.backup) | quote }}
+    encryption: {{ (dig "cnpg" "dataEncryption" "AES256" .Values.backup) | quote }}
+  retentionPolicy: {{ (dig "cnpg" "retentionPolicy" "30d" .Values.backup) | quote }}
+  scheduledBackups:
+    {{- toYaml (dig "cnpg" "scheduledBackups" (list (dict "name" "daily-backup" "schedule" "0 0 0 * * *" "backupOwnerReference" "self" "method" "barmanObjectStore")) .Values.backup) | nindent 4 }}
+  {{- end }}

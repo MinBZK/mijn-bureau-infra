@@ -98,6 +98,10 @@ setup:
       audienceId: drive
       clientId: drive
       secretEnv: MENSHEN_CLIENT_SECRET_DRIVE
+    - name: "lasuite:bureaublad"
+      audienceId: bureaublad
+      clientId: bureaublad
+      secretEnv: MENSHEN_CLIENT_SECRET_BUREAUBLAD
   rules:
     - source: docs
       target: find
@@ -109,6 +113,17 @@ setup:
       actions:
         action:search-find-drive: find:drive:search
         action:delete-find-drive: find:drive:delete
+    # Bureaublad's global search bar: plain scope grants (the "openid" scope
+    # every user token carries) so one exchange can grant search in the Docs
+    # and Drive indices at once; Menshen actions only honour a single grant
+    # per (target, action) in v0.6.0.
+    - source: bureaublad
+      target: find
+      scopes:
+        - source: openid
+          granted: find:docs:search
+        - source: openid
+          granted: find:drive:search
 
 secretEnvVars:
   DJANGO_SECRET_KEY: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "menshen" "secretkey" | sha1sum | quote }}
@@ -120,6 +135,7 @@ secretEnvVars:
   MENSHEN_CLIENT_SECRET_FIND: {{ .Values.application.find.menshen.clientSecrets.find | quote }}
   MENSHEN_CLIENT_SECRET_DOCS: {{ .Values.application.find.menshen.clientSecrets.docs | quote }}
   MENSHEN_CLIENT_SECRET_DRIVE: {{ .Values.application.find.menshen.clientSecrets.drive | quote }}
+  MENSHEN_CLIENT_SECRET_BUREAUBLAD: {{ .Values.application.find.menshen.clientSecrets.bureaublad | quote }}
   # Key used to hash exchanged tokens before storing them.
   TOKEN_EXCHANGE_TOKEN_HASH_KEY: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "menshen" "tokenHashKey" | sha1sum | quote }}
 

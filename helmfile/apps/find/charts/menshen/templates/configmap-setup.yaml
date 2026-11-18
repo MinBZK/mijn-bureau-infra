@@ -51,13 +51,26 @@ data:
             source_service=services[rule["source"]],
             target_service=services[rule["target"]],
         )
-        for action_name, granted_scope in rule["actions"].items():
-            action, _created = tx_models.ActionScope.objects.get_or_create(name=action_name)
-            tx_models.ActionScopeGrant.objects.get_or_create(
-                action=action,
-                target_service=services[rule["target"]],
-                granted_scope=granted_scope,
+        # Plain scope grants: the subject token's own scope (e.g. "openid")
+        # unlocks the granted scope. Unlike actions, several may be combined in
+        # one exchange request — used by bureaublad's cross-service search bar.
+        for scope in rule.get("scopes", []):
+            tx_models.ScopeGrant.objects.get_or_create(
+                rule=exchange_rule,
+                source_scope=scope["source"],
+                granted_scope=scope["granted"],
             )
+        # Each action maps to a scope or a list of scopes (note: Menschen only
+        # honours one grant per (target, action); split multi-target grants).
+        for action_name, granted in rule.get("actions", {}).items():
+            granted_scopes = [granted] if isinstance(granted, str) else granted
+            action, _created = tx_models.ActionScope.objects.get_or_create(name=action_name)
+            for granted_scope in granted_scopes:
+                tx_models.ActionScopeGrant.objects.get_or_create(
+                    action=action,
+                    target_service=services[rule["target"]],
+                    granted_scope=granted_scope,
+                )
             tx_models.TokenExchangeActionPermission.objects.get_or_create(
                 rule=exchange_rule,
                 action=action,

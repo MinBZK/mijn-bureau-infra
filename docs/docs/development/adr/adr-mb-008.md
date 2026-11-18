@@ -2,7 +2,7 @@
 
 ## Status
 
-Superseded by ADR-MB-011
+Amended by ADR-MB-011 (image sources only; the chart template standard remains in force)
 
 ## Context
 
@@ -17,7 +17,7 @@ We will adopt the Bitnami Helm chart template as the standard for creating new H
 - Built-in support for resource presets and other common patterns
 - Strong community support and regular updates
 
-All new product integrations and internal charts will be based on the Bitnami template, unless there is a strong justification for an exception.git s
+All new product integrations and internal charts will be based on the Bitnami template, unless there is a strong justification for an exception.
 
 ## Consequences
 

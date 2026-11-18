@@ -23,11 +23,13 @@ kubectl config current-context
 Set the environment variable for the master password to enable deterministic secret generation:
 
 ```bash
-export MIJNBUREAU_MASTER_PASSWORD="your-very-secure-password"
+# Generate a random master password (minimum 20 characters, machine-generated):
+openssl rand -base64 24
+export MIJNBUREAU_MASTER_PASSWORD="paste-the-generated-value-here"
 ```
 
 :::warning Password Security
-This password is used to generate most application secrets. Use a strong password and store it securely, as it will be required for future operations.
+This password is used to generate most application secrets. It must be at least 20 random characters (see [Secrets](../secrets.md#master-password-strength)) and stored securely, as it will be required for future operations.
 :::
 
 ---

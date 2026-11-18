@@ -12,7 +12,7 @@ One of the hardest things to track during the life of a project is the motivatio
 
 We will keep a collection of records for "architecturally significant" decisions: those that affect the structure, non-functional characteristics, dependencies, interfaces, or construction techniques.
 
-We will keep ADRs in the project repository under adr/adr-mb-NNN.md
+We will keep ADRs in the project repository under `docs/docs/development/adr/adr-mb-NNN.md`
 
 ADRs will be numbered sequentially and monotonically. Numbers will not be reused.
 
