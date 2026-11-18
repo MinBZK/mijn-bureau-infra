@@ -15,6 +15,7 @@ MijnBureau has minimal prerequisites, requiring only a Kubernetes cluster and a 
 - A [CNCF certified](https://www.cncf.io/training/certification/software-conformance/) Kubernetes or [Haven](https://haven.commonground.nl/) compliant Kubernetes.
 - AMD64 platform.
 - A LoadBalancer (or more) if you want to host video conferencing backend
+- A CloudNativePG operator
 - A routing solution — one of:
   - **Ingress controller**: Traefik (default), NGINX or HAProxy (OpenShift).
   - **Gateway API controller**: any [conformant Gateway API](https://gateway-api.sigs.k8s.io/) implementation (e.g. Nginx Gateway Fabric, Cilium, Envoy Gateway, Istio).
@@ -50,8 +51,12 @@ needs a default StorageClass (or per-cluster `pvc.<app>.storageClass`) to provis
 database volumes. See [PostgreSQL](../datastores/postgresql.md) for the database
 configuration.
 
-cert-manager is only required when you use the bundled TLS issuance, and a Gateway API
+The cert-manager operator is only required when you use the bundled TLS issuance, and a Gateway API
 controller only when `cluster.gateway` is enabled.
+
+The external secret manager operator is only required when using the external secret option. and a SOPS operator is needed if you want to use SOPS secrets.
+
+An argocd operator is recommended when using gitops method.
 
 ### Kubernetes Resources
 
@@ -93,6 +98,8 @@ If you plan to store secrets like credentials, we recommend using an encryption 
 
 - **SOPS**: [Documentation](https://getsops.io/)
 - **AGE**: [Documentation](https://github.com/FiloSottile/age)
+
+There is also support for External Secret Operator. which makes it possible to store secrets in OpenBao or other secret manager.
 
 ---
 

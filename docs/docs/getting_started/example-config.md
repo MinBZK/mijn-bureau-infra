@@ -228,7 +228,7 @@ cluster:
     # Namespace for the Gateway resource — defaults to the release namespace
     namespace: ~
     # Must match the installed Gateway API controller (e.g. nginx, cilium, envoy-gateway, istio)
-    className: nginx
+    className: envoy-gateway
     # cert-manager ClusterIssuer used to provision TLS certificates
     certManagerClusterIssuer: letsencrypt-prod
     # Which namespaces may attach HTTPRoutes to the Gateway.

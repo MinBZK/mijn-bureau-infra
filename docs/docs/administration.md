@@ -14,7 +14,7 @@ There are two layers of administration:
   deployment; there is no web UI for the cluster itself.
 - **Application level** — per-product admin accounts, described below. Almost
   every one of them is derived from `MIJNBUREAU_MASTER_PASSWORD` (see
-  [Secrets](./secrets.md)), so no password has to be stored.
+  [Secrets](./secrets/index.md)), so no password has to be stored.
 
 Instructions for the people who _use_ the suite (not administer it) live in the
 [User guide](./user-guide/index.md).
@@ -22,7 +22,7 @@ Instructions for the people who _use_ the suite (not administer it) live in the
 :::warning
 All derived passwords change when `MIJNBUREAU_MASTER_PASSWORD` changes. That
 rotates every database password, app secret and admin login at once. Read
-[Secrets](./secrets.md) before you touch it.
+[Secrets](./secrets/index.md) before you touch it.
 :::
 
 ## Admin surfaces at a glance
@@ -309,7 +309,7 @@ Keep this in mind when handing a deployment over:
 1. Store `MIJNBUREAU_MASTER_PASSWORD` in a password manager. It is the only
    input needed to recover every derived credential. A machine-generated
    random value of at least 20 characters is required — never a human-chosen
-   password (see [Secrets](./secrets.md#master-password-strength)).
+   password (see [Secrets](./secrets/derived.md#master-password-strength)).
 2. Keep at least one Keycloak admin (`admin` in the `master` realm) and one
    Matrix account that is both Synapse admin and MAS admin.
 3. Access to `kubectl` in the target namespace is equivalent to full control.

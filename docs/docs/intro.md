@@ -18,20 +18,14 @@ MijnBureau gives you one workspace for seamless collaboration and communication 
 
 - **Work together:** documents, spreadsheets, presentations, notes, project management, calendars and secure file sharing.
 - **Communicate:** team chat, video conferencing and email
-- **Find everything:** one search across documents, files and mail.
+- **Find everything:** one search across documents and files.
 - **AI:** AI-assisted workflows, including meeting summaries and transcription.
 - **Organize work:** one start page for all tools and a shared team directory.
-- **Manage access:** integrated identity management, user portal, and admin portal.
+- **Manage access:** integrated identity management, user portal, and admin portals.
 
 Looking for instructions per tool? The [User guide](./user-guide/index.md) explains
 how to sign in and how to work with every application, from chat and mail to
 documents, meetings and search.
-
-### Planned Features
-
-We are actively expanding the suite with plans to include:
-
-- Password Manager
 
 ---
 

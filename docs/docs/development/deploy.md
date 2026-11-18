@@ -94,7 +94,7 @@ Set the master password and allow namespace creation:
 
 ```bash
 # Must be at least 20 random characters (e.g. `openssl rand -base64 24`);
-# see https://minbzk.github.io/mijn-bureau-infra/docs/secrets#master-password-strength
+# see https://minbzk.github.io/mijn-bureau-infra/docs/secrets/derived#master-password-strength
 export MIJNBUREAU_MASTER_PASSWORD="paste-a-generated-random-value-here"
 export MIJNBUREAU_CREATE_NAMESPACES=true
 ```

@@ -220,7 +220,7 @@ external service.
 ## Secret handling
 
 API keys belong in the environment's secrets file, not in the values files. MijnBureau
-supports SOPS-encrypted secrets through helm-secrets; see [Secrets](../secrets.md) for the
+supports SOPS-encrypted secrets through helm-secrets; see [Secrets](../secrets/sops.md) for the
 pattern. The demo environment keeps them in
 `helmfile/environments/demo/fundament.secrets.yaml`.
 

@@ -5,11 +5,7 @@ MijnBureau offers two secure, user-friendly file sharing and syncing options: Ne
 - Nextcloud: A mature, enterprise-grade solution with comprehensive features such as version control, shared folders, and collaborative editing.
 - LaSuite Drive: Developed by the French government and currently in the incubation phase, LaSuite Drive is a promising alternative with a focus on simplicity and privacy.
 
-Below are examples of both solutions.
-
-## NextCloud files
-
-![File Sharing Preview 1](/img/features/filestorage.png)
+Below is an example solution.
 
 ## LaSuite drive
 
