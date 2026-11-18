@@ -231,6 +231,19 @@ container:
     repository: "opensearchproject/opensearch"
     tag: "2.19.7"
     imagePullSecret: ~
+  # LaSuite Find (global search API). No tags are published yet upstream, so
+  # the mutable main tag is pinned.
+  find:
+    registry: "registry-1.docker.io"
+    repository: "lasuite/find"
+    tag: "main"
+    imagePullSecret: ~
+  # LaSuite Menshen (OAuth 2.0 token exchange, find dependency).
+  menshen:
+    registry: "registry-1.docker.io"
+    repository: "lasuite/menshen-backend"
+    tag: "v0.6.0"
+    imagePullSecret: ~
   nginx:
     registry: docker.io
     repository: nginx/nginx-unprivileged

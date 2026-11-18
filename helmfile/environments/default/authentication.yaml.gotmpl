@@ -64,3 +64,9 @@ authentication:
     messages:
       client_id: "messages"
       client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "messages_client_secret" | sha1sum | quote}}
+    # menshen introspects Docs/Drive user tokens in Keycloak with this client;
+    # the docs/drive clients carry an "audience-menshen" protocol mapper so
+    # their access tokens include menshen in the audience.
+    menshen:
+      client_id: "menshen"
+      client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "menshen_client_secret" | sha1sum | quote}}

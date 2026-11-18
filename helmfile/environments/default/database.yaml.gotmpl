@@ -128,3 +128,24 @@ database:
     isInternal: true
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "messages" "database" | sha1sum | quote}}
     adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "messages" "database_admin" | sha1sum | quote}}
+
+  find:
+    type: postgresql
+    host: find-cluster-rw
+    name: find
+    user: find
+    port: 5432
+    isInternal: true
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "find" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "find" "database_admin" | sha1sum | quote}}
+
+  # Menshen (token exchange for find) gets its own database and cluster.
+  menshen:
+    type: postgresql
+    host: menshen-cluster-rw
+    name: menshen
+    user: menshen
+    port: 5432
+    isInternal: true
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "menshen" "database" | sha1sum | quote}}
+    adminpassword: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "menshen" "database_admin" | sha1sum | quote}}

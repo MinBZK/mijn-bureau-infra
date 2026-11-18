@@ -1,0 +1,164 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: menshen
+  {{- if or .Values.menshen.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.menshen.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.menshen.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.menshen.replicaCount }}
+  {{- end }}
+  {{- if .Values.menshen.updateStrategy }}
+  strategy: {{- toYaml .Values.menshen.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.menshen.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: menshen
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- if .Values.menshen.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.menshen.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: menshen
+    spec:
+      {{- include "menshen.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ template "menshen.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.menshen.automountServiceAccountToken }}
+      {{- if .Values.menshen.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.menshen.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.menshen.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.menshen.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.menshen.podAffinityPreset "component" "menshen" "customLabels" $podLabels "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.menshen.podAntiAffinityPreset "component" "menshen" "customLabels" $podLabels "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.menshen.nodeAffinityPreset.type "key" .Values.menshen.nodeAffinityPreset.key "values" .Values.menshen.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.menshen.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.menshen.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.menshen.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.menshen.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.menshen.priorityClassName }}
+      priorityClassName: {{ .Values.menshen.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.menshen.schedulerName }}
+      schedulerName: {{ .Values.menshen.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.menshen.runtimeClassName }}
+      runtimeClassName: {{ .Values.menshen.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.menshen.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.menshen.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.menshen.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.menshen.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.menshen.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.menshen.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if .Values.menshen.initContainers }}
+      initContainers:
+        {{- include "common.tplvalues.render" (dict "value" .Values.menshen.initContainers "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: menshen
+          image: {{ template "menshen.image" . }}
+          imagePullPolicy: {{ .Values.menshen.image.pullPolicy }}
+          {{- if .Values.menshen.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.menshen.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.menshen.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.menshen.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.menshen.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.menshen.args "context" $) | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ template "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "menshen.secretName" . }}
+            {{- if .Values.jwtKeys.enabled }}
+            # JWT signing keys for exchanged tokens (JSON {kid: pem}),
+            # generated on the cluster by the jwt-keys job.
+            - secretRef:
+                name: {{ include "menshen.jwtKeys.secretName" . }}
+            {{- end }}
+          {{- if .Values.menshen.resources }}
+          resources: {{- toYaml .Values.menshen.resources | nindent 12 }}
+          {{- else if ne .Values.menshen.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.menshen.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.menshen.containerPorts.http }}
+              protocol: TCP
+            {{- if .Values.menshen.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.menshen.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.menshen.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.menshen.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.menshen.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.menshen.livenessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /__lbheartbeat__
+              port: http
+          {{- end }}
+          {{- if .Values.menshen.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.menshen.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.menshen.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.menshen.readinessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /__heartbeat__
+              port: http
+          {{- end }}
+          {{- if .Values.menshen.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.menshen.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.menshen.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.menshen.startupProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /__lbheartbeat__
+              port: http
+          {{- end }}
+          {{- end }}
+          {{- if .Values.menshen.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.menshen.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.menshen.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.menshen.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+        {{- if .Values.menshen.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.menshen.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.menshen.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.menshen.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

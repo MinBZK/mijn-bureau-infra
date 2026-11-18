@@ -93,3 +93,15 @@ pvc:
       size: "42Gi"
     opensearch:
       size: "42Gi"
+  find:
+    postgresql:
+      size: "42Gi"
+    valkey:
+      size: "42Gi"
+    opensearch:
+      size: "42Gi"
+  menshen:
+    postgresql:
+      size: "42Gi"
+    valkey:
+      size: "42Gi"

@@ -68,6 +68,11 @@ global:
     bureaublad:
       backend: "micro"
       frontend: "nano"
+    find:
+      backend: "micro"
+      opensearch: "medium"
+    menshen:
+      backend: "micro"
 
   # specify the subdomain for each component. this name will be combined with the base domain specified in the `domain` variable above
   hostname:
@@ -102,6 +107,11 @@ global:
     # MijnBureau header logo and runtime theme.css
     branding: "static"
     drive-minio: "drive-minio"
+    # LaSuite Find global search API (+ admin) and its Menshen token-exchange
+    # server. Only the admin UIs need public exposure; Docs/Drive reach both
+    # services in-cluster.
+    find: "find"
+    menshen: "menshen"
 
   defaultLocale: "nl"
 

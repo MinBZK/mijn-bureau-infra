@@ -1,3 +1,4 @@
+{{- $sslPrefix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
 global:
   ## Global Docker image parameters
   ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
@@ -84,6 +85,30 @@ drive:
       value: "lasuite.malware_detection.backends.icap.ICAPBackend"
     - name: MALWARE_DETECTION_PARAMETERS
       value: {{ printf `{"callback_path": "core.malware_detection.malware_detection_callback", "server_address": "%s", "server_port": %d, "service": "avscan"}` $icapHost (int .Values.antivirus.icap.port) | quote }}
+    {{- end }}
+    {{- if .Values.application.find.enabled }}
+    # LaSuite Find global search (helmfile/apps/find): index every item into
+    # Find and route the search API through it when application.find.
+    # searchEnabled is set. Search needs the user's OIDC tokens stored in the
+    # session (Menshen token exchange), hence the OIDC_STORE_* settings.
+    - name: SEARCH_INDEXER_CLASS
+      value: "core.services.search_indexers.SearchIndexer"
+    - name: SEARCH_INDEXER_URL
+      value: {{ printf "http%s://%s.%s/api/v1.0/documents/index/" $sslPrefix .Values.global.hostname.find .Values.global.domain | quote }}
+    - name: SEARCH_INDEXER_QUERY_URL
+      value: {{ printf "http%s://%s.%s/api/v1.0/documents/search/" $sslPrefix .Values.global.hostname.find .Values.global.domain | quote }}
+    - name: SEARCH_INDEXER_SECRET
+      value: {{ .Values.application.find.serviceTokens.drive | quote }}
+    - name: SEARCH_INDEXER_COUNTDOWN
+      value: "10"
+    - name: FEATURES_INDEXED_SEARCH
+      value: {{ .Values.application.find.searchEnabled | ternary "true" "false" | quote }}
+    - name: OIDC_STORE_ACCESS_TOKEN
+      value: "true"
+    - name: OIDC_STORE_REFRESH_TOKEN
+      value: "true"
+    - name: OIDC_STORE_REFRESH_TOKEN_KEY
+      value: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "drive" "oidcStoreRefreshTokenKey" | sha256sum | trunc 32 | b64enc | quote }}
     {{- end }}
   # Central branding host (branding release, per-app folder "drive").
   frontendCssUrl: "https://{{ index .Values.global.hostname "branding" }}.{{ .Values.global.domain }}/drive/theme.css"

@@ -1,0 +1,39 @@
+{{- /*
+
+SPDX-License-Identifier: EUPL-1.2
+*/}}
+
+{{- if and .Values.jobs.registerServices.enabled .Values.services }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "find.setupConfigMapName" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: setup
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  register_services.py: |
+    """Register the services that may index into Find (idempotent).
+
+    Tokens come from the FIND_SERVICE_TOKENS env var (JSON {"name": token}).
+    Find only stores the token hash, so re-setting them on every release is
+    safe and self-healing.
+    """
+    import json
+    import os
+
+    from core.models import Service
+
+    tokens = json.loads(os.environ["FIND_SERVICE_TOKENS"])
+    for name, token in tokens.items():
+        if len(token) != 50:
+            raise ValueError(f"Service token for {name!r} must be exactly 50 characters")
+        service, created = Service.objects.get_or_create(name=name)
+        service.set_token(token)
+        service.is_active = True
+        service.save()
+        print(f"service {service.name} {'created' if created else 'updated'}")
+{{- end }}

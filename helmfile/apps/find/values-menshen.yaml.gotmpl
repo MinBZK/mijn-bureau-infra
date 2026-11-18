@@ -1,0 +1,158 @@
+{{- $hostname := printf "%s.%s" .Values.global.hostname.menshen .Values.global.domain }}
+{{- $findNs := .Values.application.find.namespace | default "mijnbureau-find" }}
+{{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
+
+# OIDC provider (Keycloak) endpoints Menshen introspects user tokens with.
+{{- $oidcOpUrl := .Values.authentication.oidc.issuer | default "" -}}
+{{- if not $oidcOpUrl }}{{ $oidcOpUrl = regexReplaceAll "/protocol/openid-connect.*" (.Values.authentication.oidc.introspection_endpoint | default "") "" }}{{ end }}
+
+global:
+  security:
+    allowInsecureImages: true
+  {{- with (coalesce .Values.container.menshen.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - name: {{ . | quote }}
+  {{- end }}
+
+commonLabels:
+  app.kubernetes.io/part-of: find
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+menshen:
+  image:
+    registry: {{ (coalesce .Values.container.menshen.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.menshen.repository | quote }}
+    tag: {{ .Values.container.menshen.tag | quote }}
+    pullPolicy: Always
+  replicaCount: {{ .Values.autoscaling.horizontal.menshen.backend.minReplicas | default 1 }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.menshen.backend .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.menshen.backend | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | toYaml | nindent 4 }}
+  containerSecurityContext: {{ .Values.security.default.containerSecurityContext | toYaml | nindent 4 }}
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+  pdb: {{ .Values.pdb.menshen.backend | toYaml | nindent 4 }}
+  autoscaling:
+    hpa: {{ .Values.autoscaling.horizontal.menshen.backend | toYaml | nindent 6 }}
+    vpa: {{ .Values.autoscaling.vertical.menshen.backend | default dict | toYaml | nindent 6 }}
+  envVars:
+    DJANGO_SETTINGS_MODULE: "menshen.settings"
+    DJANGO_CONFIGURATION: "Production"
+    DJANGO_ALLOWED_HOSTS: {{ printf "%s,menshen,menshen.%s.svc.cluster.local" $hostname $findNs | quote }}
+    ALLOWED_HOSTS: {{ printf "%s,menshen,menshen.%s.svc.cluster.local" $hostname $findNs | quote }}
+    DJANGO_CSRF_TRUSTED_ORIGINS: {{ printf "http%s://%s" $sslPostfix $hostname | quote }}
+    CSRF_TRUSTED_ORIGINS: {{ printf "http%s://%s" $sslPostfix $hostname | quote }}
+    DJANGO_SUPERUSER_USERNAME: {{ .Values.secret.menshen.superUser.username | quote }}
+    DJANGO_SUPERUSER_EMAIL: {{ .Values.secret.menshen.superUser.email | quote }}
+    DB_HOST: {{ .Values.database.menshen.host | quote }}
+    DB_PORT: {{ .Values.database.menshen.port | quote }}
+    DB_NAME: {{ .Values.database.menshen.name | quote }}
+    DB_USER: {{ .Values.database.menshen.user | quote }}
+    MENSHEN_BASE_URL: {{ printf "http%s://%s" $sslPostfix $hostname | quote }}
+    LOGGING_LEVEL_LOGGERS_ROOT: "INFO"
+    LOGGING_LEVEL_LOGGERS_APP: "INFO"
+    # OIDC provider (Keycloak): introspection endpoint Menshen validates the
+    # subject tokens against. Both RP (admin login) and RS (token
+    # introspection) use the "menshen" client.
+    OIDC_OP_URL: {{ $oidcOpUrl | quote }}
+    OIDC_OP_INTROSPECTION_ENDPOINT: {{ .Values.authentication.oidc.introspection_endpoint | default "" | quote }}
+    OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.oidc.authorization_endpoint | default "" | quote }}
+    OIDC_OP_TOKEN_ENDPOINT: {{ .Values.authentication.oidc.token_endpoint | default "" | quote }}
+    OIDC_OP_USER_ENDPOINT: {{ .Values.authentication.oidc.userinfo_endpoint | default "" | quote }}
+    OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.oidc.jwks_uri | default "" | quote }}
+    OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.menshen.client_id | quote }}
+    OIDC_RS_CLIENT_ID: {{ .Values.authentication.client.menshen.client_id | quote }}
+    PYTHONPATH: "/app"
+    # JWT signing for exchanged tokens. Keys themselves come from the
+    # cluster-generated menshen-jwt-keys secret (jwtKeys section below).
+    TOKEN_EXCHANGE_JWT_CURRENT_KID: "default"
+    TOKEN_EXCHANGE_JWT_ALGORITHM: "RS256"
+
+jwtKeys:
+  enabled: true
+  image:
+    registry: {{ (coalesce .Values.container.openssl.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.openssl.repository | quote }}
+    tag: {{ .Values.container.openssl.tag | quote }}
+    pullPolicy: Always
+  kubectlImage:
+    registry: {{ (coalesce .Values.container.helm_kubectl.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.helm_kubectl.repository | quote }}
+    tag: {{ .Values.container.helm_kubectl.tag | quote }}
+    pullPolicy: Always
+
+# Service providers and token-exchange rules applied by the setup-services
+# hook job (mirrors Menshen's create_lasuite_demo): Docs and Drive may search
+# and delete their own documents in Find.
+setup:
+  services:
+    - name: "lasuite:find"
+      audienceId: find
+      clientId: find
+      secretEnv: MENSHEN_CLIENT_SECRET_FIND
+    - name: "lasuite:docs"
+      audienceId: docs
+      clientId: docs
+      secretEnv: MENSHEN_CLIENT_SECRET_DOCS
+    - name: "lasuite:drive"
+      audienceId: drive
+      clientId: drive
+      secretEnv: MENSHEN_CLIENT_SECRET_DRIVE
+  rules:
+    - source: docs
+      target: find
+      actions:
+        action:search-find-docs: find:docs:search
+        action:delete-find-docs: find:docs:delete
+    - source: drive
+      target: find
+      actions:
+        action:search-find-drive: find:drive:search
+        action:delete-find-drive: find:drive:delete
+
+secretEnvVars:
+  DJANGO_SECRET_KEY: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "menshen" "secretkey" | sha1sum | quote }}
+  DJANGO_SUPERUSER_PASSWORD: {{ .Values.secret.menshen.superUser.password | quote }}
+  DB_PASSWORD: {{ .Values.database.menshen.password | quote }}
+  REDIS_URL: {{ printf "redis://default:%s@%s:%d/1" .Values.cache.menshen.password .Values.cache.menshen.host (.Values.cache.menshen.port | int) | quote }}
+  OIDC_RP_CLIENT_SECRET: {{ .Values.authentication.client.menshen.client_secret | quote }}
+  OIDC_RS_CLIENT_SECRET: {{ .Values.authentication.client.menshen.client_secret | quote }}
+  MENSHEN_CLIENT_SECRET_FIND: {{ .Values.application.find.menshen.clientSecrets.find | quote }}
+  MENSHEN_CLIENT_SECRET_DOCS: {{ .Values.application.find.menshen.clientSecrets.docs | quote }}
+  MENSHEN_CLIENT_SECRET_DRIVE: {{ .Values.application.find.menshen.clientSecrets.drive | quote }}
+  # Key used to hash exchanged tokens before storing them.
+  TOKEN_EXCHANGE_TOKEN_HASH_KEY: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "menshen" "tokenHashKey" | sha1sum | quote }}
+
+service:
+  type: ClusterIP
+  ports:
+    http: 8000
+
+ingress:
+  enabled: true
+  hostname: {{ $hostname }}
+  tls: {{ .Values.global.tls.enabled | default true }}
+  selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
+  extraTls: {{ .Values.tls.menshen | toYaml | nindent 4 }}
+  ingressClassName: {{ .Values.cluster.ingress.className | quote }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- else if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+    {{- if and (hasKey .Values.cluster "certificate") (hasKey .Values.cluster.certificate "issuerRef") }}
+    {{- if eq .Values.cluster.certificate.issuerRef.kind "ClusterIssuer" }}
+    cert-manager.io/cluster-issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- else if eq .Values.cluster.certificate.issuerRef.kind "Issuer" }}
+    cert-manager.io/issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- end }}
+    {{- end }}

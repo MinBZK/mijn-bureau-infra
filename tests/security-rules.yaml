@@ -37,6 +37,11 @@ global:
       frontend: "small"
       mta: "small"
       opensearch: "small"
+    find:
+      backend: "small"
+      opensearch: "small"
+    menshen:
+      backend: "small"
     conversations:
       backend: "small"
       frontend: "small"

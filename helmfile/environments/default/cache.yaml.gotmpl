@@ -64,3 +64,13 @@ cache:
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "messages" "password" | sha1sum | quote }}
+  find:
+    host: "find-valkey"
+    port: 6379
+    isInternal: true
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "find" "password" | sha1sum | quote }}
+  menshen:
+    host: "menshen-valkey"
+    port: 6379
+    isInternal: true
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "menshen" "password" | sha1sum | quote }}

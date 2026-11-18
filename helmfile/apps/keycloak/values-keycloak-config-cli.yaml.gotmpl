@@ -71,6 +71,7 @@ import:
     MB_CLIENT_SECRET_DOCS: {{ .Values.authentication.client.docs.client_secret | quote }}
     MB_CLIENT_SECRET_BUREAUBLAD: {{ .Values.authentication.client.bureaublad.client_secret | quote }}
     MB_CLIENT_SECRET_MAS: {{ .Values.authentication.client.mas.client_secret | quote }}
+    MB_CLIENT_SECRET_MENSHEN: {{ .Values.authentication.client.menshen.client_secret | quote }}
     MB_SMTP_PASSWORD: {{ .Values.smtp.password | quote }}
     {{- if eq .Environment.Name "demo" }}
     {{- range $user := .Values.user }}
@@ -296,6 +297,20 @@ import:
             "publicClient": false,
             "frontchannelLogout": true,
             "protocol": "openid-connect",
+            "protocolMappers": [
+              {
+                "name": "audience-menshen",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-audience-mapper",
+                "consentRequired": false,
+                "config": {
+                  "included.client.audience": "{{ .Values.authentication.client.menshen.client_id }}",
+                  "id.token.claim": "false",
+                  "access.token.claim": "true",
+                  "lightweight.claim": "false"
+                }
+              }
+            ],
             "attributes": {
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
@@ -532,6 +547,20 @@ import:
             "publicClient": false,
             "frontchannelLogout": true,
             "protocol": "openid-connect",
+            "protocolMappers": [
+              {
+                "name": "audience-menshen",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-audience-mapper",
+                "consentRequired": false,
+                "config": {
+                  "included.client.audience": "{{ .Values.authentication.client.menshen.client_id }}",
+                  "id.token.claim": "false",
+                  "access.token.claim": "true",
+                  "lightweight.claim": "false"
+                }
+              }
+            ],
             "attributes": {
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
@@ -540,6 +569,42 @@ import:
               "frontchannel.logout.url": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/api/v1.0/logout/",
               "post.logout.redirect.uris": "https://{{ .Values.global.hostname.docs }}.{{ .Values.global.domain }}/*##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/##https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}",
               "frontchannel.logout.session.required": "false",
+              "oauth2.device.authorization.grant.enabled": "false",
+              "display.on.consent.screen": "false"
+            }
+          },
+          {
+            "clientId": "{{ .Values.authentication.client.menshen.client_id }}",
+            "name": "Menshen",
+            "description": "LaSuite Menshen - OAuth 2.0 token exchange server (used by Find global search)",
+            "rootUrl": "https://{{ .Values.global.hostname.menshen }}.{{ .Values.global.domain }}",
+            "adminUrl": "https://{{ .Values.global.hostname.menshen }}.{{ .Values.global.domain }}",
+            "baseUrl": "https://{{ .Values.global.hostname.menshen }}.{{ .Values.global.domain }}",
+            "surrogateAuthRequired": false,
+            "enabled": true,
+            "alwaysDisplayInConsole": false,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "$(env:MB_CLIENT_SECRET_MENSHEN)",
+            "redirectUris": [
+              "/*"
+            ],
+            "webOrigins": [
+              "https://{{ .Values.global.hostname.menshen }}.{{ .Values.global.domain }}"
+            ],
+            "notBefore": 0,
+            "bearerOnly": false,
+            "consentRequired": false,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": true,
+            "publicClient": false,
+            "frontchannelLogout": false,
+            "protocol": "openid-connect",
+            "attributes": {
+              "realm_client": "false",
+              "oidc.ciba.grant.enabled": "false",
+              "standard.token.exchange.enabled": "false",
               "oauth2.device.authorization.grant.enabled": "false",
               "display.on.consent.screen": "false"
             }

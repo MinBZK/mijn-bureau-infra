@@ -1,0 +1,58 @@
+name: "Update find (lasuite find/menshen) container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump find/menshen version to {{ source "menshen_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  menshen_latest_version:
+    name: "Get latest menshen-backend tag"
+    kind: dockerimage
+    spec:
+      image: "lasuite/menshen-backend"
+      architecture: amd64
+      tagfilter: "^v\\d+\\.\\d+\\.\\d+$"
+      versionfilter:
+        kind: semver
+        pattern: ">=0.6.0"
+
+targets:
+  update_menshen_tag:
+    name: "Update menshen container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.menshen.tag"
+    sourceid: menshen_latest_version
+    scmid: default
+
+  update_menshen_chart_appVersion:
+    name: "Update menshen chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/find/charts/menshen/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: menshen_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump menshen version to {{ source "menshen_latest_version" }}

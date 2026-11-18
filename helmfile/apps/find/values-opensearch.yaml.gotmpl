@@ -1,0 +1,58 @@
+{{- $preset := .Values.global.resourcesPreset | default "none" }}
+{{- $presetPerApp := .Values.global.resourcesPresetPerApp | default dict }}
+{{- $resources := .Values.resource | default dict }}
+{{- $pdb := .Values.pdb | default dict }}
+{{- /* The official opensearchproject/opensearch image runs as UID/GID 1000. */ -}}
+{{- $podSecurityContext := mergeOverwrite (dict) .Values.security.default.podSecurityContext (dict "fsGroup" 1000) }}
+{{- $containerSecurityContext := mergeOverwrite (dict) .Values.security.default.containerSecurityContext (dict "runAsUser" 1000 "runAsGroup" 1000) }}
+
+global:
+  imageRegistry: {{ (coalesce .Values.container.opensearch.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.opensearch.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | quote }}
+  security:
+    allowInsecureImages: true
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+fullnameOverride: "find-opensearch"
+
+commonLabels:
+  app.kubernetes.io/part-of: find
+
+image:
+  registry: {{ (coalesce .Values.container.opensearch.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.opensearch.repository | quote }}
+  tag: {{ .Values.container.opensearch.tag | quote }}
+  pullPolicy: Always
+
+resourcesPreset: {{ dig "find" "opensearch" $preset $presetPerApp | quote }}
+resources: {{ dig "find" "opensearch" (dict) $resources | toYaml | nindent 2 }}
+podSecurityContext: {{ $podSecurityContext | toYaml | nindent 2 }}
+containerSecurityContext: {{ $containerSecurityContext | toYaml | nindent 2 }}
+pdb: {{ dig "find" "opensearch" (dict) $pdb | toYaml | nindent 2 }}
+{{- if .Values.cluster.runtimeClassName }}
+runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+{{- end }}
+javaOpts: {{ dig "find" "opensearch" "javaOpts" "-Xms512m -Xmx512m" .Values.application | quote }}
+
+persistence:
+  enabled: true
+  size: {{ coalesce .Values.pvc.find.opensearch.size .Values.pvc.default.size "10Gi" | quote }}
+  {{- with (coalesce .Values.pvc.find.opensearch.storageClass .Values.pvc.default.storageClass) }}
+  storageClass: {{ . | quote }}
+  {{- end }}
+  accessModes: {{ coalesce .Values.pvc.find.opensearch.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+
+service:
+  type: ClusterIP
+  ports:
+    http: 9200
+
+networkPolicy:
+  enabled: true
+  allowExternal: false
+  allowExternalEgress: true

@@ -249,6 +249,20 @@ autoscaling:
       maxReplicas: 3
       targetCPU: 75
       targetMemory: ""
+    find:
+      backend:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+    menshen:
+      backend:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 2
+        targetCPU: 80
+        targetMemory: ""
 
   vertical:
     synapse:
@@ -295,6 +309,24 @@ autoscaling:
         updatePolicy:
           updateMode: Recreate
       yProvider:
+        enabled: false
+        annotations: {}
+        controlledResources: []
+        maxAllowed: {}
+        minAllowed: {}
+        updatePolicy:
+          updateMode: Recreate
+    find:
+      backend:
+        enabled: false
+        annotations: {}
+        controlledResources: []
+        maxAllowed: {}
+        minAllowed: {}
+        updatePolicy:
+          updateMode: Recreate
+    menshen:
+      backend:
         enabled: false
         annotations: {}
         controlledResources: []

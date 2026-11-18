@@ -52,6 +52,11 @@ global:
       frontend: "xlarge"
       mta: "xlarge"
       opensearch: "xlarge"
+    find:
+      backend: "xlarge"
+      opensearch: "xlarge"
+    menshen:
+      backend: "xlarge"
     conversations:
       backend: "xlarge"
       frontend: "xlarge"
