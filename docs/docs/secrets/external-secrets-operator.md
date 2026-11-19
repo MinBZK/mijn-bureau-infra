@@ -33,7 +33,7 @@ secrets:
   backend: derived # derived (default) | external
   store:
     name: openbao
-    server: "https://openbao.rijkwerk.nl/"
+    server: "https://openbao.<yourdomain>"
     mount: kv # KV v2 mount
     pathPrefix: mijnbureau
     kubernetes:
@@ -53,7 +53,7 @@ once.
 ## Generating secrets into OpenBao
 
 ```bash
-export BAO_ADDR=https://openbao.rijkwerk.nl/
+export BAO_ADDR=https://openbao.<yourdomain>/
 export BAO_TOKEN=<token-with-write-on-kv/mijnbureau/*>
 export BAO_KV_MOUNT=kv                 # matches secrets.store.mount
 ./scripts/generate-openbao-secrets.sh  [--env demo] [--force] [--dry-run]

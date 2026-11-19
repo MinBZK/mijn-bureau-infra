@@ -146,6 +146,8 @@
 {{- $agentEnv = mergeOverwrite $agentEnv $userAgentEnv -}}
 {{- $metadataEnv := mergeOverwrite (dict "ENABLE_SILERO_VAD" "false" "AWS_S3_OUTPUT_FOLDER" "metadata") (deepCopy $agentEnv) -}}
 
+secrets:
+  external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
 global:
   ## Global Docker image parameters
   ## Please, note that this will override the image parameters, including dependencies, configured to use the global value

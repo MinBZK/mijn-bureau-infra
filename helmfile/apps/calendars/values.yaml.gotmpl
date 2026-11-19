@@ -9,6 +9,8 @@
 {{- $messagesChannelHex := derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "calendars" "messages-calendars-channel-id" | sha256sum | trunc 32 }}
 {{- $messagesChannelId := printf "%s-%s-%s-%s-%s" (substr 0 8 $messagesChannelHex) (substr 8 12 $messagesChannelHex) (substr 12 16 $messagesChannelHex) (substr 16 20 $messagesChannelHex) (substr 20 32 $messagesChannelHex) }}
 
+secrets:
+  external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
 global:
   ## Global Docker image parameters
   ##

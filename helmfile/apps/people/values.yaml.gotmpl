@@ -1,4 +1,6 @@
 {{- $hostname := printf "%s.%s" .Values.global.hostname.people .Values.global.domain }}
+secrets:
+  external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
 {{- $minioHostname := index .Values.global.hostname "people-minio" | default "people-minio" }}
 {{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
 {{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}

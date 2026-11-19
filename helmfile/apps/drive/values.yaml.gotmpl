@@ -1,4 +1,8 @@
 {{- $sslPrefix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
+secrets:
+  # When true (secrets.backend: external), ESO owns the `drive` / `drive-superuser`
+  # Secrets and this chart must not render its own inline Secrets.
+  external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
 global:
   ## Global Docker image parameters
   ## Please, note that this will override the image parameters, including dependencies, configured to use the global value

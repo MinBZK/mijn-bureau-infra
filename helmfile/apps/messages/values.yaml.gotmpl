@@ -86,6 +86,8 @@
 {{- end }}
 {{- $messagesExtraEnv := concat ($appMsgs.extraEnvVars | default list) $featureEnv }}
 
+secrets:
+  external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
 global:
   imageRegistry: {{ (coalesce .Values.container.messages_backend.registry .Values.container.default.registry) | quote }}
   {{- with (coalesce .Values.container.messages_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
