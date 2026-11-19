@@ -55,7 +55,7 @@ MijnBureau currently includes the following key components:
 | Bureaublad         | Startpage            | [v2.1.0](https://github.com/MinBZK/bureaublad)                                  | [documentation](https://github.com/MinBZK/bureaublad)                                | EUPL-1.2   |
 | File sharing       | Drive                | [v1.0.0](https://github.com/suitenumerique/drive/releases/tag/v1.0.0)           | [documentation](https://github.com/suitenumerique/drive/blob/main/README.md)         | MIT        |
 | Token Exchange     | Menshen              | [v0.6.0](https://github.com/suitenumerique/menshen/releases/tag/v0.6.0)         | [documentation](https://github.com/suitenumerique/menshen)                           | MIT        |
-| Antivirus Toolkit  | ClamAV               | [v1.5.4](https://github.com/Cisco-Talos/clamav/releases/tag/clamav-1.5.4)       | [documentation](https://docs.clamav.net/)                                            | GPLv2      |
+| Antivirus Toolkit  | ClamAV               | [v1.5.5](https://github.com/Cisco-Talos/clamav/releases/tag/clamav-1.5.5)       | [documentation](https://docs.clamav.net/)                                            | GPLv2      |
 
 The demo environment also deploys the supporting datastores below. Production
 environments are expected to supply equivalent external services; see
