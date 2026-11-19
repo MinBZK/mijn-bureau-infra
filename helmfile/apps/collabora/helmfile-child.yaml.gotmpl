@@ -12,3 +12,13 @@ releases:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
       - "values-collabora.yaml.gotmpl"
+
+  # ESO-synced admin credentials (OpenBao -> Kubernetes).
+  - name: collabora-externalsecret
+    chart: ../common/charts/externalsecret
+    {{- if .Values.application.collabora.namespace }}
+    namespace: {{ .Values.application.collabora.namespace | quote }}
+    {{- end }}
+    installed: {{ and ( .Values.application.collabora.enabled) (eq (dig "secrets" "backend" "derived" .Values) "external") | toYaml }}
+    values:
+      - "values-externalsecret.yaml.gotmpl"

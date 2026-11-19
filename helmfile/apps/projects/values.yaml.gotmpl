@@ -3,6 +3,8 @@
 {{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
 {{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
 
+secrets:
+  external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
 global:
   ## Global Docker image parameters
   ##

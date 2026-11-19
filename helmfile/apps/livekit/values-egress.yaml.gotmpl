@@ -30,6 +30,8 @@
 {{- $egressSecurity := .Values.security.livekit_egress | default dict -}}
 {{- $egressPodSecurity := $egressSecurity.podSecurityContext | default .Values.security.default.podSecurityContext -}}
 {{- $egressContainerSecurity := $egressSecurity.containerSecurityContext | default .Values.security.default.containerSecurityContext -}}
+secrets:
+  external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
 global:
   ## Global Docker image parameters
   ##

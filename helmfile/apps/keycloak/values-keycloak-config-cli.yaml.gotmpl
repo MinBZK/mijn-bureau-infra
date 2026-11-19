@@ -1,5 +1,10 @@
 fullnameOverride: keycloak-config-cli
 
+secrets:
+  # When true (secrets.backend: external), ESO owns the `keycloak-config-cli`
+  # Secret (realm client secrets + SMTP + demo-user passwords).
+  external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
+
 image:
   registry: {{ coalesce .Values.container.keycloak_cli.registry .Values.container.default.registry | default "docker.io" | quote }}
   repository: {{ .Values.container.keycloak_cli.repository | default "adorsys/keycloak-config-cli" | quote }}

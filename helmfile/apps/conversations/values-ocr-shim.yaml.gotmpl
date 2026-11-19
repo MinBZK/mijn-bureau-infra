@@ -1,4 +1,6 @@
 # conversations-ocr-shim: translates the conversations AdaptivePdfParser's
+secrets:
+  external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
 # Mistral OCR requests into OpenRouter chat completions using the file-parser
 # plugin (mistral-ocr engine). The key defaults to the chat LLM key, which is
 # already an OpenRouter key in environments that use OpenRouter for chat.

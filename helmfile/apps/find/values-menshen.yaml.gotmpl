@@ -2,6 +2,9 @@
 {{- $findNs := .Values.application.find.namespace | default "mijnbureau-find" }}
 {{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
 
+secrets:
+  external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
+
 # OIDC provider (Keycloak) endpoints Menshen introspects user tokens with.
 {{- $oidcOpUrl := .Values.authentication.oidc.issuer | default "" -}}
 {{- if not $oidcOpUrl }}{{ $oidcOpUrl = regexReplaceAll "/protocol/openid-connect.*" (.Values.authentication.oidc.introspection_endpoint | default "") "" }}{{ end }}

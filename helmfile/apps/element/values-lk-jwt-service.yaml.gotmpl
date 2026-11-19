@@ -19,6 +19,10 @@
 
 clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
 
+secrets:
+  # When true (secrets.backend: external), ESO owns the `lk-jwt-service` Secret.
+  external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
+
 global:
   imageRegistry: {{ (coalesce .Values.container.lk_jwt_service.registry .Values.container.default.registry) | quote }}
   {{- with (coalesce .Values.container.lk_jwt_service.imagePullSecret .Values.container.default.imagePullSecret) }}

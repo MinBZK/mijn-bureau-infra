@@ -266,6 +266,7 @@ extraEnv: |
     value: "master"
 
 extraManifests:
+  {{- if not (eq (dig "secrets" "backend" "derived" .Values) "external") }}
   # Keep the admin Secret name used by the deployment scripts and docs.
   - |
     apiVersion: v1
@@ -283,6 +284,7 @@ extraManifests:
     type: Opaque
     stringData:
       admin-password: {{ .Values.secret.keycloak.adminPassword | quote }}
+  {{- end }}
   {{- if and (eq .Values.cluster.routingMode "ingress") (eq .Values.cluster.ingress.type "traefik") }}
   - |
     apiVersion: traefik.io/v1alpha1

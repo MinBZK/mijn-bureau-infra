@@ -7,6 +7,8 @@
 {{- $minioEndpoint := printf "http://%s.%s.svc.cluster.local:%d" .Values.objectstore.dictaphone.endpoint (.Values.application.dictaphone.namespace | default "mijnbureau-dictaphone") .Values.objectstore.dictaphone.port }}
 {{- $minioPublicUrl := printf "https://%s" $minioHostname }}
 
+secrets:
+  external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
 global:
   ## Global Docker image parameters
   ##
