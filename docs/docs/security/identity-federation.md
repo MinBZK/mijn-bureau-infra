@@ -227,8 +227,10 @@ breaks that application, and a wrong secret breaks login for it.
 | `bureaublad`                                         | Bureaublad                    | `https://<bureaublad-host>/api/v1/auth/callback`                                                     | Audience: `menshen`; token exchange              |
 | `menshen`                                            | Token exchange server         | `https://<menshen-host>/*`                                                                           | Service account (client credentials) enabled     |
 
-The `account` and `account-console` clients are disabled in the bundled realm; do not
-create them.
+Bureaublad's account menu (`REDIRECT_TO_ACCOUNT_PAGE`) links to the identity
+provider's account console, which for Keycloak is `<issuer>/account/`. The bundled
+realm enables the built-in `account` and `account-console` clients for this; an
+external Keycloak must enable them too, otherwise that URL returns `404`.
 
 Hostnames come from `global.hostname.*` and `global.domain`. The redirect URIs are
 deliberately broad (`/*`) because the LaSuite applications use several callback paths;

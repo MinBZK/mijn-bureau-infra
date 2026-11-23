@@ -84,6 +84,11 @@ backend:
     OIDC_LOGOUT_ENDPOINT: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
     OIDC_POST_LOGIN_REDIRECT_URI: {{ $baseUrl }}
     OIDC_POST_LOGOUT_REDIRECT_URI: {{ $baseUrl }}
+    {{- if .Values.authentication.oidc.issuer }}
+    # Account menu target: the identity provider's account console. Keycloak
+    # serves it at <issuer>/account/.
+    REDIRECT_TO_ACCOUNT_PAGE: {{ printf "%s/account/" (trimSuffix "/" .Values.authentication.oidc.issuer) | quote }}
+    {{- end }}
     OIDC_TOKEN_ENDPOINT: {{ .Values.authentication.oidc.token_endpoint | quote }}
     OIDC_REVOCATION_ENDPOINT: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
     OIDC_JWKS_ENDPOINT: {{ .Values.authentication.oidc.jwks_uri | quote }}

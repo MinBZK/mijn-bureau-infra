@@ -41,11 +41,11 @@ One flag in `helmfile/environments/default/secrets.yaml.gotmpl`:
 
 ```yaml
 secrets:
-  backend: derived      # derived (default) | external
+  backend: derived # derived (default) | external
   store:
     name: openbao
     server: "https://openbao.<yourdomain>/"
-    mount: kv           # KV v2 mount
+    mount: kv # KV v2 mount
     pathPrefix: mijnbureau
     kubernetes:
       serviceAccount: external-secrets
@@ -99,11 +99,11 @@ must exist in the cluster before enabling `external`.
 
 ## What is migrated
 
-| Area | Mechanism |
-|---|---|
+| Area                      | Mechanism                                                                                                                                           |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | CNPG database credentials | `cnpg-cluster-credentials` chart stops rendering `-app` / `-superuser` Secrets; ESO syncs them from `<owner>/database` and `<owner>/database_admin` |
-| Valkey | `auth.usersExistingSecret: <app>-valkey-auth` (key `default`) |
-| MinIO | `auth.existingSecret: <app>-minio` (keys `root-user`, `root-password`) |
+| Valkey                    | `auth.usersExistingSecret: <app>-valkey-auth` (key `default`)                                                                                       |
+| MinIO                     | `auth.existingSecret: <app>-minio` (keys `root-user`, `root-password`)                                                                              |
 
 ## Not yet migrated
 
