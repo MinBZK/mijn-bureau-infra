@@ -5,7 +5,7 @@ annotations:
   category: security
   licenses: MIT
 apiVersion: v2
-appVersion: 0.6.0
+appVersion: 0.7.0
 dependencies:
   - name: common
     repository: "file://../../../common/charts/common"
