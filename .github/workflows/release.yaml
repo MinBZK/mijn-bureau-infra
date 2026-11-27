@@ -9,9 +9,118 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: read
+
 jobs:
-  package-helmfile:
+  # Renders the demo and production manifests, resolves every container image to
+  # a digest, generates CycloneDX and SPDX SBOMs, verifies cosign signatures and
+  # scans the SBOMs with Trivy. The result is a report-only inventory: unsigned
+  # or unscannable images never fail the release.
+  security-report:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install helm
+        run: |
+          wget -O - https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Install helmfile
+        run: |
+          cd /tmp/
+          wget https://github.com/helmfile/helmfile/releases/download/v1.1.2/helmfile_1.1.2_linux_amd64.tar.gz
+          tar -xzf helmfile_1.1.2_linux_amd64.tar.gz
+          sudo mv helmfile /usr/local/bin/helmfile
+
+      - name: Install helmfile dependencies
+        run: helmfile init --force
+
+      - name: Install skopeo
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends skopeo jq
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+        with:
+          syft-version: v1.57.2
+
+      - name: Install trivy
+        uses: aquasecurity/setup-trivy@v0
+        with:
+          version: v0.76.2
+          cache: true
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: v3.1.6
+
+      - name: Cache vulnerability database
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/trivy
+          key: trivy-db-${{ github.run_id }}
+          restore-keys: |
+            trivy-db-
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Install report dependencies
+        run: pip install -r scripts/requirements.txt
+
+      # Syft unpacks image layers while generating SBOMs. Use the runner's larger
+      # scratch disk for temporary files so a batch of large images cannot fill
+      # the root filesystem.
+      - name: Prepare scratch space
+        run: mkdir -p /mnt/tmp
+
+      # Optional Docker Hub credentials. Without them Syft pulls anonymously,
+      # which is subject to the shared-IP rate limit on hosted runners.
+      - name: Configure registry credentials
+        run: |
+          if [ -n "${DOCKERHUB_USERNAME}" ]; then
+            {
+              echo "SYFT_REGISTRY_AUTH_AUTHORITY=docker.io"
+              echo "SYFT_REGISTRY_AUTH_USERNAME=${DOCKERHUB_USERNAME}"
+              echo "SYFT_REGISTRY_AUTH_PASSWORD=${DOCKERHUB_PASSWORD}"
+            } >> "$GITHUB_ENV"
+          fi
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Generate security report
+        run: |
+          python3 scripts/release_report.py \
+            --release-tag "${{ github.ref_name }}" \
+            --output-dir .release \
+            --jobs 4
+        env:
+          MIJNBUREAU_MASTER_PASSWORD: ${{ secrets.MIJNBUREAU_MASTER_PASSWORD || 'dependabot' }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY || 'dependabot' }}
+          TMPDIR: /mnt/tmp
+
+      - name: Show report summary
+        run: cat .release/security/containers.md
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-security
+          path: .release/security
+          if-no-files-found: error
+          retention-days: 30
+
+  package-release:
+    runs-on: ubuntu-latest
+    needs: [security-report]
 
     permissions:
       contents: write
@@ -20,23 +129,38 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      - name: Download security report
+        uses: actions/download-artifact@v8
+        with:
+          name: release-security
+          path: security
+
       - name: Package helmfile folder
         run: |
-          tar -czf helmfile-${{ github.ref_name }}.tar.gz helmfile/ helmfile.yaml.gotmpl .sops.yaml CHANGELOG.md LICENSE README.md SECURITY.md
+          tar -czf helmfile-${{ github.ref_name }}.tar.gz helmfile/ helmfile.yaml.gotmpl .sops.yaml cosign.pub CHANGELOG.md LICENSE README.md SECURITY.md security/
           sha256sum helmfile-${{ github.ref_name }}.tar.gz > helmfile-${{ github.ref_name }}.tar.gz.sha256
+          tar -czf sbom-${{ github.ref_name }}.tar.gz -C security sbom sbom-index.json cve.json containers.json containers.md images.lock.yaml signatures.json SHA256SUMS
 
-      - name: install cosign
-        run: |
-          curl -O -L "https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64"
-          mv cosign-linux-amd64 cosign
-          chmod +x cosign
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: v3.1.6
 
-      - name: Sign the package with Cosign
+      # cosign v3 emits a Sigstore bundle instead of a detached signature. A
+      # bundle contains the signature, the certificate and the transparency log
+      # proof, and is verified with `cosign verify-blob --bundle`.
+      - name: Sign the release artifacts with Cosign
         run: |
-          ./cosign sign-blob --key env://COSIGN_PRIVATE_KEY -y helmfile-${{ github.ref_name }}.tar.gz \
-            --output-signature helmfile-${{ github.ref_name }}.tar.gz.sig
-          ./cosign sign-blob  --key env://COSIGN_PRIVATE_KEY -y helmfile-${{ github.ref_name }}.tar.gz.sha256 \
-            --output-signature helmfile-${{ github.ref_name }}.tar.gz.sha256.sig
+          for blob in \
+            "helmfile-${{ github.ref_name }}.tar.gz" \
+            "helmfile-${{ github.ref_name }}.tar.gz.sha256" \
+            "sbom-${{ github.ref_name }}.tar.gz" \
+            "security/containers.json" \
+            "security/sbom-index.json" \
+            "security/SHA256SUMS"; do
+            cosign sign-blob --key env://COSIGN_PRIVATE_KEY -y \
+              --bundle "${blob}.sigstore.json" "${blob}"
+          done
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
@@ -47,8 +171,20 @@ jobs:
           files: |
             helmfile-${{ github.ref_name }}.tar.gz
             helmfile-${{ github.ref_name }}.tar.gz.sha256
-            helmfile-${{ github.ref_name }}.tar.gz.sig
-            helmfile-${{ github.ref_name }}.tar.gz.sha256.sig
+            helmfile-${{ github.ref_name }}.tar.gz.sigstore.json
+            helmfile-${{ github.ref_name }}.tar.gz.sha256.sigstore.json
+            sbom-${{ github.ref_name }}.tar.gz
+            sbom-${{ github.ref_name }}.tar.gz.sigstore.json
+            security/containers.json
+            security/containers.json.sigstore.json
+            security/containers.md
+            security/images.lock.yaml
+            security/signatures.json
+            security/sbom-index.json
+            security/sbom-index.json.sigstore.json
+            security/cve.json
+            security/SHA256SUMS
+            security/SHA256SUMS.sigstore.json
           generate_release_notes: true
           draft: false
           prerelease: false

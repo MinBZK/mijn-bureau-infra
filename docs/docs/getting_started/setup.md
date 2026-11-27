@@ -23,8 +23,17 @@ git clone https://github.com/MinBZK/mijn-bureau-infra
 Alternatively, download a release and extract the tarball:
 
 ```bash
-tar -xzvf mijnbureau.tar.gz
+tar -xzvf helmfile-v1.2.3.tar.gz
 ```
+
+Every release also publishes the exact container images it deploys, their SBOMs and their vulnerabilities. Verify the tarball before deploying it:
+
+```bash
+cosign verify-blob --key cosign.pub \
+  --bundle helmfile-v1.2.3.tar.gz.sigstore.json helmfile-v1.2.3.tar.gz
+```
+
+See [Supply chain and release reports](../security/supply-chain.md) for the published artifacts and how to verify them.
 
 Once you have the software on your machine, you can begin configuring the application.
 
