@@ -8,7 +8,7 @@
 {{- if and $meetS3Endpoint (not (contains "." $meetS3Endpoint)) -}}
 {{- $meetS3Endpoint = printf "%s.%s.svc.cluster.local" $meetS3Endpoint (.Values.application.meet.namespace | default "mijnbureau-meet") -}}
 {{- end -}}
-{{- $meetS3Port := dig "objectstore" "meet" "port" 9000 .Values -}}
+{{- $meetS3Port := dig "objectstore" "meet" "port" 8333 .Values -}}
 {{- $meetS3Ssl := dig "objectstore" "meet" "useSSL" false .Values -}}
 {{- $meetS3HostPort := "" -}}
 {{- $meetS3Url := "" -}}
@@ -47,8 +47,8 @@
   "AWS_S3_ENDPOINT_URL" $meetS3Url
   "AWS_S3_SECURE_ACCESS" (ternary "True" "False" (eq (toString $meetS3Ssl) "true"))
   "AWS_S3_REGION_NAME" (dig "objectstore" "meet" "region" "eu-west-1" .Values)
-  "AWS_S3_ACCESS_KEY_ID" (dig "objectstore" "meet" "username" "" .Values)
-  "AWS_S3_SECRET_ACCESS_KEY" (dig "objectstore" "meet" "rootPassword" "" .Values)
+  "AWS_S3_ACCESS_KEY_ID" (dig "objectstore" "meet" "accessKey" "" .Values)
+  "AWS_S3_SECRET_ACCESS_KEY" (dig "objectstore" "meet" "secretKey" "" .Values)
   "AWS_STORAGE_BUCKET_NAME" (dig "objectstore" "meet" "bucket" "" .Values)
   "CELERY_BROKER_URL" $summaryRedisUrl
   "CELERY_RESULT_BACKEND" $summaryRedisUrl
@@ -119,8 +119,8 @@
   "AWS_S3_ENDPOINT_URL" $meetS3HostPort
   "AWS_S3_SECURE_ACCESS" (ternary "True" "False" (eq (toString $meetS3Ssl) "true"))
   "AWS_S3_REGION_NAME" (dig "objectstore" "meet" "region" "eu-west-1" .Values)
-  "AWS_S3_ACCESS_KEY_ID" (dig "objectstore" "meet" "username" "" .Values)
-  "AWS_S3_SECRET_ACCESS_KEY" (dig "objectstore" "meet" "rootPassword" "" .Values)
+  "AWS_S3_ACCESS_KEY_ID" (dig "objectstore" "meet" "accessKey" "" .Values)
+  "AWS_S3_SECRET_ACCESS_KEY" (dig "objectstore" "meet" "secretKey" "" .Values)
   "AWS_STORAGE_BUCKET_NAME" (dig "objectstore" "meet" "bucket" "" .Values)
 -}}
 {{- $stt := .Values.ai.stt | default dict -}}
@@ -280,14 +280,14 @@ externalRedis:
 
 externalMinio:
   # This endpoint is also used in-cluster from other namespaces (livekit-egress
-  # uploads recordings), so expand internal minio names to the cluster FQDN.
+  # uploads recordings), so expand internal object store names to the cluster FQDN.
   endpoint: {{ if (dig "objectstore" "meet" "isInternal" false .Values) }}{{ printf "%s.%s.svc.%s" .Values.objectstore.meet.endpoint (.Values.application.meet.namespace | default "default") (.Values.cluster.networking.domain | default "cluster.local") | quote }}{{ else }}{{ .Values.objectstore.meet.endpoint | quote }}{{ end }}
   port: {{ .Values.objectstore.meet.port | quote }}
-  accessKey: {{ .Values.objectstore.meet.username | quote }}
-  secretKey: {{ .Values.objectstore.meet.rootPassword | quote }}
+  accessKey: {{ .Values.objectstore.meet.accessKey | quote }}
+  secretKey: {{ .Values.objectstore.meet.secretKey | quote }}
   bucket: {{ .Values.objectstore.meet.bucket | quote }}
   useSSL: {{ .Values.objectstore.meet.useSSL | quote }}
-  publicUrl: "https://{{ index .Values.global.hostname "meet-minio" }}.{{ .Values.global.domain }}"
+  publicUrl: "https://{{ index .Values.global.hostname "meet-objectstore" }}.{{ .Values.global.domain }}"
   region: {{ .Values.objectstore.meet.region | default "eu-west-1" | quote }}
 
 externalDatabase:

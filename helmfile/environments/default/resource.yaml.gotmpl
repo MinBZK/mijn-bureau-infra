@@ -25,7 +25,7 @@ resource:
     nextcloud:
     postgresql:
     valkey:
-    minio:
+    seaweedfs:
 
   livekit:
     livekit:
@@ -40,7 +40,7 @@ resource:
     celeryBackend:
     agents:
     summary:
-    minio:
+    seaweedfs:
     nginx:
 
   conversations:
@@ -50,13 +50,13 @@ resource:
     conversationsBackend:
     celery:
     celeryBeat:
-    minio:
+    seaweedfs:
     nginx:
 
   docs:
     postgresql:
     valkey:
-    minio:
+    seaweedfs:
     nginx:
     backend:
     celery:
@@ -75,7 +75,7 @@ resource:
     driveBackend:
     postgresql:
     valkey:
-    minio:
+    seaweedfs:
     celery:
     celeryBeat:
     nginx:
@@ -84,7 +84,7 @@ resource:
     projects:
     postgresql:
     valkey:
-    minio:
+    seaweedfs:
 
   people:
     backend:
@@ -93,7 +93,7 @@ resource:
     celeryBeat:
     postgresql:
     valkey:
-    minio:
+    seaweedfs:
 
   calendars:
     backend:
@@ -111,7 +111,7 @@ resource:
     s3Gateway:
     postgresql:
     valkey:
-    minio:
+    seaweedfs:
 
   messages:
     backend:
@@ -122,7 +122,7 @@ resource:
     opensearch:
     postgresql:
     valkey:
-    minio:
+    seaweedfs:
 
   clamav:
     # Static resources for the ICAP sidecar (embedded clamd + freshclam).

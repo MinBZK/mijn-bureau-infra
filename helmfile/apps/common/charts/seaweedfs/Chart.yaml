@@ -1,0 +1,27 @@
+annotations:
+  category: Infrastructure
+  licenses: Apache-2.0
+apiVersion: v2
+# The image tag is "4.55"; appVersion must stay semver because policy/labels.rego
+# validates the app.kubernetes.io/version label rendered by common.labels.standard.
+appVersion: 4.55.0
+dependencies:
+  - name: common
+    repository: file://../../../common/charts/common
+    version: 2.31.1
+description: S3-compatible object storage (SeaweedFS) for MijnBureau applications.
+home: https://seaweedfs.com
+icon: https://raw.githubusercontent.com/seaweedfs/seaweedfs/master/weed/static/logo.svg
+keywords:
+  - seaweedfs
+  - s3
+  - objectstore
+  - storage
+maintainers:
+  - name: MijnBureau
+    url: https://github.com/MinBZK/mijn-bureau-infra
+name: seaweedfs
+sources:
+  - https://github.com/seaweedfs/seaweedfs
+type: application
+version: 0.1.0

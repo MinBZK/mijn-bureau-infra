@@ -53,7 +53,7 @@ MijnBureau aims to maintain flexibility and consistency. When creating a new com
 9. **Demo Environment Support**:
    - Add switches to deploy required datastores in the demo environment.
 10. **Configurable Datastores**:
-    - Use `cache.yaml.gotmpl`, `database.yaml.gotmpl`, and `objectstore.yaml.gotmpl`.
+    - Use `cache.yaml.gotmpl`, `database.yaml.gotmpl`, and `objectstore.yaml.gotmpl` (the app-facing object store config).
 11. **Global Variables**:
     - Use `./helmfile/environments/default/global.yaml.gotmpl` where logical.
 12. **AI Variables**:

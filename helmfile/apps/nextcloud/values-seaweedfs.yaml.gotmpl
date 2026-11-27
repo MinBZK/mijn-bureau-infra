@@ -1,0 +1,26 @@
+{{- /*
+SeaweedFS values for nextcloud.
+Shared defaults live in helmfile/apps/common/values-seaweedfs.yaml.gotmpl.
+*/}}
+persistence:
+  storageClass: {{ (coalesce .Values.pvc.nextcloud.seaweedfs.storageClass .Values.pvc.default.storageClass) | quote }}
+  accessModes: {{ coalesce .Values.pvc.nextcloud.seaweedfs.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+  size: {{ coalesce .Values.pvc.nextcloud.seaweedfs.size .Values.pvc.default.size "8Gi" | quote }}
+
+auth:
+  accessKey: {{ .Values.objectstore.nextcloud.accessKey | quote }}
+  secretKey: {{ .Values.objectstore.nextcloud.secretKey | quote }}
+  existingSecret: {{ if eq (dig "secrets" "backend" "derived" .Values) "external" }}nextcloud-seaweedfs{{ else }}""{{ end }}
+
+server:
+  resources: {{ .Values.resource.nextcloud.seaweedfs | default dict | toYaml | nindent 4 }}
+  externalUrl: ""
+  allowedOrigins: {{ printf "%s://%s.%s" (ternary "https" "http" (.Values.global.tls.enabled | default true)) .Values.global.hostname.nextcloud .Values.global.domain | quote }}
+
+buckets:
+  - name: {{ .Values.objectstore.nextcloud.bucket | quote }}
+    versioning: Enabled
+
+ingress:
+  enabled: false
+  hostname: "objectstore.local"

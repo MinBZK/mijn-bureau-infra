@@ -1,0 +1,43 @@
+{{- /*
+SeaweedFS values for people.
+Shared defaults live in helmfile/apps/common/values-seaweedfs.yaml.gotmpl.
+*/}}
+persistence:
+  storageClass: {{ (coalesce .Values.pvc.people.seaweedfs.storageClass .Values.pvc.default.storageClass) | quote }}
+  accessModes: {{ coalesce .Values.pvc.people.seaweedfs.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+  size: {{ coalesce .Values.pvc.people.seaweedfs.size .Values.pvc.default.size "8Gi" | quote }}
+
+auth:
+  accessKey: {{ .Values.objectstore.people.accessKey | quote }}
+  secretKey: {{ .Values.objectstore.people.secretKey | quote }}
+  existingSecret: {{ if eq (dig "secrets" "backend" "derived" .Values) "external" }}people-seaweedfs{{ else }}""{{ end }}
+
+server:
+  resources: {{ .Values.resource.people.seaweedfs | default dict | toYaml | nindent 4 }}
+  externalUrl: {{ printf "https://%s.%s" (index .Values.global.hostname "people-objectstore") .Values.global.domain }}
+  allowedOrigins: {{ printf "%s://%s.%s" (ternary "https" "http" (.Values.global.tls.enabled | default true)) .Values.global.hostname.people .Values.global.domain | quote }}
+
+buckets:
+  - name: {{ .Values.objectstore.people.bucket | quote }}
+    versioning: Enabled
+
+ingress:
+  enabled: true
+  hostname: {{ printf "%s.%s" (index .Values.global.hostname "people-objectstore") .Values.global.domain }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: {{ printf "https://%s.%s" (index .Values.global.hostname "people-objectstore") .Values.global.domain }}
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}

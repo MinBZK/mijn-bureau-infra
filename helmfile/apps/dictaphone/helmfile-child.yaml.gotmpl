@@ -33,9 +33,8 @@ releases:
       - "../common/values-valkey.yaml.gotmpl"
       - "values-valkey.yaml.gotmpl"
 
-  - name: dictaphone-minio
-    chart: ../common/charts/minio
-    version: "17.0.11"
+  - name: dictaphone-seaweedfs
+    chart: ../common/charts/seaweedfs
     {{- if .Values.application.dictaphone.namespace }}
     namespace: {{ .Values.application.dictaphone.namespace }}
     {{- end }}
@@ -43,7 +42,8 @@ releases:
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
-      - "values-minio.yaml.gotmpl"
+      - "../common/values-seaweedfs.yaml.gotmpl"
+      - "values-seaweedfs.yaml.gotmpl"
 
   # Media proxy with auth subrequest for /media (playback + downloads).
   # Gateway API has no auth_request; the in-pod nginx does it against the
@@ -69,7 +69,7 @@ releases:
     needs:
       - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-cluster
       - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-valkey
-      - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-minio
+      - {{ if .Values.application.dictaphone.namespace }}{{ .Values.application.dictaphone.namespace }}/{{ end }}dictaphone-seaweedfs
     {{- end }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
@@ -78,7 +78,7 @@ releases:
 
   # ESO-synced infra secrets (OpenBao -> Kubernetes). Rendered only when
   # the app is switched to external secrets; replaces the inline CNPG/
-  # valkey/minio Secrets rendered by the releases above.
+  # valkey/seaweedfs Secrets rendered by the releases above.
   - name: dictaphone-externalsecret
     chart: ../common/charts/externalsecret
     {{- if .Values.application.dictaphone.namespace }}

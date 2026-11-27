@@ -191,44 +191,44 @@ Return the external redis password key
 {{- end -}}
 
 {{/*
-Return the MinIO secret name
+Return the object store secret name
 */}}
-{{- define "nextcloud.minio.secretName" -}}
-{{- if .Values.externalMinio.existingSecret }}
-    {{- printf "%s" .Values.externalMinio.existingSecret -}}
+{{- define "nextcloud.objectstore.secretName" -}}
+{{- if .Values.externalObjectStore.existingSecret }}
+    {{- printf "%s" .Values.externalObjectStore.existingSecret -}}
 {{- else -}}
-    {{- printf "%s-externalminio" (include "common.names.fullname" .) -}}
+    {{- printf "%s-externalobjectstore" (include "common.names.fullname" .) -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Return the external minio username
+Return the external objectstore username
 */}}
-{{- define "nextcloud.minio.secretUsernameKey" -}}
-{{- if .Values.externalMinio.existingSecret -}}
-  {{- default "username" .Values.externalMinio.existingSecretUsernameKey }}
+{{- define "nextcloud.objectstore.secretUsernameKey" -}}
+{{- if .Values.externalObjectStore.existingSecret -}}
+  {{- default "username" .Values.externalObjectStore.existingSecretUsernameKey }}
 {{- else -}}
   {{- print "username" -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Return the external minio password
+Return the external objectstore password
 */}}
-{{- define "nextcloud.minio.secretPasswordKey" -}}
-{{- if .Values.externalMinio.existingSecret -}}
-  {{- default "password" .Values.externalMinio.existingSecretPasswordKey }}
+{{- define "nextcloud.objectstore.secretPasswordKey" -}}
+{{- if .Values.externalObjectStore.existingSecret -}}
+  {{- default "password" .Values.externalObjectStore.existingSecretPasswordKey }}
 {{- else -}}
   {{- print "password" -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Return the external minio SSE-C key secret key
+Return the external objectstore SSE-C key secret key
 */}}
-{{- define "nextcloud.minio.secretSseCKeyKey" -}}
-{{- if .Values.externalMinio.existingSecret -}}
-  {{- default "sse-c-key" .Values.externalMinio.existingSecretSseCKeyKey }}
+{{- define "nextcloud.objectstore.secretSseCKeyKey" -}}
+{{- if .Values.externalObjectStore.existingSecret -}}
+  {{- default "sse-c-key" .Values.externalObjectStore.existingSecretSseCKeyKey }}
 {{- else -}}
   {{- print "sse-c-key" -}}
 {{- end -}}

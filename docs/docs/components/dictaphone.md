@@ -11,27 +11,27 @@ validation workers.
 To configure this solution, you can override the default settings for your environment. The
 defaults are located in the folder `helmfile/environments/default`.
 
-| Name                                      | Description                                             |
-| ----------------------------------------- | ------------------------------------------------------- |
-| `global.domain`                           | The domain name of your MijnBureau instance             |
-| `global.hostname.dictaphone`              | The subdomain of the Dictaphone frontend                |
-| `global.hostname.dictaphone-minio`        | The subdomain used for pre-signed object storage URLs   |
-| `application.dictaphone.enabled`          | Enable Dictaphone                                       |
-| `application.dictaphone.namespace`        | The Kubernetes namespace name                           |
-| `application.dictaphone.secretKey`        | Django secret key                                       |
-| `application.dictaphone.jwtSigningKey`    | JWT signing key                                         |
-| `application.dictaphone.audioExtractor.*` | Internal audio worker tokens                            |
-| `ai.dictaphone.*`                         | Optional external transcription service                 |
-| `authentication.client.dictaphone.*`      | OIDC client credentials                                 |
-| `database.dictaphone.*`                   | PostgreSQL connection details                           |
-| `cache.dictaphone.*`                      | Valkey connection details                               |
-| `objectstore.dictaphone.*`                | MinIO bucket and credentials                            |
-| `tls.dictaphone.*`                        | TLS settings                                            |
-| `pvc.dictaphone.*`                        | Storage requirements for PostgreSQL, Valkey and MinIO   |
-| `resource.dictaphone.*`                   | Resources for each component                            |
-| `autoscaling.horizontal.dictaphone.*`     | Autoscaling for the backend, frontend and Celery worker |
-| `container.dictaphone_*`                  | Container image selection                               |
-| `secret.dictaphone.*`                     | Django superuser credentials                            |
+| Name                                      | Description                                                      |
+| ----------------------------------------- | ---------------------------------------------------------------- |
+| `global.domain`                           | The domain name of your MijnBureau instance                      |
+| `global.hostname.dictaphone`              | The subdomain of the Dictaphone frontend                         |
+| `global.hostname.dictaphone-objectstore`  | The subdomain used for pre-signed object storage URLs            |
+| `application.dictaphone.enabled`          | Enable Dictaphone                                                |
+| `application.dictaphone.namespace`        | The Kubernetes namespace name                                    |
+| `application.dictaphone.secretKey`        | Django secret key                                                |
+| `application.dictaphone.jwtSigningKey`    | JWT signing key                                                  |
+| `application.dictaphone.audioExtractor.*` | Internal audio worker tokens                                     |
+| `ai.dictaphone.*`                         | Optional external transcription service                          |
+| `authentication.client.dictaphone.*`      | OIDC client credentials                                          |
+| `database.dictaphone.*`                   | PostgreSQL connection details                                    |
+| `cache.dictaphone.*`                      | Valkey connection details                                        |
+| `objectstore.dictaphone.*`                | Object store bucket and credentials                              |
+| `tls.dictaphone.*`                        | TLS settings                                                     |
+| `pvc.dictaphone.*`                        | Storage requirements for PostgreSQL, Valkey and the object store |
+| `resource.dictaphone.*`                   | Resources for each component                                     |
+| `autoscaling.horizontal.dictaphone.*`     | Autoscaling for the backend, frontend and Celery worker          |
+| `container.dictaphone_*`                  | Container image selection                                        |
+| `secret.dictaphone.*`                     | Django superuser credentials                                     |
 
 ## AI transcription
 

@@ -51,8 +51,8 @@ data:
   OIDC_OP_LOGOUT_ENDPOINT: {{ .Values.authentication.end_session_endpoint | quote }}
   OIDC_USERINFO_FULLNAME_FIELDS: "{{ .Values.authentication.claims.given_name }},{{ .Values.authentication.claims.family_name }}"
   OIDC_USERINFO_SHORTNAME_FIELD: {{ .Values.authentication.claims.given_name | quote }}
-  AWS_S3_ENDPOINT_URL: {{ .Values.drive.externalMinioAPI | quote }}
-  AWS_STORAGE_BUCKET_NAME: {{ .Values.externalMinio.bucket | quote }}
+  AWS_S3_ENDPOINT_URL: {{ .Values.drive.externalObjectStoreAPI | quote }}
+  AWS_STORAGE_BUCKET_NAME: {{ .Values.externalObjectStore.bucket | quote }}
   AWS_S3_SIGNATURE_VERSION: "s3v4"
   WOPI_CLIENTS: {{ .Values.drive.wopiClients | quote }}
   WOPI_SRC_BASE_URL: https://{{.Values.ingress.hostname}}

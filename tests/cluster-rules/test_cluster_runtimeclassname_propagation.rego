@@ -3,13 +3,6 @@ import rego.v1
 
 # Helper function to check if a deployment should be excluded from runtimeClassName testing
 is_excluded_deployment(deployment_name) if {
-  # MinIO console deployments do not support runtimeClassName in the Bitnami chart
-  # See: https://github.com/bitnami/charts/blob/main/bitnami/minio/templates/console/deployment.yaml
-  # The console deployment template lacks runtimeClassName support entirely
-  endswith(deployment_name, "-minio-console")
-}
-
-is_excluded_deployment(deployment_name) if {
   # Bitnami nginx chart does not support runtimeClassName in its deployment template
   # See: https://github.com/bitnami/charts/blob/main/bitnami/nginx/templates/deployment.yaml
   endswith(deployment_name, "-nginx")

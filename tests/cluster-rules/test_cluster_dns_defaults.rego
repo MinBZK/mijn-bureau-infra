@@ -4,7 +4,7 @@ import rego.v1
 # Redis is standalone in this environment, so its policy has no DNS rule.
 dns_charts := {
   "bureaublad", "clamav", "collabora", "conversations", "docs", "drive",
-  "element-web", "keycloak", "livekit-server", "meet", "minio", "nextcloud",
+  "element-web", "keycloak", "livekit-server", "meet", "nextcloud", "seaweedfs",
   "nginx", "ollama", "postgresql", "projects", "synapse",
 }
 
@@ -35,7 +35,6 @@ deny contains msg if {
 
 deny contains msg if {
   dns_policy
-  input.metadata.labels["app.kubernetes.io/name"] != "minio"
   not default_dns("TCP")
   msg := sprintf("NetworkPolicy %q does not allow default DNS on TCP 53", [input.metadata.name])
 }

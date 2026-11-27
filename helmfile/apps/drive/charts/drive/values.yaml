@@ -546,7 +546,7 @@ drive:
   serverToServerKey: ""
   wopiClients: ""
   collaborDiscoveryUrl: ""
-  externalMinioAPI: ""
+  externalObjectStoreAPI: ""
   ## @param drive.email SMTP settings for outgoing mail (invitations, etc.)
   ## When host is empty, no DJANGO_EMAIL_* variables are rendered.
   ##
@@ -1536,13 +1536,13 @@ externalRedis:
   port: ""
   password: ""
 ## Minio
-## @param externalMinio.endpoint MinIO endpoint
-## @param externalMinio.port MinIO port
-## @param externalMinio.accessKey MinIO access key (username)
-## @param externalMinio.secretKey MinIO password
-## @param externalMinio.bucket MinIO bucket name
-## @param externalMinio.useSSL If set to 1 will use SSL.
-externalMinio:
+## @param externalObjectStore.endpoint object store endpoint
+## @param externalObjectStore.port object store port
+## @param externalObjectStore.accessKey object store access key
+## @param externalObjectStore.secretKey object store secret key
+## @param externalObjectStore.bucket object store bucket name
+## @param externalObjectStore.useSSL If set to 1 will use SSL.
+externalObjectStore:
   endpoint: ""
   port: ""
   accessKey: ""

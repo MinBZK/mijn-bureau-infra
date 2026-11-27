@@ -252,7 +252,7 @@
         "existingConfigmap": {
           "type": "string"
         },
-        "externalMinioAPI": {
+        "externalObjectStoreAPI": {
           "type": "string"
         },
         "extraContainerPorts": {
@@ -879,7 +879,7 @@
       },
       "type": "object"
     },
-    "externalMinio": {
+    "externalObjectStore": {
       "properties": {
         "accessKey": {
           "type": "string"

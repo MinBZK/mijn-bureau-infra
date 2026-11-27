@@ -30,7 +30,7 @@ releases:
 
   # ESO-synced infra secrets (OpenBao -> Kubernetes). Rendered only when
   # the app is switched to external secrets; replaces the inline CNPG/
-  # valkey/minio Secrets rendered by the releases above.
+  # valkey/seaweedfs Secrets rendered by the releases above.
   - name: bureaublad-externalsecret
     chart: ../common/charts/externalsecret
     {{- if .Values.application.bureaublad.namespace }}

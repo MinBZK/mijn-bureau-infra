@@ -650,7 +650,7 @@
               "id": "byNames",
               "options": {
                 "mode": "exclude",
-                "names": ["icbr-poc-nextcloud (minio)"],
+                "names": ["icbr-poc-nextcloud (objectstore)"],
                 "prefix": "All except:",
                 "readOnly": true
               }

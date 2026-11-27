@@ -18,7 +18,7 @@ located in the folder `helmfile/environments/default`.
 | `tls.conversations.*`                    | The TLS settings for conversations                      |
 | `database.conversations.*`               | Database configuration                                  |
 | `cache.conversations.*`                  | Cache (Valkey) configuration                            |
-| `objectstore.conversations.*`            | Object store (S3/MinIO) configuration                   |
+| `objectstore.conversations.*`            | Object store (S3) configuration                         |
 | `pvc.conversations.*`                    | storage requirements                                    |
 | `resource.conversations.*`               | Resources for conversations                             |
 | `autoscaling.horizontal.conversations.*` | Autoscaling for conversations.                          |

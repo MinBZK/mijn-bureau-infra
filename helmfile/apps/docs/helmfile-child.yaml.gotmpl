@@ -33,9 +33,8 @@ releases:
       - "../common/values-valkey.yaml.gotmpl"
       - "values-valkey.yaml.gotmpl"
 
-  - name: docs-minio
-    chart: ../common/charts/minio
-    version: "17.0.11"
+  - name: docs-seaweedfs
+    chart: ../common/charts/seaweedfs
     {{- if .Values.application.docs.namespace }}
     namespace: {{ .Values.application.docs.namespace }}
     {{- end }}
@@ -43,7 +42,8 @@ releases:
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
-      - "values-minio.yaml.gotmpl"
+      - "../common/values-seaweedfs.yaml.gotmpl"
+      - "values-seaweedfs.yaml.gotmpl"
 
   - name: docs
     chart: charts/docs
@@ -55,7 +55,7 @@ releases:
     needs:
       - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs-cluster
       - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs-valkey
-      - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs-minio
+      - {{ if .Values.application.docs.namespace }}{{ .Values.application.docs.namespace }}/{{ end }}docs-seaweedfs
     {{- end }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
@@ -77,7 +77,7 @@ releases:
 
   # ESO-synced infra secrets (OpenBao -> Kubernetes). Rendered only when
   # the app is switched to external secrets; replaces the inline CNPG/
-  # valkey/minio Secrets rendered by the releases above.
+  # valkey/seaweedfs Secrets rendered by the releases above.
   - name: docs-externalsecret
     chart: ../common/charts/externalsecret
     {{- if .Values.application.docs.namespace }}

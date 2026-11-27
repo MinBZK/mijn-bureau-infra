@@ -59,15 +59,7 @@ container:
     registry: ""
     imagePullSecret: ""
 
-  minio:
-    registry: ""
-    imagePullSecret: ""
-
-  minio_shell:
-    registry: ""
-    imagePullSecret: ""
-
-  minio_console:
+  seaweedfs:
     registry: ""
     imagePullSecret: ""
 

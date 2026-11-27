@@ -8,7 +8,7 @@
 
 {{- $hostname := printf "%s.%s" .Values.global.hostname.drive .Values.global.domain }}
 {{- $s3HostName := printf "%s:%d" .Values.objectstore.drive.endpoint .Values.objectstore.drive.port }}
-{{- $miniohostname := printf "%s-minio.%s" .Values.global.hostname.drive .Values.global.domain }}
+{{- $objectStoreHostname := printf "%s.%s" (index .Values.global.hostname "drive-objectstore") .Values.global.domain }}
 
 ## @param global.imageRegistry Global Docker image registry
 ## @param global.imagePullSecrets Global Docker registry secret names as an array
@@ -533,9 +533,9 @@ serverBlock: |-
       proxy_set_header X-Amz-Date $authDate;
       proxy_set_header X-Amz-Content-SHA256 $authContentSha256;
 
-      # Get resource from Minio
+      # Get resource from the object store
       proxy_pass {{ printf "http%s://%s" (ternary "s" "" .Values.objectstore.drive.useSSL) $s3HostName }}/{{ .Values.objectstore.drive.bucket }}/;
-      proxy_set_header Host {{ $miniohostname }};
+      proxy_set_header Host {{ $objectStoreHostname }};
 
       proxy_ssl_name {{ $s3HostName }};
 
@@ -556,9 +556,9 @@ serverBlock: |-
       proxy_set_header X-Amz-Date $authDate;
       proxy_set_header X-Amz-Content-SHA256 $authContentSha256;
 
-      # Get resource from Minio
+      # Get resource from the object store
       proxy_pass {{ printf "http%s://%s" (ternary "s" "" .Values.objectstore.drive.useSSL) $s3HostName }}/{{ .Values.objectstore.drive.bucket }}/;
-      proxy_set_header Host {{ $miniohostname }};
+      proxy_set_header Host {{ $objectStoreHostname }};
 
       proxy_ssl_name {{ $s3HostName }};
 
@@ -763,7 +763,7 @@ networkPolicy:
       to:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/name: minio
+              app.kubernetes.io/name: seaweedfs
         {{- end }}
     # Backend connectivity
     - ports:

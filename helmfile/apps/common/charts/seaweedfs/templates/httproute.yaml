@@ -1,0 +1,27 @@
+{{- /*
+SPDX-License-Identifier: Apache-2.0
+*/}}
+{{- if and .Values.ingress.enabled (eq .Values.cluster.routingMode "gateway-api") }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "seaweedfs.labels" . | nindent 4 }}
+  {{- include "common.httproute.annotations" . | nindent 2 }}
+spec:
+  parentRefs:
+    {{- include "common.httproute.parentRef" .Values.cluster.gateway | nindent 4 }}
+  hostnames:
+    - {{ tpl .Values.ingress.hostname . | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: {{ .Values.ingress.path }}
+      filters:
+        {{- include "common.httproute.hstsFilter" . | nindent 8 }}
+      backendRefs:
+        - name: {{ include "common.names.fullname" . }}
+          port: {{ .Values.server.ports.s3 }}
+{{- end }}

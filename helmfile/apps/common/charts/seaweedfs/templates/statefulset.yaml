@@ -1,0 +1,204 @@
+{{- /*
+SPDX-License-Identifier: Apache-2.0
+*/}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "seaweedfs.labels" . | nindent 4 }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" .Values.commonAnnotations "context" .) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.server.replicaCount }}
+  serviceName: {{ printf "%s-headless" (include "common.names.fullname" .) }}
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels: {{- include "seaweedfs.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "seaweedfs.podLabels" . | nindent 8 }}
+      {{- if or .Values.server.podAnnotations .Values.commonAnnotations }}
+      {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.server.podAnnotations .Values.commonAnnotations) "context" .) }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" .) | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "seaweedfs.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- include "seaweedfs.imagePullSecrets" . | nindent 6 }}
+      {{- if .Values.server.podSecurityContext }}
+      securityContext: {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
+      {{- end }}
+      {{- if .Values.server.runtimeClassName }}
+      runtimeClassName: {{ .Values.server.runtimeClassName | quote }}
+      {{- end }}
+      {{- if .Values.server.priorityClassName }}
+      priorityClassName: {{ .Values.server.priorityClassName | quote }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.server.terminationGracePeriodSeconds }}
+      {{- if .Values.server.nodeSelector }}
+      nodeSelector: {{- toYaml .Values.server.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.server.tolerations }}
+      tolerations: {{- toYaml .Values.server.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.server.affinity }}
+      affinity: {{- toYaml .Values.server.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.server.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- toYaml .Values.server.topologySpreadConstraints | nindent 8 }}
+      {{- end }}
+      enableServiceLinks: false
+      containers:
+        - name: seaweedfs
+          image: {{ include "seaweedfs.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.server.containerSecurityContext }}
+          securityContext: {{- toYaml .Values.server.containerSecurityContext | nindent 12 }}
+          {{- end }}
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            {{- if .Values.auth.enabled }}
+            - name: SEAWEEDFS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "seaweedfs.secretName" . }}
+                  key: {{ .Values.auth.accessKeyKey }}
+            - name: SEAWEEDFS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "seaweedfs.secretName" . }}
+                  key: {{ .Values.auth.secretKeyKey }}
+            {{- end }}
+            - name: SEAWEEDFS_EXTERNAL_URL
+              value: {{ .Values.server.externalUrl | quote }}
+            - name: SEAWEEDFS_ALLOWED_ORIGINS
+              value: {{ .Values.server.allowedOrigins | quote }}
+            - name: SEAWEEDFS_EXTRA_ARGS
+              value: {{ join " " .Values.server.extraArgs | quote }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              {{- if .Values.auth.enabled }}
+              # The S3 gateway only accepts credentials from a JSON config file.
+              # Rendering it at startup keeps ESO-managed Secrets and
+              # chart-managed Secrets interchangeable.
+              cat > /tmp/s3.json <<EOF
+              {
+                "identities": [
+                  {
+                    "name": "admin",
+                    "credentials": [
+                      {
+                        "accessKey": "${SEAWEEDFS_ACCESS_KEY}",
+                        "secretKey": "${SEAWEEDFS_SECRET_KEY}"
+                      }
+                    ],
+                    "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+                  }
+                ]
+              }
+              EOF
+              {{- end }}
+              exec /usr/bin/weed server \
+                -dir=/data \
+                -ip=${POD_IP} \
+                -ip.bind=0.0.0.0 \
+                -master \
+                -volume \
+                -filer \
+                -master.port={{ .Values.server.ports.master }} \
+                -volume.port={{ .Values.server.ports.volume }} \
+                -filer.port={{ .Values.server.ports.filer }} \
+                -master.volumeSizeLimitMB={{ .Values.server.volumeSizeLimitMB }} \
+                -volume.max={{ .Values.server.maxVolumes }} \
+                {{- with .Values.server.minFreeSpace }}
+                -volume.minFreeSpace={{ . }} \
+                {{- end }}
+                -filer.maxMB={{ .Values.server.filerMaxMB }} \
+                -metricsPort={{ .Values.server.ports.metrics }} \
+                -s3 \
+                -s3.port={{ .Values.server.ports.s3 }} \
+                {{- if .Values.auth.enabled }}
+                -s3.config=/tmp/s3.json \
+                {{- end }}
+                {{- with .Values.server.externalUrl }}
+                -s3.externalUrl={{ . }} \
+                {{- end }}
+                -s3.allowedOrigins=${SEAWEEDFS_ALLOWED_ORIGINS} ${SEAWEEDFS_EXTRA_ARGS}
+          ports:
+            - name: s3
+              containerPort: {{ .Values.server.ports.s3 }}
+              protocol: TCP
+            - name: master
+              containerPort: {{ .Values.server.ports.master }}
+              protocol: TCP
+            - name: volume
+              containerPort: {{ .Values.server.ports.volume }}
+              protocol: TCP
+            - name: filer
+              containerPort: {{ .Values.server.ports.filer }}
+              protocol: TCP
+            - name: metrics
+              containerPort: {{ .Values.server.ports.metrics }}
+              protocol: TCP
+          {{- if .Values.server.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: /status
+              port: s3
+            initialDelaySeconds: {{ .Values.server.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.server.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.server.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.server.startupProbe.failureThreshold }}
+            successThreshold: {{ .Values.server.startupProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.server.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /cluster/status
+              port: master
+            initialDelaySeconds: {{ .Values.server.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.server.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.server.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.server.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.server.livenessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.server.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: s3
+            initialDelaySeconds: {{ .Values.server.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.server.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.server.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.server.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.server.readinessProbe.successThreshold }}
+          {{- end }}
+          {{- $resources := include "seaweedfs.resources" . }}
+          {{- if $resources }}
+          resources: {{- $resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Mi
+        {{- if not .Values.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- else }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "seaweedfs.pvcName" . }}
+        {{- end }}

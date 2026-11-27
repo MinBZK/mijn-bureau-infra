@@ -26,9 +26,9 @@ located in the folder `helmfile/environments/default`.
 | `container.meet_frontend.*`                 | Container selection (frontend)                               |
 | `container.meet_agents.*`                   | Container selection for the LiveKit agents                   |
 | `container.meet_summary.*`                  | Container selection for transcription workers                |
-| `objectstore.meet.*`                        | MinIO bucket and credentials for Meet media                  |
-| `global.hostname.meet-minio`                | Public hostname for the Meet MinIO endpoint                  |
-| `pvc.meet.minio.*`                          | Storage for the bundled MinIO instance                       |
+| `objectstore.meet.*`                        | Object store bucket and credentials for Meet media           |
+| `global.hostname.meet-objectstore`          | Public hostname for the Meet object store endpoint           |
+| `pvc.meet.seaweedfs.*`                      | Storage for the bundled object store                         |
 | `secret.meet.*`                             | Superuser credentials and summary API tokens                 |
 
 ## More information
@@ -49,15 +49,15 @@ Set `application.meet.summary.enabled: false` to disable the summarization worke
 
 ## Object storage
 
-In the `demo` environment, Meet deploys a dedicated MinIO instance (`meet-minio`). The chart configures the Meet backend with the internal S3 endpoint (`http://meet-minio:9000`) and exposes the public MinIO endpoint at `https://meet-minio.<global.domain>` for presigned download URLs. The bucket is defined by `objectstore.meet.bucket`, and credentials come from `objectstore.meet.username` and `objectstore.meet.rootPassword`.
+In the `demo` environment, Meet deploys a dedicated SeaweedFS instance (`meet-seaweedfs`). The chart configures the Meet backend with the internal S3 endpoint (`http://meet-seaweedfs:8333`) and exposes the public object store endpoint at `https://meet-objectstore.<global.domain>` for presigned download URLs. The bucket is defined by `objectstore.meet.bucket`, and credentials come from `objectstore.meet.accessKey` and `objectstore.meet.secretKey`.
 
-Add a DNS record for `meet-minio.<global.domain>` pointing to the gateway or ingress address. Set `pvc.meet.minio.size` to change the MinIO volume size.
+Add a DNS record for `meet-objectstore.<global.domain>` pointing to the gateway or ingress address. Set `pvc.meet.seaweedfs.size` to change the object store volume size.
 
 ## Recording
 
 Meet uses LiveKit Egress to record rooms. Recording is enabled automatically
 when `application.livekit.enabled` and `application.livekit.egress.enabled` are
-both `true`. Egress uploads recordings to the Meet MinIO bucket, and MinIO sends
+both `true`. Egress uploads recordings to the Meet object store bucket, and the object store sends
 object-created events to Meet's storage webhook so the recording is marked as
 ready and its owners are notified.
 

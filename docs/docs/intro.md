@@ -61,8 +61,8 @@ The demo environment also deploys the supporting datastores below. Production
 environments are expected to supply equivalent external services; see
 [Setup](./getting_started/setup.md).
 
-| Role           | Component         | Version                                                                               | Upstream Documentation                                          | LICENSE      |
-| -------------- | ----------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ------------ |
-| Database       | PostgreSQL (CNPG) | [17.12](https://github.com/cloudnative-pg/postgresql)                                 | [documentation](https://cloudnative-pg.io/documentation/)       | PostgreSQL   |
-| Cache / broker | Valkey            | [9.1.3](https://github.com/valkey-io/valkey/releases/tag/9.1.3)                       | [documentation](https://valkey.io/docs/)                        | BSD-3-Clause |
-| Object storage | MinIO             | [2025.7.23](https://github.com/minio/minio/releases/tag/RELEASE.2025-07-23T15-54-02Z) | [documentation](https://min.io/docs/minio/kubernetes/upstream/) | AGPL-3.0     |
+| Role           | Component         | Version                                                          | Upstream Documentation                                       | LICENSE      |
+| -------------- | ----------------- | ---------------------------------------------------------------- | ------------------------------------------------------------ | ------------ |
+| Database       | PostgreSQL (CNPG) | [17.12](https://github.com/cloudnative-pg/postgresql)            | [documentation](https://cloudnative-pg.io/documentation/)    | PostgreSQL   |
+| Cache / broker | Valkey            | [9.1.3](https://github.com/valkey-io/valkey/releases/tag/9.1.3)  | [documentation](https://valkey.io/docs/)                     | BSD-3-Clause |
+| Object storage | SeaweedFS         | [4.55](https://github.com/seaweedfs/seaweedfs/releases/tag/4.55) | [documentation](https://github.com/seaweedfs/seaweedfs/wiki) | Apache-2.0   |

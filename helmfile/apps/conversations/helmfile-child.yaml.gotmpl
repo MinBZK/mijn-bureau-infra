@@ -2,9 +2,8 @@ bases:
   - "../../bases/default.yaml.gotmpl"
 
 releases:
-  - name: conversations-minio
-    chart: ../common/charts/minio
-    version: "17.0.11"
+  - name: conversations-seaweedfs
+    chart: ../common/charts/seaweedfs
     {{- if .Values.application.conversations.namespace }}
     namespace: {{ .Values.application.conversations.namespace }}
     {{- end }}
@@ -12,7 +11,8 @@ releases:
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
-      - "values-minio.yaml.gotmpl"
+      - "../common/values-seaweedfs.yaml.gotmpl"
+      - "values-seaweedfs.yaml.gotmpl"
 
   # OCR shim for chat attachments: speaks Mistral OCR towards the conversations
   # backend and OpenRouter (file-parser plugin) upstream.
@@ -39,7 +39,7 @@ releases:
     needs:
       - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-cluster
       - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-valkey
-      - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-minio
+      - {{ if .Values.application.conversations.namespace }}{{ .Values.application.conversations.namespace }}/{{ end }}conversations-seaweedfs
     {{- end }}
 
   - name: conversations-cluster-credentials
@@ -75,7 +75,7 @@ releases:
 
   # ESO-synced infra secrets (OpenBao -> Kubernetes). Rendered only when
   # the app is switched to external secrets; replaces the inline CNPG/
-  # valkey/minio Secrets rendered by the releases above.
+  # valkey/seaweedfs Secrets rendered by the releases above.
   - name: conversations-externalsecret
     chart: ../common/charts/externalsecret
     {{- if .Values.application.conversations.namespace }}

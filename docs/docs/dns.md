@@ -36,20 +36,20 @@ global:
     nextcloud: "nextcloud"
     livekit: "livekit"
     meet: "meet"
-    meet-minio: "meet-minio"
+    meet-objectstore: "meet-objectstore"
     conversations: "conversations"
     docs: "docs"
     bureaublad: "bureaublad"
     drive: "drive"
     projects: "projects"
     calendars: "calendars"
-    projects-minio: "projects-minio"
+    projects-objectstore: "projects-objectstore"
     dictaphone: "dictaphone"
-    dictaphone-minio: "dictaphone-minio"
+    dictaphone-objectstore: "dictaphone-objectstore"
     messages: "messages"
-    messages-minio: "messages-minio"
+    messages-objectstore: "messages-objectstore"
     branding: "static"
-    drive-minio: "drive-minio"
+    drive-objectstore: "drive-objectstore"
 ```
 
 With this configuration, you need to create A and AAAA DNS records. A records map domain names to IPv4 addresses, while AAAA records map them to IPv6 addresses. IPv6 support is recommended and required for Dutch governmental organizations.
@@ -65,24 +65,24 @@ Create the following DNS records (replace `kubernetes.local` with your configure
 - `nextcloud.kubernetes.local`
 - `livekit.kubernetes.local`
 - `meet.kubernetes.local`
-- `meet-minio.kubernetes.local` (public endpoint for Meet recording downloads)
+- `meet-objectstore.kubernetes.local` (public endpoint for Meet recording downloads)
 - `conversations.kubernetes.local`
 - `docs.kubernetes.local`
 - `bureaublad.kubernetes.local`
 - `drive.kubernetes.local`
 - `projects.kubernetes.local`
 - `calendars.kubernetes.local`
-- `projects-minio.kubernetes.local`
+- `projects-objectstore.kubernetes.local`
 - `find.kubernetes.local` (Find search API and admin)
 - `menshen.kubernetes.local` (Menshen token exchange and admin)
 - `people.kubernetes.local` (when People is enabled)
-- `people-minio.kubernetes.local` (when People is enabled)
+- `people-objectstore.kubernetes.local` (when People is enabled)
 - `dictaphone.kubernetes.local`
-- `dictaphone-minio.kubernetes.local`
+- `dictaphone-objectstore.kubernetes.local`
 - `messages.kubernetes.local`
-- `messages-minio.kubernetes.local`
+- `messages-objectstore.kubernetes.local`
 - `static.kubernetes.local` (central branding assets host)
-- `drive-minio.kubernetes.local`
+- `drive-objectstore.kubernetes.local`
 
 ## Email (Messages)
 

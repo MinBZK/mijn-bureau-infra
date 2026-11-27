@@ -1,0 +1,88 @@
+{{- /*
+SPDX-License-Identifier: Apache-2.0
+*/}}
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "seaweedfs.labels" . | nindent 4 }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" .Values.commonAnnotations "context" .) | nindent 4 }}
+  {{- end }}
+spec:
+  podSelector:
+    matchLabels: {{- include "seaweedfs.matchLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # S3 API for the application pods in this namespace.
+    - ports:
+        - port: {{ .Values.server.ports.s3 }}
+          protocol: TCP
+      from:
+        {{- if .Values.networkPolicy.ingressPodMatchLabels }}
+        - podSelector:
+            matchLabels: {{- toYaml .Values.networkPolicy.ingressPodMatchLabels | nindent 14 }}
+        {{- else }}
+        - podSelector: {}
+        {{- end }}
+    {{- if .Values.networkPolicy.metricsNamespace }}
+    # Prometheus scraping.
+    - ports:
+        - port: {{ .Values.server.ports.metrics }}
+          protocol: TCP
+      from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.metricsNamespace | quote }}
+    {{- end }}
+    {{- with .Values.networkPolicy.gatewayNamespace }}
+    # Public presigned URLs through the Gateway/Ingress data plane.
+    - ports:
+        - port: {{ $.Values.server.ports.s3 }}
+          protocol: TCP
+      from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.networkPolicy.extraIngress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- if .Values.setupJob.enabled }}
+    # Bucket setup hook: master and filer only.
+    - ports:
+        - port: {{ .Values.server.ports.master }}
+          protocol: TCP
+        - port: {{ .Values.server.ports.filer }}
+          protocol: TCP
+      from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ include "common.names.name" . }}
+              app.kubernetes.io/instance: {{ .Release.Name }}
+              app.kubernetes.io/component: seaweedfs-setup
+    {{- end }}
+  egress:
+    {{- include "common.networkPolicy.dnsEgress" (dict "context" $) | nindent 4 }}
+    # The master, volume, filer and S3 gateway run in the same pod and talk to
+    # each other over the pod IP, so allow the pod to reach itself.
+    - ports:
+        - port: {{ .Values.server.ports.s3 }}
+          protocol: TCP
+        - port: {{ .Values.server.ports.master }}
+          protocol: TCP
+        - port: {{ .Values.server.ports.volume }}
+          protocol: TCP
+        - port: {{ .Values.server.ports.filer }}
+          protocol: TCP
+      to:
+        - podSelector:
+            matchLabels: {{- include "seaweedfs.matchLabels" . | nindent 14 }}
+    {{- with .Values.networkPolicy.extraEgress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}

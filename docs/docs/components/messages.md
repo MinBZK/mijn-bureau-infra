@@ -18,7 +18,7 @@ defaults are located in the folder `helmfile/environments/default`.
 | -------------------------------------- | ------------------------------------------------------------------- |
 | `global.domain`                        | The domain name of your MijnBureau instance                         |
 | `global.hostname.messages`             | The subdomain of the Messages web application                       |
-| `global.hostname.messages-minio`       | Public object-storage endpoint used for resumable imports           |
+| `global.hostname.messages-objectstore` | Public object-storage endpoint used for resumable imports           |
 | `application.messages.enabled`         | Enable Messages                                                     |
 | `application.messages.namespace`       | The Kubernetes namespace name                                       |
 | `application.messages.mailDomain`      | Optional mail domain created on install with `oidc_autojoin`        |
@@ -30,9 +30,9 @@ defaults are located in the folder `helmfile/environments/default`.
 | `authentication.client.messages.*`     | OIDC client credentials                                             |
 | `database.messages.*`                  | PostgreSQL connection details                                       |
 | `cache.messages.*`                     | Valkey connection details                                           |
-| `objectstore.messages.*`               | MinIO/S3 endpoint, credentials and bucket names                     |
+| `objectstore.messages.*`               | S3 endpoint, credentials and bucket names                           |
 | `search.messages.*`                    | OpenSearch endpoint                                                 |
-| `pvc.messages.*`                       | Storage for PostgreSQL, Valkey, MinIO and OpenSearch                |
+| `pvc.messages.*`                       | Storage for PostgreSQL, Valkey, object store and OpenSearch         |
 | `resource.messages.*`                  | Explicit resources for each component                               |
 | `autoscaling.horizontal.messages.*`    | Autoscaling for the backend, worker, frontend and MTA               |
 | `container.messages_*`                 | Container image selection                                           |
@@ -57,7 +57,7 @@ roughly `concurrent messages × max message size × 2.2 + 64 MiB`.
 | PostgreSQL | Mailboxes, messages, threads, permissions and DKIM keys (CloudNativePG) |
 | Valkey | Cache, Celery broker and search coalescing buffers |
 | OpenSearch | Full-text search index |
-| MinIO / S3 | Message imports, blob offload and exports |
+| Object store / S3 | Message imports, blob offload and exports |
 | Keycloak | OIDC identity provider |
 
 The frontend also proxies `/api`, `/admin` and `/static` to the backend, so only one web
@@ -66,7 +66,7 @@ the HTTP gateway.
 
 ## First-time setup
 
-1. **Deploy the application.** The demo environment deploys PostgreSQL, Valkey, MinIO and
+1. **Deploy the application.** The demo environment deploys PostgreSQL, Valkey, SeaweedFS and
    OpenSearch (unless `search.messages.url` is set). Production environments can use external
    services by setting
    `search.messages.url`, `database.messages.*`, `cache.messages.*` and
@@ -182,12 +182,12 @@ Messages uses four buckets:
 | `msg-blobs`                 | Optional tiered storage for raw messages |
 | `msg-exports`               | Offline exports such as the spam corpus  |
 
-The demo environment creates them in MinIO. The public `messages-minio.<domain>` endpoint is
+The demo environment creates them in SeaweedFS. The public `messages-objectstore.<domain>` endpoint is
 used to rewrite presigned upload URLs, so the browser can upload imports directly. Keep that
 hostname reachable and keep the bucket CORS configuration in sync with the web hostname; the
 install job runs `bucket_cors` for all four buckets. When using an external S3-compatible
 store, set `objectstore.messages.publicUrl` to the browser-reachable endpoint. If you do not
-expose a `messages-minio` hostname, remove it from `global.hostname` so the gateway does not
+expose a `messages-objectstore` hostname, remove it from `global.hostname` so the gateway does not
 request a certificate for it.
 
 ## Search

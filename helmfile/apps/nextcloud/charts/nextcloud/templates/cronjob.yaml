@@ -29,7 +29,7 @@ spec:
             checksum/config-php: {{ include (print $.Template.BasePath "/nextcloud-php-configmap.yaml") . | sha256sum }}
             checksum/secret: {{ include (print $.Template.BasePath "/secret-nextcloud.yaml") . | sha256sum }}
             checksum/secret-database: {{ include (print $.Template.BasePath "/secret-database.yaml") . | sha256sum }}
-            checksum/secret-minio: {{ include (print $.Template.BasePath "/secret-minio.yaml") . | sha256sum }}
+            checksum/secret-objectstore: {{ include (print $.Template.BasePath "/secret-objectstore.yaml") . | sha256sum }}
             checksum/secret-redis: {{ include (print $.Template.BasePath "/secret-redis.yaml") . | sha256sum }}
             {{- with .Values.cronjob.podAnnotations }}
             {{- toYaml . | nindent 12 }}
@@ -108,12 +108,12 @@ spec:
                     secretKeyRef:
                       name: {{ include "nextcloud.redis.secretName" . }}
                       key: {{ include "nextcloud.redis.secretPasswordKey" . }}
-                {{- if .Values.externalMinio.sseKey }}
+                {{- if .Values.externalObjectStore.sseKey }}
                 - name: OBJECTSTORE_S3_SSE_C_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: {{ include "nextcloud.minio.secretName" . }}
-                      key: {{ include "nextcloud.minio.secretSseCKeyKey" . }}
+                      name: {{ include "nextcloud.objectstore.secretName" . }}
+                      key: {{ include "nextcloud.objectstore.secretSseCKeyKey" . }}
                 {{- end }}
                 {{- if eq .Values.externalDatabase.type "mysql" }}
                 - name: MYSQL_USER

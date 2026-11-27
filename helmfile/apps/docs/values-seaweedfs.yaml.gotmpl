@@ -1,0 +1,26 @@
+{{- /*
+SeaweedFS values for docs.
+Shared defaults live in helmfile/apps/common/values-seaweedfs.yaml.gotmpl.
+*/}}
+persistence:
+  storageClass: {{ (coalesce .Values.pvc.docs.seaweedfs.storageClass .Values.pvc.default.storageClass) | quote }}
+  accessModes: {{ coalesce .Values.pvc.docs.seaweedfs.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+  size: {{ coalesce .Values.pvc.docs.seaweedfs.size .Values.pvc.default.size "8Gi" | quote }}
+
+auth:
+  accessKey: {{ .Values.objectstore.docs.accessKey | quote }}
+  secretKey: {{ .Values.objectstore.docs.secretKey | quote }}
+  existingSecret: {{ if eq (dig "secrets" "backend" "derived" .Values) "external" }}docs-seaweedfs{{ else }}""{{ end }}
+
+server:
+  resources: {{ .Values.resource.docs.seaweedfs | default dict | toYaml | nindent 4 }}
+  externalUrl: ""
+  allowedOrigins: {{ printf "%s://%s.%s" (ternary "https" "http" (.Values.global.tls.enabled | default true)) .Values.global.hostname.docs .Values.global.domain | quote }}
+
+buckets:
+  - name: {{ .Values.objectstore.docs.bucket | quote }}
+    versioning: Enabled
+
+ingress:
+  enabled: false
+  hostname: "objectstore.local"

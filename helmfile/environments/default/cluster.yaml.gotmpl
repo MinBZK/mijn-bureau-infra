@@ -60,6 +60,9 @@ cluster:
     name: mijnbureau-gateway
     namespace: ~   # defaults to same namespace as the route
     className: ~   # gatewayClassName for the Gateway resource
+    # Namespace where the Envoy data plane pods run. Charts allow this
+    # namespace in their NetworkPolicies so routes can reach the pods.
+    dataPlaneNamespace: envoy-gateway-system
     certManagerClusterIssuer: ~
     # allowedRoutesNamespacesFrom controls which namespaces may attach HTTPRoutes to the Gateway.
     # Defaults to "All" because MijnBureau supports per-app namespaces.

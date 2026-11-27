@@ -72,13 +72,13 @@ Three dashboards giving a **cluster → pod → host** drill-down. They work on 
 
 ### `Datastore` folder — shared backing services
 
-Three dashboards covering the data stores that almost every MijnBureau app depends on: CloudNativePG, Valkey, and MinIO. All require [`metric.enabled: true`](./metrics.md) so the exporter sidecars are running and producing the metrics each dashboard queries.
+Three dashboards covering the data stores that almost every MijnBureau app depends on: CloudNativePG, Valkey, and SeaweedFS. All require [`metric.enabled: true`](./metrics.md) so the exporters are running and producing the metrics each dashboard queries.
 
-| Dashboard        | Source                                                             | Use it to answer                                       |
-| ---------------- | ------------------------------------------------------------------ | ------------------------------------------------------ |
-| CloudNativePG    | [grafana.com #20417](https://grafana.com/grafana/dashboards/20417) | "Is any app's Postgres cluster healthy?"               |
-| Valkey Dashboard | [grafana.com #11835](https://grafana.com/grafana/dashboards/11835) | "Why is the cache slow / memory blowing up?"           |
-| MinIO Dashboard  | [grafana.com #13502](https://grafana.com/grafana/dashboards/13502) | "How healthy is object storage (uploads, throughput)?" |
+| Dashboard        | Source                                                                                                                                     | Use it to answer                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| CloudNativePG    | [grafana.com #20417](https://grafana.com/grafana/dashboards/20417)                                                                         | "Is any app's Postgres cluster healthy?"               |
+| Valkey Dashboard | [grafana.com #11835](https://grafana.com/grafana/dashboards/11835)                                                                         | "Why is the cache slow / memory blowing up?"           |
+| SeaweedFS        | [seaweedfs/seaweedfs](https://github.com/seaweedfs/seaweedfs/blob/master/k8s/charts/seaweedfs/dashboards/seaweedfs-grafana-dashboard.json) | "How healthy is object storage (uploads, throughput)?" |
 
 ### `Apps` folder — application-level
 
@@ -182,9 +182,9 @@ curl -sSL 'https://grafana.com/api/dashboards/11835/revisions/latest/download' \
   > helmfile/apps/observability/charts/observability/dashboards/datastore/redis.json
 ```
 
-### MinIO Dashboard
+### SeaweedFS Dashboard
 
-[dashboards/datastore/minio.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/minio.json) — MinIO exposes Prometheus metrics natively (no sidecar exporter required). Used wherever MijnBureau needs S3-compatible object storage: nextcloud uploads, docs/drive document storage, meet recordings.
+[dashboards/datastore/seaweedfs.json](https://github.com/MinBZK/mijn-bureau-infra/tree/main/helmfile/apps/observability/charts/observability/dashboards/datastore/seaweedfs.json) — SeaweedFS exposes Prometheus metrics natively (no sidecar exporter required). Used wherever MijnBureau needs S3-compatible object storage: nextcloud uploads, docs/drive document storage, meet recordings.
 
 What you can drill into:
 
@@ -192,17 +192,20 @@ What you can drill into:
 - **S3 API request rates** broken down by operation (GET, PUT, DELETE, …)
 - **API error rates** and latency
 - **Network throughput** in / out
-- **Disk usage** on the MinIO node(s)
+- **Volume and disk usage** per volume server
 - **Replication lag** if multi-site / multi-tenant is configured
 
-Metric source: MinIO's built-in `/minio/v2/metrics/cluster` endpoint, scraped via the `ServiceMonitor` created by the bitnami `minio` subchart when `metric.enabled: true`.
+Metric source: SeaweedFS's built-in `-metricsPort` endpoint (`/metrics`), scraped via the `ServiceMonitor` created by the `seaweedfs` chart when `metric.enabled: true`.
 
 To refresh the JSON:
 
 ```bash
-curl -sSL 'https://grafana.com/api/dashboards/13502/revisions/latest/download' \
-  > helmfile/apps/observability/charts/observability/dashboards/datastore/minio.json
+curl -sSL 'https://raw.githubusercontent.com/seaweedfs/seaweedfs/master/k8s/charts/seaweedfs/dashboards/seaweedfs-grafana-dashboard.json' \
+  > helmfile/apps/observability/charts/observability/dashboards/datastore/seaweedfs.json
 ```
+
+The committed copy drops the upstream `namespace` and `job` label matchers so it works for every
+per-app object store instance.
 
 ### CloudNativePG
 

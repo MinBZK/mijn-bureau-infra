@@ -45,7 +45,7 @@ secrets:
   `MIJNBUREAU_MASTER_PASSWORD`, and charts render inline `Secret`s.
 - `backend: external` — **every app** switches to OpenBao-backed secrets. The
   ClusterSecretStore and per-app ExternalSecrets are rendered, and the
-  CNPG/valkey/minio charts stop rendering their inline `Secret`s.
+  CNPG/valkey/seaweedfs charts stop rendering their inline `Secret`s.
 
 There is no per-app opt-in: flipping `backend` to `external` affects all apps at
 once.
@@ -92,7 +92,7 @@ must exist in the cluster before enabling `external`.
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | CNPG database credentials | `cnpg-cluster-credentials` chart stops rendering `-app` / `-superuser` Secrets; ESO syncs them from `<owner>/database` and `<owner>/database_admin` |
 | Valkey                    | `auth.usersExistingSecret: <app>-valkey-auth` (key `default`)                                                                                       |
-| MinIO                     | `auth.existingSecret: <app>-minio` (keys `root-user`, `root-password`)                                                                              |
+| Object store              | `auth.existingSecret: <app>-seaweedfs` (keys `access-key`, `secret-key`)                                                                            |
 
 ## Not yet migrated
 

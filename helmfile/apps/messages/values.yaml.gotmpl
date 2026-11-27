@@ -1,8 +1,8 @@
 {{- $hostname := printf "%s.%s" .Values.global.hostname.messages .Values.global.domain }}
-{{- $minioHostname := printf "%s.%s" (index .Values.global.hostname "messages-minio") .Values.global.domain }}
+{{- $objectStoreHostname := printf "%s.%s" (index .Values.global.hostname "messages-objectstore") .Values.global.domain }}
 {{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
 {{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
-{{- $minioBaseUrl := printf "http%s://%s" $sslPostfix $minioHostname }}
+{{- $objectStoreBaseUrl := printf "http%s://%s" $sslPostfix $objectStoreHostname }}
 {{- $technicalDomain := .Values.application.messages.technicalDomain | default (printf "mail.%s" .Values.global.domain) }}
 {{- $dnsRecords := dig "messages" "dnsRecords" `[{"target":"","type":"mx","value":"10 mx1.{technical_domain}."},{"target":"","type":"mx","value":"20 mx2.{technical_domain}."},{"target":"","type":"txt","value":"v=spf1 include:_spf.{technical_domain} -all"},{"target":"_dmarc","type":"txt","value":"v=DMARC1; p=reject; adkim=s; aspf=s;"}]` .Values.application }}
 {{- $preset := .Values.global.resourcesPreset | default "none" }}
@@ -14,7 +14,7 @@
 {{- $objectstoreScheme := ternary "https" "http" ($objectstore.useSSL | default false) }}
 {{- $objectStorePublicUrl := $objectstore.publicUrl | default "" }}
 {{- if and (not $objectStorePublicUrl) (eq .Environment.Name "demo") }}
-{{- $objectStorePublicUrl = $minioBaseUrl }}
+{{- $objectStorePublicUrl = $objectStoreBaseUrl }}
 {{- end }}
 {{- $opensearchUrl := coalesce .Values.search.messages.url (printf "http://%s:%v" .Values.search.messages.host .Values.search.messages.port) }}
 {{- $relayHost := .Values.application.messages.relayHost | default "" }}
@@ -297,8 +297,8 @@ externalObjectStore:
   port: {{ $objectstore.port | quote }}
   useSSL: {{ $objectstore.useSSL | default false }}
   region: {{ $objectstore.region | default "eu-west-1" | quote }}
-  accessKey: {{ $objectstore.username | quote }}
-  secretKey: {{ $objectstore.rootPassword | quote }}
+  accessKey: {{ $objectstore.accessKey | quote }}
+  secretKey: {{ $objectstore.secretKey | quote }}
   buckets: {{ $objectstore.buckets | toYaml | nindent 4 }}
   publicUrl: {{ $objectStorePublicUrl | quote }}
 

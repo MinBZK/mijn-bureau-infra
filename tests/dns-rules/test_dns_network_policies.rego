@@ -5,7 +5,7 @@ import rego.v1
 # Policies allowing all egress also intentionally have no individual DNS rule.
 dns_charts := {
   "bureaublad", "clamav", "collabora", "conversations", "dictaphone", "docs", "drive",
-  "element-web", "keycloak", "livekit-server", "meet", "minio", "nextcloud",
+  "element-web", "keycloak", "livekit-server", "meet", "nextcloud", "seaweedfs",
   "nginx", "ollama", "postgresql", "projects", "synapse",
 }
 
@@ -45,7 +45,6 @@ deny contains msg if {
 
 deny contains msg if {
   dns_policy
-  input.metadata.labels["app.kubernetes.io/name"] != "minio"
   not external_dns("TCP")
   msg := sprintf("NetworkPolicy %q does not allow external DNS on TCP 1053", [input.metadata.name])
 }
@@ -58,7 +57,6 @@ deny contains msg if {
 
 deny contains msg if {
   dns_policy
-  input.metadata.labels["app.kubernetes.io/name"] != "minio"
   not internal_dns("TCP")
   msg := sprintf("NetworkPolicy %q does not allow internal DNS on TCP 5353 in test-dns", [input.metadata.name])
 }

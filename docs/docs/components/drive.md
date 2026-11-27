@@ -18,7 +18,7 @@ located in the folder `helmfile/environments/default`.
 | `tls.drive.*`                    | The TLS settings for drive                      |
 | `database.drive.*`               | Database configuration                          |
 | `cache.drive.*`                  | Cache (Valkey) configuration                    |
-| `objectstore.drive.*`            | Object store (S3/MinIO) configuration           |
+| `objectstore.drive.*`            | Object store (S3) configuration                 |
 | `pvc.drive.*`                    | storage requirements                            |
 | `resource.drive.*`               | Resources for drive                             |
 | `autoscaling.horizontal.drive.*` | Autoscaling for drive.                          |
