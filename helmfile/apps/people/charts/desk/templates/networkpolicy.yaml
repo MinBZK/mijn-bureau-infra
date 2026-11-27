@@ -4,8 +4,8 @@ SPDX-License-Identifier: EUPL-1.2
 */}}
 
 {{- if .Values.networkPolicy.enabled }}
-{{- range $component := list "backend" "frontend" "celery-worker" "celery-beat" -}}
-{{- $fullName := printf "%s-%s" (include "desk.fullname" $) $component -}}
+{{- range $component := list "backend" "frontend" "celery-worker" "celery-beat" }}
+{{- $fullName := printf "%s-%s" (include "desk.fullname" $) $component }}
 ---
 apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" $ }}
 kind: NetworkPolicy
