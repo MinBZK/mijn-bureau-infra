@@ -56,6 +56,16 @@ data:
   RECORDING_ENABLE: {{ .Values.meet_backend.recordingEnable | default false | quote }}
   RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED: {{ dig "recordingAuthenticatedParticipantsEnabled" true .Values.meet_backend | quote }}
   {{- if .Values.meet_backend.recordingEnable }}
+  # Recording expiry is cosmetic in Meet; the matching bucket TTL lives in
+  # helmfile/apps/meet/values-seaweedfs.yaml.gotmpl.
+  RECORDING_EXPIRATION_DAYS: {{ .Values.meet_backend.recordingExpirationDays | default 7 | int | quote }}
+  {{- if .Values.meet_backend.recordingMaxDuration }}
+  # Milliseconds, shown to users. LiveKit Egress does not enforce it.
+  RECORDING_MAX_DURATION: {{ .Values.meet_backend.recordingMaxDuration | int | quote }}
+  {{- end }}
+  RECORDING_ENCODING_DEFAULT_RESOLUTION: {{ .Values.meet_backend.recordingEncodingDefaultResolution | default "720p" | quote }}
+  {{- end }}
+  {{- if .Values.meet_backend.recordingEnable }}
   # MinIO notifies the backend when egress finishes uploading a recording.
   RECORDING_STORAGE_EVENT_ENABLE: "true"
   RECORDING_ENABLE_STORAGE_EVENT_AUTH: "false"
@@ -80,7 +90,6 @@ data:
   SUMMARY_SERVICE_VERSION: "2"
   # IS_DOCS_INTEGRATION_ENABLED: false
   FRONTEND_EXTERNAL_HOME_URL: {{ .Values.meet.frontendExternalHomeUrl | quote }}
-  RECORDING_EXPIRATION_DAYS: "7"
   AWS_STORAGE_BUCKET_NAME: {{ .Values.externalMinio.bucket | quote }}
   AWS_S3_ENDPOINT_URL: {{ printf "http%s://%s:%v" (ternary "s" "" (eq (toString .Values.externalMinio.useSSL) "true")) .Values.externalMinio.endpoint .Values.externalMinio.port | quote }}
   AWS_S3_REGION_NAME: {{ .Values.externalMinio.region | quote }}

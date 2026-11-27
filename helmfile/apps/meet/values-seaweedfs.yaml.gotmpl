@@ -20,6 +20,13 @@ server:
 buckets:
   - name: {{ .Values.objectstore.meet.bucket | quote }}
     versioning: Enabled
+    {{- if dig "application" "meet" "recording" "expirationDays" 0 .Values }}
+    # Filer TTL on the recordings/ prefix, matching Meet's
+    # RECORDING_EXPIRATION_DAYS so the bucket does not grow without bound.
+    ttlPrefix:
+      prefix: "/recordings"
+      ttl: {{ printf "%dd" (dig "application" "meet" "recording" "expirationDays" 7 .Values | int) | quote }}
+    {{- end }}
 
 networkPolicy:
   extraIngress:

@@ -17,6 +17,8 @@ data:
   NODE_ENV: "production"
   LOG_FILE: "/tmp/projects.log"
   BASE_URL: {{ .Values.projects.baseUrl | quote }}
+  # Internal collaboration tool: keep it out of search engines.
+  DISABLE_INDEXING: {{ ternary "true" "false" .Values.projects.disableIndexing | quote }}
   TRUST_PROXY: "1"
   SERVICE_NAME: {{ .Values.projects.serviceName | quote }}
   THEME: {{ .Values.projects.theme | toJson | quote }}

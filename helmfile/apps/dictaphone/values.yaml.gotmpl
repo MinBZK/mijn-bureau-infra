@@ -229,6 +229,7 @@ application:
     serviceApiKey: {{ .Values.ai.dictaphone.serviceApiKey | quote }}
     webhookApiKey: {{ .Values.ai.dictaphone.webhookApiKey | quote }}
   docs:
+    integrationEnabled: {{ dig "docsIntegrationEnabled" true .Values.application.dictaphone }}
     baseUrl: {{ printf "https://%s.%s" .Values.global.hostname.docs .Values.global.domain | quote }}
     # Must match docs' DJANGO_SERVER_TO_SERVER_API_TOKENS. Sourced from
     # application.docs.serverToServerApiToken (derived from master password).

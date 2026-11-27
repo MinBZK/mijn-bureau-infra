@@ -148,6 +148,10 @@ data:
   FEATURE_AI_AUTOLABELS: {{ ternary "true" "false" .Values.backend.featureAiAutolabels | quote }}
   {{- end }}
   PUSH_ENABLED: {{ ternary "true" "false" .Values.backend.pushEnabled | quote }}
+  {{- if .Values.backend.pushVapidPublicKey }}
+  PUSH_VAPID_PUBLIC_KEY: {{ .Values.backend.pushVapidPublicKey | quote }}
+  PUSH_VAPID_SUBJECT: {{ .Values.backend.pushVapidSubject | quote }}
+  {{- end }}
   {{- if .Values.bootstrap.mailDomain }}
   MESSAGES_BOOTSTRAP_MAIL_DOMAIN: {{ .Values.bootstrap.mailDomain | quote }}
   MESSAGES_BOOTSTRAP_MAIL_DOMAIN_OIDC_AUTOJOIN: {{ ternary "true" "false" .Values.bootstrap.oidcAutojoin | quote }}

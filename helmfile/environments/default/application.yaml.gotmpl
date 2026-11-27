@@ -125,6 +125,14 @@ application:
     # co-hosts; true (upstream default) lets any signed-in participant record.
     recording:
       authenticatedParticipantsEnabled: false
+      # Recording expiry, mirrored by a SeaweedFS filer TTL on the
+      # recordings/ prefix (see helmfile/apps/meet/values-seaweedfs.yaml.gotmpl).
+      expirationDays: 7
+      # Shown to users as the recording cap (milliseconds). LiveKit Egress
+      # does not enforce it; recording storage is bounded by the TTL above.
+      maxDurationMs: 7200000
+      # Default screen-recording resolution: 540p, 720p or 1080p.
+      encodingResolution: 1080p
     celeryBackend:
       enabled: true
 

@@ -1250,6 +1250,8 @@ application:
     serviceApiKey: ""
     webhookApiKey: ""
   docs:
+    ## @param application.docs.integrationEnabled Enable the "create in Docs" integration
+    integrationEnabled: true
     ## @param application.docs.baseUrl Base URL of LaSuite Docs for the "create in Docs" integration. Empty = upstream default (example.com).
     baseUrl: ""
     ## @param application.docs.serverToServerApiKey API key accepted by Docs (matches DJANGO_SERVER_TO_SERVER_API_TOKENS on the Docs side).

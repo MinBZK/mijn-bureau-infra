@@ -226,6 +226,9 @@ meet_backend:
   # Only the room host and co-hosts may start or stop a recording. Upstream
   # defaults to true, which lets any signed-in participant record everyone.
   recordingAuthenticatedParticipantsEnabled: {{ dig "application" "meet" "recording" "authenticatedParticipantsEnabled" false .Values }}
+  recordingExpirationDays: {{ dig "application" "meet" "recording" "expirationDays" 7 .Values | int }}
+  recordingMaxDuration: {{ dig "application" "meet" "recording" "maxDurationMs" 7200000 .Values | int }}
+  recordingEncodingDefaultResolution: {{ dig "application" "meet" "recording" "encodingResolution" "1080p" .Values | quote }}
   recordingDownloadBaseUrl: "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/recording"
   {{- if $summaryEnabled }}
   summaryServiceApiToken: {{ $summaryApiToken | quote }}

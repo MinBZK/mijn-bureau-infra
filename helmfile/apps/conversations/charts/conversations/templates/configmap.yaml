@@ -62,6 +62,11 @@ data:
   FRONTEND_CSS_URL: {{ .Values.conversations_frontend.frontendCssUrl | quote }}
   FRONTEND_JS_URL: {{ .Values.conversations_frontend.frontendJsUrl | quote }}
   FRONTEND_HOMEPAGE_FEATURE_ENABLED: "false"
+  {{- if .Values.conversations.docsBaseUrl }}
+  # Read Docs documents whose links users paste (needs Docs EXTERNAL_API with
+  # the formatted_content action, wired in helmfile/apps/docs/values.yaml.gotmpl).
+  FEATURE_FLAG_DOCS_LINK_FETCHING: "ENABLED"
+  {{- end }}
   # FEATURE_FLAG_WEB_SEARCH: "false"
   {{- if .Values.documents.upload.enabled }}
   # FeatureToggle lookup is by enum member name: must be uppercase.

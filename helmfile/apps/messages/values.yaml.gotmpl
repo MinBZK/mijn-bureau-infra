@@ -30,8 +30,13 @@
   (limits, retention, offload, anti-abuse) are hardcoded here; anything else
   goes through application.messages.extraEnvVars. */}}
 {{- $appMsgs := .Values.application.messages }}
+{{- /* Our own hosts never trigger the external-link confirmation modal;
+  the wildcard also covers every app subdomain we deploy. */}}
+{{- $trustedLinkDomains := printf "*.%s,%s" .Values.global.domain .Values.global.domain }}
 {{- $featureEnv := list
   (dict "name" "MESSAGES_BLOBS_OFFLOAD_ENABLED" "value" "true")
+  (dict "name" "IMAGE_PROXY_ENABLED" "value" "true")
+  (dict "name" "MESSAGE_TRUSTED_LINK_DOMAINS" "value" $trustedLinkDomains)
   (dict "name" "THROTTLE_MAILBOX_OUTBOUND_EXTERNAL_RECIPIENTS" "value" "200/day")
   (dict "name" "THROTTLE_MAILDOMAIN_OUTBOUND_EXTERNAL_RECIPIENTS" "value" "2000/day")
   (dict "name" "TRASHBIN_CUTOFF_DAYS" "value" "30")
@@ -85,6 +90,12 @@
 {{- $featureEnv = append $featureEnv (dict "name" "CALDAV_DEFAULT_WEB_URL" "value" $calendarsBase) }}
 {{- end }}
 {{- $messagesExtraEnv := concat ($appMsgs.extraEnvVars | default list) $featureEnv }}
+{{- /* Web Push is opt-in: it turns on as soon as the environment secrets
+  file supplies a VAPID key pair (secret.messages.pushVapid{Private,Public}Key).
+  The subject must be a mailto: or https: URI. */}}
+{{- $vapidPrivateKey := dig "messages" "pushVapidPrivateKey" "" .Values.secret }}
+{{- $vapidPublicKey := dig "messages" "pushVapidPublicKey" "" .Values.secret }}
+{{- $vapidSubject := dig "messages" "pushVapidSubject" (printf "mailto:%s" .Values.smtp.from.email) .Values.secret }}
 
 secrets:
   external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
@@ -125,6 +136,10 @@ backend:
   secretKey: {{ .Values.secret.messages.secretKey | quote }}
   saltKey: {{ .Values.secret.messages.saltKey | quote }}
   mdaApiSecret: {{ .Values.secret.messages.mdaApiSecret | quote }}
+  pushEnabled: {{ and (not (empty $vapidPrivateKey)) (not (empty $vapidPublicKey)) }}
+  pushVapidPrivateKey: {{ $vapidPrivateKey | quote }}
+  pushVapidPublicKey: {{ $vapidPublicKey | quote }}
+  pushVapidSubject: {{ $vapidSubject | quote }}
   baseUrl: {{ $baseUrl | quote }}
   allowedHosts: {{ $hostname | quote }}
   csrfTrustedOrigins: {{ $baseUrl | quote }}

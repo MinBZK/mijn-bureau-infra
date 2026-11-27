@@ -78,6 +78,9 @@ projects:
     digest: ""
     pullPolicy: Always
     pullSecrets: []
+  ## @param projects.disableIndexing Disallow search engine indexing via robots.txt
+  ##
+  disableIndexing: true
   ## @param projects.secretKey Secret used to sign session cookies
   ##
   secretKey: ""

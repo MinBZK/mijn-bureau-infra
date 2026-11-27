@@ -211,7 +211,12 @@ backend:
   keycloakClientId: ""
   keycloakClientSecret: ""
   keycloakGroupPathPrefix: ""
+  # Web Push (browser) delivery. All three values below must be set together
+  # or the backend refuses to start with PUSH_ENABLED=true.
   pushEnabled: false
+  pushVapidPublicKey: ""
+  pushVapidPrivateKey: ""
+  pushVapidSubject: ""
 
 ## @section Messages worker parameters
 
