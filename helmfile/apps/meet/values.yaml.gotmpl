@@ -223,6 +223,9 @@ meet_backend:
     brandName: {{ .Values.smtp.from.name | quote }}
     logoImg: {{ .Values.smtp.from.logoImage | quote }}
   recordingEnable: {{ and .Values.application.livekit.enabled .Values.application.livekit.egress.enabled | toYaml }}
+  # Only the room host and co-hosts may start or stop a recording. Upstream
+  # defaults to true, which lets any signed-in participant record everyone.
+  recordingAuthenticatedParticipantsEnabled: {{ dig "application" "meet" "recording" "authenticatedParticipantsEnabled" false .Values }}
   recordingDownloadBaseUrl: "https://{{ .Values.global.hostname.meet }}.{{ .Values.global.domain }}/recording"
   {{- if $summaryEnabled }}
   summaryServiceApiToken: {{ $summaryApiToken | quote }}

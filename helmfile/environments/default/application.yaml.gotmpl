@@ -121,6 +121,10 @@ application:
     summary:
       enabled: true
       envVars: {}
+    # Who may record: false restricts start/stop to the room host and
+    # co-hosts; true (upstream default) lets any signed-in participant record.
+    recording:
+      authenticatedParticipantsEnabled: false
     celeryBackend:
       enabled: true
 

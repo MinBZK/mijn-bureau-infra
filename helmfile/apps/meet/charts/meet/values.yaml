@@ -493,6 +493,10 @@ meet_backend:
   ## @param meet_backend.recordingEnable Enable LiveKit Egress based room recording
   ##
   recordingEnable: false
+  ## @param meet_backend.recordingAuthenticatedParticipantsEnabled Let any signed-in participant record
+  ## When false, only the room host and co-hosts can start and stop recordings.
+  ##
+  recordingAuthenticatedParticipantsEnabled: true
   languageCode: "en-us"
   CSRFTrustedOrigins: ""
   CORSAllowedOrigins: ""

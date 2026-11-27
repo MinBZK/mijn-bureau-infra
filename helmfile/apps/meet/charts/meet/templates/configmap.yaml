@@ -54,6 +54,7 @@ data:
   ALLOW_UNREGISTERED_ROOMS: "false"
   ROOM_SUBTITLE_ENABLED: {{ .Values.agent_subtitles.enabled | default false | quote }}
   RECORDING_ENABLE: {{ .Values.meet_backend.recordingEnable | default false | quote }}
+  RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED: {{ dig "recordingAuthenticatedParticipantsEnabled" true .Values.meet_backend | quote }}
   {{- if .Values.meet_backend.recordingEnable }}
   # MinIO notifies the backend when egress finishes uploading a recording.
   RECORDING_STORAGE_EVENT_ENABLE: "true"
