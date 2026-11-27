@@ -10,7 +10,7 @@ name: element-call
 description: "Element Call embedded MatrixRTC client SPA (element-hq/element-call-embedded), embedded by Element Web for in-app group calls"
 type: application
 version: 0.1.0
-appVersion: 0.28.2
+appVersion: 0.29.0
 keywords:
   - element
   - matrix

@@ -221,14 +221,14 @@ jwtKeys:
   image:
     registry: registry-1.docker.io
     repository: alpine/openssl
-    tag: 3.5.7
+    tag: 3.5.9
     digest: ""
     pullPolicy: IfNotPresent
     pullSecrets: []
   kubectlImage:
     registry: registry-1.docker.io
     repository: dtzar/helm-kubectl
-    tag: "3.16.2"
+    tag: "3.19.1"
     digest: ""
     pullPolicy: IfNotPresent
     pullSecrets: []

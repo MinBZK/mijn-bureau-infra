@@ -5,7 +5,7 @@ container:
   ollama:
     registry: "docker.io"
     repository: "ollama/ollama"
-    tag: "0.40.16"
+    tag: "0.40.19"
     imagePullSecret: ~
   keycloak:
     registry: "quay.io"
@@ -25,22 +25,22 @@ container:
   valkey:
     registry: "docker.io"
     repository: "valkey/valkey"
-    tag: "9.1.3"
+    tag: "9.2.1"
     imagePullSecret: ~
   valkey_exporter:
     registry: "docker.io"
     repository: "oliver006/redis_exporter"
-    tag: "v1.97.0"
+    tag: "v1.99.0"
     imagePullSecret: ~
   elementweb:
     registry: "registry-1.docker.io"
     repository: "vectorim/element-web"
-    tag: "v1.12.35"
+    tag: "v1.12.36"
     imagePullSecret: ~
   synapse:
     registry: "registry-1.docker.io"
     repository: "matrixdotorg/synapse"
-    tag: "v1.165.0"
+    tag: "v1.166.0"
     imagePullSecret: ~
   ketesa:
     registry: "ghcr.io"
@@ -50,22 +50,22 @@ container:
   matrix_auth_service:
     registry: "oci.element.io"
     repository: "matrix-authentication-service"
-    tag: "1.29.0"
+    tag: "1.30.0"
     imagePullSecret: ~
   element_call:
     registry: "ghcr.io"
     repository: "element-hq/element-call"
-    tag: "v0.28.2"
+    tag: "v0.29.0"
     imagePullSecret: ~
   lk_jwt_service:
     registry: "ghcr.io"
     repository: "element-hq/lk-jwt-service"
-    tag: "sha-66d6685"
+    tag: "0.10.0"
     imagePullSecret: ~
   collabora:
     registry: "registry-1.docker.io"
     repository: "collabora/code"
-    tag: "26.04.6.1.1"
+    tag: "26.04.6.2.1"
     imagePullSecret: ~
   nextcloud:
     registry: "registry-1.docker.io"
@@ -95,7 +95,7 @@ container:
   kubectl:
     registry: registry.k8s.io
     repository: kubectl
-    tag: v1.37.2
+    tag: v1.37.3
     imagePullSecret: ~
   busybox:
     registry: docker.io
@@ -106,32 +106,32 @@ container:
   openssl:
     registry: registry-1.docker.io
     repository: alpine/openssl
-    tag: "3.5.7"
+    tag: "3.5.9"
     imagePullSecret: ~
   helm_kubectl:
     registry: registry-1.docker.io
     repository: dtzar/helm-kubectl
-    tag: "3.16.2"
+    tag: "3.19.1"
     imagePullSecret: ~
   meet_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/meet-backend"
-    tag: "v1.37.0"
+    tag: "v1.38.0"
     imagePullSecret: ~
   meet_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/meet-frontend"
-    tag: "v1.37.0"
+    tag: "v1.38.0"
     imagePullSecret: ~
   meet_summary:
     registry: "registry-1.docker.io"
     repository: "lasuite/meet-summary"
-    tag: "v1.37.0"
+    tag: "v1.38.0"
     imagePullSecret: ~
   meet_agents:
     registry: "registry-1.docker.io"
     repository: "lasuite/meet-agents"
-    tag: "v1.37.0"
+    tag: "v1.38.0"
     imagePullSecret: ~
   conversations_backend:
     registry: "registry-1.docker.io"
@@ -145,12 +145,12 @@ container:
   drive_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/drive-backend"
-    tag: "v1.0.0"
+    tag: "v1.1.1"
     imagePullSecret: ~
   drive_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/drive-frontend"
-    tag: "v1.0.0"
+    tag: "v1.1.1"
     imagePullSecret: ~
   projects:
     registry: "registry-1.docker.io"
@@ -160,12 +160,12 @@ container:
   people_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/people-backend"
-    tag: "v1.27.1"
+    tag: "v1.27.2"
     imagePullSecret: ~
   people_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/people-frontend"
-    tag: "v1.27.1"
+    tag: "v1.27.2"
     imagePullSecret: ~
   calendars_backend:
     registry: "ghcr.io"
@@ -185,32 +185,32 @@ container:
   dictaphone_backend:
     registry: "registry-1.docker.io"
     repository: "lasuite/dictaphone-backend"
-    tag: "v0.16.1"
+    tag: "v0.17.2"
     imagePullSecret: ~
   dictaphone_frontend:
     registry: "registry-1.docker.io"
     repository: "lasuite/dictaphone-frontend"
-    tag: "v0.16.1"
+    tag: "v0.17.2"
     imagePullSecret: ~
   dictaphone_audio_extractor:
     registry: "registry-1.docker.io"
     repository: "lasuite/dictaphone-audio-extractor"
-    tag: "v0.16.1"
+    tag: "v0.17.2"
     imagePullSecret: ~
   messages_backend:
     registry: "ghcr.io"
     repository: "suitenumerique/messages-backend"
-    tag: "main"
+    tag: "0.10.0"
     imagePullSecret: ~
   messages_frontend:
     registry: "ghcr.io"
     repository: "suitenumerique/messages-frontend"
-    tag: "main"
+    tag: "0.10.0"
     imagePullSecret: ~
   messages_mta:
     registry: "ghcr.io"
     repository: "suitenumerique/messages-mta-in-py"
-    tag: "main"
+    tag: "0.10.0"
     imagePullSecret: ~
   messages_rspamd:
     registry: "registry-1.docker.io"
@@ -219,12 +219,12 @@ container:
     # upstream docs/spam.md; the MPA image is not published, so we run the
     # rspamd/rspamd image directly without its nginx proxy.
     repository: "rspamd/rspamd"
-    tag: "4.3.0"
+    tag: "4.3.1"
     imagePullSecret: ~
   opensearch:
     registry: "docker.io"
     repository: "opensearchproject/opensearch"
-    tag: "2.19.7"
+    tag: "2.19.8"
     imagePullSecret: ~
   # LaSuite Find (global search API). No tags are published yet upstream, so
   # the mutable main tag is pinned.
@@ -237,12 +237,12 @@ container:
   menshen:
     registry: "registry-1.docker.io"
     repository: "lasuite/menshen-backend"
-    tag: "v0.6.0"
+    tag: "v0.7.0"
     imagePullSecret: ~
   nginx:
     registry: docker.io
     repository: nginx/nginx-unprivileged
-    tag: 1.31.8-alpine-slim
+    tag: 1.31.10-alpine-slim
     imagePullSecret: ~
   nginx_exporter:
     registry: "docker.io"
@@ -259,18 +259,18 @@ container:
     registry: "registry-1.docker.io"
     backend:
       repository: "lasuite/impress-backend"
-      tag: "v6.1.0"
+      tag: "v6.1.1"
     frontend:
       repository: "lasuite/impress-frontend"
-      tag: "v6.1.0"
+      tag: "v6.1.1"
     yProvider:
       repository: "lasuite/impress-y-provider"
-      tag: "v6.1.0"
+      tag: "v6.1.1"
     # The yhub collaboration server (v6+), replacing the y-provider for
     # websockets and document state; the y-provider is now converter-only.
     yhub:
       repository: "lasuite/impress-yhub"
-      tag: "v6.1.0"
+      tag: "v6.1.1"
   bureaublad:
     imagePullSecret: ~
     registry: "ghcr.io"
@@ -283,7 +283,7 @@ container:
   clamav:
     registry: "registry-1.docker.io"
     repository: "clamav/clamav"
-    tag: "1.5.4"
+    tag: "1.5.5"
     imagePullSecret: ~
   clamav_icap:
     registry: "registry-1.docker.io"

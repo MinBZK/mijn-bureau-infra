@@ -16,7 +16,7 @@ image:
   registry: ""
   repository: lasuite/people-backend
   pullPolicy: IfNotPresent
-  tag: "latest"
+  tag: "v1.27.2"
 
 ## @param imagePullSecrets Global imagePullSecrets as a list of objects with a name key
 imagePullSecrets: []
@@ -246,7 +246,7 @@ frontend:
     registry: ""
     repository: lasuite/people-frontend
     pullPolicy: IfNotPresent
-    tag: "latest"
+    tag: "v1.27.2"
 
   ## @param frontend.dpAnnotations Annotations to add to the frontend Deployment
   dpAnnotations: {}

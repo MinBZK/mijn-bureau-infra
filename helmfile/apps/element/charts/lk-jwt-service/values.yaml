@@ -10,7 +10,7 @@ global:
 image:
   registry: ghcr.io
   repository: element-hq/lk-jwt-service
-  tag: sha-66d6685
+  tag: 0.10.0
   pullPolicy: Always
   pullSecrets: []
 

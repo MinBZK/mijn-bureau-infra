@@ -87,7 +87,7 @@ rspamd:
   image:
     registry: registry-1.docker.io
     repository: rspamd/rspamd
-    tag: "4.3.0"
+    tag: "4.3.1"
     digest: ""
     # Policy image.rego requires Always; the tag is mutable upstream.
     pullPolicy: Always

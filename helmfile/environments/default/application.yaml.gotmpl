@@ -201,8 +201,9 @@ application:
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "projects" "secretkey" | sha1sum | quote }}
     theme: ~
 
-  # people is a self-care teams management application from LaSuite,
-  # currenlty stil disabled, but in the future super usefull
+  # people is LaSuite's mailbox/domain administration app (Dimail/Open-XChange).
+  # MijnBureau uses Messages, so there is no Dimail to provision; keep it off
+  # until the deployment adopts Dimail.
   people:
     enabled: false
     namespace: ~

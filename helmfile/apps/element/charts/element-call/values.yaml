@@ -9,7 +9,7 @@ global:
 image:
   registry: ghcr.io
   repository: element-hq/element-call
-  tag: v0.28.2
+  tag: v0.29.0
   pullPolicy: Always
   pullSecrets: []
 

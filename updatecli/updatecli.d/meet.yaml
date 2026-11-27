@@ -28,6 +28,28 @@ sources:
         kind: semver
         pattern: ">0.0.0"
 
+  meet_summary_latest_version:
+    name: "Get latest meet summary tag"
+    kind: dockerimage
+    spec:
+      image: "lasuite/meet-summary"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+  meet_agents_latest_version:
+    name: "Get latest meet agents tag"
+    kind: dockerimage
+    spec:
+      image: "lasuite/meet-agents"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
 targets:
   update_meet_tag:
     name: "Update meet tag"
@@ -39,6 +61,26 @@ targets:
         - "$.container.meet_backend.tag"
         - "$.container.meet_frontend.tag"
     sourceid: meet_latest_version
+    scmid: default
+
+  update_meet_summary_tag:
+    name: "Update meet summary container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.meet_summary.tag"
+    sourceid: meet_summary_latest_version
+    scmid: default
+
+  update_meet_agents_tag:
+    name: "Update meet agents container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.meet_agents.tag"
+    sourceid: meet_agents_latest_version
     scmid: default
 
   update_values_meet_tag:

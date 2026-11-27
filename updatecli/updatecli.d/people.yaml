@@ -1,0 +1,83 @@
+name: "Update people container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump people version to {{ source "people_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  people_latest_version:
+    name: "Get latest people tag"
+    kind: dockerimage
+    spec:
+      image: "lasuite/people-backend"
+      architecture: amd64
+      tagfilter: "^v?[0-9.]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+targets:
+  update_people_tags:
+    name: "Update people container tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      keys:
+        - "$.container.people_backend.tag"
+        - "$.container.people_frontend.tag"
+    sourceid: people_latest_version
+    scmid: default
+
+  update_values_people_tags:
+    name: "Update values people tags"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/people/charts/desk/values.yaml"
+      keys:
+        - "$.image.tag"
+        - "$.frontend.image.tag"
+    sourceid: people_latest_version
+    scmid: default
+
+  update_chart_appVersion:
+    name: "Update people chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/people/charts/desk/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: people_latest_version
+    scmid: default
+
+  update_markdowns_version:
+    name: "Update markdown files"
+    kind: file
+    spec:
+      files:
+        - "docs/docs/intro.md"
+      matchpattern: "v([0-9.]+)]\\Q(https://github.com/suitenumerique/people/releases/tag/v\\E([0-9.]+)"
+      replacepattern: '{{ source "people_latest_version" }}](https://github.com/suitenumerique/people/releases/tag/{{ source "people_latest_version" }}'
+    sourceid: people_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump people version to {{ source "people_latest_version" }}

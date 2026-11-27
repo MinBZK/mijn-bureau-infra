@@ -39,6 +39,50 @@ sources:
         kind: semver
         pattern: ">0.0.0"
 
+  ketesa_latest_version:
+    name: "Get latest ketesa tag"
+    kind: dockerimage
+    spec:
+      image: "ghcr.io/etkecc/ketesa"
+      architecture: amd64
+      tagfilter: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+  mas_latest_version:
+    name: "Get latest matrix authentication service tag"
+    kind: dockerimage
+    spec:
+      image: "oci.element.io/matrix-authentication-service"
+      architecture: amd64
+      tagfilter: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+  elementcall_latest_version:
+    name: "Get latest element call tag"
+    kind: dockerimage
+    spec:
+      image: "ghcr.io/element-hq/element-call"
+      architecture: amd64
+      tagfilter: "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+  lkjwt_latest_version:
+    name: "Get latest lk-jwt-service tag"
+    kind: dockerimage
+    spec:
+      image: "ghcr.io/element-hq/lk-jwt-service"
+      architecture: amd64
+      tagfilter: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
 targets:
   update_element_tag:
     name: "Update Element container tag"
@@ -104,6 +148,130 @@ targets:
     sourceid: synapse_latest_version
     scmid: default
 
+  update_ketesa_container_tag:
+    name: "Update ketesa container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.ketesa.tag"
+    sourceid: ketesa_latest_version
+    scmid: default
+
+  update_ketesa_values_tag:
+    name: "Update ketesa values tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/element/charts/ketesa/values.yaml"
+      key: "$.image.tag"
+    sourceid: ketesa_latest_version
+    scmid: default
+
+  update_ketesa_chart:
+    name: "Update ketesa chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/element/charts/ketesa/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: ketesa_latest_version
+    scmid: default
+
+  update_mas_container_tag:
+    name: "Update matrix authentication service container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.matrix_auth_service.tag"
+    sourceid: mas_latest_version
+    scmid: default
+
+  update_mas_values_tag:
+    name: "Update matrix authentication service values tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/element/charts/mas/values.yaml"
+      key: "$.image.tag"
+    sourceid: mas_latest_version
+    scmid: default
+
+  update_mas_chart:
+    name: "Update matrix authentication service chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/element/charts/mas/Chart.yaml"
+      key: "$.appVersion"
+    sourceid: mas_latest_version
+    scmid: default
+
+  update_elementcall_container_tag:
+    name: "Update element call container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.element_call.tag"
+    sourceid: elementcall_latest_version
+    scmid: default
+
+  update_elementcall_values_tag:
+    name: "Update element call values tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/element/charts/element-call/values.yaml"
+      key: "$.image.tag"
+    sourceid: elementcall_latest_version
+    scmid: default
+
+  update_elementcall_chart:
+    name: "Update element call chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/element/charts/element-call/Chart.yaml"
+      key: "$.appVersion"
+    transformers:
+      - trimprefix: "v"
+    sourceid: elementcall_latest_version
+    scmid: default
+
+  update_lkjwt_container_tag:
+    name: "Update lk-jwt-service container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.lk_jwt_service.tag"
+    sourceid: lkjwt_latest_version
+    scmid: default
+
+  update_lkjwt_values_tag:
+    name: "Update lk-jwt-service values tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/element/charts/lk-jwt-service/values.yaml"
+      key: "$.image.tag"
+    sourceid: lkjwt_latest_version
+    scmid: default
+
+  update_lkjwt_chart:
+    name: "Update lk-jwt-service chart appVersion"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/element/charts/lk-jwt-service/Chart.yaml"
+      key: "$.appVersion"
+    sourceid: lkjwt_latest_version
+    scmid: default
+
   update_markdowns_element_version:
     name: "Update markdown files with Element versions"
     kind: file
@@ -124,6 +292,17 @@ targets:
       matchpattern: "v([0-9.]+)]\\Q(https://github.com/element-hq/synapse/releases/tag/\\Ev?([0-9.]+)"
       replacepattern: '{{ source "synapse_latest_version" }}](https://github.com/element-hq/synapse/releases/tag/{{ source "synapse_latest_version" }}'
     sourceid: synapse_latest_version
+    scmid: default
+
+  update_markdowns_mas_version:
+    name: "Update markdown files with MAS versions"
+    kind: file
+    spec:
+      files:
+        - "docs/docs/intro.md"
+      matchpattern: "\\[([0-9.]+)\\]\\(https://github.com/element-hq/matrix-authentication-service/\\)"
+      replacepattern: '[{{ source "mas_latest_version" }}](https://github.com/element-hq/matrix-authentication-service/)'
+    sourceid: mas_latest_version
     scmid: default
 
 actions:

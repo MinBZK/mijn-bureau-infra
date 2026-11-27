@@ -41,7 +41,7 @@ diagnosticMode:
 image:
   registry: docker.io
   repository: opensearchproject/opensearch
-  tag: "2.19.7"
+  tag: "2.19.8"
   digest: ""
   pullPolicy: IfNotPresent
   pullSecrets: []

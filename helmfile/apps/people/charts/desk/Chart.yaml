@@ -2,7 +2,7 @@ annotations:
   category: identity
   licenses: MIT
 apiVersion: v2
-appVersion: 1.27.1
+appVersion: 1.27.2
 dependencies:
   - name: common
     repository: "file://../../../common/charts/common"
