@@ -11,13 +11,13 @@ sessions.
 
 ## What is managed where
 
-| Thing                         | Where you change it                                              |
-| ----------------------------- | ---------------------------------------------------------------- |
-| Name, e-mail address          | Your MijnBureau account at `https://mas.<global.domain>/`        |
-| Password                      | The sign-in page of the identity provider (`id.<global.domain>`) |
-| Profile picture               | Your MijnBureau account                                          |
-| Chat display name and devices | Element (only if your administrator allows it)                   |
-| Team and contact details      | [People](./people.md)                                            |
+| Thing                         | Where you change it                                                          |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| Name, e-mail address          | Your account page at `https://id.<global.domain>/realms/mijnbureau/account/` |
+| Password                      | The sign-in page of the identity provider (`id.<global.domain>`)             |
+| Profile picture               | Managed by your organisation                                                 |
+| Chat display name and devices | Element (only if your administrator allows it)                               |
+| Team and contact details      | [People](./people.md)                                                        |
 
 Most deployments feed your name and e-mail from the identity provider and lock
 them in the individual tools, so that your chat profile, mail sender and
@@ -25,11 +25,14 @@ document author always match.
 
 ## Opening your account
 
-1. Go to `https://mas.<global.domain>/`.
-2. Sign in with your usual credentials (or click your name in the
-   [Bureaublad](./bureaublad.md) and choose _Account_).
-3. You land on your account overview with your profile, sessions and linked
-   e-mail addresses.
+1. Go to `https://id.<global.domain>/realms/mijnbureau/account/`, or click your
+   name in the [Bureaublad](./bureaublad.md) and choose _Account_.
+2. Sign in with your usual credentials if asked.
+3. You land on your Keycloak account page with your profile and connected
+   applications.
+
+Password and session management live in Keycloak; name and e-mail are fed from
+the identity provider and cannot be changed from the applications themselves.
 
 ## Changing your password
 
@@ -45,11 +48,11 @@ recovery; ask your administrator to reset the password for you.
 Every application you signed in to keeps a session. Close the ones you no longer
 recognise:
 
-1. Open your account at `mas.<global.domain>`.
-2. Open the sessions list (_Sessions_ or _Connections_).
+1. Open your account page at `https://id.<global.domain>/realms/mijnbureau/account/`.
+2. Open _Account security_ → _Device activity_.
 3. Review the list — browser, operating system, last activity — and revoke
    anything that is not yours.
-4. Use _Sign out everywhere_ when you lose a device.
+4. Sign out of everything when you lose a device.
 
 Revoking a session signs that device out on its next request. Chat clients that
 stay connected in the background may take a minute to notice.
