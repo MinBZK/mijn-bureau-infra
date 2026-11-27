@@ -274,7 +274,11 @@ synapse:
         force: {{ .Values.smtp.tls.force }}
         requireTransportSecurity: {{ .Values.smtp.tls.requireTransportSecurity }}
     notifs:
-      from: {{ printf "Your %%(app)s homeserver <noreply@%s>" $serverName | quote }}
+      # Account and missed-message email. Requires an SMTP-capable
+      # application.messages deployment (the default in demo).
+      enabled: {{ ternary "true" "false" (and (ne (toString .Values.smtp.host) "") (dig "emailNotifications" true .Values.application.element.synapse)) }}
+      from: {{ printf "Your %%(app)s homeserver <%s>" (.Values.smtp.from.email | default "noreply@localhost") | quote }}
+      appName: {{ .Values.smtp.from.name | default "Mijn Bureau" | quote }}
     clientBaseUrl: {{ printf "https://%s" $clientHostName | quote }}
     inviteClientLocation: {{ printf "https://%s" $clientHostName | quote }}
   # Options related to ratelimiting in Synapse.

@@ -75,8 +75,7 @@ Create the following DNS records (replace `kubernetes.local` with your configure
 - `projects-objectstore.kubernetes.local`
 - `find.kubernetes.local` (Find search API and admin)
 - `menshen.kubernetes.local` (Menshen token exchange and admin)
-- `people.kubernetes.local` (when People is enabled)
-- `people-objectstore.kubernetes.local` (when People is enabled)
+- `contacts.kubernetes.local`
 - `dictaphone.kubernetes.local`
 - `dictaphone-objectstore.kubernetes.local`
 - `messages.kubernetes.local`

@@ -121,6 +121,18 @@ application:
     summary:
       enabled: true
       envVars: {}
+    # Who may record: false restricts start/stop to the room host and
+    # co-hosts; true (upstream default) lets any signed-in participant record.
+    recording:
+      authenticatedParticipantsEnabled: false
+      # Recording expiry, mirrored by a SeaweedFS filer TTL on the
+      # recordings/ prefix (see helmfile/apps/meet/values-seaweedfs.yaml.gotmpl).
+      expirationDays: 7
+      # Shown to users as the recording cap (milliseconds). LiveKit Egress
+      # does not enforce it; recording storage is bounded by the TTL above.
+      maxDurationMs: 7200000
+      # Default screen-recording resolution: 540p, 720p or 1080p.
+      encodingResolution: 1080p
     celeryBackend:
       enabled: true
 
@@ -201,13 +213,13 @@ application:
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "projects" "secretkey" | sha1sum | quote }}
     theme: ~
 
-  # people is LaSuite's mailbox/domain administration app (Dimail/Open-XChange).
-  # MijnBureau uses Messages, so there is no Dimail to provision; keep it off
-  # until the deployment adopts Dimail.
-  people:
+  # contacts is the shared contacts and address book service from LaSuite.
+  # It feeds people/group suggestions to Docs, Drive, Messages and Calendars.
+  contacts:
     enabled: false
     namespace: ~
-    secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "people" "secretkey" | sha1sum | quote }}
+    secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "contacts" "secretkey" | sha1sum | quote }}
+    saltKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "contacts" "saltkey" | sha1sum | quote }}
 
   # calendars is a calendar and scheduling application from LaSuite
   calendars:

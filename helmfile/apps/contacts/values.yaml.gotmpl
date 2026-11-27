@@ -1,0 +1,206 @@
+{{- $hostname := printf "%s.%s" .Values.global.hostname.contacts .Values.global.domain }}
+{{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
+{{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
+
+secrets:
+  external: false
+
+fullnameOverride: contacts
+
+image:
+  registry: {{ (coalesce .Values.container.contacts_backend.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.contacts_backend.repository | quote }}
+  tag: {{ .Values.container.contacts_backend.tag | quote }}
+  pullPolicy: Always
+
+imagePullSecrets:
+  {{- with (coalesce .Values.container.contacts_backend.imagePullSecret .Values.container.default.imagePullSecret) }}
+  - name: {{ . | quote }}
+  {{- end }}
+
+runtimeClassName: {{ .Values.cluster.runtimeClassName | quote }}
+
+# Sensitive values, rendered into the `contacts` Secret (templates/secret.yaml)
+# and referenced from envVars via secretKeyRef.
+appSecrets:
+  DJANGO_SECRET_KEY: {{ .Values.application.contacts.secretKey | quote }}
+  SALT_KEY: {{ .Values.application.contacts.saltKey | quote }}
+  DJANGO_SUPERUSER_PASSWORD: {{ .Values.secret.contacts.adminPassword | quote }}
+  DB_PASSWORD: {{ .Values.database.contacts.password | quote }}
+  OIDC_RP_CLIENT_SECRET: {{ .Values.authentication.client.contacts.client_secret | quote }}
+  REDIS_URL: "redis://default:{{ .Values.cache.contacts.password }}@{{ .Values.cache.contacts.host }}:{{ .Values.cache.contacts.port }}/0"
+
+ingress:
+  enabled: true
+  className: {{ .Values.cluster.ingress.className | quote }}
+  host: {{ $hostname }}
+  path: /
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}
+    {{- if and (hasKey .Values.cluster "certificate") (hasKey .Values.cluster.certificate "issuerRef") }}
+    {{- if eq .Values.cluster.certificate.issuerRef.kind "ClusterIssuer" }}
+    cert-manager.io/cluster-issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- else if eq .Values.cluster.certificate.issuerRef.kind "Issuer" }}
+    cert-manager.io/issuer: {{ .Values.cluster.certificate.issuerRef.name }}
+    {{- end }}
+    {{- end }}
+  tls:
+    enabled: {{ .Values.global.tls.enabled | default true }}
+    additional: {{ .Values.tls.contacts | default list | toYaml | nindent 6 }}
+
+ingressAdmin:
+  enabled: false
+
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: true
+
+backend:
+  replicas: {{ .Values.autoscaling.horizontal.contacts.backend.minReplicas | default 1 }}
+  securityContext: {{ omit (.Values.security.default.containerSecurityContext | default dict) "enabled" | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | default dict | toYaml | nindent 4 }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.contacts.backend .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.contacts.backend | default dict | toYaml | nindent 4 }}
+  pdb:
+    enabled: {{ ((.Values.pdb.contacts | default dict).backend).create | default true }}
+  probes:
+    liveness:
+      path: /__heartbeat__/
+      initialDelaySeconds: 10
+    readiness:
+      path: /__lbheartbeat__/
+      initialDelaySeconds: 10
+  # Distroless + readOnlyRootFilesystem: Django needs a writable scratch dir.
+  extraVolumes:
+    - name: tmp
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: tmp
+      mountPath: /tmp
+  envVars:
+    DJANGO_CONFIGURATION: Production
+    DJANGO_SETTINGS_MODULE: contacts.settings
+    DJANGO_ADMIN_URL: admin
+    DJANGO_SECRET_KEY:
+      secretKeyRef:
+        name: contacts
+        key: DJANGO_SECRET_KEY
+    SALT_KEY:
+      secretKeyRef:
+        name: contacts
+        key: SALT_KEY
+    DJANGO_SUPERUSER_EMAIL: {{ .Values.secret.contacts.adminUser | quote }}
+    DJANGO_SUPERUSER_PASSWORD:
+      secretKeyRef:
+        name: contacts
+        key: DJANGO_SUPERUSER_PASSWORD
+    DJANGO_ALLOWED_HOSTS: {{ $hostname }}
+    DJANGO_CSRF_TRUSTED_ORIGINS: {{ $baseUrl | quote }}
+    # Database
+    DB_HOST: {{ .Values.database.contacts.host | quote }}
+    DB_PORT: {{ .Values.database.contacts.port | quote }}
+    DB_NAME: {{ .Values.database.contacts.name | quote }}
+    DB_USER: {{ .Values.database.contacts.user | quote }}
+    DB_PASSWORD:
+      secretKeyRef:
+        name: contacts
+        key: DB_PASSWORD
+    # Redis: sessions/cache and the Dramatiq broker/result backend
+    REDIS_URL:
+      secretKeyRef:
+        name: contacts
+        key: REDIS_URL
+    DRAMATIQ_BROKER_URL: "redis://default:{{ .Values.cache.contacts.password }}@{{ .Values.cache.contacts.host }}:{{ .Values.cache.contacts.port }}/0"
+    DRAMATIQ_RESULT_BACKEND_URL: "redis://default:{{ .Values.cache.contacts.password }}@{{ .Values.cache.contacts.host }}:{{ .Values.cache.contacts.port }}/1"
+    # The frontend Caddy is the only proxy in front of Django.
+    NUM_PROXIES: "1"
+    # OIDC
+    OIDC_RP_CLIENT_ID: {{ .Values.authentication.client.contacts.client_id | quote }}
+    OIDC_RP_CLIENT_SECRET:
+      secretKeyRef:
+        name: contacts
+        key: OIDC_RP_CLIENT_SECRET
+    OIDC_RP_SIGN_ALGO: RS256
+    OIDC_RP_SCOPES: "openid email profile"
+    OIDC_OP_URL: {{ .Values.authentication.oidc.issuer | quote }}
+    OIDC_OP_JWKS_ENDPOINT: {{ .Values.authentication.oidc.jwks_uri | quote }}
+    OIDC_OP_AUTHORIZATION_ENDPOINT: {{ .Values.authentication.oidc.authorization_endpoint | quote }}
+    OIDC_OP_TOKEN_ENDPOINT: {{ .Values.authentication.oidc.token_endpoint | quote }}
+    OIDC_OP_USER_ENDPOINT: {{ .Values.authentication.oidc.userinfo_endpoint | quote }}
+    OIDC_OP_LOGOUT_ENDPOINT: {{ .Values.authentication.oidc.end_session_endpoint | quote }}
+    OIDC_USERINFO_FULLNAME_FIELDS: "{{ .Values.authentication.oidc.claims.given_name }},{{ .Values.authentication.oidc.claims.family_name }}"
+    LOGIN_REDIRECT_URL: {{ $baseUrl | quote }}
+    LOGIN_REDIRECT_URL_FAILURE: {{ $baseUrl | quote }}
+    LOGOUT_REDIRECT_URL: "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
+    OIDC_REDIRECT_ALLOWED_HOSTS: {{ $hostname | quote }}
+    FEATURE_CARDDAV: "True"
+
+worker:
+  replicas: {{ .Values.autoscaling.horizontal.contacts.worker.minReplicas | default 1 }}
+  securityContext: {{ omit (.Values.security.default.containerSecurityContext | default dict) "enabled" | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | default dict | toYaml | nindent 4 }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.contacts.worker .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.contacts.worker | default dict | toYaml | nindent 4 }}
+  # envVars are inherited from backend.envVars by the chart
+  envVars: {}
+  extraVolumes:
+    - name: tmp
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: tmp
+      mountPath: /tmp
+
+frontend:
+  replicas: {{ .Values.autoscaling.horizontal.contacts.frontend.minReplicas | default 1 }}
+  image:
+    registry: {{ (coalesce .Values.container.contacts_frontend.registry .Values.container.default.registry) | quote }}
+    repository: {{ .Values.container.contacts_frontend.repository | quote }}
+    tag: {{ .Values.container.contacts_frontend.tag | quote }}
+    pullPolicy: Always
+  securityContext: {{ omit (.Values.security.default.containerSecurityContext | default dict) "enabled" | toYaml | nindent 4 }}
+  podSecurityContext: {{ .Values.security.default.podSecurityContext | default dict | toYaml | nindent 4 }}
+  resourcesPreset: {{ coalesce .Values.global.resourcesPresetPerApp.contacts.frontend .Values.global.resourcesPreset | quote }}
+  resources: {{ .Values.resource.contacts.frontend | default dict | toYaml | nindent 4 }}
+  pdb:
+    enabled: {{ ((.Values.pdb.contacts | default dict).frontend).create | default true }}
+  probes:
+    liveness:
+      path: /__lbheartbeat__
+      initialDelaySeconds: 10
+    readiness:
+      path: /__lbheartbeat__
+      initialDelaySeconds: 10
+  # Caddy proxies the backend paths and needs writable HOME/XDG dirs.
+  envVars:
+    PORT: "8080"
+    HOME: /tmp
+    XDG_DATA_HOME: /tmp/caddy/data
+    XDG_CONFIG_HOME: /tmp/caddy/config
+    CONTACTS_FRONTEND_BACKEND_SERVER: "contacts-backend:80"
+    CONTACTS_FRONTEND_TRUSTED_PROXIES: "private_ranges"
+    DJANGO_ADMIN_URL: admin
+  extraVolumes:
+    - name: tmp
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: tmp
+      mountPath: /tmp
+
+serviceAccount:
+  create: true
+  name: contacts
+  automountServiceAccountToken: false

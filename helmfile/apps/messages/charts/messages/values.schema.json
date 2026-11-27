@@ -362,6 +362,15 @@
         },
         "pushEnabled": {
           "type": "boolean"
+        },
+        "pushVapidPublicKey": {
+          "type": "string"
+        },
+        "pushVapidPrivateKey": {
+          "type": "string"
+        },
+        "pushVapidSubject": {
+          "type": "string"
         }
       }
     },

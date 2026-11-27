@@ -338,6 +338,14 @@ backend:
     OIDC_RS_CLIENT_SECRET: {{ .Values.authentication.client.docs.client_secret | quote }}
     # ListValue in this image splits on commas, not JSON: plain string list.
     OIDC_RS_ALLOWED_AUDIENCES: {{ .Values.authentication.client.conversations.client_id | quote }}
+    {{- if .Values.application.conversations.enabled }}
+    # Let the assistant read a pasted Docs link (conversations
+    # FEATURE_FLAG_DOCS_LINK_FETCHING). Mirrors Docs' built-in defaults plus
+    # the formatted_content action, which is not allowed by default. Docs reads
+    # this with Python's ast.literal_eval, so it must be a Python literal
+    # (True/False, single quotes), not JSON.
+    EXTERNAL_API: "{'documents': {'enabled': True, 'actions': ['list', 'retrieve', 'create', 'children', 'formatted_content']}, 'document_access': {'enabled': False, 'actions': []}, 'document_invitation': {'enabled': False, 'actions': []}, 'users': {'enabled': True, 'actions': ['get_me']}}"
+    {{- end }}
     OIDC_USE_NONCE: "true"
     OIDC_USERINFO_FULLNAME_FIELDS: "{{ .Values.authentication.oidc.claims.given_name }},{{ .Values.authentication.oidc.claims.family_name }}"
     OIDC_USERINFO_SHORTNAME_FIELD: {{ .Values.authentication.oidc.claims.display_name | quote }}

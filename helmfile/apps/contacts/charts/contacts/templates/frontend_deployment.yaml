@@ -1,5 +1,5 @@
-{{- $envVars := include "desk.common.env" (list . .Values.frontend) -}}
-{{- $fullName := include "desk.frontend.fullname" . -}}
+{{- $envVars := include "contacts.common.env" (list . .Values.frontend) -}}
+{{- $fullName := include "contacts.frontend.fullname" . -}}
 {{- $component := "frontend" -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -11,12 +11,12 @@ metadata:
    {{- end }}
   namespace: {{ .Release.Namespace | quote }}
   labels:
-    {{- include "desk.common.labels" (list . $component) | nindent 4 }}
+    {{- include "contacts.common.labels" (list . $component) | nindent 4 }}
 spec:
   replicas: {{ .Values.frontend.replicas }}
   selector:
     matchLabels:
-      {{- include "desk.common.selectorLabels" (list . $component) | nindent 6 }}
+      {{- include "contacts.common.selectorLabels" (list . $component) | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -24,18 +24,18 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "desk.common.labels" (list . $component) | nindent 8 }}
+        {{- include "contacts.common.labels" (list . $component) | nindent 8 }}
     spec:
       {{- if $.Values.image.credentials }}
       imagePullSecrets:
-        - name: {{ include "desk.secret.dockerconfigjson.name" (dict "fullname" (include "desk.fullname" .) "imageCredentials" $.Values.image.credentials) }}
+        - name: {{ include "contacts.secret.dockerconfigjson.name" (dict "fullname" (include "contacts.fullname" .) "imageCredentials" $.Values.image.credentials) }}
       {{- end}}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       shareProcessNamespace: {{ .Values.frontend.shareProcessNamespace }}
-      serviceAccountName: {{ include "desk.serviceAccountName" . }}
+      serviceAccountName: {{ include "contacts.serviceAccountName" . }}
       {{- with .Values.runtimeClassName }}
       runtimeClassName: {{ . | quote }}
       {{- end }}
@@ -47,7 +47,7 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
         - name: {{ .Chart.Name }}
-          image: {{ include "desk.image" (dict "scope" (.Values.frontend.image | default dict) "root" .) }}
+          image: {{ include "contacts.image" (dict "scope" (.Values.frontend.image | default dict) "root" .) }}
           imagePullPolicy: {{ (.Values.frontend.image | default dict).pullPolicy | default .Values.image.pullPolicy }}
           {{- with .Values.frontend.command }}
           command:
@@ -71,15 +71,15 @@ spec:
               protocol: TCP
           {{- if .Values.frontend.probes.liveness }}
           livenessProbe:
-            {{- include "desk.probes.abstract" (merge .Values.frontend.probes.liveness (dict "targetPort" .Values.frontend.service.targetPort )) | nindent 12 }}
+            {{- include "contacts.probes.abstract" (merge .Values.frontend.probes.liveness (dict "targetPort" .Values.frontend.service.targetPort )) | nindent 12 }}
           {{- end }}
           {{- if .Values.frontend.probes.readiness }}
           readinessProbe:
-            {{- include "desk.probes.abstract" (merge .Values.frontend.probes.readiness (dict "targetPort" .Values.frontend.service.targetPort )) | nindent 12 }}
+            {{- include "contacts.probes.abstract" (merge .Values.frontend.probes.readiness (dict "targetPort" .Values.frontend.service.targetPort )) | nindent 12 }}
           {{- end }}
           {{- if .Values.frontend.probes.startup }}
           startupProbe:
-            {{- include "desk.probes.abstract" (merge .Values.frontend.probes.startup (dict "targetPort" .Values.frontend.service.targetPort )) | nindent 12 }}
+            {{- include "contacts.probes.abstract" (merge .Values.frontend.probes.startup (dict "targetPort" .Values.frontend.service.targetPort )) | nindent 12 }}
           {{- end }}
           {{- if .Values.frontend.resources }}
           resources: {{- toYaml .Values.frontend.resources | nindent 12 }}
@@ -118,7 +118,7 @@ spec:
         {{- range $index, $value := .Values.mountFiles }}
         - name: "files-{{ $index }}"
           configMap:
-            name: "{{ include "desk.fullname" $ }}-files-{{ $index }}"
+            name: "{{ include "contacts.fullname" $ }}-files-{{ $index }}"
         {{- end }}
         {{- range $name, $volume := .Values.frontend.persistence }}
         - name: "{{ $name }}"
@@ -161,5 +161,5 @@ spec:
   maxUnavailable: 1
   selector:
     matchLabels:
-      {{- include "desk.common.selectorLabels" (list . $component) | nindent 6 }}
+      {{- include "contacts.common.selectorLabels" (list . $component) | nindent 6 }}
 {{ end }}

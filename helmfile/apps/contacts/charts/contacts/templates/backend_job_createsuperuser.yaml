@@ -1,10 +1,11 @@
-{{- $envVars := include "desk.common.env" (list . .Values.backend) -}}
-{{- $fullName := include "desk.backend.fullname" . -}}
+{{- if .Values.backend.createsuperuser.enabled -}}
+{{- $envVars := include "contacts.common.env" (list . .Values.backend) -}}
+{{- $fullName := include "contacts.backend.fullname" . -}}
 {{- $component := "backend" -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ $fullName }}-migrate
+  name: {{ $fullName }}-createsuperuser
   namespace: {{ .Release.Namespace | quote }}
   annotations:
     argocd.argoproj.io/sync-options: Replace=true,Force=true
@@ -12,7 +13,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   labels:
-    {{- include "desk.common.labels" (list . $component) | nindent 4 }}
+    {{- include "contacts.common.labels" (list . $component) | nindent 4 }}
 spec:
   template:
     metadata:
@@ -21,18 +22,18 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "desk.common.labels" (list . $component) | nindent 8 }}
+        {{- include "contacts.common.labels" (list . $component) | nindent 8 }}
     spec:
       {{- if $.Values.image.credentials }}
       imagePullSecrets:
-        - name: {{ include "desk.secret.dockerconfigjson.name" (dict "fullname" (include "desk.fullname" .) "imageCredentials" $.Values.image.credentials) }}
+        - name: {{ include "contacts.secret.dockerconfigjson.name" (dict "fullname" (include "contacts.fullname" .) "imageCredentials" $.Values.image.credentials) }}
       {{- end}}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       shareProcessNamespace: {{ .Values.backend.shareProcessNamespace }}
-      serviceAccountName: {{ include "desk.serviceAccountName" . }}
+      serviceAccountName: {{ include "contacts.serviceAccountName" . }}
       {{- with .Values.runtimeClassName }}
       runtimeClassName: {{ . | quote }}
       {{- end }}
@@ -44,9 +45,9 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
         - name: {{ .Chart.Name }}
-          image: {{ include "desk.image" (dict "scope" (.Values.backend.image | default dict) "root" .) }}
+          image: {{ include "contacts.image" (dict "scope" (.Values.backend.image | default dict) "root" .) }}
           imagePullPolicy: {{ (.Values.backend.image | default dict).pullPolicy | default .Values.image.pullPolicy }}
-          {{- with .Values.backend.migrate.command }}
+          {{- with .Values.backend.createsuperuser.command }}
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -95,12 +96,12 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      restartPolicy: {{ .Values.backend.migrate.restartPolicy }}
+      restartPolicy: {{ .Values.backend.createsuperuser.restartPolicy }}
       volumes:
         {{- range $index, $value := .Values.mountFiles }}
         - name: "files-{{ $index }}"
           configMap:
-            name: "{{ include "desk.fullname" $ }}-files-{{ $index }}"
+            name: "{{ include "contacts.fullname" $ }}-files-{{ $index }}"
         {{- end }}
         {{- range $name, $volume := .Values.backend.persistence }}
         - name: "{{ $name }}"
@@ -132,3 +133,4 @@ spec:
           emptyDir: {}
           {{- end }}
         {{- end }}
+{{- end -}}

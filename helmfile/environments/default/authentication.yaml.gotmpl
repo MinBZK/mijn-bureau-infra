@@ -61,9 +61,9 @@ authentication:
     projects:
       client_id: "projects"
       client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "projects_client_secret" | sha1sum | quote}}
-    people:
-      client_id: "people"
-      client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "people_client_secret" | sha1sum | quote}}
+    contacts:
+      client_id: "contacts"
+      client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "contacts_client_secret" | sha1sum | quote}}
     calendars:
       client_id: "calendars"
       client_secret: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD" ) "keycloak" "calendars_client_secret" | sha1sum | quote}}

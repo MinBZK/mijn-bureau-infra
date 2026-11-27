@@ -52,16 +52,6 @@ objectstore:
     isInternal: true
     secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "seaweedfs" "projects" | sha1sum | quote }}
 
-  people:
-    bucket: "people-media-storage"
-    accessKey: "admin"
-    endpoint: "people-seaweedfs"
-    port: 8333
-    useSSL: false
-    region: "eu-west-1"
-    isInternal: true
-    secretKey: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "seaweedfs" "people" | sha1sum | quote }}
-
   dictaphone:
     bucket: "dictaphone"
     accessKey: "admin"

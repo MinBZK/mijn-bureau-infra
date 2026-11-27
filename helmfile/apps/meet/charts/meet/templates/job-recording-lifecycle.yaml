@@ -1,0 +1,82 @@
+{{- if and .Values.meet_backend.recordingEnable .Values.meet_backend.recordingExpirationDays }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "common.names.fullname" . }}-recording-lifecycle
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: meet-recording-lifecycle
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: "-5"
+    {{- if .Values.commonAnnotations }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished | default 100 }}
+  backoffLimit: 3
+  template:
+    metadata:
+      labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
+        app.kubernetes.io/component: meet-recording-lifecycle
+    spec:
+      {{- include "meet_backend.imagePullSecrets" . | nindent 6 }}
+      restartPolicy: OnFailure
+      serviceAccountName: {{ template "meet.serviceAccountName" . }}
+      {{- if .Values.meet_backend.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.meet_backend.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.meet_backend.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.meet_backend.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: recording-lifecycle
+          image: {{ template "meet_backend.image" . }}
+          imagePullPolicy: {{ .Values.meet_backend.image.pullPolicy }}
+          {{- if .Values.meet_backend.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.meet_backend.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ template "common.names.fullname" . }}
+            - secretRef:
+                name: {{ include "meet.secretName" . }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              python - <<'PY'
+              import os
+
+              import boto3
+
+              bucket = os.environ["AWS_STORAGE_BUCKET_NAME"]
+              prefix = (os.environ.get("RECORDING_OUTPUT_FOLDER") or "recordings").strip("/") + "/"
+              days = int(os.environ["RECORDING_EXPIRATION_DAYS"])
+              client = boto3.client(
+                  "s3",
+                  endpoint_url=os.environ["AWS_S3_ENDPOINT_URL"],
+                  region_name=os.environ.get("AWS_S3_REGION_NAME") or None,
+                  aws_access_key_id=os.environ["AWS_S3_ACCESS_KEY_ID"],
+                  aws_secret_access_key=os.environ["AWS_S3_SECRET_ACCESS_KEY"],
+              )
+              client.put_bucket_lifecycle_configuration(
+                  Bucket=bucket,
+                  LifecycleConfiguration={
+                      "Rules": [
+                          {
+                              "ID": "meet-recordings-retention",
+                              "Filter": {"Prefix": prefix},
+                              "Status": "Enabled",
+                              "Expiration": {"Days": days},
+                          }
+                      ]
+                  },
+              )
+              print(f"Recording lifecycle: s3://{bucket}/{prefix} expires after {days} days")
+              PY
+          {{- if .Values.job.resources }}
+          resources: {{- toYaml .Values.job.resources | nindent 12 }}
+          {{- end }}
+{{- end }}

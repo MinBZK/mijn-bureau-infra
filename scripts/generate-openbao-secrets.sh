@@ -102,7 +102,7 @@ keycloak	docs_client_secret	hex40
 keycloak	bureaublad_client_secret	hex40
 keycloak	drive_client_secret	hex40
 keycloak	projects_client_secret	hex40
-keycloak	people_client_secret	hex40
+keycloak	contacts_client_secret	hex40
 keycloak	calendars_client_secret	hex40
 keycloak	dictaphone_client_secret	hex40
 keycloak	messages_client_secret	hex40
@@ -163,11 +163,12 @@ projects	database	hex40
 projects	database_admin	hex40
 projects	password	hex40
 projects	secretkey	hex40
-people	adminPassword	hex40
-people	database	hex40
-people	database_admin	hex40
-people	password	hex40
-people	secretkey	hex40
+contacts	adminPassword	hex40
+contacts	database	hex40
+contacts	database_admin	hex40
+contacts	password	hex40
+contacts	secretkey	hex40
+contacts	saltkey	hex40
 calendars	adminPassword	hex40
 calendars	database	hex40
 calendars	database_admin	hex40
@@ -220,7 +221,6 @@ seaweedfs	docs	hex40
 seaweedfs	drive	hex40
 seaweedfs	meet	hex40
 seaweedfs	projects	hex40
-seaweedfs	people	hex40
 seaweedfs	dictaphone	hex40
 seaweedfs	conversations	hex40
 seaweedfs	messages	hex40

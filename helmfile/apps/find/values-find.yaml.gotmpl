@@ -73,6 +73,8 @@ find:
     # API docs and OpenAPI schema, for operators integrating services.
     API_DOCS_ENABLED: "true"
     API_OPENAPI_ENABLED: "true"
+    # Landing page instead of a bare search box.
+    FRONTEND_HOMEPAGE_FEATURE_ENABLED: "true"
     {{- if .Values.application.find.menshen.enabled }}
     # Menshen runs its Production configuration with SECURE_SSL_REDIRECT, so
     # find reaches it through the public https hostname, not the in-cluster

@@ -1,5 +1,5 @@
 {{- if and .Values.ingressAdmin.enabled (eq ((.Values.cluster | default dict).routingMode | default "ingress") "ingress") -}}
-{{- $fullName := include "desk.fullname" . -}}
+{{- $fullName := include "contacts.fullname" . -}}
 {{- if and .Values.ingressAdmin.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingressAdmin.annotations "kubernetes.io/ingress.class") }}
   {{- $_ := set .Values.ingressAdmin.annotations "kubernetes.io/ingress.class" .Values.ingressAdmin.className}}
@@ -17,7 +17,7 @@ metadata:
   name: {{ $fullName }}-admin
   namespace: {{ .Release.Namespace | quote }}
   labels:
-    {{- include "desk.labels" . | nindent 4 }}
+    {{- include "contacts.labels" . | nindent 4 }}
   {{- with .Values.ingressAdmin.annotations }}
   annotations:
   {{- toYaml . | nindent 4 }}
@@ -53,11 +53,11 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "desk.backend.fullname" . }}
+                name: {{ include "contacts.backend.fullname" . }}
                 port:
                   number: {{ .Values.backend.service.port }}
               {{- else }}
-              serviceName: {{ include "desk.backend.fullname" . }}
+              serviceName: {{ include "contacts.backend.fullname" . }}
               servicePort: {{ .Values.backend.service.port }}
             {{- end }}
           - path: /static
@@ -67,11 +67,11 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "desk.backend.fullname" . }}
+                name: {{ include "contacts.backend.fullname" . }}
                 port:
                   number: {{ .Values.backend.service.port }}
               {{- else }}
-              serviceName: {{ include "desk.backend.fullname" . }}
+              serviceName: {{ include "contacts.backend.fullname" . }}
               servicePort: {{ .Values.backend.service.port }}
             {{- end }}
     {{- end }}
@@ -86,11 +86,11 @@ spec:
             backend:
               {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
-                name: {{ include "desk.backend.fullname" $ }}
+                name: {{ include "contacts.backend.fullname" $ }}
                 port:
                   number: {{ $.Values.backend.service.port }}
               {{- else }}
-              serviceName: {{ include "desk.backend.fullname" $ }}
+              serviceName: {{ include "contacts.backend.fullname" $ }}
               servicePort: {{ $.Values.backend.service.port }}
             {{- end }}
     {{- end }}

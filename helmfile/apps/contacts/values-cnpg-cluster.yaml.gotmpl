@@ -1,4 +1,4 @@
-fullnameOverride: people-cluster
+fullnameOverride: contacts-cluster
 
 type: postgresql
 
@@ -12,7 +12,7 @@ cluster:
   instances: 1
 
   enableSuperuserAccess: true
-  superuserSecret: people-cluster-superuser
+  superuserSecret: contacts-cluster-superuser
 
   {{- with (coalesce .Values.container.cnpg_postgres.imagePullSecret .Values.container.default.imagePullSecret) }}
   imagePullSecrets:
@@ -20,12 +20,12 @@ cluster:
   {{- end }}
 
   storage:
-    size: {{ coalesce .Values.pvc.people.postgresql.size .Values.pvc.default.size "8Gi" }}
-    {{- with (coalesce .Values.pvc.people.postgresql.storageClass .Values.pvc.default.storageClass) }}
+    size: {{ coalesce .Values.pvc.contacts.postgresql.size .Values.pvc.default.size "8Gi" }}
+    {{- with (coalesce .Values.pvc.contacts.postgresql.storageClass .Values.pvc.default.storageClass) }}
     storageClass: {{ . }}
     {{- end }}
 
-  {{- with .Values.resource.people.postgresql }}
+  {{- with .Values.resource.contacts.postgresql }}
   resources: {{ toYaml . | nindent 4 }}
   {{- end }}
 
@@ -35,10 +35,10 @@ cluster:
       enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}
 
   initdb:
-    database: {{ .Values.database.people.name }}
-    owner: {{ .Values.database.people.user }}
+    database: {{ .Values.database.contacts.name }}
+    owner: {{ .Values.database.contacts.user }}
     secret:
-      name: people-cluster-app
+      name: contacts-cluster-app
 
 backups:
   # CloudNativePG object-store backups to the external store configured under
@@ -48,11 +48,11 @@ backups:
   {{- if and .Values.backup.enabled (not (empty (dig "cnpg" "endpointURL" "" .Values.backup))) }}
   provider: s3
   endpointURL: {{ (dig "cnpg" "endpointURL" "" .Values.backup) | quote }}
-  destinationPath: s3://{{ (dig "cnpg" "bucket" "" .Values.backup) }}/{{ (dig "cnpg" "pathPrefix" "postgresql" .Values.backup) }}/people
+  destinationPath: s3://{{ (dig "cnpg" "bucket" "" .Values.backup) }}/{{ (dig "cnpg" "pathPrefix" "postgresql" .Values.backup) }}/contacts
   s3:
     region: {{ (dig "cnpg" "region" "eu-west-1" .Values.backup) | quote }}
     bucket: {{ (dig "cnpg" "bucket" "" .Values.backup) | quote }}
-    path: /{{ (dig "cnpg" "pathPrefix" "postgresql" .Values.backup) }}/people
+    path: /{{ (dig "cnpg" "pathPrefix" "postgresql" .Values.backup) }}/contacts
     accessKey: {{ (dig "cnpg" "accessKey" "" .Values.backup) | quote }}
     secretKey: {{ (dig "cnpg" "secretKey" "" .Values.backup) | quote }}
   wal:

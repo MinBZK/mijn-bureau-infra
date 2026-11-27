@@ -73,9 +73,9 @@ const COMPONENTS: ComponentLogo[] = [
     ext: "svg",
   },
   {
-    name: "People",
-    role: "Teams & Contacts",
-    logo: "/img/logos/LaSuite people.svg",
+    name: "Contacts",
+    role: "Contacts & Address Book",
+    logo: "/img/logos/LaSuite contacts.svg",
     ext: "svg",
   },
   {

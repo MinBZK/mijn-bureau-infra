@@ -92,6 +92,9 @@ spec:
               {{- with .ttl }}
               echo "fs.configure -locationPrefix=/buckets/$BUCKET -ttl={{ . }} -apply" | /usr/bin/weed shell
               {{- end }}
+              {{- with .ttlPrefix }}
+              echo "fs.configure -locationPrefix=/buckets/$BUCKET{{ .prefix }} -ttl={{ .ttl }} -apply" | /usr/bin/weed shell
+              {{- end }}
               {{- end }}
           ports:
             - name: master

@@ -493,6 +493,22 @@ meet_backend:
   ## @param meet_backend.recordingEnable Enable LiveKit Egress based room recording
   ##
   recordingEnable: false
+  ## @param meet_backend.recordingAuthenticatedParticipantsEnabled Let any signed-in participant record
+  ## When false, only the room host and co-hosts can start and stop recordings.
+  ##
+  recordingAuthenticatedParticipantsEnabled: true
+  ## @param meet_backend.recordingExpirationDays Days after which Meet shows a recording as expired
+  ## Pair it with the bucket TTL in values-seaweedfs.yaml.gotmpl.
+  ##
+  recordingExpirationDays: 7
+  ## @param meet_backend.recordingMaxDuration Recording cap in milliseconds, shown to users
+  ## LiveKit Egress does not enforce it; leave empty for no limit.
+  ##
+  recordingMaxDuration: ""
+  ## @param meet_backend.recordingEncodingDefaultResolution Default screen-recording resolution
+  ## One of the keys in RECORDING_ENCODING_AVAILABLE_RESOLUTIONS (540p, 720p, 1080p).
+  ##
+  recordingEncodingDefaultResolution: "720p"
   languageCode: "en-us"
   CSRFTrustedOrigins: ""
   CORSAllowedOrigins: ""

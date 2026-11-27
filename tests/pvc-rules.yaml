@@ -25,11 +25,6 @@ global:
       backend: "small"
       frontend: "small"
     projects: "small"
-    people:
-      backend: "small"
-      frontend: "small"
-      celery: "small"
-      celeryBeat: "small"
     calendars:
       backend: "small"
       worker: "small"
@@ -76,9 +71,6 @@ pvc:
     seaweedfs:
       size: "42Gi"
   projects:
-    seaweedfs:
-      size: "42Gi"
-  people:
     seaweedfs:
       size: "42Gi"
   dictaphone:

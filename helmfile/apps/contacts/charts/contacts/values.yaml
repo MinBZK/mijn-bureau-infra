@@ -1,0 +1,232 @@
+# Default values for contacts.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  registry: "ghcr.io"
+  repository: "suitenumerique/contacts-backend"
+  pullPolicy: Always
+  tag: "main"
+
+imagePullSecrets: []
+
+runtimeClassName: ""
+
+nameOverride: ""
+fullnameOverride: ""
+
+## @section MijnBureau additions
+serviceAccount:
+  create: true
+  name: ""
+  automountServiceAccountToken: false
+
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: true
+  ingressNSMatchLabels: {}
+  extraIngress: []
+
+## @skip appSecrets Sensitive values rendered into the application Secret via tplvalues
+appSecrets: {}
+
+## @skip secrets.external Render the application Secret inline (false) or expect ESO to provide it
+secrets:
+  external: false
+
+## @skip mountFiles Extra ConfigMap files rendered and mounted into all workloads
+mountFiles: []
+
+ingress:
+  enabled: false
+  className: null
+  host: contacts.example.com
+  path: /
+  hosts: []
+  tls:
+    enabled: true
+    additional: []
+  customBackends: []
+
+ingressAdmin:
+  enabled: false
+  className: null
+  host: contacts.example.com
+  path: /admin
+  hosts: []
+  tls:
+    enabled: true
+    additional: []
+
+## @section backend
+
+backend:
+  pdb:
+    enabled: true
+
+  dpAnnotations: {}
+
+  command: []
+  args: []
+
+  replicas: 1
+
+  shareProcessNamespace: false
+  sidecars: []
+
+  migrateJobAnnotations: {}
+
+  securityContext: null
+  podSecurityContext: {}
+
+  resourcesPreset: "micro"
+
+  envVars: {}
+
+  podAnnotations: {}
+
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8000
+    annotations: {}
+
+  migrate:
+    command:
+      - "python"
+      - "manage.py"
+      - "migrate"
+      - "--no-input"
+    restartPolicy: Never
+
+  probes:
+    liveness:
+      path: /__heartbeat__/
+      initialDelaySeconds: 10
+    readiness:
+      path: /__lbheartbeat__/
+      initialDelaySeconds: 10
+
+  resources: {}
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  persistence: {}
+
+  extraVolumeMounts: []
+  extraVolumes: []
+
+  createsuperuser:
+    enabled: true
+    command:
+      - "python"
+      - "manage.py"
+      - "createsuperuser"
+      - "--email"
+      - "$(DJANGO_SUPERUSER_EMAIL)"
+      - "--password"
+      - "$(DJANGO_SUPERUSER_PASSWORD)"
+    restartPolicy: Never
+
+## @section frontend
+frontend:
+  pdb:
+    enabled: true
+
+  image:
+    registry: ""
+    repository: "suitenumerique/contacts-frontend"
+    pullPolicy: Always
+    tag: "main"
+
+  dpAnnotations: {}
+
+  command: []
+  args: []
+
+  replicas: 1
+
+  shareProcessNamespace: false
+  sidecars: []
+
+  securityContext: null
+  podSecurityContext: {}
+
+  resourcesPreset: "nano"
+
+  envVars: {}
+
+  podAnnotations: {}
+
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+    annotations: {}
+
+  probes:
+    liveness:
+      path: /__lbheartbeat__
+      initialDelaySeconds: 10
+    readiness:
+      path: /__lbheartbeat__
+      initialDelaySeconds: 10
+
+  resources: {}
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  persistence: {}
+
+  extraVolumeMounts: []
+  extraVolumes: []
+
+## @section worker
+
+worker:
+  dpAnnotations: {}
+
+  command: ["python", "worker.py", "-v", "2"]
+  args: []
+
+  replicas: 1
+
+  shareProcessNamespace: false
+  sidecars: []
+
+  securityContext: null
+  podSecurityContext: {}
+
+  resourcesPreset: "micro"
+
+  envVars: {}
+
+  podAnnotations: {}
+
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8000
+    annotations: {}
+
+  probes:
+    liveness:
+      exec:
+        command: ["python", "worker.py", "--ping"]
+      initialDelaySeconds: 10
+
+  resources: {}
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  persistence: {}
+
+  extraVolumeMounts: []
+  extraVolumes: []

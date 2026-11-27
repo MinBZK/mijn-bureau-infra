@@ -27,16 +27,16 @@ rotates every database password, app secret and admin login at once. Read
 
 ## Admin surfaces at a glance
 
-| Surface                                                                                                                    | Where                                                                                              | Account                                                      | Password source                  |
-| -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------- |
-| Keycloak admin console                                                                                                     | `https://id.<global.domain>/admin` (realm `mijnbureau`)                                            | `admin`                                                      | `secret.keycloak.adminPassword`  |
-| Ketesa (Synapse admin UI)                                                                                                  | `https://ketesa.<global.domain>`                                                                   | Matrix account that is **Synapse admin** _and_ **MAS admin** | the user's Keycloak password     |
-| MAS account UI                                                                                                             | `https://mas.<global.domain>/`                                                                     | any end user                                                 | Keycloak                         |
-| Nextcloud _(when `application.nextcloud.enabled`)_                                                                         | `https://nextcloud.<global.domain>/settings/admin`                                                 | `admin`                                                      | `secret.nextcloud.adminPassword` |
-| LaSuite Django admins (Docs, Drive, Meet, Conversations, Projects, Calendars, People, Dictaphone, Messages, Find, Menshen) | not publicly routed — port-forward, see [LaSuite applications](#lasuite-applications-django-admin) | per app, see table below                                     | `secret.<app>.*`                 |
-| Object store consoles (per app)                                                                                            | not publicly routed                                                                                | n/a                                                          | `objectstore.<app>.secretKey`    |
-| PostgreSQL (CloudNativePG)                                                                                                 | no UI — `psql` in the cluster                                                                      | `postgres`                                                   | `<app>-cluster-superuser` secret |
-| LiveKit (SFU)                                                                                                              | no admin UI                                                                                        | —                                                            | `application.livekit.keys`       |
+| Surface                                                                                                                      | Where                                                                                              | Account                                                      | Password source                  |
+| ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------- |
+| Keycloak admin console                                                                                                       | `https://id.<global.domain>/admin` (realm `mijnbureau`)                                            | `admin`                                                      | `secret.keycloak.adminPassword`  |
+| Ketesa (Synapse admin UI)                                                                                                    | `https://ketesa.<global.domain>`                                                                   | Matrix account that is **Synapse admin** _and_ **MAS admin** | the user's Keycloak password     |
+| MAS account UI                                                                                                               | `https://mas.<global.domain>/`                                                                     | any end user                                                 | Keycloak                         |
+| Nextcloud _(when `application.nextcloud.enabled`)_                                                                           | `https://nextcloud.<global.domain>/settings/admin`                                                 | `admin`                                                      | `secret.nextcloud.adminPassword` |
+| LaSuite Django admins (Docs, Drive, Meet, Conversations, Projects, Contacts, Calendars, Dictaphone, Messages, Find, Menshen) | not publicly routed — port-forward, see [LaSuite applications](#lasuite-applications-django-admin) | per app, see table below                                     | `secret.<app>.*`                 |
+| Object store consoles (per app)                                                                                              | not publicly routed                                                                                | n/a                                                          | `objectstore.<app>.secretKey`    |
+| PostgreSQL (CloudNativePG)                                                                                                   | no UI — `psql` in the cluster                                                                      | `postgres`                                                   | `<app>-cluster-superuser` secret |
+| LiveKit (SFU)                                                                                                                | no admin UI                                                                                        | —                                                            | `application.livekit.keys`       |
 
 `secret.*` refers to `helmfile/environments/default/secret.yaml.gotmpl`; every
 entry there is derived with
@@ -198,7 +198,7 @@ Add users, clients and roles in the values file instead.
 
 ## LaSuite applications (Django admin)
 
-Docs, Drive, Meet, Conversations, Projects, Calendars, People, Dictaphone,
+Docs, Drive, Meet, Conversations, Projects, Contacts, Calendars, Dictaphone,
 Messages, Find and Menshen are Django applications with a full Django admin.
 That admin is **not exposed publicly** by default; the public hostnames only
 serve the application (the SPA answers `/admin/` with its own 404 page).
@@ -213,8 +213,8 @@ kubectl -n mijnbureau-docs port-forward svc/docs-backend 8000:80
 kubectl -n mijnbureau-meet port-forward svc/meet-backend 8001:80
 # Drive
 kubectl -n mijnbureau-drive port-forward svc/drive-backend 8002:80
-# People
-kubectl -n mijnbureau-people port-forward svc/people-backend 8003:80
+# Contacts
+kubectl -n mijnbureau-contacts port-forward svc/contacts-backend 8003:80
 # Conversations
 kubectl -n mijnbureau-conversations port-forward svc/conversations-backend 8004:80
 # Dictaphone
@@ -244,7 +244,7 @@ Superuser accounts and where their passwords live:
 | Docs          | `docs`            | `DJANGO_SUPERUSER_PASSWORD` (email `secret.docs.superUser.email`)                                  |
 | Drive         | `drive-superuser` | `DJANGO_SUPERUSER_EMAIL`, `DJANGO_SUPERUSER_PASSWORD`                                              |
 | Meet          | `meet-superuser`  | `DJANGO_SUPERUSER_EMAIL`, `DJANGO_SUPERUSER_PASSWORD`                                              |
-| People        | `people`          | `DJANGO_SUPERUSER_EMAIL`, `DJANGO_SUPERUSER_PASSWORD`                                              |
+| Contacts      | `contacts`        | `DJANGO_SUPERUSER_EMAIL`, `DJANGO_SUPERUSER_PASSWORD`                                              |
 | Conversations | `conversations`   | `secret.conversations.adminUser` / `adminPassword`                                                 |
 | Calendars     | `calendars`       | `secret.calendars.adminUser` / `adminPassword`                                                     |
 | Dictaphone    | —                 | no superuser is created by default; run `python manage.py createsuperuser` in `dictaphone-backend` |
@@ -257,14 +257,12 @@ The initial account is created by a Helm hook Job (`createsuperuser`) from the
 derived secret, so it already exists after the first deployment; change the
 password in the Django admin afterwards if you do not want the derived one.
 
-Two applications can publish their admin through the gateway instead, with the
-admin URL on the same hostname and an `/admin` path prefix:
+Docs can publish its admin through the gateway instead, with the admin URL on
+the same hostname and an `/admin` path prefix:
 
 - Docs: `helmfile/apps/docs/values.yaml.gotmpl` → `ingressAdmin.enabled: true`
-- People (`desk` chart): `helmfile/apps/people/values.yaml.gotmpl` →
-  `ingressAdmin.enabled: true`
 
-Both create a second route (`ingress-admin.yaml` / `httproute-admin.yaml`). For
+This creates a second route (`ingress-admin.yaml` / `httproute-admin.yaml`). For
 the other products the port-forward above is the supported path.
 
 ## Object storage
