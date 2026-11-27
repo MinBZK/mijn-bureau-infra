@@ -144,10 +144,11 @@ application:
   projects:
     enabled: false
     namespace: mijnbureau-projects
-  people:
-    # New LaSuite app; enable after validation in demo.
+  contacts:
+    # Images are published as mutable `main` tags in a private GHCR package;
+    # enable once the packages are public or a GHCR pull secret is available.
     enabled: false
-    namespace: mijnbureau-people
+    namespace: mijnbureau-contacts
   calendars:
     enabled: false
     namespace: mijnbureau-calendars

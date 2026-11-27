@@ -1,90 +1,90 @@
-{{- $backendEnvVars := include "desk.common.env" (list . .Values.backend) -}}
-{{- $envVars := include "desk.common.env" (list . .Values.celeryWorker) -}}
-{{- $fullName := include "desk.celery.worker.fullname" . -}}
-{{- $component := "celery-worker" -}}
+{{- $envVars := include "contacts.common.env" (list . .Values.backend) -}}
+{{- $fullName := include "contacts.backend.fullname" . -}}
+{{- $component := "backend" -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $fullName }}
   annotations:
-   {{- with .Values.celeryWorker.dpAnnotations }}
+   {{- with .Values.backend.dpAnnotations }}
    {{- toYaml . | nindent 4 }}
    {{- end }}
   namespace: {{ .Release.Namespace | quote }}
   labels:
-    {{- include "desk.common.labels" (list . $component) | nindent 4 }}
+    {{- include "contacts.common.labels" (list . $component) | nindent 4 }}
 spec:
-  replicas: {{ .Values.celeryWorker.replicas }}
+  replicas: {{ .Values.backend.replicas }}
   selector:
     matchLabels:
-      {{- include "desk.common.selectorLabels" (list . $component) | nindent 6 }}
+      {{- include "contacts.common.selectorLabels" (list . $component) | nindent 6 }}
   template:
     metadata:
       annotations:
-        {{- with .Values.celeryWorker.podAnnotations }}
+        {{- with .Values.backend.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "desk.common.labels" (list . $component) | nindent 8 }}
+        {{- include "contacts.common.labels" (list . $component) | nindent 8 }}
     spec:
       {{- if $.Values.image.credentials }}
       imagePullSecrets:
-        - name: {{ include "desk.secret.dockerconfigjson.name" (dict "fullname" (include "desk.fullname" .) "imageCredentials" $.Values.image.credentials) }}
+        - name: {{ include "contacts.secret.dockerconfigjson.name" (dict "fullname" (include "contacts.fullname" .) "imageCredentials" $.Values.image.credentials) }}
       {{- end}}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      shareProcessNamespace: {{ .Values.celeryWorker.shareProcessNamespace }}
-      serviceAccountName: {{ include "desk.serviceAccountName" . }}
+      shareProcessNamespace: {{ .Values.backend.shareProcessNamespace }}
+      serviceAccountName: {{ include "contacts.serviceAccountName" . }}
       {{- with .Values.runtimeClassName }}
       runtimeClassName: {{ . | quote }}
       {{- end }}
-      {{- with .Values.celeryWorker.podSecurityContext }}
+      {{- with .Values.backend.podSecurityContext }}
       securityContext: {{- omit . "enabled" | toYaml | nindent 8 }}
       {{- end }}
       containers:
-        {{- with .Values.celeryWorker.sidecars }}
+        {{- with .Values.backend.sidecars }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
         - name: {{ .Chart.Name }}
-          image: {{ include "desk.image" (dict "scope" (.Values.backend.image | default dict) "root" .) }}
+          image: {{ include "contacts.image" (dict "scope" (.Values.backend.image | default dict) "root" .) }}
           imagePullPolicy: {{ (.Values.backend.image | default dict).pullPolicy | default .Values.image.pullPolicy }}
-          {{- with .Values.celeryWorker.command }}
+          {{- with .Values.backend.command }}
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.celeryWorker.args }}
+          {{- with .Values.backend.args }}
           args:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- if $backendEnvVars}}
-            {{- $backendEnvVars | indent 12 }}
-            {{- end }}
             {{- if $envVars}}
             {{- $envVars | indent 12 }}
             {{- end }}
-          {{- with .Values.celeryWorker.securityContext }}
+          {{- with .Values.backend.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.celeryWorker.probes.liveness }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.service.targetPort }}
+              protocol: TCP
+          {{- if .Values.backend.probes.liveness }}
           livenessProbe:
-            {{- include "desk.probes.abstract" (merge .Values.celeryWorker.probes.liveness (dict "targetPort" .Values.celeryWorker.service.targetPort )) | nindent 12 }}
+            {{- include "contacts.probes.abstract" (merge .Values.backend.probes.liveness (dict "targetPort" .Values.backend.service.targetPort )) | nindent 12 }}
           {{- end }}
-          {{- if .Values.celeryWorker.probes.readiness }}
+          {{- if .Values.backend.probes.readiness }}
           readinessProbe:
-            {{- include "desk.probes.abstract" (merge .Values.celeryWorker.probes.readiness (dict "targetPort" .Values.celeryWorker.service.targetPort )) | nindent 12 }}
+            {{- include "contacts.probes.abstract" (merge .Values.backend.probes.readiness (dict "targetPort" .Values.backend.service.targetPort )) | nindent 12 }}
           {{- end }}
-          {{- if .Values.celeryWorker.probes.startup }}
+          {{- if .Values.backend.probes.startup }}
           startupProbe:
-            {{- include "desk.probes.abstract" (merge .Values.celeryWorker.probes.startup (dict "targetPort" .Values.celeryWorker.service.targetPort )) | nindent 12 }}
+            {{- include "contacts.probes.abstract" (merge .Values.backend.probes.startup (dict "targetPort" .Values.backend.service.targetPort )) | nindent 12 }}
           {{- end }}
-          {{- if .Values.celeryWorker.resources }}
-          resources: {{- toYaml .Values.celeryWorker.resources | nindent 12 }}
-          {{- else if ne (.Values.celeryWorker.resourcesPreset | default "micro") "none" }}
-          resources: {{- include "common.resources.preset" (dict "type" .Values.celeryWorker.resourcesPreset) | nindent 12 }}
+          {{- if .Values.backend.resources }}
+          resources: {{- toYaml .Values.backend.resources | nindent 12 }}
+          {{- else if ne (.Values.backend.resourcesPreset | default "micro") "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.backend.resourcesPreset) | nindent 12 }}
           {{- end }}
           volumeMounts:
             {{- range $index, $value := .Values.mountFiles }}
@@ -92,25 +92,25 @@ spec:
               mountPath: {{ $value.path }}
               subPath: content
             {{- end }}
-            {{- range $name, $volume := .Values.celeryWorker.persistence }}
+            {{- range $name, $volume := .Values.backend.persistence }}
             - name: "{{ $name }}"
               mountPath: "{{ $volume.mountPath }}"
             {{- end }}
-            {{- range .Values.celeryWorker.extraVolumeMounts }}
+            {{- range .Values.backend.extraVolumeMounts }}
             - name: {{ .name }}
               mountPath: {{ .mountPath }}
               subPath: {{ .subPath | default "" }}
               readOnly: {{ .readOnly }}
             {{- end }}
-      {{- with .Values.celeryWorker.nodeSelector }}
+      {{- with .Values.backend.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.celeryWorker.affinity }}
+      {{- with .Values.backend.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.celeryWorker.tolerations }}
+      {{- with .Values.backend.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -118,9 +118,9 @@ spec:
         {{- range $index, $value := .Values.mountFiles }}
         - name: "files-{{ $index }}"
           configMap:
-            name: "{{ include "desk.fullname" $ }}-files-{{ $index }}"
+            name: "{{ include "contacts.fullname" $ }}-files-{{ $index }}"
         {{- end }}
-        {{- range $name, $volume := .Values.celeryWorker.persistence }}
+        {{- range $name, $volume := .Values.backend.persistence }}
         - name: "{{ $name }}"
           {{- if eq $volume.type "emptyDir" }}
           emptyDir: {}
@@ -129,7 +129,7 @@ spec:
             claimName: "{{ $fullName }}-{{ $name }}"
           {{- end }}
         {{- end }}
-        {{- range .Values.celeryWorker.extraVolumes }}
+        {{- range .Values.backend.extraVolumes }}
         - name: {{ .name }}
           {{- if .existingClaim }}
           persistentVolumeClaim:
@@ -150,3 +150,16 @@ spec:
           emptyDir: {}
           {{- end }}
         {{- end }}
+---
+{{ if .Values.backend.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      {{- include "contacts.common.selectorLabels" (list . $component) | nindent 6 }}
+{{ end }}

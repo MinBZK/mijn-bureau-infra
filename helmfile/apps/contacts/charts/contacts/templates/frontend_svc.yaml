@@ -1,5 +1,5 @@
-{{- $envVars := include "desk.common.env" (list . .Values.frontend) -}}
-{{- $fullName := include "desk.frontend.fullname" . -}}
+{{- $envVars := include "contacts.common.env" (list . .Values.frontend) -}}
+{{- $fullName := include "contacts.frontend.fullname" . -}}
 {{- $component := "frontend" -}}
 apiVersion: v1
 kind: Service
@@ -7,7 +7,7 @@ metadata:
   name: {{ $fullName }}
   namespace: {{ .Release.Namespace | quote }}
   labels:
-    {{- include "desk.common.labels" (list . $component) | nindent 4 }}
+    {{- include "contacts.common.labels" (list . $component) | nindent 4 }}
   annotations:
     {{- toYaml $.Values.frontend.service.annotations | nindent 4 }}
 spec:
@@ -18,4 +18,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "desk.common.selectorLabels" (list . $component) | nindent 4 }}
+    {{- include "contacts.common.selectorLabels" (list . $component) | nindent 4 }}

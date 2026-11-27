@@ -17,7 +17,7 @@ sessions.
 | Password                      | The sign-in page of the identity provider (`id.<global.domain>`)             |
 | Profile picture               | Managed by your organisation                                                 |
 | Chat display name and devices | Element (only if your administrator allows it)                               |
-| Team and contact details      | [People](./people.md)                                                        |
+| Team and contact details      | [Contacts](./contacts.md)                                                    |
 
 Most deployments feed your name and e-mail from the identity provider and lock
 them in the individual tools, so that your chat profile, mail sender and

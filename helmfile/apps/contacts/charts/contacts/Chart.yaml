@@ -1,22 +1,23 @@
 annotations:
-  category: identity
+  category: collaboration
   licenses: MIT
 apiVersion: v2
-appVersion: 1.27.2
+appVersion: 0.0.0-main
 dependencies:
   - name: common
     repository: "file://../../../common/charts/common"
     version: 2.31.1
-description: User-centric and self-care teams management application from LaSuite (a.k.a. People)
+description: Shared contacts service from LaSuite
 home: https://minbzk.github.io/mijn-bureau-infra/
 keywords:
-  - people
-  - teams
   - contacts
+  - address book
+  - carddav
+  - lasuite
 maintainers:
   - name: mijn-bureau-infra
     url: "https://minbzk.github.io/mijn-bureau/"
-name: desk
+name: contacts
 sources:
-  - https://github.com/suitenumerique/people
-version: 0.0.7
+  - https://github.com/suitenumerique/contacts
+version: 0.0.1

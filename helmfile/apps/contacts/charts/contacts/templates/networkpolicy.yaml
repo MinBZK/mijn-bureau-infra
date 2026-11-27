@@ -4,8 +4,8 @@ SPDX-License-Identifier: EUPL-1.2
 */}}
 
 {{- if .Values.networkPolicy.enabled }}
-{{- range $component := list "backend" "frontend" "celery-worker" "celery-beat" }}
-{{- $fullName := printf "%s-%s" (include "desk.fullname" $) $component }}
+{{- range $component := list "backend" "frontend" "worker" }}
+{{- $fullName := printf "%s-%s" (include "contacts.fullname" $) $component }}
 ---
 apiVersion: {{ include "common.capabilities.networkPolicy.apiVersion" $ }}
 kind: NetworkPolicy
@@ -13,12 +13,11 @@ metadata:
   name: {{ $fullName }}
   namespace: {{ $.Release.Namespace | quote }}
   labels:
-    {{- include "desk.common.labels" (list $ $component) | nindent 4 }}
-    app.kubernetes.io/part-of: people
+    {{- include "contacts.common.labels" (list $ $component) | nindent 4 }}
 spec:
   podSelector:
     matchLabels:
-      {{- include "desk.common.selectorLabels" (list $ $component) | nindent 6 }}
+      {{- include "contacts.common.selectorLabels" (list $ $component) | nindent 6 }}
   policyTypes:
     - Ingress
     - Egress
@@ -35,7 +34,7 @@ spec:
       from:
         - podSelector:
             matchLabels:
-              {{- include "desk.selectorLabels" $ | nindent 14 }}
+              {{- include "contacts.selectorLabels" $ | nindent 14 }}
         {{- if $.Values.networkPolicy.ingressNSMatchLabels }}
         - namespaceSelector:
             matchLabels:

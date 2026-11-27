@@ -27,7 +27,7 @@ configuring and administering a deployment, see the
 | [Docs](./docs.md)                                  | Collaborative documents, meeting notes and wikis                    | `docs.<global.domain>`          |
 | [Office editing (Collabora)](./collabora.md)       | Edit Word, Excel and PowerPoint files in the browser                | inside Drive and Docs           |
 | [Projects](./projects.md)                          | Project plans, pages and tasks                                      | `projects.<global.domain>`      |
-| [People](./people.md)                              | The staff directory: who is who, teams and contact details          | `people.<global.domain>`        |
+| [Contacts](./contacts.md)                          | Personal and shared address books, groups and labels                | `contacts.<global.domain>`      |
 | [Dictaphone](./dictaphone.md)                      | Turn audio recordings into transcripts and summaries                | `dictaphone.<global.domain>`    |
 | [AI assistant (Conversations)](./conversations.md) | Ask questions, summarise text, draft content                        | `conversations.<global.domain>` |
 | [Search (Find)](./find.md)                         | One search box across your documents and files                      | `find.<global.domain>`          |

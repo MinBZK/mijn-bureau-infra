@@ -30,11 +30,6 @@ global:
       backend: "xlarge"
       frontend: "xlarge"
     projects: "xlarge"
-    people:
-      backend: "xlarge"
-      frontend: "xlarge"
-      celery: "xlarge"
-      celeryBeat: "xlarge"
     calendars:
       backend: "xlarge"
       worker: "xlarge"

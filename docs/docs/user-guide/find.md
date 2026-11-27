@@ -22,11 +22,11 @@ searched.
 
 ## What is searched
 
-| Source                | What is matched                                         |
-| --------------------- | ------------------------------------------------------- |
-| [Docs](./docs.md)     | Document titles and body text, including subpages       |
-| [Drive](./drive.md)   | File names, and the content of supported document types |
-| [People](./people.md) | Names, teams and profile details                        |
+| Source                    | What is matched                                         |
+| ------------------------- | ------------------------------------------------------- |
+| [Docs](./docs.md)         | Document titles and body text, including subpages       |
+| [Drive](./drive.md)       | File names, and the content of supported document types |
+| [Contacts](./contacts.md) | Names, groups and profile details                       |
 
 Chat and mail are searched **inside their own applications** (the search field in
 Element and in Messages), not from the Bureaublad. That is intentional: message

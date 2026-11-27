@@ -147,9 +147,15 @@ autoscaling:
       maxReplicas: 3
       targetCPU: 80
       targetMemory: ""
-    people:
+    contacts:
       backend:
         enabled: true
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPU: 80
+        targetMemory: ""
+      worker:
+        enabled: false
         minReplicas: 1
         maxReplicas: 3
         targetCPU: 80
@@ -158,12 +164,6 @@ autoscaling:
         enabled: true
         minReplicas: 1
         maxReplicas: 3
-        targetCPU: 80
-        targetMemory: ""
-      celery:
-        enabled: true
-        minReplicas: 1
-        maxReplicas: 2
         targetCPU: 80
         targetMemory: ""
     calendars:

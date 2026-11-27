@@ -89,5 +89,5 @@ structure; otherwise steal the five-page layout above and adapt it.
 
 - [Docs](./docs.md) — long-form documents
 - [Drive](./drive.md) — files and attachments
-- [People](./people.md) — find the colleagues to invite
+- [Contacts](./contacts.md) — find the colleagues to invite
 - [Administration](../administration.md) — for administrators

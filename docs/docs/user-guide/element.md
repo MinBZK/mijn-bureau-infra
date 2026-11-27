@@ -127,6 +127,6 @@ recovery key in your password manager.
 ## Related
 
 - [Meet](./meet.md) — scheduled video meetings
-- [People](./people.md) — who is who
+- [Contacts](./contacts.md) — who is who
 - [Your account](./account.md) — profile, sessions and sign-out
 - [Component documentation](../components/element.md) — how chat is deployed

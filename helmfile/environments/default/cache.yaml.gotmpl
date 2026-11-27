@@ -44,11 +44,11 @@ cache:
     port: 6379
     isInternal: true
     password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "projects" "password" | sha1sum | quote }}
-  people:
-    host: "people-valkey"
+  contacts:
+    host: "contacts-valkey"
     port: 6379
     isInternal: true
-    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "people" "password" | sha1sum | quote }}
+    password: {{ derivePassword 1 "long" (requiredEnv "MIJNBUREAU_MASTER_PASSWORD") "contacts" "password" | sha1sum | quote }}
   calendars:
     host: "calendars-valkey"
     port: 6379
