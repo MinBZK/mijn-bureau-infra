@@ -87,7 +87,7 @@ diagnosticMode:
 image:
   registry: ghcr.io
   repository: element-hq/matrix-authentication-service
-  tag: v1.29.0
+  tag: 1.30.0
   pullPolicy: IfNotPresent
   pullSecrets: []
   debug: false

@@ -1,0 +1,107 @@
+name: "Update tool container tags"
+
+scms:
+  default:
+    kind: "github"
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+      commitmessage:
+        title: Bump tool versions to {{ source "openssl_latest_version" }}
+        hidecredit: true
+        squash: true
+        type: "⬆️(deps)"
+
+sources:
+  openssl_latest_version:
+    name: "Get latest openssl tag"
+    kind: dockerimage
+    spec:
+      image: "alpine/openssl"
+      architecture: amd64
+      tagfilter: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">0.0.0"
+
+  helm_kubectl_latest_version:
+    name: "Get latest helm-kubectl tag"
+    kind: dockerimage
+    spec:
+      image: "dtzar/helm-kubectl"
+      architecture: amd64
+      tagfilter: "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+      versionfilter:
+        kind: semver
+        pattern: ">=3.16.0 <4.0.0"
+
+targets:
+  update_openssl_tag:
+    name: "Update openssl container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.openssl.tag"
+    sourceid: openssl_latest_version
+    scmid: default
+
+  update_values_openssl_docs:
+    name: "Update docs openssl tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/docs/charts/docs/values.yaml"
+      key: "$.jwtKeys.image.tag"
+    sourceid: openssl_latest_version
+    scmid: default
+
+  update_values_openssl_menshen:
+    name: "Update menshen openssl tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/find/charts/menshen/values.yaml"
+      key: "$.jwtKeys.image.tag"
+    sourceid: openssl_latest_version
+    scmid: default
+
+  update_helm_kubectl_tag:
+    name: "Update helm-kubectl container tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/environments/default/container.yaml.gotmpl"
+      key: "$.container.helm_kubectl.tag"
+    sourceid: helm_kubectl_latest_version
+    scmid: default
+
+  update_values_helm_kubectl_docs:
+    name: "Update docs helm-kubectl tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/docs/charts/docs/values.yaml"
+      key: "$.jwtKeys.kubectlImage.tag"
+    sourceid: helm_kubectl_latest_version
+    scmid: default
+
+  update_values_helm_kubectl_menshen:
+    name: "Update menshen helm-kubectl tag"
+    kind: yaml
+    spec:
+      engine: yamlpath
+      file: "helmfile/apps/find/charts/menshen/values.yaml"
+      key: "$.jwtKeys.kubectlImage.tag"
+    sourceid: helm_kubectl_latest_version
+    scmid: default
+
+actions:
+  default:
+    scmid: default
+    kind: github/pullrequest
+    title: ⬆️(deps) Bump tool versions to {{ source "openssl_latest_version" }}

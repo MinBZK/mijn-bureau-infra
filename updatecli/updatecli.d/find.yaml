@@ -17,6 +17,8 @@ scms:
         type: "⬆️(deps)"
 
 sources:
+  # lasuite/find publishes only the mutable `main` tag upstream, so it cannot
+  # be tracked by a semver updatecli source. Menshen is the versioned half.
   menshen_latest_version:
     name: "Get latest menshen-backend tag"
     kind: dockerimage
