@@ -113,15 +113,15 @@ networkPolicy:
               app.kubernetes.io/name: valkey
               app.kubernetes.io/component: primary
       {{- end }}
-    # MinIO connectivity
+    # Object store connectivity
     - ports:
-        - port: 9000
+        - port: {{ .Values.objectstore.nextcloud.port }}
           protocol: TCP
       {{- if .Values.objectstore.nextcloud.isInternal }}
       to:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/name: minio
+              app.kubernetes.io/name: seaweedfs
       {{- end }}
     {{- if .Values.antivirus.host }}
     # ClamAV connectivity
@@ -191,11 +191,11 @@ externalRedis:
   port: {{ .Values.cache.nextcloud.port | quote }}
   password: {{ .Values.cache.nextcloud.password | quote }}
 
-externalMinio:
+externalObjectStore:
   endpoint: {{ .Values.objectstore.nextcloud.endpoint | quote }}
   port: {{ .Values.objectstore.nextcloud.port | quote }}
-  username: {{ .Values.objectstore.nextcloud.username | quote }}
-  password: {{ .Values.objectstore.nextcloud.rootPassword | quote }}
+  username: {{ .Values.objectstore.nextcloud.accessKey | quote }}
+  password: {{ .Values.objectstore.nextcloud.secretKey | quote }}
   bucket: {{ .Values.objectstore.nextcloud.bucket | quote }}
   region: {{ .Values.objectstore.nextcloud.region | quote }}
   useSSL: {{ .Values.objectstore.nextcloud.useSSL | quote }}

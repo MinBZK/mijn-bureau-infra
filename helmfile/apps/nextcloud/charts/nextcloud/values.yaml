@@ -201,24 +201,24 @@ externalRedis:
   existingSecret: ""
   existingSecretPasswordKey: "redis-password"
 
-## External MinIO configuration
-## @param externalMinio.endpoint MinIO endpoint
-## @param externalMinio.port MinIO port
-## @param externalMinio.username MinIO access key (username)
-## @param externalMinio.password MinIO secret key (password)
-## @param externalMinio.bucket MinIO bucket name
-## @param externalMinio.region MinIO/S3 region. Required by AWS-SDK-for-PHP for SigV4 signing; emitted as `OBJECTSTORE_S3_REGION`. Empty string falls back to upstream `s3.config.php` default of `''`.
-## @param externalMinio.useSSL If set to `true` will use SSL.
-## @param externalMinio.pathStyle If set to `true` will use path-style URLs (required for MinIO)
-## @param externalMinio.legacyAuth If set to `true` will use legacy authentication.
-## @param externalMinio.autocreate If set to `true` will autocreate the bucket
-## @param externalMinio.sseKey Service Side Encryption key
-## @param externalMinio.existingSecret Name of an existing secret resource containing the Minio credentials
-## @param externalMinio.existingSecretUsernameKey Name of the username key in the existing secret
-## @param externalMinio.existingSecretPasswordKey Name of the password key in the existing secret
-## @param externalMinio.existingSecretSseCKeyKey Key of the SSE-C key in the existing secret
+## External object store configuration
+## @param externalObjectStore.endpoint object store endpoint
+## @param externalObjectStore.port object store port
+## @param externalObjectStore.username object store access key (username)
+## @param externalObjectStore.password object store secret key (password)
+## @param externalObjectStore.bucket object store bucket name
+## @param externalObjectStore.region object store/S3 region. Required by AWS-SDK-for-PHP for SigV4 signing; emitted as `OBJECTSTORE_S3_REGION`. Empty string falls back to upstream `s3.config.php` default of `''`.
+## @param externalObjectStore.useSSL If set to `true` will use SSL.
+## @param externalObjectStore.pathStyle If set to `true` will use path-style URLs (required for object store)
+## @param externalObjectStore.legacyAuth If set to `true` will use legacy authentication.
+## @param externalObjectStore.autocreate If set to `true` will autocreate the bucket
+## @param externalObjectStore.sseKey Service Side Encryption key
+## @param externalObjectStore.existingSecret Name of an existing secret resource containing the Minio credentials
+## @param externalObjectStore.existingSecretUsernameKey Name of the username key in the existing secret
+## @param externalObjectStore.existingSecretPasswordKey Name of the password key in the existing secret
+## @param externalObjectStore.existingSecretSseCKeyKey Key of the SSE-C key in the existing secret
 ##
-externalMinio:
+externalObjectStore:
   endpoint: ""
   port: ""
   username: ""

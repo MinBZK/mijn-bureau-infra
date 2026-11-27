@@ -45,9 +45,8 @@ releases:
       - "../common/values-valkey.yaml.gotmpl"
       - "values-valkey.yaml.gotmpl"
 
-  - name: drive-minio
-    chart: ../common/charts/minio
-    version: "17.0.11"
+  - name: drive-seaweedfs
+    chart: ../common/charts/seaweedfs
     {{- if .Values.application.drive.namespace }}
     namespace: {{ .Values.application.drive.namespace }}
     {{- end }}
@@ -55,7 +54,8 @@ releases:
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
-      - "values-minio.yaml.gotmpl"
+      - "../common/values-seaweedfs.yaml.gotmpl"
+      - "values-seaweedfs.yaml.gotmpl"
 
   - name: drive
     chart: charts/drive
@@ -67,7 +67,7 @@ releases:
     needs:
       - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-cluster
       - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-valkey
-      - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-minio
+      - {{ if .Values.application.drive.namespace }}{{ .Values.application.drive.namespace }}/{{ end }}drive-seaweedfs
     {{- end }}
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"

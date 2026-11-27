@@ -1,11 +1,11 @@
 {{- $hostname := printf "%s.%s" .Values.global.hostname.dictaphone .Values.global.domain }}
 {{- $baseUrl := printf "https://%s" $hostname }}
-{{- $minioHostname := printf "%s.%s" (index .Values.global.hostname "dictaphone-minio") .Values.global.domain }}
+{{- $objectStoreHostname := printf "%s.%s" (index .Values.global.hostname "dictaphone-objectstore") .Values.global.domain }}
 {{- /* Presigned download URLs are consumed cross-namespace too (meet's
   summary celery workers). Bare service names don't resolve there, so keep
   everything FQDN. */ -}}
-{{- $minioEndpoint := printf "http://%s.%s.svc.cluster.local:%d" .Values.objectstore.dictaphone.endpoint (.Values.application.dictaphone.namespace | default "mijnbureau-dictaphone") .Values.objectstore.dictaphone.port }}
-{{- $minioPublicUrl := printf "https://%s" $minioHostname }}
+{{- $objectStoreEndpoint := printf "http://%s.%s.svc.cluster.local:%d" .Values.objectstore.dictaphone.endpoint (.Values.application.dictaphone.namespace | default "mijnbureau-dictaphone") .Values.objectstore.dictaphone.port }}
+{{- $objectStorePublicUrl := printf "https://%s" $objectStoreHostname }}
 
 secrets:
   external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
@@ -135,7 +135,7 @@ s3Gateway:
   envVars:
     S3_GATEWAY_FORCE_HTTPS: "false"
   rules:
-    - endpoint: {{ $minioEndpoint | quote }}
+    - endpoint: {{ $objectStoreEndpoint | quote }}
       addressing_style: path
       buckets:
         {{ .Values.objectstore.dictaphone.bucket | quote }}:
@@ -192,12 +192,12 @@ externalRedis:
   password: {{ .Values.cache.dictaphone.password | quote }}
 
 objectstore:
-  endpoint: {{ $minioEndpoint | quote }}
-  publicUrl: {{ $minioPublicUrl | quote }}
+  endpoint: {{ $objectStoreEndpoint | quote }}
+  publicUrl: {{ $objectStorePublicUrl | quote }}
   bucket: {{ .Values.objectstore.dictaphone.bucket | quote }}
   region: {{ .Values.objectstore.dictaphone.region | default "eu-west-1" | quote }}
-  accessKey: {{ .Values.objectstore.dictaphone.username | quote }}
-  secretKey: {{ .Values.objectstore.dictaphone.rootPassword | quote }}
+  accessKey: {{ .Values.objectstore.dictaphone.accessKey | quote }}
+  secretKey: {{ .Values.objectstore.dictaphone.secretKey | quote }}
 
 authentication:
   issuer: {{ .Values.authentication.oidc.issuer | quote }}

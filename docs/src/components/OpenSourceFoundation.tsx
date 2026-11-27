@@ -110,10 +110,10 @@ const COMPONENTS: ComponentLogo[] = [
   },
   { name: "Valkey", role: "Cache", logo: "/img/logos/valkey.svg", ext: "svg" },
   {
-    name: "MinIO",
+    name: "SeaweedFS",
     role: "Object Storage",
-    logo: "/img/logos/minio.svg",
-    ext: "svg",
+    logo: "/img/logos/seaweedfs.png",
+    ext: "png",
   },
   {
     name: "ClamAV",

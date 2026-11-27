@@ -1,0 +1,19 @@
+SeaweedFS object store ({{ include "common.names.fullname" . }}) deployed.
+
+Internal S3 endpoint (path-style):
+  http://{{ include "common.names.fullname" . }}:{{ .Values.server.ports.s3 }}
+
+{{- if .Values.server.externalUrl }}
+Public S3 endpoint:
+  {{ .Values.server.externalUrl }}
+{{- end }}
+
+{{- if .Values.buckets }}
+Buckets:
+{{- range .Values.buckets }}
+  - {{ .name }}
+{{- end }}
+{{- end }}
+
+Credentials are read from Secret "{{ include "seaweedfs.secretName" . }}"
+(keys: {{ .Values.auth.accessKeyKey }}, {{ .Values.auth.secretKeyKey }}).

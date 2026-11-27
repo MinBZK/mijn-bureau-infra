@@ -19,7 +19,7 @@ We will keep three environments with the following contract.
 - **`default`** — reference configuration without bundled datastores. It is not recommended
   for production because it has no environment-specific customisation.
 - **`demo`** — a complete, self-contained installation for evaluation and testing. It
-  deploys CloudNativePG clusters, Valkey and MinIO, seeds a realm with an organization and
+  deploys CloudNativePG clusters, Valkey and SeaweedFS object stores, seeds a realm with an organization and
   demo users, and enables features that production leaves to the operator.
 - **`production`** — external datastores and identity decisions supplied by the operator.
   No database, cache or object store release is installed.

@@ -13,7 +13,7 @@ releases:
       {{- if eq .Environment.Name "demo" }}
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-cluster
       - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-valkey
-      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-minio
+      - {{ if .Values.application.meet.namespace }}{{ .Values.application.meet.namespace }}/{{ end }}meet-seaweedfs
       {{- end }}
     {{- end }}
     values:
@@ -52,9 +52,8 @@ releases:
       - "../common/values-valkey.yaml.gotmpl"
       - "values-valkey.yaml.gotmpl"
 
-  - name: meet-minio
-    chart: ../common/charts/minio
-    version: "17.0.11"
+  - name: meet-seaweedfs
+    chart: ../common/charts/seaweedfs
     {{- if .Values.application.meet.namespace }}
     namespace: {{ .Values.application.meet.namespace }}
     {{- end }}
@@ -62,7 +61,8 @@ releases:
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
-      - "values-minio.yaml.gotmpl"
+      - "../common/values-seaweedfs.yaml.gotmpl"
+      - "values-seaweedfs.yaml.gotmpl"
 
   - name: meet-openai-shim
     chart: charts/openai-shim
@@ -73,7 +73,7 @@ releases:
 
   # ESO-synced infra secrets (OpenBao -> Kubernetes). Rendered only when
   # the app is switched to external secrets; replaces the inline CNPG/
-  # valkey/minio Secrets rendered by the releases above.
+  # valkey/seaweedfs Secrets rendered by the releases above.
   - name: meet-externalsecret
     chart: ../common/charts/externalsecret
     {{- if .Values.application.meet.namespace }}

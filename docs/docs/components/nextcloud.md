@@ -34,7 +34,7 @@ NextCloud provides comprehensive file sharing and collaboration capabilities inc
 - **Collaborative Editing**: Real-time document collaboration with integrated office suite
 - **Mobile & Desktop Sync**: Synchronization across devices with desktop and mobile clients
 - **Version Control**: Automatic file versioning and restoration capabilities
-- **External Storage**: Integration with external storage providers (MinIO, S3, etc.)
+- **External Storage**: Integration with external storage providers (SeaweedFS, S3, etc.)
 - **Apps Ecosystem**: Extensible with a wide range of applications and integrations
 
 ## Authentication Integration
@@ -50,7 +50,7 @@ NextCloud integrates with the MijnBureau authentication system through:
 NextCloud supports multiple storage backends:
 
 - **Local Storage**: Standard Kubernetes persistent volumes for file storage
-- **Object Storage**: Integration with MinIO or S3-compatible storage as primary storage
+- **Object Storage**: Integration with SeaweedFS or any S3-compatible storage as primary storage
 - **External Storage**: Mount external storage services as additional storage locations
 
 The database, cache, and object store are automatically created when running in demo environment. For production environment you need to supply them separately.

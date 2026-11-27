@@ -1,0 +1,27 @@
+{{- /*
+SPDX-License-Identifier: Apache-2.0
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "seaweedfs.labels" . | nindent 4 }}
+  {{- if or .Values.service.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.service.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" $annotations "context" .) | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: s3
+      port: {{ .Values.server.ports.s3 }}
+      targetPort: s3
+      protocol: TCP
+    {{- if .Values.metrics.enabled }}
+    - name: metrics
+      port: {{ .Values.server.ports.metrics }}
+      targetPort: metrics
+      protocol: TCP
+    {{- end }}
+  selector: {{- include "seaweedfs.matchLabels" . | nindent 4 }}

@@ -59,7 +59,7 @@ drive:
   superuserPassword: {{  .Values.secret.drive.adminPassword | quote }}
   serverToServerKey: {{ .Values.application.drive.secrettoServerKey | quote }}
   baseUrl: "https://{{ .Values.global.hostname.drive }}.{{ .Values.global.domain }}"
-  externalMinioAPI: "https://{{ .Values.global.hostname.drive }}-minio.{{ .Values.global.domain }}"
+  externalObjectStoreAPI: "https://{{ index .Values.global.hostname "drive-objectstore" }}.{{ .Values.global.domain }}"
   # Enforce per-user storage limits (default 10 GiB = 10737418240 bytes).
   # Empty ENTITLEMENTS_BACKEND_PARAMETERS falls back to local-backend defaults.
   # Per-user overrides are managed in the Django admin (storage_limit_override).
@@ -241,11 +241,11 @@ externalRedis:
   port: {{ .Values.cache.drive.port | quote }}
   password: {{ .Values.cache.drive.password | quote }}
 
-externalMinio:
+externalObjectStore:
   endpoint: {{ .Values.objectstore.drive.endpoint | quote }}
   port: {{ .Values.objectstore.drive.port | quote }}
-  accessKey: {{ .Values.objectstore.drive.username | quote }}
-  secretKey: {{ .Values.objectstore.drive.rootPassword | quote }}
+  accessKey: {{ .Values.objectstore.drive.accessKey | quote }}
+  secretKey: {{ .Values.objectstore.drive.secretKey | quote }}
   bucket: {{ .Values.objectstore.drive.bucket | quote }}
   useSSL: {{ .Values.objectstore.drive.useSSL | quote }}
   pathStyle: true

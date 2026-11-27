@@ -16,9 +16,11 @@ spec:
   template:
     metadata:
       labels: {{- include "common.labels.standard" (dict "customLabels" $podLabels "context" $) | nindent 8 }}
-      {{- with .Values.podAnnotations }}
-      annotations: {{- toYaml . | nindent 8 }}
-      {{- end }}
+      annotations:
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       {{- include "common.images.renderPullSecrets" (dict "images" (list .Values.image) "context" $) | nindent 6 }}
       {{- if .Values.serviceAccount.create }}

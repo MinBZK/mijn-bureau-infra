@@ -36,7 +36,7 @@ located in the folder `helmfile/environments/default`.
 LiveKit Egress is deployed together with the LiveKit server when
 `application.livekit.egress.enabled` is `true`. It connects to the local
 LiveKit server and the local Valkey instance and uploads recordings to the
-Meet MinIO bucket configured in `objectstore.meet`. Meet enables its recording
+Meet object store bucket configured in `objectstore.meet`. Meet enables its recording
 feature automatically when egress is enabled.
 
 Egress records one room per replica. Increase `egress.replicaCount`

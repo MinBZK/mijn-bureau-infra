@@ -195,8 +195,8 @@ externalDatabase:
 externalObjectStore:
   endpoint: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.conversations.useSSL) .Values.objectstore.conversations.endpoint .Values.objectstore.conversations.port | quote }}
   region: {{ .Values.objectstore.conversations.region | quote }}
-  accessKey: {{ .Values.objectstore.conversations.username | quote }}
-  secretKey: {{ .Values.objectstore.conversations.rootPassword | quote }}
+  accessKey: {{ .Values.objectstore.conversations.accessKey | quote }}
+  secretKey: {{ .Values.objectstore.conversations.secretKey | quote }}
   bucket: {{ .Values.objectstore.conversations.bucket | quote }}
 
 

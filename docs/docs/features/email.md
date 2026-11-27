@@ -18,7 +18,7 @@ delivery worker, so you need:
 - outbound TCP port 25, or an SMTP relay;
 - a public PTR record for the outbound address.
 
-The default demo environment includes PostgreSQL, Valkey, OpenSearch, MinIO and the inbound
+The default demo environment includes PostgreSQL, Valkey, OpenSearch, SeaweedFS and the inbound
 MTA. Production deployments can use external services.
 
 ## Mailboxes

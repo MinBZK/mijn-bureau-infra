@@ -1,5 +1,5 @@
 {{- $hostname := printf "%s.%s" .Values.global.hostname.projects .Values.global.domain }}
-{{- $minioHostname := index .Values.global.hostname "projects-minio" | default "projects-minio" }}
+{{- $objectStoreHostname := index .Values.global.hostname "projects-objectstore" | default "projects-objectstore" }}
 {{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
 {{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
 
@@ -111,10 +111,10 @@ externalRedis:
   password: {{ .Values.cache.projects.password | quote }}
 
 externalMinio:
-  endpoint: {{ printf "https://%s.%s" $minioHostname .Values.global.domain | quote }}
+  endpoint: {{ printf "https://%s.%s" $objectStoreHostname .Values.global.domain | quote }}
   region: "us-east-1"
-  accessKey: {{ .Values.objectstore.projects.username | quote }}
-  secretKey: {{ .Values.objectstore.projects.rootPassword | quote }}
+  accessKey: {{ .Values.objectstore.projects.accessKey | quote }}
+  secretKey: {{ .Values.objectstore.projects.secretKey | quote }}
   bucket: {{ .Values.objectstore.projects.bucket | quote }}
   pathStyle: true
 

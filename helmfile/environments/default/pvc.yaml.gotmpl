@@ -37,7 +37,7 @@ pvc:
 
   nextcloud:
     # Nextcloud config + custom apps + theme assets. Primary user data lives
-    # in MinIO (object storage), so this PVC stays modest.
+    # in the object store (SeaweedFS), so this PVC stays modest.
     nextcloud:
       storageClass: ~
       size: "8Gi"
@@ -47,9 +47,10 @@ pvc:
       storageClass: ~
       size: ~
       accessModes: []
-    # MinIO is where actual user files land. Size for production scale; demo
-    # environments can override smaller in helmfile/environments/demo/.
-    minio:
+    # The object store is where actual user files land. Size for production
+    # scale; demo environments can override smaller in
+    # helmfile/environments/demo/.
+    seaweedfs:
       storageClass: ~
       size: "50Gi"
       accessModes: []
@@ -73,7 +74,7 @@ pvc:
       storageClass: ~
       size: ~
       accessModes: []
-    minio:
+    seaweedfs:
       storageClass: ~
       size: "8Gi"
       accessModes: []
@@ -87,7 +88,7 @@ pvc:
       storageClass: ~
       size: ~
       accessModes: []
-    minio:
+    seaweedfs:
       storageClass: ~
       size: ~
       accessModes: []
@@ -101,7 +102,7 @@ pvc:
       storageClass: ~
       size: ~
       accessModes: []
-    minio:
+    seaweedfs:
       storageClass: ~
       size: ~
       accessModes: []
@@ -115,7 +116,7 @@ pvc:
       storageClass: ~
       size: ~
       accessModes: []
-    minio:
+    seaweedfs:
       storageClass: ~
       size: ~
       accessModes: []
@@ -142,7 +143,7 @@ pvc:
       storageClass: ~
       size: ~
       accessModes: []
-    minio:
+    seaweedfs:
       storageClass: ~
       size: "8Gi"
       accessModes: []
@@ -156,7 +157,7 @@ pvc:
       storageClass: ~
       size: ~
       accessModes: []
-    minio:
+    seaweedfs:
       storageClass: ~
       size: "8Gi"
       accessModes: []
@@ -180,7 +181,7 @@ pvc:
       storageClass: ~
       size: ~
       accessModes: []
-    minio:
+    seaweedfs:
       storageClass: ~
       size: "8Gi"
       accessModes: []
@@ -194,7 +195,7 @@ pvc:
       storageClass: ~
       size: "1Gi"
       accessModes: []
-    minio:
+    seaweedfs:
       storageClass: ~
       size: "10Gi"
       accessModes: []

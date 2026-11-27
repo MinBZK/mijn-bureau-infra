@@ -1,0 +1,64 @@
+{{- /*
+Shared values for the objectstore release. Mirrors values-valkey.yaml.gotmpl
+and intentionally keeps the per-app differences (persistence, credentials,
+buckets, hostname, resources) in helmfile/apps/<app>/values-objectstore.yaml.gotmpl.
+*/}}
+global:
+  imageRegistry: {{ (coalesce .Values.container.seaweedfs.registry .Values.container.default.registry) | quote }}
+  {{- with (coalesce .Values.container.seaweedfs.imagePullSecret .Values.container.default.imagePullSecret) }}
+  imagePullSecrets:
+    - {{ . | quote }}
+  {{- end }}
+  defaultStorageClass: {{ .Values.pvc.default.storageClass | default "" | quote }}
+
+image:
+  registry: {{ (coalesce .Values.container.seaweedfs.registry .Values.container.default.registry) | quote }}
+  repository: {{ .Values.container.seaweedfs.repository | default "chrislusf/seaweedfs" | quote }}
+  tag: {{ .Values.container.seaweedfs.tag | default "4.55" | quote }}
+  pullPolicy: Always
+
+clusterDomain: {{ .Values.cluster.networking.domain | default "cluster.local" | quote }}
+
+server:
+  runtimeClassName: {{ .Values.cluster.runtimeClassName | default "" | quote }}
+  resourcesPreset: {{ .Values.global.resourcesPreset | default "none" | quote }}
+  podSecurityContext:
+    runAsUser: {{ .Values.security.default.containerSecurityContext.runAsUser }}
+    runAsGroup: {{ .Values.security.default.containerSecurityContext.runAsGroup }}
+    fsGroup: {{ .Values.security.default.podSecurityContext.fsGroup }}
+    fsGroupChangePolicy: {{ .Values.security.default.podSecurityContext.fsGroupChangePolicy | quote }}
+    supplementalGroups: {{ .Values.security.default.podSecurityContext.supplementalGroups | toYaml | nindent 6 }}
+    sysctls: {{ .Values.security.default.podSecurityContext.sysctls | toYaml | nindent 6 }}
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: {{ .Values.security.default.containerSecurityContext.allowPrivilegeEscalation }}
+    privileged: {{ .Values.security.default.containerSecurityContext.privileged }}
+    capabilities:
+      drop:
+        {{- range .Values.security.default.containerSecurityContext.capabilities.drop }}
+        - {{ . }}
+        {{- end }}
+    readOnlyRootFilesystem: {{ .Values.security.default.containerSecurityContext.readOnlyRootFilesystem }}
+    runAsNonRoot: {{ .Values.security.default.containerSecurityContext.runAsNonRoot }}
+    runAsUser: {{ .Values.security.default.containerSecurityContext.runAsUser }}
+    runAsGroup: {{ .Values.security.default.containerSecurityContext.runAsGroup }}
+
+serviceAccount:
+  create: true
+  automountServiceAccountToken: false
+
+networkPolicy:
+  enabled: true
+  {{- if eq (.Values.cluster.routingMode | default "") "gateway-api" }}
+  # Envoy data plane pods must reach the S3 port for presigned URLs.
+  gatewayNamespace: {{ dig "gateway" "dataPlaneNamespace" "envoy-gateway-system" .Values.cluster | quote }}
+  {{- end }}
+  {{- if .Values.metric.enabled }}
+  metricsNamespace: {{ .Values.metric.namespace | quote }}
+  {{- end }}
+
+metrics:
+  enabled: {{ .Values.metric.enabled | default false }}
+  serviceMonitor:
+    enabled: {{ .Values.metric.serviceMonitor.enabled | default false }}

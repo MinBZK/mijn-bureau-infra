@@ -66,7 +66,7 @@ backend:
         to:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/name: minio
+                app.kubernetes.io/name: seaweedfs
         {{- end }}
       {{- if .Values.ai.llm.endpoint.isInternal }}
       # AI connectivity
@@ -182,8 +182,8 @@ backend:
       {{- end }}
   envVars:
     AWS_S3_ENDPOINT_URL: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.docs.useSSL) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port | quote }}
-    AWS_S3_ACCESS_KEY_ID: {{ .Values.objectstore.docs.username | quote }}
-    AWS_S3_SECRET_ACCESS_KEY: {{ .Values.objectstore.docs.rootPassword | quote }}
+    AWS_S3_ACCESS_KEY_ID: {{ .Values.objectstore.docs.accessKey | quote }}
+    AWS_S3_SECRET_ACCESS_KEY: {{ .Values.objectstore.docs.secretKey | quote }}
     AWS_STORAGE_BUCKET_NAME: {{ .Values.objectstore.docs.bucket | quote }}
     AI_FEATURE_ENABLED: {{ not (empty .Values.ai.llm.model) | quote }}
     {{- if .Values.ai.llm.endpoint.host }}
@@ -406,7 +406,7 @@ backend:
           to:
             - podSelector:
                 matchLabels:
-                  app.kubernetes.io/name: minio
+                  app.kubernetes.io/name: seaweedfs
           {{- end }}
     configuration:
       concurrency:
@@ -684,7 +684,7 @@ yProvider:
         to:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/name: minio
+                app.kubernetes.io/name: seaweedfs
         {{- end }}
       # Allow https egress for backend connection
       - ports:
@@ -747,7 +747,7 @@ yhub:
         to:
           - podSelector:
               matchLabels:
-                app.kubernetes.io/name: minio
+                app.kubernetes.io/name: seaweedfs
         {{- end }}
       # Backend via the public https hostname (see envVar note)
       - ports:
@@ -773,8 +773,8 @@ yhub:
     # document, then flip to false.
     SOFT_MIGRATION: "false"
     LEGACY_S3_ENDPOINT_URL: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.docs.useSSL) .Values.objectstore.docs.endpoint .Values.objectstore.docs.port | quote }}
-    LEGACY_S3_ACCESS_KEY_ID: {{ .Values.objectstore.docs.username | quote }}
-    LEGACY_S3_SECRET_ACCESS_KEY: {{ .Values.objectstore.docs.rootPassword | quote }}
+    LEGACY_S3_ACCESS_KEY_ID: {{ .Values.objectstore.docs.accessKey | quote }}
+    LEGACY_S3_SECRET_ACCESS_KEY: {{ .Values.objectstore.docs.secretKey | quote }}
     LEGACY_S3_BUCKET_NAME: {{ .Values.objectstore.docs.bucket | quote }}
     LEGACY_S3_REGION_NAME: "eu-west-1"
 

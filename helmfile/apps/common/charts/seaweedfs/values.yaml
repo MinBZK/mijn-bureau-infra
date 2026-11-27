@@ -1,0 +1,381 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# SeaweedFS all-in-one object store (master + volume + filer + S3 gateway).
+#
+# The values block for the server is `server`. Releases also receive the
+# environment-wide `.Values.objectstore.<app>` map (the endpoint and
+# credentials the *application* uses), which is intentionally named after the
+# user-facing "object store" concept rather than the SeaweedFS implementation.
+
+## @section Global parameters
+
+global:
+  ## @param global.imageRegistry Global Docker image registry
+  ## @param global.imagePullSecrets Global Docker registry secret names as an array
+  ## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
+  ##
+  imageRegistry: ""
+  imagePullSecrets: []
+  defaultStorageClass: ""
+  ## Compatibility adaptations for Kubernetes platforms
+  ##
+  compatibility:
+    openshift:
+      ## @param global.compatibility.openshift.adaptSecurityContext Adapt the securityContext sections of the deployment
+      ##
+      adaptSecurityContext: "disabled"
+
+## @param kubeVersion Force target Kubernetes version (using Helm capabilities if not set)
+##
+kubeVersion: ""
+## @param clusterDomain Default Kubernetes cluster domain
+##
+clusterDomain: "cluster.local"
+## @param nameOverride String to partially override common.names.fullname
+## @param fullnameOverride String to fully override common.names.fullname
+##
+nameOverride: ""
+fullnameOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonLabels: {}
+commonAnnotations: {}
+
+## @section SeaweedFS image
+
+image:
+  ## @param image.registry SeaweedFS image registry
+  ## @param image.repository SeaweedFS image repository
+  ## @param image.tag SeaweedFS image tag
+  ## @param image.digest SeaweedFS image digest (takes precedence over tag)
+  ## @param image.pullPolicy SeaweedFS image pull policy
+  ## @param image.pullSecrets SeaweedFS image pull secrets
+  ##
+  registry: docker.io
+  repository: chrislusf/seaweedfs
+  tag: "4.55"
+  digest: ""
+  pullPolicy: Always
+  pullSecrets: []
+
+## @section SeaweedFS server parameters
+
+## `weed server` runs master, volume, filer and the S3 gateway in one process.
+##
+server:
+  ## @param server.replicaCount Number of object store pods. Only 1 is supported: the
+  ## data volume is ReadWriteOnce and there is no master replication.
+  ##
+  replicaCount: 1
+  ## @param server.ports.s3 S3 API port (the only port exposed outside the namespace)
+  ## @param server.ports.master Master port
+  ## @param server.ports.volume Volume server port
+  ## @param server.ports.filer Filer HTTP port
+  ## @param server.ports.metrics Prometheus metrics port
+  ##
+  ports:
+    s3: 8333
+    master: 9333
+    volume: 8080
+    filer: 8888
+    metrics: 9324
+  ## @param server.externalUrl Public base URL clients use to reach the S3 API.
+  ## Required for presigned URLs and SigV4 verification behind a Gateway/Ingress.
+  ## Leave empty when the store is only used in-cluster.
+  ##
+  externalUrl: ""
+  ## @param server.allowedOrigins Comma separated list of browser origins allowed by the S3 CORS handler.
+  ##
+  ## SeaweedFS compares each request `Origin` against this list and rejects
+  ## preflights from any other origin. Every app chart sets the origin of its own
+  ## frontend; the default is intentionally a non-matching value so a release
+  ## that forgets to configure it fails closed instead of allowing every site.
+  allowedOrigins: "https://localhost"
+  ## @param server.volumeSizeLimitMB Master stops directing writes to volumes larger than this
+  ##
+  ## The S3 gateway stores every bucket in its own collection, and each collection
+  ## needs volumes of this size. `maxVolumes: 0` derives the number of volume slots
+  ## from the free disk space, so this value also decides how many slots a PVC has:
+  ## a 1Gi PVC with 1024MB volumes has exactly one slot and the first S3 bucket
+  ## fails with "Not enough data nodes found". 64MB keeps ~16 slots on the
+  ## smallest PVC (1Gi) while scaling up with larger PVCs.
+  volumeSizeLimitMB: 64
+  ## @param server.maxVolumes Maximum number of volumes on the data directory.
+  ## 0 lets SeaweedFS compute the limit from the free disk space and volume size.
+  ##
+  maxVolumes: 0
+  ## @param server.minFreeSpace Minimum free disk space before volumes go read-only
+  ## (percentage such as "1", or a byte size such as "10GiB"). Empty keeps the default.
+  ##
+  minFreeSpace: ""
+  ## @param server.filerMaxMB Split files larger than this size in the filer
+  ##
+  filerMaxMB: 4
+  ## @param server.extraArgs Extra arguments appended to the `weed server` command line
+  ##
+  extraArgs: []
+  ## @param server.terminationGracePeriodSeconds Grace period for the StatefulSet pod
+  ##
+  terminationGracePeriodSeconds: 60
+  ## @param server.priorityClassName Pod priority class
+  ##
+  priorityClassName: ""
+  ## @param server.runtimeClassName Runtime class name (e.g. gvisor)
+  ##
+  runtimeClassName: ""
+  ## @param server.podLabels Extra labels for the pod template
+  ## @param server.podAnnotations Extra annotations for the pod template
+  ##
+  podLabels: {}
+  podAnnotations: {}
+  ## @param server.podSecurityContext Pod security context
+  ##
+  podSecurityContext: {}
+  ## @param server.containerSecurityContext Container security context
+  ##
+  containerSecurityContext: {}
+  ## @param server.resourcesPreset Container resources according to one common preset
+  ## (allowed values: none, nano, micro, small, medium, large, xlarge, 2xlarge).
+  ## Ignored when `server.resources` is set.
+  ##
+  resourcesPreset: "small"
+  ## @param server.resources Container requests and limits
+  ##
+  resources: {}
+  ## @param server.nodeSelector Node labels for pod assignment
+  ## @param server.tolerations Tolerations for pod assignment
+  ## @param server.affinity Affinity for pod assignment
+  ## @param server.topologySpreadConstraints Topology spread constraints for pod assignment
+  ##
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  ## Configure extra options for the containers' startup, liveness and readiness probes
+  ##
+  startupProbe:
+    ## @param server.startupProbe.enabled Enable startupProbe
+    ##
+    enabled: true
+    ## @param server.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+    ##
+    initialDelaySeconds: 5
+    ## @param server.startupProbe.periodSeconds Period seconds for startupProbe
+    ##
+    periodSeconds: 5
+    ## @param server.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+    ##
+    timeoutSeconds: 3
+    ## @param server.startupProbe.failureThreshold Failure threshold for startupProbe
+    ##
+    failureThreshold: 60
+    ## @param server.startupProbe.successThreshold Success threshold for startupProbe
+    ##
+    successThreshold: 1
+  livenessProbe:
+    ## @param server.livenessProbe.enabled Enable livenessProbe
+    ##
+    enabled: true
+    ## @param server.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+    ##
+    initialDelaySeconds: 30
+    ## @param server.livenessProbe.periodSeconds Period seconds for livenessProbe
+    ##
+    periodSeconds: 20
+    ## @param server.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+    ##
+    timeoutSeconds: 5
+    ## @param server.livenessProbe.failureThreshold Failure threshold for livenessProbe
+    ##
+    failureThreshold: 6
+    ## @param server.livenessProbe.successThreshold Success threshold for livenessProbe
+    ##
+    successThreshold: 1
+  readinessProbe:
+    ## @param server.readinessProbe.enabled Enable readinessProbe
+    ##
+    enabled: true
+    ## @param server.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+    ##
+    initialDelaySeconds: 10
+    ## @param server.readinessProbe.periodSeconds Period seconds for readinessProbe
+    ##
+    periodSeconds: 10
+    ## @param server.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+    ##
+    timeoutSeconds: 3
+    ## @param server.readinessProbe.failureThreshold Failure threshold for readinessProbe
+    ##
+    failureThreshold: 3
+    ## @param server.readinessProbe.successThreshold Success threshold for readinessProbe
+    ##
+    successThreshold: 1
+
+## @section SeaweedFS authentication parameters
+
+auth:
+  ## @param auth.enabled Require credentials on the S3 API
+  ##
+  enabled: true
+  ## @param auth.existingSecret Name of an existing Secret holding the S3 credentials.
+  ## Set this when secrets are managed outside the chart (External Secrets).
+  ##
+  existingSecret: ""
+  ## @param auth.accessKey Admin access key, only used when `auth.existingSecret` is empty
+  ## @param auth.secretKey Admin secret key, only used when `auth.existingSecret` is empty
+  ##
+  accessKey: ""
+  secretKey: ""
+  ## @param auth.accessKeyKey Key in the Secret holding the access key
+  ## @param auth.secretKeyKey Key in the Secret holding the secret key
+  ##
+  accessKeyKey: "access-key"
+  secretKeyKey: "secret-key"
+
+## @section Buckets provisioned by the post-install/post-upgrade hook
+
+## Each entry renders into a `weed shell` script. Versioning accepts
+## `Enabled`/`Suspended`/`""` (leave unconfigured).
+##
+buckets: []
+## E.g:
+## buckets:
+##   - name: nextcloud
+##     versioning: Enabled
+
+## @section Persistence
+
+persistence:
+  ## @param persistence.enabled Enable persistent storage for the SeaweedFS data directory
+  ##
+  enabled: true
+  ## @param persistence.storageClass PVC Storage Class (defaults to global.defaultStorageClass)
+  ##
+  storageClass: ""
+  ## @param persistence.accessModes PVC Access Mode
+  ##
+  accessModes:
+    - ReadWriteOnce
+  ## @param persistence.size PVC Storage size
+  ##
+  size: 8Gi
+  ## @param persistence.existingClaim Use an existing PVC instead of creating one
+  ##
+  existingClaim: ""
+  ## @param persistence.annotations Annotations for the PVC
+  ##
+  annotations: {}
+
+## @section Traffic exposure
+
+service:
+  ## @param service.type Kubernetes Service type
+  ##
+  type: ClusterIP
+  ## @param service.annotations Service annotations
+  ##
+  annotations: {}
+
+ingress:
+  ## @param ingress.enabled Enable an Ingress (only for cluster.routingMode=ingress)
+  ##
+  enabled: false
+  ## @param ingress.hostname Hostname for the Ingress/HTTPRoute
+  ##
+  hostname: ""
+  ## @param ingress.path Path for the Ingress
+  ##
+  path: /
+  ## @param ingress.pathType Ingress path type
+  ##
+  pathType: ImplementationSpecific
+  ## @param ingress.tls Enable TLS on the Ingress
+  ##
+  tls: false
+  ## @param ingress.annotations Additional Ingress annotations
+  ##
+  annotations: {}
+
+## @section NetworkPolicy
+
+networkPolicy:
+  ## @param networkPolicy.enabled Enable the NetworkPolicy
+  ##
+  enabled: true
+  ## @param networkPolicy.ingressPodMatchLabels Extra pod labels allowed to reach the S3 API
+  ## in the same namespace. When empty every pod in the namespace is allowed.
+  ##
+  ingressPodMatchLabels: {}
+  ## @param networkPolicy.metricsNamespace Namespace allowed to scrape the metrics port.
+  ## Empty disables the metrics ingress rule.
+  ##
+  metricsNamespace: ""
+  ## @param networkPolicy.gatewayNamespace Namespace of the Gateway data plane (Envoy)
+  ## that is allowed to reach the S3 port for public presigned URLs. Empty disables
+  ## the rule, which makes the public hostname fail with 503.
+  ##
+  gatewayNamespace: ""
+  ## @param networkPolicy.extraIngress Extra ingress rules appended to the NetworkPolicy
+  ## Needed for cross-namespace clients (for example LiveKit egress uploading
+  ## recordings into Meet's bucket).
+  ##
+  extraIngress: []
+  ## @param networkPolicy.extraEgress Extra egress rules for the object store pod
+  ##
+  extraEgress: []
+
+## @section Metrics
+
+metrics:
+  ## @param metrics.enabled Expose the SeaweedFS Prometheus metrics port
+  ##
+  enabled: false
+  ## @param metrics.serviceMonitor.enabled Create a ServiceMonitor (requires prometheus-operator)
+  ## @param metrics.serviceMonitor.interval Scrape interval
+  ## @param metrics.serviceMonitor.scrapeTimeout Scrape timeout
+  ## @param metrics.serviceMonitor.labels Extra labels for the ServiceMonitor
+  ##
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: ""
+    labels: {}
+
+## @section ServiceAccount
+
+serviceAccount:
+  ## @param serviceAccount.create Create a ServiceAccount
+  ##
+  create: true
+  ## @param serviceAccount.name Name of the ServiceAccount (generated when empty)
+  ##
+  name: ""
+  ## @param serviceAccount.automountServiceAccountToken Automount API credentials
+  ##
+  automountServiceAccountToken: false
+  ## @param serviceAccount.annotations Annotations for the ServiceAccount
+  ##
+  annotations: {}
+
+## @section Bucket setup hook
+
+setupJob:
+  ## @param setupJob.enabled Run a post-install/post-upgrade Job that creates the buckets
+  ##
+  enabled: true
+  ## @param setupJob.backoffLimit Backoff limit for the Job
+  ##
+  backoffLimit: 6
+  ## @param setupJob.activeDeadlineSeconds Deadline for the Job
+  ##
+  activeDeadlineSeconds: 600
+  ## @param setupJob.resourcesPreset Container resources according to one common preset
+  ##
+  resourcesPreset: "nano"
+  ## @param setupJob.resources Container requests and limits
+  ##
+  resources: {}
+  ## @param setupJob.ttlSecondsAfterFinished Delete the Job this many seconds after it finished
+  ##
+  ttlSecondsAfterFinished: 600

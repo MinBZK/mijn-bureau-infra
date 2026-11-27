@@ -87,8 +87,8 @@ egress:
       username: "default"
       password: {{ .Values.cache.livekit.password | quote }}
     s3:
-      access_key: {{ $meet.username | quote }}
-      secret: {{ $meet.rootPassword | quote }}
+      access_key: {{ $meet.accessKey | quote }}
+      secret: {{ $meet.secretKey | quote }}
       region: {{ $meet.region | default "eu-west-1" | quote }}
       bucket: {{ $meet.bucket | quote }}
       endpoint: {{ $meetS3Url | quote }}

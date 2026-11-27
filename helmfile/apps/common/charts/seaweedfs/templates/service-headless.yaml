@@ -1,0 +1,31 @@
+{{- /*
+SPDX-License-Identifier: Apache-2.0
+
+Headless Service used as the StatefulSet governing service and as the internal
+endpoint for the bucket setup hook (master / filer). It is never exposed
+outside the namespace: the NetworkPolicy only allows master and filer traffic
+from the setup Job.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-headless" (include "common.names.fullname" .) }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "seaweedfs.labels" . | nindent 4 }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" (dict "value" .Values.commonAnnotations "context" .) | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: master
+      port: {{ .Values.server.ports.master }}
+      targetPort: master
+      protocol: TCP
+    - name: filer
+      port: {{ .Values.server.ports.filer }}
+      targetPort: filer
+      protocol: TCP
+  selector: {{- include "seaweedfs.matchLabels" . | nindent 4 }}

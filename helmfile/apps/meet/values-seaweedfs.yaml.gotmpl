@@ -1,0 +1,64 @@
+{{- /*
+SeaweedFS values for meet.
+Shared defaults live in helmfile/apps/common/values-seaweedfs.yaml.gotmpl.
+*/}}
+persistence:
+  storageClass: {{ (coalesce .Values.pvc.meet.seaweedfs.storageClass .Values.pvc.default.storageClass) | quote }}
+  accessModes: {{ coalesce .Values.pvc.meet.seaweedfs.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+  size: {{ coalesce .Values.pvc.meet.seaweedfs.size .Values.pvc.default.size "8Gi" | quote }}
+
+auth:
+  accessKey: {{ .Values.objectstore.meet.accessKey | quote }}
+  secretKey: {{ .Values.objectstore.meet.secretKey | quote }}
+  existingSecret: {{ if eq (dig "secrets" "backend" "derived" .Values) "external" }}meet-seaweedfs{{ else }}""{{ end }}
+
+server:
+  resources: {{ .Values.resource.meet.seaweedfs | default dict | toYaml | nindent 4 }}
+  externalUrl: {{ printf "https://%s.%s" (index .Values.global.hostname "meet-objectstore") .Values.global.domain }}
+  allowedOrigins: {{ printf "%s://%s.%s" (ternary "https" "http" (.Values.global.tls.enabled | default true)) .Values.global.hostname.meet .Values.global.domain | quote }}
+
+buckets:
+  - name: {{ .Values.objectstore.meet.bucket | quote }}
+    versioning: Enabled
+
+networkPolicy:
+  extraIngress:
+    {{- if and (.Values.application.livekit.enabled | default false) (.Values.application.livekit.egress.enabled | default false) }}
+    # LiveKit egress uploads room recordings into this bucket.
+    - ports:
+        - port: {{ .Values.objectstore.meet.port }}
+          protocol: TCP
+      from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.application.livekit.namespace | default "mijnbureau-livekit" | quote }}
+    {{- end }}
+    {{- if .Values.application.dictaphone.enabled | default false }}
+    # Dictaphone downloads transcripts of recordings from this bucket.
+    - ports:
+        - port: {{ .Values.objectstore.meet.port }}
+          protocol: TCP
+      from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.application.dictaphone.namespace | default "mijnbureau-dictaphone" | quote }}
+    {{- end }}
+
+ingress:
+  enabled: true
+  hostname: {{ printf "%s.%s" (index .Values.global.hostname "meet-objectstore") .Values.global.domain }}
+  annotations:
+    {{- if .Values.cluster.ingress.annotations }}
+    {{ .Values.cluster.ingress.annotations | toYaml | nindent 4 }}
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "nginx" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "haproxy-openshift" }}
+    haproxy.router.openshift.io/hsts_header: max-age=31536000;includeSubDomains;preload
+    {{- end }}
+    {{- if eq .Values.cluster.ingress.type "traefik" }}
+    traefik.ingress.kubernetes.io/router.middlewares: '{{ .Release.Namespace }}-hsts-header@kubernetescrd'
+    {{- end }}

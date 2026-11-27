@@ -1,7 +1,6 @@
 {{- $hostname := printf "%s.%s" .Values.global.hostname.people .Values.global.domain }}
 secrets:
   external: {{ eq (dig "secrets" "backend" "derived" .Values) "external" }}
-{{- $minioHostname := index .Values.global.hostname "people-minio" | default "people-minio" }}
 {{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
 {{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
 
@@ -30,8 +29,8 @@ appSecrets:
   OIDC_RP_CLIENT_SECRET: {{ .Values.authentication.client.people.client_secret | quote }}
   REDIS_URL: "redis://default:{{ .Values.cache.people.password }}@{{ .Values.cache.people.host }}:{{ .Values.cache.people.port }}/1"
   DJANGO_CELERY_BROKER_URL: "redis://default:{{ .Values.cache.people.password }}@{{ .Values.cache.people.host }}:{{ .Values.cache.people.port }}/0"
-  AWS_S3_ACCESS_KEY_ID: {{ .Values.objectstore.people.username | quote }}
-  AWS_S3_SECRET_ACCESS_KEY: {{ .Values.objectstore.people.rootPassword | quote }}
+  AWS_S3_ACCESS_KEY_ID: {{ .Values.objectstore.people.accessKey | quote }}
+  AWS_S3_SECRET_ACCESS_KEY: {{ .Values.objectstore.people.secretKey | quote }}
   DJANGO_EMAIL_HOST_PASSWORD: {{ .Values.smtp.password | quote }}
 
 ingress:
@@ -159,8 +158,9 @@ backend:
       secretKeyRef:
         name: people
         key: DJANGO_CELERY_BROKER_URL
-    # Media storage (contact avatars) on the bundled MinIO
-    AWS_S3_ENDPOINT_URL: {{ printf "https://%s.%s" $minioHostname .Values.global.domain | quote }}
+    # Media storage (contact avatars) on the bundled object store. The backend
+    # talks to SeaweedFS in-cluster; media is served through Django at /media/.
+    AWS_S3_ENDPOINT_URL: {{ printf "http%s://%s:%d" (ternary "s" "" .Values.objectstore.people.useSSL) .Values.objectstore.people.endpoint .Values.objectstore.people.port | quote }}
     AWS_STORAGE_BUCKET_NAME: {{ .Values.objectstore.people.bucket | quote }}
     AWS_S3_REGION_NAME: {{ .Values.objectstore.people.region | default "us-east-1" | quote }}
     AWS_S3_SIGNATURE_VERSION: s3v4

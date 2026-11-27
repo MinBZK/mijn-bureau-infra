@@ -1,0 +1,113 @@
+{{- /*
+SPDX-License-Identifier: Apache-2.0
+
+Creates the buckets listed in `.Values.buckets` after the StatefulSet is
+ready. `weed shell` is not idempotent for `s3.bucket.create`, so the script
+checks `s3.bucket.list` first.
+*/}}
+{{- if and .Values.setupJob.enabled .Values.buckets }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-setup" (include "common.names.fullname" .) }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" .) | nindent 4 }}
+    app.kubernetes.io/component: seaweedfs-setup
+    app.kubernetes.io/part-of: seaweedfs
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.setupJob.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.setupJob.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: {{ .Values.setupJob.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels: {{- include "common.labels.standard" (dict "customLabels" .Values.commonLabels "context" .) | nindent 8 }}
+        app.kubernetes.io/component: seaweedfs-setup
+        app.kubernetes.io/part-of: seaweedfs
+      {{- if .Values.commonAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.commonAnnotations "context" .) | nindent 8 }}
+      {{- end }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "seaweedfs.serviceAccountName" . }}
+      automountServiceAccountToken: false
+      {{- include "seaweedfs.imagePullSecrets" . | nindent 6 }}
+      {{- if .Values.server.podSecurityContext }}
+      securityContext: {{- toYaml .Values.server.podSecurityContext | nindent 8 }}
+      {{- end }}
+      {{- if .Values.server.runtimeClassName }}
+      runtimeClassName: {{ .Values.server.runtimeClassName | quote }}
+      {{- end }}
+      containers:
+        - name: setup
+          image: {{ include "seaweedfs.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.server.containerSecurityContext }}
+          securityContext: {{- toYaml .Values.server.containerSecurityContext | nindent 12 }}
+          {{- end }}
+          env:
+            - name: WEED_CLUSTER_DEFAULT
+              value: "sw"
+            - name: WEED_CLUSTER_SW_MASTER
+              value: {{ printf "%s-headless:%v" (include "common.names.fullname" .) .Values.server.ports.master | quote }}
+            - name: WEED_CLUSTER_SW_FILER
+              value: {{ printf "%s-headless:%v" (include "common.names.fullname" .) .Values.server.ports.filer | quote }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              echo "Waiting for the object store to accept shell commands..."
+              ready=""
+              for _ in $(seq 1 60); do
+                if echo 's3.bucket.list' | /usr/bin/weed shell >/dev/null 2>&1; then
+                  ready="yes"
+                  break
+                fi
+                sleep 5
+              done
+              if [ -z "$ready" ]; then
+                echo "Object store did not become ready in time"
+                exit 1
+              fi
+              {{- range .Values.buckets }}
+              BUCKET={{ required "buckets[].name is required" .name | quote }}
+              if echo 's3.bucket.list' | /usr/bin/weed shell | awk -v b="$BUCKET" '$1 == b { found = 1 } END { exit !found }'; then
+                echo "Bucket $BUCKET already exists"
+              else
+                echo "Creating bucket $BUCKET"
+                echo "s3.bucket.create -name $BUCKET" | /usr/bin/weed shell
+              fi
+              {{- if kindIs "bool" .versioning }}
+              {{- if .versioning }}
+              echo "s3.bucket.versioning -name $BUCKET -status Enabled" | /usr/bin/weed shell
+              {{- else }}
+              echo "s3.bucket.versioning -name $BUCKET -status Suspended" | /usr/bin/weed shell
+              {{- end }}
+              {{- else if .versioning }}
+              echo "s3.bucket.versioning -name $BUCKET -status {{ .versioning }}" | /usr/bin/weed shell
+              {{- end }}
+              {{- with .ttl }}
+              echo "fs.configure -locationPrefix=/buckets/$BUCKET -ttl={{ . }} -apply" | /usr/bin/weed shell
+              {{- end }}
+              {{- end }}
+          ports:
+            - name: master
+              containerPort: {{ .Values.server.ports.master }}
+              protocol: TCP
+          {{- if .Values.setupJob.resources }}
+          resources: {{- toYaml .Values.setupJob.resources | nindent 12 }}
+          {{- else if and .Values.setupJob.resourcesPreset (ne .Values.setupJob.resourcesPreset "none") }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.setupJob.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Mi
+{{- end }}

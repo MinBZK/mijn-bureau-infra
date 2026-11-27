@@ -10,7 +10,7 @@ This document describes how CPU and memory resources are managed across all Mijn
 
 Resources are managed through four mechanisms:
 
-1. **Global preset** (`global.resourcesPreset`) - a default preset applied to all applications and their dependencies (PostgreSQL, Valkey, MinIO)
+1. **Global preset** (`global.resourcesPreset`) - a default preset applied to all applications and their dependencies (PostgreSQL, Valkey, object store)
 2. **Per-app preset** (`global.resourcesPresetPerApp`) - overrides the global preset for specific application components
 3. **Explicit resources** (`resource.<app>.<component>`) - overrides everything with exact CPU/memory values
 4. **Custom resource helpers** - for apps with hard minimum requirements, a custom `_resources.tpl` enforces a floor regardless of which preset is selected
@@ -206,11 +206,11 @@ These apps are safe at any preset -- the custom helper or values mapping enforce
 | Messages      | mta             | `small`  | 500m    | 512 MiB  | Inbound SMTP server                               |
 | Messages      | opensearch      | `medium` | 500m    | 1024 MiB | Full-text search index                            |
 
-### Dependencies (PostgreSQL, Valkey, MinIO, OpenSearch)
+### Dependencies (PostgreSQL, Valkey, object store, OpenSearch)
 
 PostgreSQL is provided by CloudNativePG and uses explicit resources from `resource.<app>.postgresql`.
-Valkey uses `resource.<app>.valkey` when set, otherwise the global `resourcesPreset`. MinIO still
-uses the global `resourcesPreset` value. OpenSearch uses `resource.<app>.opensearch` when set,
+Valkey uses `resource.<app>.valkey` when set, otherwise the global `resourcesPreset`. The object
+store uses the global `resourcesPreset` value. OpenSearch uses `resource.<app>.opensearch` when set,
 otherwise the per-app preset. To customize PostgreSQL resources, use explicit values in
 `resource.yaml.gotmpl`:
 

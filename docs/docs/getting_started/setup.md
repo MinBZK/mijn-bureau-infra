@@ -60,7 +60,7 @@ For production setups, you need to configure external services such as:
 
 - **Database**: PostgreSQL.
 - **Cache**: Valkey (Redis-compatible).
-- **Object Store**: MinIO.
+- **Object Store**: SeaweedFS.
 
 Additionally, ensure you set up backup and restore procedures, disaster recovery, and persistent volume claim backups.
 

@@ -33,9 +33,8 @@ releases:
       - "../common/values-valkey.yaml.gotmpl"
       - "values-valkey.yaml.gotmpl"
 
-  - name: messages-minio
-    chart: ../common/charts/minio
-    version: "17.0.11"
+  - name: messages-seaweedfs
+    chart: ../common/charts/seaweedfs
     {{- if .Values.application.messages.namespace }}
     namespace: {{ .Values.application.messages.namespace }}
     {{- end }}
@@ -43,7 +42,8 @@ releases:
     values:
       - "../common/values-cluster-dns.yaml.gotmpl"
       - "../common/values-cluster-ingress.yaml.gotmpl"
-      - "values-minio.yaml.gotmpl"
+      - "../common/values-seaweedfs.yaml.gotmpl"
+      - "values-seaweedfs.yaml.gotmpl"
 
   - name: messages-opensearch
     chart: ../common/charts/opensearch
@@ -73,7 +73,7 @@ releases:
     needs:
       - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-cluster
       - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-valkey
-      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-minio
+      - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-seaweedfs
       {{- if not .Values.search.messages.url }}
       - {{ if .Values.application.messages.namespace }}{{ .Values.application.messages.namespace }}/{{ end }}messages-opensearch
       {{- end }}
@@ -90,7 +90,7 @@ releases:
 
   # ESO-synced infra secrets (OpenBao -> Kubernetes). Rendered only when
   # the app is switched to external secrets; replaces the inline CNPG/
-  # valkey/minio Secrets rendered by the releases above.
+  # valkey/seaweedfs Secrets rendered by the releases above.
   - name: messages-externalsecret
     chart: ../common/charts/externalsecret
     {{- if .Values.application.messages.namespace }}

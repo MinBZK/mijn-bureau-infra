@@ -1,0 +1,27 @@
+{{- /*
+SeaweedFS values for conversations.
+Shared defaults live in helmfile/apps/common/values-seaweedfs.yaml.gotmpl.
+*/}}
+persistence:
+  storageClass: {{ (coalesce .Values.pvc.conversations.seaweedfs.storageClass .Values.pvc.default.storageClass) | quote }}
+  accessModes: {{ coalesce .Values.pvc.conversations.seaweedfs.accessModes .Values.pvc.default.accessModes (list "ReadWriteOnce") | toYaml | nindent 4 }}
+  size: {{ coalesce .Values.pvc.conversations.seaweedfs.size .Values.pvc.default.size "8Gi" | quote }}
+
+auth:
+  accessKey: {{ .Values.objectstore.conversations.accessKey | quote }}
+  secretKey: {{ .Values.objectstore.conversations.secretKey | quote }}
+  existingSecret: {{ if eq (dig "secrets" "backend" "derived" .Values) "external" }}conversations-seaweedfs{{ else }}""{{ end }}
+
+server:
+  resources: {{ .Values.resource.conversations.seaweedfs | default dict | toYaml | nindent 4 }}
+  externalUrl: ""
+  # Internal only: no public object store route, so CORS is not exercised.
+  allowedOrigins: {{ printf "%s://%s.%s" (ternary "https" "http" (.Values.global.tls.enabled | default true)) .Values.global.hostname.conversations .Values.global.domain | quote }}
+
+buckets:
+  - name: {{ .Values.objectstore.conversations.bucket | quote }}
+    versioning: Enabled
+
+ingress:
+  enabled: false
+  hostname: "objectstore.local"

@@ -34,7 +34,7 @@ rotates every database password, app secret and admin login at once. Read
 | MAS account UI                                                                                                             | `https://mas.<global.domain>/`                                                                     | any end user                                                 | Keycloak                         |
 | Nextcloud _(when `application.nextcloud.enabled`)_                                                                         | `https://nextcloud.<global.domain>/settings/admin`                                                 | `admin`                                                      | `secret.nextcloud.adminPassword` |
 | LaSuite Django admins (Docs, Drive, Meet, Conversations, Projects, Calendars, People, Dictaphone, Messages, Find, Menshen) | not publicly routed — port-forward, see [LaSuite applications](#lasuite-applications-django-admin) | per app, see table below                                     | `secret.<app>.*`                 |
-| MinIO consoles (per app object store)                                                                                      | not publicly routed — port-forward                                                                 | `admin`                                                      | `objectstore.<app>.rootPassword` |
+| Object store consoles (per app)                                                                                            | not publicly routed                                                                                | n/a                                                          | `objectstore.<app>.secretKey`    |
 | PostgreSQL (CloudNativePG)                                                                                                 | no UI — `psql` in the cluster                                                                      | `postgres`                                                   | `<app>-cluster-superuser` secret |
 | LiveKit (SFU)                                                                                                              | no admin UI                                                                                        | —                                                            | `application.livekit.keys`       |
 
@@ -269,17 +269,21 @@ the other products the port-forward above is the supported path.
 
 ## Object storage
 
-Every application gets its own MinIO instance (`docs-minio`, `drive-minio`,
-`meet-minio`, …) with an S3 API that is only used in-cluster. The consoles are
-not routed; reach one with a port-forward:
+Every application gets its own SeaweedFS instance (`docs-seaweedfs`, `drive-seaweedfs`,
+`meet-seaweedfs`, …) with an S3 API. The S3 port is reachable in-cluster as
+`<app>-seaweedfs:8333`; public hostnames (`<app>-objectstore.<domain>`) are only used for
+presigned URLs and are routed through the Gateway.
+
+SeaweedFS has no web console, so there is nothing to port-forward for browsing. Use any S3
+client from a pod in the application namespace, for example:
 
 ```bash
-kubectl -n mijnbureau-drive port-forward svc/drive-minio-console 9090
-# open http://localhost:9090
+kubectl -n mijnbureau-drive run --rm -it --image=amazon/aws-cli objstore-cli -- \
+  --endpoint-url http://drive-seaweedfs:8333 s3 ls
 ```
 
-Credentials are `admin` (or the value in `objectstore.<app>.username`) plus
-`objectstore.<app>.rootPassword`, both in
+Credentials are `admin` (or `objectstore.<app>.accessKey`) plus
+`objectstore.<app>.secretKey`, both in
 `helmfile/environments/default/objectstore.yaml.gotmpl` and derived from the
 master password.
 
