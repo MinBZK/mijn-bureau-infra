@@ -88,7 +88,7 @@ backend:
   image:
     registry: docker.io
     repository: lasuite/impress-backend
-    tag: "v6.1.0"
+    tag: "v6.1.1"
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1031,7 +1031,7 @@ frontend:
   image:
     registry: docker.io
     repository: lasuite/impress-frontend
-    tag: v6.1.0
+    tag: v6.1.1
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1972,7 +1972,7 @@ yProvider:
   image:
     registry: docker.io
     repository: lasuite/impress-y-provider
-    tag: v6.1.0
+    tag: v6.1.1
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -2443,7 +2443,7 @@ yhub:
   image:
     registry: docker.io
     repository: lasuite/impress-yhub
-    tag: v6.1.0
+    tag: v6.1.1
     digest: ""
     pullPolicy: IfNotPresent
     pullSecrets: []
