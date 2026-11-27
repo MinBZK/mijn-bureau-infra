@@ -15,7 +15,14 @@ on:
       - main
     paths:
       - "docs/**"
+  # A published release adds a generated release page from the release assets.
+  release:
+    types:
+      - published
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -38,6 +45,10 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Build website
         run: yarn build
+        env:
+          # The prebuild step downloads the container inventory of the latest
+          # releases; the token only avoids anonymous API rate limits.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v5

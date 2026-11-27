@@ -1,0 +1,3 @@
+# Python dependencies for the scripts in this directory.
+# Used by .github/workflows/release.yaml to generate the release security report.
+PyYAML>=6.0.1
