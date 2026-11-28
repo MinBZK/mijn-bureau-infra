@@ -1,5 +1,7 @@
 fullnameOverride: keycloak-config-cli
 
+{{- $acr := .Values.authentication.acr }}
+
 secrets:
   # When true (secrets.backend: external), ESO owns the `keycloak-config-cli`
   # Secret (realm client secrets + SMTP + demo-user passwords).
@@ -91,6 +93,73 @@ import:
           "frontendUrl": "https://{{ .Values.global.hostname.keycloak }}.{{ .Values.global.domain }}"
         }
       }
+    {{- $userProfile := dict
+      "attributes" (list
+        (dict
+          "name" "username"
+          "displayName" "${username}"
+          "validations" (dict
+            "length" (dict "min" 3 "max" 255)
+            "username-prohibited-characters" (dict)
+            "up-username-not-idn-homograph" (dict)
+          )
+          "permissions" (dict
+            "view" (list "admin" "user")
+            "edit" (list "admin")
+          )
+          "multivalued" false
+        )
+        (dict
+          "name" "email"
+          "displayName" "${email}"
+          "validations" (dict
+            "email" (dict)
+            "length" (dict "max" 255)
+          )
+          "required" (dict "roles" (list "user"))
+          "permissions" (dict
+            "view" (list "admin" "user")
+            "edit" (list "admin")
+          )
+          "multivalued" false
+        )
+        (dict
+          "name" "firstName"
+          "displayName" "${firstName}"
+          "validations" (dict
+            "length" (dict "max" 255)
+            "person-name-prohibited-characters" (dict)
+          )
+          "required" (dict "roles" (list "user"))
+          "permissions" (dict
+            "view" (list "admin" "user")
+            "edit" (list "admin")
+          )
+          "multivalued" false
+        )
+        (dict
+          "name" "lastName"
+          "displayName" "${lastName}"
+          "validations" (dict
+            "length" (dict "max" 255)
+            "person-name-prohibited-characters" (dict)
+          )
+          "required" (dict "roles" (list "user"))
+          "permissions" (dict
+            "view" (list "admin" "user")
+            "edit" (list "admin")
+          )
+          "multivalued" false
+        )
+      )
+      "groups" (list
+        (dict
+          "name" "user-metadata"
+          "displayHeader" "User metadata"
+          "displayDescription" "Attributes, which refer to user metadata"
+        )
+      )
+    }}
     mijnbureau.json: |
       {
         "realm" : "mijnbureau",
@@ -98,6 +167,7 @@ import:
         "displayNameHtml": "<b>Mijn Bureau</b>",
         "defaultSignatureAlgorithm": "RS256",
         "enabled" : true,
+        "browserFlow": "mijnbureau-browser",
         "organizationsEnabled": true,
         "revokeRefreshToken": true,
         "ssoSessionIdleTimeout": 43200,
@@ -105,6 +175,16 @@ import:
         "editUsernameAllowed": false,
         "registrationAllowed": false,
         "duplicateEmailsAllowed": false,
+        "webAuthnPolicyRpEntityName": "Mijn Bureau",
+        "webAuthnPolicySignatureAlgorithms": ["ES256", "RS256"],
+        "webAuthnPolicyRpId": "",
+        "webAuthnPolicyAttestationConveyancePreference": "not specified",
+        "webAuthnPolicyAuthenticatorAttachment": {{ $acr.webauthn.attachment | quote }},
+        "webAuthnPolicyRequireResidentKey": "not specified",
+        "webAuthnPolicyUserVerificationRequirement": {{ $acr.webauthn.userVerification | quote }},
+        "webAuthnPolicyCreateTimeout": {{ $acr.webauthn.createTimeout }},
+        "webAuthnPolicyAvoidSameAuthenticatorRegister": false,
+        "webAuthnPolicyAcceptableAaguids": [],
         "smtpServer": {
           {{- if .Values.smtp.host }}
           "host" : {{ .Values.smtp.host | quote }},
@@ -161,6 +241,8 @@ import:
             "frontchannelLogout": false,
             "protocol": "openid-connect",
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "synapse" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "synapse" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "client.secret.creation.time": "1759388679",
               "backchannel.logout.session.required": "true",
@@ -200,6 +282,8 @@ import:
             "frontchannelLogout": false,
             "protocol": "openid-connect",
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "meet" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "meet" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1759388679",
@@ -268,6 +352,8 @@ import:
               }
             ],
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "conversations" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "conversations" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1759388679",
@@ -323,6 +409,8 @@ import:
               }
             ],
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "drive" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "drive" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1759388679",
@@ -364,6 +452,8 @@ import:
             "frontchannelLogout": false,
             "protocol": "openid-connect",
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "projects" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "projects" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "[PHONE]",
@@ -404,6 +494,8 @@ import:
             "frontchannelLogout": true,
             "protocol": "openid-connect",
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "contacts" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "contacts" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "standard.token.exchange.enabled": "false",
@@ -444,6 +536,8 @@ import:
             "frontchannelLogout": true,
             "protocol": "openid-connect",
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "calendars" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "calendars" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "[PHONE]",
@@ -485,6 +579,8 @@ import:
             "frontchannelLogout": true,
             "protocol": "openid-connect",
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "dictaphone" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "dictaphone" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1735689600",
@@ -525,6 +621,8 @@ import:
             "frontchannelLogout": false,
             "protocol": "openid-connect",
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "nextcloud" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "nextcloud" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "client.secret.creation.time": "1759388679",
               "backchannel.logout.session.required": "true",
@@ -577,6 +675,8 @@ import:
               }
             ],
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "docs" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "docs" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1759388679",
@@ -668,6 +768,8 @@ import:
               }
             ],
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "bureaublad" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "bureaublad" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1759388679",
@@ -710,6 +812,8 @@ import:
             "frontchannelLogout": true,
             "protocol": "openid-connect",
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "mas" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "mas" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "1759388679",
@@ -750,6 +854,8 @@ import:
             "frontchannelLogout": true,
             "protocol": "openid-connect",
             "attributes": {
+              "default.acr.values": {{ index $acr.clients "messages" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "messages" | default $acr.defaultLevel | quote }},
               "realm_client": "false",
               "oidc.ciba.grant.enabled": "false",
               "client.secret.creation.time": "[PHONE]",
@@ -777,13 +883,171 @@ import:
           },
           {
             "clientId": "account",
-            "enabled": true
+            "enabled": true,
+            "attributes": {
+              "default.acr.values": {{ index $acr.clients "account" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "account" | default $acr.defaultLevel | quote }}
+            }
           },
           {
             "clientId": "account-console",
-            "enabled": true
+            "enabled": true,
+            "attributes": {
+              "default.acr.values": {{ index $acr.clients "account-console" | default $acr.defaultLevel | quote }},
+              "minimum.acr.value": {{ index $acr.clients "account-console" | default $acr.defaultLevel | quote }}
+            }
           }
         ],
+        "authenticationFlows": [
+          {
+            "alias": "mijnbureau-browser",
+            "description": "Browser flow with ACR step-up: password (1), OTP (2), WebAuthn (3)",
+            "providerId": "basic-flow",
+            "topLevel": true,
+            "builtIn": false,
+            "authenticationExecutions": [
+              {
+                "authenticator": "auth-cookie",
+                "requirement": "ALTERNATIVE",
+                "priority": 10
+              },
+              {
+                "authenticator": "identity-provider-redirector",
+                "requirement": "ALTERNATIVE",
+                "priority": 20
+              },
+              {
+                "authenticatorFlow": true,
+                "flowAlias": "mijnbureau-forms",
+                "requirement": "ALTERNATIVE",
+                "priority": 30
+              }
+            ]
+          },
+          {
+            "alias": "mijnbureau-forms",
+            "description": "ACR level conditions; lowest level first",
+            "providerId": "basic-flow",
+            "topLevel": false,
+            "builtIn": false,
+            "authenticationExecutions": [
+              {
+                "authenticatorFlow": true,
+                "flowAlias": "mijnbureau-acr-1",
+                "requirement": "CONDITIONAL",
+                "priority": 10
+              },
+              {
+                "authenticatorFlow": true,
+                "flowAlias": "mijnbureau-acr-2",
+                "requirement": "CONDITIONAL",
+                "priority": 20
+              },
+              {
+                "authenticatorFlow": true,
+                "flowAlias": "mijnbureau-acr-3",
+                "requirement": "CONDITIONAL",
+                "priority": 30
+              }
+            ]
+          },
+          {
+            "alias": "mijnbureau-acr-1",
+            "description": "ACR1: username and password",
+            "providerId": "basic-flow",
+            "topLevel": false,
+            "builtIn": false,
+            "authenticationExecutions": [
+              {
+                "authenticator": "conditional-level-of-authentication",
+                "authenticatorConfig": "mijnbureau-loa-1",
+                "requirement": "REQUIRED",
+                "priority": 10
+              },
+              {
+                "authenticator": "auth-username-password-form",
+                "requirement": "REQUIRED",
+                "priority": 20
+              }
+            ]
+          },
+          {
+            "alias": "mijnbureau-acr-2",
+            "description": "ACR2: password plus OTP",
+            "providerId": "basic-flow",
+            "topLevel": false,
+            "builtIn": false,
+            "authenticationExecutions": [
+              {
+                "authenticator": "conditional-level-of-authentication",
+                "authenticatorConfig": "mijnbureau-loa-2",
+                "requirement": "REQUIRED",
+                "priority": 10
+              },
+              {
+                "authenticator": "auth-otp-form",
+                "requirement": "REQUIRED",
+                "priority": 20
+              }
+            ]
+          },
+          {
+            "alias": "mijnbureau-acr-3",
+            "description": "ACR3: password, OTP and WebAuthn user verification",
+            "providerId": "basic-flow",
+            "topLevel": false,
+            "builtIn": false,
+            "authenticationExecutions": [
+              {
+                "authenticator": "conditional-level-of-authentication",
+                "authenticatorConfig": "mijnbureau-loa-3",
+                "requirement": "REQUIRED",
+                "priority": 10
+              },
+              {
+                "authenticator": "webauthn-authenticator",
+                "requirement": "REQUIRED",
+                "priority": 20
+              }
+            ]
+          }
+        ],
+        "authenticatorConfig": [
+          {
+            "alias": "mijnbureau-loa-1",
+            "config": {
+              "loa-condition-level": "1",
+              "loa-max-age": {{ index $acr.maxAge "1" | quote }}
+            }
+          },
+          {
+            "alias": "mijnbureau-loa-2",
+            "config": {
+              "loa-condition-level": "2",
+              "loa-max-age": {{ index $acr.maxAge "2" | quote }}
+            }
+          },
+          {
+            "alias": "mijnbureau-loa-3",
+            "config": {
+              "loa-condition-level": "3",
+              "loa-max-age": {{ index $acr.maxAge "3" | quote }}
+            }
+          }
+        ],
+        "components": {
+          "org.keycloak.userprofile.UserProfileProvider": [
+            {
+              "providerId": "declarative-user-profile",
+              "subComponents": {},
+              "config": {
+                "kc.user.profile.config": [
+                  {{ $userProfile | toJson | quote }}
+                ]
+              }
+            }
+          ]
+        },
         "defaultRoles": ["offline_access", "uma_authorization"],
         {{- if eq .Environment.Name "demo" }}
         "users" : [
@@ -828,7 +1092,8 @@ import:
         "eventsExpiration": 259200,
         "adminEventsEnabled": true,
         "attributes": {
-          "adminEventsExpiration": "2592000"
+          "adminEventsExpiration": "2592000",
+          "acr.loa.map": {{ $acr.levels | toJson | quote }}
         },
         "supportedLocales": [
           "en",
