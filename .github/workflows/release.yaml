@@ -45,23 +45,23 @@ jobs:
           sudo apt-get install -y --no-install-recommends skopeo jq
 
       - name: Install syft
-        uses: anchore/sbom-action/download-syft@v0
+        uses: anchore/sbom-action/download-syft@v0.24.4
         with:
           syft-version: v1.57.2
 
       - name: Install trivy
-        uses: aquasecurity/setup-trivy@v0
+        uses: aquasecurity/setup-trivy@v0.3.1
         with:
           version: v0.76.2
           cache: true
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4.1.4
         with:
           cosign-release: v3.1.6
 
       - name: Cache vulnerability database
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: ~/.cache/trivy
           key: trivy-db-${{ github.run_id }}
@@ -137,12 +137,19 @@ jobs:
 
       - name: Package helmfile folder
         run: |
-          tar -czf helmfile-${{ github.ref_name }}.tar.gz helmfile/ helmfile.yaml.gotmpl .sops.yaml cosign.pub CHANGELOG.md LICENSE README.md SECURITY.md security/
-          sha256sum helmfile-${{ github.ref_name }}.tar.gz > helmfile-${{ github.ref_name }}.tar.gz.sha256
-          tar -czf sbom-${{ github.ref_name }}.tar.gz -C security sbom sbom-index.json cve.json containers.json containers.md images.lock.yaml signatures.json SHA256SUMS
+          set -euo pipefail
+          archive="helmfile-${{ github.ref_name }}.tar.gz"
+          paths=(helmfile/ helmfile.yaml.gotmpl .sops.yaml cosign.pub security/)
+          # Optional documents: only include what the repository actually has.
+          for optional in CHANGELOG.md LICENSE README.md SECURITY.md; do
+            if [ -f "$optional" ]; then paths+=("$optional"); fi
+          done
+          tar -czf "$archive" "${paths[@]}"
+          sha256sum "$archive" > "$archive.sha256"
+          tar -czf "sbom-${{ github.ref_name }}.tar.gz" -C security sbom sbom-index.json cve.json containers.json containers.md images.lock.yaml signatures.json SHA256SUMS
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4.1.4
         with:
           cosign-release: v3.1.6
 
