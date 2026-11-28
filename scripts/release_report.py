@@ -767,7 +767,11 @@ def main():
     output_dir = os.path.abspath(args.output_dir)
     security_dir = os.path.join(output_dir, "security")
     sbom_dir = os.path.join(security_dir, "sbom")
-    cache_dir = os.path.join(output_dir, ".cache", "trivy")
+    # Trivy's vulnerability database is large; keep it in the user cache so CI
+    # can persist it between runs.
+    cache_dir = os.environ.get(
+        "TRIVY_CACHE_DIR", os.path.join(os.path.expanduser("~"), ".cache", "trivy")
+    )
     render_dir = os.path.abspath(args.render_dir or os.path.join(output_dir, "render"))
     os.makedirs(sbom_dir, exist_ok=True)
     os.makedirs(cache_dir, exist_ok=True)
