@@ -1,6 +1,9 @@
 ---
 global:
   domain: "kubernetes.local"
+  # Extra hostnames served in addition to the per-app subdomains. They get a
+  # Gateway certificate and are routed to Bureaublad.
+  domainAliases: []
   # global.matrixDomain is the public-facing domain of the synapse server
   matrixDomain: ""
 

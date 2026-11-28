@@ -1,6 +1,11 @@
 {{- $hostname := printf "%s.%s" .Values.global.hostname.bureaublad .Values.global.domain }}
 {{- $sslPostfix := ternary "s" "" (.Values.global.tls.enabled | default true) }}
 {{- $baseUrl := printf "http%s://%s" $sslPostfix $hostname }}
+{{- $hosts := concat (list $hostname) (.Values.global.domainAliases | default list) }}
+{{- $origins := list }}
+{{- range $hosts }}
+{{- $origins = append $origins (printf "http%s://%s" $sslPostfix .) }}
+{{- end }}
 {{- $redisUrl := printf "redis://default:%s@%s:%d/1" .Values.cache.bureaublad.password .Values.cache.bureaublad.host .Values.cache.bureaublad.port -}}
 
 secrets:
@@ -164,11 +169,11 @@ backend:
     AI_MODEL: {{ .Values.ai.llm.model | quote }}
     {{- end }}
     THEME_CSS_URL: ""
-    CORS_ALLOW_ORIGINS: '[{{ $baseUrl | quote }}]'
+    CORS_ALLOW_ORIGINS: {{ $origins | toJson | quote }}
     CORS_ALLOW_CREDENTIALS: false
     CORS_ALLOW_METHODS: '["GET","POST","PUT","DELETE"]'
     CORS_ALLOW_HEADERS: '["*"]'
-    TRUSTED_HOSTS: '[{{ $hostname | quote }}]'
+    TRUSTED_HOSTS: {{ $hosts | toJson | quote }}
     REDIS_URL: {{ $redisUrl | quote }}
 
 frontend:
@@ -198,6 +203,7 @@ frontend:
 ingress:
   enabled: true
   hostname: {{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}
+  extraHostnames: {{ .Values.global.domainAliases | default list | toYaml | nindent 4 }}
   tls: {{ .Values.global.tls.enabled | default true }}
   selfSigned: {{ and .Values.global.tls.enabled .Values.global.tls.selfSigned | default false }}
   extraTls: {{ .Values.tls.bureaublad | toYaml | nindent 4 }}

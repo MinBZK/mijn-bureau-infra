@@ -17,6 +17,9 @@ spec:
     {{- include "common.httproute.parentRef" .Values.cluster.gateway | nindent 4 }}
   hostnames:
     - {{ .Values.ingress.hostname | quote }}
+    {{- range .Values.ingress.extraHostnames }}
+    - {{ . | quote }}
+    {{- end }}
   rules:
     - matches:
         - path:

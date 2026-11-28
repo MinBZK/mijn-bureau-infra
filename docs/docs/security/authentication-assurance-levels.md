@@ -93,12 +93,16 @@ self-service, but it also means a user can register a credential during the same
 login that requires it. Pre-enrol users through the Account Console if the credential
 must exist before a level is granted.
 
-Passkeys are a separate Keycloak feature. They replace the password at login instead
-of adding a third factor, and they use a different credential type. Passkeys are
-disabled; ACR3 uses the WebAuthn Authenticator with user verification required, so a
+Passkeys are enabled on the login screen (`webAuthnPolicyPasswordlessPasskeysEnabled`
+with conditional mediation). Users can sign in with a passkey instead of a password,
+through autofill or the **Sign in with Passkey** button. A passkey login counts as
+level 1: the level is set by the sub-flow, not by the authenticator, so a client that
+requires ACR2 or ACR3 is still stepped up with OTP and WebAuthn. Passkeys use a
+separate credential type from the WebAuthn two-factor authenticator, so a user who
+needs ACR3 registers both. **WebAuthn Register** and **WebAuthn Register Passwordless**
+are enabled under **Authentication** > **Required Actions** for self-service
+enrolment. ACR3 uses the WebAuthn Authenticator with user verification required, so a
 platform biometric (Touch ID, Windows Hello, phone fingerprint) satisfies the level.
-Administrators may enable **WebAuthn Register** under **Authentication** > **Required
-Actions** to let users enrol from the Account Console.
 
 Set `authentication.acr.webauthn.attachment: "platform"` to reject USB/NFC security
 keys. The default `not specified` accepts any WebAuthn authenticator, including
