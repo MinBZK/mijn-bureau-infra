@@ -1,4 +1,10 @@
+---
+sidebar_position: 60
+---
+
 # NextCloud
+
+_Where this fits: this page covers deployment. How to use it: [Files (Nextcloud)](../user-guide/nextcloud.md)._
 
 MijnBureau supplies an installation of [NextCloud](https://nextcloud.com/). NextCloud is an open-source file sharing and collaboration platform that enables secure storage, sharing, and collaboration on files and documents. Nextcloud has a high degree of flexibility and allows you to install many applications.
 

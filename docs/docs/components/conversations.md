@@ -1,4 +1,10 @@
+---
+sidebar_position: 170
+---
+
 # Conversations
+
+_Where this fits: this page covers deployment. How to use it: [AI assistant (Conversations)](../user-guide/conversations.md)._
 
 MijnBureau supplies an installation of [Conversations](https://github.com/suitenumerique/conversations). Conversations is AI Assistant developer by LaSuite. It is still a prototype so use in production is not encouraged. To run the AI assistant you need an AI system available that supports the OpenAI chat endpoint. There are many companies that provide such systems, or you can run your own with ollama that is provided within this setup.
 

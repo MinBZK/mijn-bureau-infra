@@ -1,8 +1,8 @@
 ---
-sidebar_position: 1
+sidebar_position: 10
 ---
 
-# Overview
+# Using MijnBureau
 
 MijnBureau is a complete digital workplace: chat, mail, video meetings, files,
 documents, a calendar, project management and search, all running on your own
@@ -11,8 +11,8 @@ only sign in once and they all know who you are.
 
 This guide is written for people who _use_ MijnBureau. For installing,
 configuring and administering a deployment, see the
-[component documentation](../components/element.md) and the
-[Administration](../administration.md) page.
+[component documentation](../components/index.md) and the
+[Administration](../operating/administration.md) page.
 
 ## The tools in one table
 
@@ -106,5 +106,5 @@ apps; file sync needs Nextcloud, which not every deployment enables.
   session explains most "it suddenly stopped working" cases.
 - Ask your administrator for access to a tool you cannot open, or for an account
   in a shared inbox.
-- Your administrator can use the [Administration](../administration.md) page to
+- Your administrator can use the [Administration](../operating/administration.md) page to
   look up logs, sessions and accounts.

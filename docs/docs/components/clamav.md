@@ -1,4 +1,10 @@
+---
+sidebar_position: 190
+---
+
 # ClamAV
+
+_Deployment details for the antivirus service. Concept: [Secure email setup](../security/email.md)._
 
 MijnBureau supplies an installation of [ClamAV](https://clamav.com/). ClamAV® is an open-source antivirus engine for detecting trojans, viruses, malware & other malicious threats.
 

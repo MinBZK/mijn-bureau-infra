@@ -1,5 +1,5 @@
 ---
-sidebar_position: 12
+sidebar_position: 120
 ---
 
 # Projects
@@ -8,6 +8,9 @@ Projects is the MijnBureau workspace for plans: a project holds pages, subpages
 and tasks, with members who work on them. It is the place to keep a project's
 context together — the goal, the decisions, the planning — instead of spreading
 it over chat, mail and loose documents.
+
+Projects is marked **beta** in the Bureaublad while the upstream project
+stabilises.
 
 ## Opening it
 
@@ -90,4 +93,5 @@ structure; otherwise steal the five-page layout above and adapt it.
 - [Docs](./docs.md) — long-form documents
 - [Drive](./drive.md) — files and attachments
 - [Contacts](./contacts.md) — find the colleagues to invite
-- [Administration](../administration.md) — for administrators
+- [Component documentation](../components/projects.md) — how Projects is deployed
+- [Administration](../operating/administration.md) — for administrators

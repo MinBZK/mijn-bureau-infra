@@ -1,8 +1,8 @@
 {
   "label": "Development",
-  "position": 14,
+  "position": 80,
   "link": {
-    "type": "generated-index",
-    "description": "Developer documentation"
+    "type": "doc",
+    "id": "development/index"
   }
 }

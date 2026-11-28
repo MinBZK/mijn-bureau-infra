@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 40
 ---
 
 # Chat (Element)
@@ -120,8 +120,9 @@ recovery key in your password manager.
   discovery is deliberately limited.
 - Guests are disabled: everybody who joins needs an account on your server or on
   a federated Matrix server.
+- Administrators can enable message archiving where retention rules require it.
 - Administrators moderate from a separate admin panel; see
-  [Administration](../administration.md) if you need a room cleaned up or a user
+  [Administration](../operating/administration.md) if you need a room cleaned up or a user
   blocked.
 
 ## Related

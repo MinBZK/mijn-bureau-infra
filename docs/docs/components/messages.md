@@ -1,4 +1,10 @@
+---
+sidebar_position: 130
+---
+
 # Messages
+
+_Where this fits: this page covers deployment. How to use it: [Mail (Messages)](../user-guide/messages.md)._
 
 MijnBureau supplies an installation of [Messages](https://github.com/suitenumerique/messages),
 the collaborative inbox and email application from LaSuite. Users get a webmail interface,
@@ -72,7 +78,7 @@ the HTTP gateway.
    `search.messages.url`, `database.messages.*`, `cache.messages.*` and
    `objectstore.messages.*`.
 2. **Configure DNS.** Create the web record, the SMTP records and the MX records. See
-   [DNS](../dns.md#email-messages) and the section below.
+   [DNS](../operating/dns.md#email-messages) and the section below.
 3. **Log in.** Open `https://messages.<domain>` and sign in through Keycloak. If
    `application.messages.mailDomain` is set, a mail domain with `oidc_autojoin` is created
    during installation. Otherwise create one in the Django admin at
@@ -144,7 +150,7 @@ Notes:
   stored in PostgreSQL; keep `MIJNBUREAU_MASTER_PASSWORD` stable so the installation's
   secrets do not change.
 
-See [DNS](../dns.md#email-messages) for the general MijnBureau DNS setup, and
+See [DNS](../operating/dns.md#email-messages) for the general MijnBureau DNS setup, and
 [Secure email setup](../security/email.md) for the full SPF/DKIM/DMARC checklist.
 
 ## Outbound mail

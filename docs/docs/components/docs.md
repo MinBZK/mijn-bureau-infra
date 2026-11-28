@@ -1,4 +1,11 @@
+---
+sidebar_position: 40
+sidebar_label: Docs (component)
+---
+
 # Docs
+
+_Where this fits: this page covers deployment. How to use it: [Docs](../user-guide/docs.md)._
 
 MijnBureau supplies an installation of [Docs](https://github.com/suitenumerique/docs). It is a collaborative note solution.
 

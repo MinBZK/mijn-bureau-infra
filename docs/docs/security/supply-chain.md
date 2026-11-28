@@ -1,5 +1,5 @@
 ---
-sidebar_position: 9
+sidebar_position: 80
 ---
 
 # Supply chain and release reports
@@ -31,8 +31,9 @@ or unscannable images are recorded, never used to block a release.
 | `SHA256SUMS`                          | Checksums of every file in `security/`.                                          |
 | `*.sigstore.json`                     | Cosign bundles for `containers.json`, `sbom-index.json` and `SHA256SUMS`.        |
 
-The [releases overview](../releases/index.md) is generated from `containers.json`
-at build time, so the documentation always shows the published inventory.
+The [releases overview](https://minbzk.github.io/mijn-bureau-infra/docs/releases)
+is generated from `containers.json` at build time, so the documentation always
+shows the published inventory.
 
 ## What the inventory records
 
@@ -171,7 +172,7 @@ The report is written to `output/release/security`. Useful flags:
 ## Known limitations
 
 - Digest pinning is not enforced yet. `policy/image-digest.rego` warns about
-  images without a digest, and [ADR-MB-019](../development/adr/adr-mb-019.md)
+  images without a digest, and [ADR-MB-019](../architecture/adr/adr-mb-019.md)
   describes the migration. Until then, use `images.lock.yaml` from the release to
   pin images.
 - Images with a mutable tag (`find:main`) are only reproducible through the

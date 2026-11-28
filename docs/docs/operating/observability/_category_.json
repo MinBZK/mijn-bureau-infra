@@ -1,0 +1,8 @@
+{
+  "label": "Observability",
+  "position": 95,
+  "link": {
+    "type": "doc",
+    "id": "operating/observability/index"
+  }
+}

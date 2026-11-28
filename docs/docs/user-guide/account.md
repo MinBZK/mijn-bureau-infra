@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 20
 ---
 
 # Your account
@@ -81,6 +81,6 @@ the next visit asks you to sign in again.
 
 ## Related
 
-- [Administration](../administration.md) — for administrators looking up or
+- [Administration](../operating/administration.md) — for administrators looking up or
   resetting accounts
 - [Bureaublad](./bureaublad.md) — the overview page you start from

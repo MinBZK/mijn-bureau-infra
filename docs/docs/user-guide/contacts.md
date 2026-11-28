@@ -1,3 +1,7 @@
+---
+sidebar_position: 160
+---
+
 # Contacts
 
 Contacts is the shared address book. It stores your personal contacts next to the
@@ -5,6 +9,10 @@ organization-wide directory, and it feeds the people and group suggestions in th
 LaSuite apps.
 
 Open Contacts from the app launcher at `contacts.<your-domain>`.
+
+Contacts is disabled by default in MijnBureau. If the tile is missing, your
+administrator has not enabled it yet; see the
+[component documentation](../components/contacts.md) for the deployment status.
 
 ## Contacts
 
@@ -30,4 +38,4 @@ Docs, Drive, Messages and Calendars query Contacts for people and group suggesti
 you share a document or address a message. The integration uses your own access token, so
 you only see contacts you are allowed to see.
 
-- [Contacts feature overview](../features/contacts.md)
+- [Component documentation](../components/contacts.md) — how Contacts is deployed

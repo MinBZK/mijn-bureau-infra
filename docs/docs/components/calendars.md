@@ -1,4 +1,10 @@
+---
+sidebar_position: 90
+---
+
 # Calendars
+
+_Where this fits: this page covers deployment. How to use it: [Calendar](../user-guide/calendars.md)._
 
 MijnBureau supplies an installation of [Calendars](https://github.com/suitenumerique/calendars),
 the calendar and scheduling application from LaSuite. It combines a Django REST API, a React

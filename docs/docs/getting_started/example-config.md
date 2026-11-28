@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 40
 ---
 
 # Example Configuration
@@ -386,7 +386,7 @@ application:
 
 Set `MESSAGES_MTA_RELAY_PASSWORD` when rendering Helmfile, or configure
 `secret.messages.mtaRelayPassword` in an environment values file. Add the MX, SPF, DKIM and
-DMARC records described in [DNS](../dns.md#email-messages).
+DMARC records described in [DNS](../operating/dns.md#email-messages).
 
 ## Transactional Email (SMTP)
 
