@@ -75,11 +75,17 @@ jobs:
       - name: Install report dependencies
         run: pip install -r scripts/requirements.txt
 
-      # Syft unpacks image layers while generating SBOMs. Use the runner's larger
-      # scratch disk for temporary files so a batch of large images cannot fill
-      # the root filesystem.
+      # Syft unpacks image layers while generating SBOMs. Give it a private
+      # scratch directory on the runner's disk and log the free space, so a
+      # full disk is visible in the job output.
       - name: Prepare scratch space
-        run: mkdir -p /mnt/tmp
+        run: |
+          scratch="$(mktemp -d)"
+          {
+            echo "TMPDIR=${scratch}"
+            echo "SYFT_TEMP_DIR=${scratch}"
+          } >> "$GITHUB_ENV"
+          df -h "$scratch"
 
       # Optional Docker Hub credentials. Without them Syft pulls anonymously,
       # which is subject to the shared-IP rate limit on hosted runners.
@@ -105,7 +111,6 @@ jobs:
         env:
           MIJNBUREAU_MASTER_PASSWORD: ${{ secrets.MIJNBUREAU_MASTER_PASSWORD || 'dependabot' }}
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY || 'dependabot' }}
-          TMPDIR: /mnt/tmp
 
       - name: Show report summary
         run: cat .release/security/containers.md
