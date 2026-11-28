@@ -30,6 +30,38 @@ authentication:
       email: email
       email_verified: email_verified
 
+  # Authentication Context Class Reference (ACR) assurance levels enforced by
+  # Keycloak. The realm maps every ACR value to a numeric Level of Authentication
+  # (LoA); the step-up browser flow then demands the matching factors:
+  #   1 = username + password
+  #   2 = + OTP
+  #   3 = + WebAuthn (platform biometric / fingerprint)
+  # Every client defaults to level 1. Raise a client in `clients` to require
+  # step-up; Keycloak prompts for the missing factor on the next login.
+  acr:
+    # Level used for clients that are not listed in `clients`.
+    defaultLevel: "1"
+    levels:
+      "1": 1
+      "2": 2
+      "3": 3
+    # How long (seconds) a completed level stays valid in the SSO session.
+    maxAge:
+      "1": 43200
+      "2": 43200
+      "3": 3600
+    # Per-client overrides, keyed by the entries under `client` below.
+    # Example: docs: "2"
+    clients: {}
+    webauthn:
+      # "required" forces a user-verifying authenticator (Touch ID, Windows
+      # Hello, device biometrics). Use "not specified" to allow any WebAuthn
+      # authenticator.
+      userVerification: "required"
+      # Use "platform" to exclude cross-platform (USB/NFC) security keys.
+      attachment: "not specified"
+      createTimeout: 0
+
   client:
     meet:
       client_id: "meet"

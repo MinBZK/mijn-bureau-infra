@@ -10,15 +10,16 @@ In this section, we outline the specific responsibilities of each party and desc
 
 ## Start here
 
-| Topic                                     | Page                                            |
-| ----------------------------------------- | ----------------------------------------------- |
-| Who is responsible for what               | [Service integrator](./serviceintegrator.md)    |
-| What MijnBureau does about security       | [Mijn Bureau](./mijnbureau.md)                  |
-| Identity, SSO and user federation         | [Identity federation](./identity-federation.md) |
-| Separating tenants                        | [Multi-tenancy](./multi-tenancy.md)             |
-| Upstream projects and their posture       | [Upstream products](./upstreamproducts.md)      |
-| Image digests, SBOMs, signatures and CVEs | [Supply chain](./supply-chain.md)               |
-| DKIM, SPF, DMARC and mail reputation      | [Secure email setup](./email.md)                |
+| Topic                                     | Page                                                                    |
+| ----------------------------------------- | ----------------------------------------------------------------------- |
+| Who is responsible for what               | [Service integrator](./serviceintegrator.md)                            |
+| What MijnBureau does about security       | [Mijn Bureau](./mijnbureau.md)                                          |
+| Identity, SSO and user federation         | [Identity federation](./identity-federation.md)                         |
+| Password, OTP and biometric assurance     | [Authentication assurance levels](./authentication-assurance-levels.md) |
+| Separating tenants                        | [Multi-tenancy](./multi-tenancy.md)                                     |
+| Upstream projects and their posture       | [Upstream products](./upstreamproducts.md)                              |
+| Image digests, SBOMs, signatures and CVEs | [Supply chain](./supply-chain.md)                                       |
+| DKIM, SPF, DMARC and mail reputation      | [Secure email setup](./email.md)                                        |
 
 Operational security tasks - admin access, secrets, backups - live in
 [Operating](../operating/index.md). Django admin interfaces are not publicly

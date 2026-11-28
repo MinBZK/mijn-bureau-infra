@@ -133,6 +133,10 @@ Day-to-day tasks:
 - **Groups and roles** — realm roles are used for per-app access (see
   [Identity federation](../security/identity-federation.md)); MijnBureau itself
   does not map Keycloak roles to Synapse/MAS admin flags.
+- **Profile fields** — users cannot change any profile field (`username`, `email`,
+  `firstName`, `lastName`) in the Account Console; only admins can edit them in
+  the admin console. Changing these permissions means editing the
+  `org.keycloak.userprofile.UserProfileProvider` component in the same values file.
 
 :::note
 The realm is declarative. `keycloak-config-cli` reconciles it on every
