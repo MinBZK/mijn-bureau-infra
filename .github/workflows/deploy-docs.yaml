@@ -15,10 +15,15 @@ on:
       - main
     paths:
       - "docs/**"
-  # A published release adds a generated release page from the release assets.
-  release:
+  # Rebuild after the release workflow finished, not when the release object is
+  # created: the security report assets are only attached at the end of that run.
+  # workflow_run also executes on the default branch, which the github-pages
+  # environment allows (tags are rejected by its protection rules).
+  workflow_run:
+    workflows:
+      - release
     types:
-      - published
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -28,6 +33,8 @@ jobs:
   build:
     name: Build Docusaurus
     runs-on: ubuntu-latest
+    # A failed release has no assets to render; skip the rebuild in that case.
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     defaults:
       run:
         working-directory: docs/
