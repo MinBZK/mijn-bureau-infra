@@ -1,6 +1,14 @@
 fullnameOverride: keycloak-config-cli
 
 {{- $acr := .Values.authentication.acr }}
+{{- $scheme := ternary "https" "http" (.Values.global.tls.enabled | default true) }}
+{{- $bureaubladBaseUrl := printf "%s://%s.%s" $scheme .Values.global.hostname.bureaublad .Values.global.domain }}
+{{- $bureaubladRedirectUris := list "/api/v1/auth/callback" (printf "%s/api/v1/auth/callback" $bureaubladBaseUrl) }}
+{{- $bureaubladLogoutUris := list (printf "%s/*" $bureaubladBaseUrl) }}
+{{- range .Values.global.domainAliases }}
+{{- $bureaubladRedirectUris = append $bureaubladRedirectUris (printf "%s://%s/api/v1/auth/callback" $scheme .) }}
+{{- $bureaubladLogoutUris = append $bureaubladLogoutUris (printf "%s://%s/*" $scheme .) }}
+{{- end }}
 
 secrets:
   # When true (secrets.backend: external), ESO owns the `keycloak-config-cli`
@@ -185,6 +193,20 @@ import:
         "webAuthnPolicyCreateTimeout": {{ $acr.webauthn.createTimeout }},
         "webAuthnPolicyAvoidSameAuthenticatorRegister": false,
         "webAuthnPolicyAcceptableAaguids": [],
+        "webAuthnPolicyPasswordlessRpEntityName": "Mijn Bureau",
+        "webAuthnPolicyPasswordlessSignatureAlgorithms": ["ES256", "RS256"],
+        "webAuthnPolicyPasswordlessRpId": "",
+        "webAuthnPolicyPasswordlessAttestationConveyancePreference": "not specified",
+        "webAuthnPolicyPasswordlessAuthenticatorAttachment": "not specified",
+        "webAuthnPolicyPasswordlessRequireResidentKey": "not specified",
+        "webAuthnPolicyPasswordlessResidentKey": "required",
+        "webAuthnPolicyPasswordlessUserVerificationRequirement": "required",
+        "webAuthnPolicyPasswordlessCreateTimeout": 0,
+        "webAuthnPolicyPasswordlessAvoidSameAuthenticatorRegister": false,
+        "webAuthnPolicyPasswordlessAcceptableAaguids": [],
+        "webAuthnPolicyPasswordlessExtraOrigins": [],
+        "webAuthnPolicyPasswordlessPasskeysEnabled": true,
+        "webAuthnPolicyPasswordlessMediation": "conditional",
         "smtpServer": {
           {{- if .Values.smtp.host }}
           "host" : {{ .Values.smtp.host | quote }},
@@ -737,9 +759,7 @@ import:
             "alwaysDisplayInConsole": true,
             "clientAuthenticatorType": "client-secret",
             "secret": "$(env:MB_CLIENT_SECRET_BUREAUBLAD)",
-            "redirectUris": [
-              "/api/v1/auth/callback"
-            ],
+            "redirectUris": {{ $bureaubladRedirectUris | toJson }},
             "webOrigins": [
               "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}"
             ],
@@ -775,7 +795,7 @@ import:
               "client.secret.creation.time": "1759388679",
               "standard.token.exchange.enabled": "true",
               "frontchannel.logout.url": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/api/v1/auth/logout",
-              "post.logout.redirect.uris": "https://{{ .Values.global.hostname.bureaublad }}.{{ .Values.global.domain }}/*",
+              "post.logout.redirect.uris": {{ $bureaubladLogoutUris | join "##" | quote }},
               "frontchannel.logout.session.required": "false",
               "oauth2.device.authorization.grant.enabled": "false",
               "display.on.consent.screen": "false"

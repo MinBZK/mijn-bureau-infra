@@ -26,6 +26,8 @@ Below is the default configuration file for MijnBureau stored in `global.yaml.go
 ```yaml
 global:
   domain: "kubernetes.local"
+  # Extra hostnames routed to Bureaublad (for example the apex domain)
+  domainAliases: []
   hostname:
     keycloak: "id"
     element: "element"
@@ -82,6 +84,28 @@ Create the following DNS records (replace `kubernetes.local` with your configure
 - `messages-objectstore.kubernetes.local`
 - `static.kubernetes.local` (central branding assets host)
 - `drive-objectstore.kubernetes.local`
+
+## Additional hostnames
+
+Bureaublad can also be served on extra hostnames, such as the apex domain. Add
+them to `global.domainAliases`:
+
+```yaml
+global:
+  domain: "open-desk.nl"
+  domainAliases:
+    - "open-desk.nl"
+```
+
+The Gateway chart creates a TLS certificate for every alias, and Bureaublad
+adds the alias to its HTTPRoute, `TRUSTED_HOSTS`, CORS origins and the Keycloak
+client's redirect URIs. Create the matching DNS record (for the apex this is
+`A open-desk.nl <gateway-ip>`; it already points at the Gateway when the
+subdomains are also configured).
+
+The application keeps `bureaublad.<domain>` as its canonical host: an OIDC login
+started on the alias continues on that host after the callback. Both hostnames
+share the same Keycloak client and SSO session.
 
 ## Email (Messages)
 

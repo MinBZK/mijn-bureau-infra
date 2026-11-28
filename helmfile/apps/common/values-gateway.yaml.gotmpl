@@ -8,10 +8,17 @@ allowedRoutesNamespacesFrom: {{ .Values.cluster.gateway.allowedRoutesNamespacesF
 certManagerClusterIssuer: {{ $issuer | quote }}
 {{- end }}
 
-hostnames:
+{{- $hostnames := list }}
 {{- range $key := .Values.global.hostname | keys | sortAlpha }}
 {{- $subdomain := index $.Values.global.hostname $key }}
 {{- if $subdomain }}
-  - {{ printf "%s.%s" $subdomain $.Values.global.domain | quote }}
+{{- $hostnames = append $hostnames (printf "%s.%s" $subdomain $.Values.global.domain) }}
 {{- end }}
+{{- end }}
+{{- range $alias := .Values.global.domainAliases | default list }}
+{{- $hostnames = append $hostnames $alias }}
+{{- end }}
+hostnames:
+{{- range ($hostnames | uniq) }}
+  - {{ . | quote }}
 {{- end }}
