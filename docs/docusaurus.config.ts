@@ -48,6 +48,7 @@ const config: Config = {
     },
   },
   markdown: {
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: "warn",
       onBrokenMarkdownImages: "warn",
@@ -67,7 +68,145 @@ const config: Config = {
         explicitSearchResultPath: true, // Show search results on a dedicated page
       },
     ],
+    [
+      require.resolve("@docusaurus/plugin-client-redirects"),
+      {
+        // Pages that moved in the 2026 information-architecture change. Keep
+        // these so published URLs and external links keep working.
+        redirects: [
+          { from: "/docs/intro", to: "/docs/" },
+          {
+            from: "/docs/getting_started/overview",
+            to: "/docs/getting_started/",
+          },
+          {
+            from: "/docs/getting_started/setup",
+            to: "/docs/getting_started/installation",
+          },
+          {
+            from: "/docs/getting_started/install",
+            to: "/docs/getting_started/installation",
+          },
+          { from: "/docs/backups", to: "/docs/operating/backup-restore" },
+          {
+            from: "/docs/datastores/backups",
+            to: "/docs/operating/backup-restore",
+          },
+          {
+            from: "/docs/administration",
+            to: "/docs/operating/administration",
+          },
+          { from: "/docs/resources", to: "/docs/operating/configuration" },
+          { from: "/docs/dns", to: "/docs/operating/dns" },
+          { from: "/docs/gitops", to: "/docs/operating/gitops" },
+          { from: "/docs/airgap", to: "/docs/operating/airgap" },
+          {
+            from: "/docs/external-secrets",
+            to: "/docs/operating/secrets/external-secrets-operator",
+          },
+          { from: "/docs/datastores", to: "/docs/operating/datastores" },
+          {
+            from: "/docs/datastores/Intro",
+            to: "/docs/operating/datastores",
+          },
+          {
+            from: "/docs/datastores/objectstore",
+            to: "/docs/operating/datastores/objectstore",
+          },
+          {
+            from: "/docs/datastores/postgresql",
+            to: "/docs/operating/datastores/postgresql",
+          },
+          {
+            from: "/docs/datastores/redis",
+            to: "/docs/operating/datastores/redis",
+          },
+          { from: "/docs/secrets", to: "/docs/operating/secrets" },
+          {
+            from: "/docs/secrets/derived",
+            to: "/docs/operating/secrets/derived",
+          },
+          { from: "/docs/secrets/sops", to: "/docs/operating/secrets/sops" },
+          {
+            from: "/docs/secrets/external-secrets-operator",
+            to: "/docs/operating/secrets/external-secrets-operator",
+          },
+          { from: "/docs/observability", to: "/docs/operating/observability" },
+          {
+            from: "/docs/observability/dashboards",
+            to: "/docs/operating/observability/dashboards",
+          },
+          {
+            from: "/docs/observability/logs",
+            to: "/docs/operating/observability/logs",
+          },
+          {
+            from: "/docs/observability/metrics",
+            to: "/docs/operating/observability/metrics",
+          },
+          {
+            from: "/docs/observability/traces",
+            to: "/docs/operating/observability/traces",
+          },
+          {
+            from: "/docs/development/deploy",
+            to: "/docs/development/local-development",
+          },
+          { from: "/docs/development/intro", to: "/docs/development/" },
+          { from: "/docs/security/intro", to: "/docs/security/" },
+          // The Features section was merged into Using MijnBureau; the AI
+          // configuration moved to Components.
+          { from: "/docs/features", to: "/docs/user-guide" },
+          { from: "/docs/features/documents", to: "/docs/user-guide/docs" },
+          { from: "/docs/features/notes", to: "/docs/user-guide/docs" },
+          { from: "/docs/features/filesharing", to: "/docs/user-guide/drive" },
+          { from: "/docs/features/projects", to: "/docs/user-guide/projects" },
+          { from: "/docs/features/calendar", to: "/docs/user-guide/calendars" },
+          { from: "/docs/features/chat", to: "/docs/user-guide/element" },
+          { from: "/docs/features/email", to: "/docs/user-guide/messages" },
+          { from: "/docs/features/video", to: "/docs/user-guide/meet" },
+          { from: "/docs/features/search", to: "/docs/user-guide/find" },
+          {
+            from: "/docs/features/ai-assistant",
+            to: "/docs/user-guide/conversations",
+          },
+          {
+            from: "/docs/features/ai-services",
+            to: "/docs/components/ai-services",
+          },
+          {
+            from: "/docs/features/transcription",
+            to: "/docs/user-guide/dictaphone",
+          },
+          {
+            from: "/docs/features/dashboard",
+            to: "/docs/user-guide/bureaublad",
+          },
+          { from: "/docs/features/contacts", to: "/docs/user-guide/contacts" },
+        ],
+        createRedirects(existingPath: string) {
+          // ADRs moved out of Development into Architecture.
+          if (existingPath.startsWith("/docs/architecture/adr/")) {
+            return [
+              existingPath.replace(
+                "/docs/architecture/adr/",
+                "/docs/development/adr/",
+              ),
+            ];
+          }
+          // The Diagrams section was removed; the same content lives on the
+          // component pages.
+          const component = /^\/docs\/components\/(.+)$/.exec(existingPath);
+          if (component) {
+            return [`/docs/diagrams/${component[1]}`];
+          }
+          return undefined;
+        },
+      },
+    ],
   ],
+
+  themes: ["@docusaurus/theme-mermaid"],
 
   presets: [
     [

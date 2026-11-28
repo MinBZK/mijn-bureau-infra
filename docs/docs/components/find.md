@@ -1,4 +1,10 @@
+---
+sidebar_position: 110
+---
+
 # Find
+
+_Where this fits: this page covers deployment. How to use it: [Search (Find)](../user-guide/find.md)._
 
 MijnBureau supplies an installation of [Find](https://github.com/suitenumerique/find),
 the global search service from LaSuite. Find indexes documents from the La Suite

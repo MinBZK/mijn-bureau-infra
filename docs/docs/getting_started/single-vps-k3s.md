@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 50
 description: Deploy the full MijnBureau suite on a single Linux server using k3s
 ---
 

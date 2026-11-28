@@ -74,7 +74,7 @@ This repo is the technical implementation of [MijnBureau](https://github.com/Min
 
 ## Credits ❤️
 
-MijnBureau is built on top of some impressive open-source tools. See the [introduction](https://minbzk.github.io/mijn-bureau-infra/docs/intro) for a detailed list.
+MijnBureau is built on top of some impressive open-source tools. See the [introduction](https://minbzk.github.io/mijn-bureau-infra/docs/) for a detailed list.
 
 ---
 

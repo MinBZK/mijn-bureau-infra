@@ -1,4 +1,10 @@
+---
+sidebar_position: 160
+---
+
 # Ollama
+
+_Where this fits: this page covers deployment. How to use it: [AI assistant (Conversations)](../user-guide/conversations.md)._
 
 MijnBureau supplies an installation of [Ollama](https://ollama.com/). Ollama is a lightweight
 framework for building and running LLMs locally. It opens an OpenAI compatiable interface for you AI LLMs.
@@ -77,4 +83,4 @@ Resource limits can be adjusted via `resource.ollama.*` in your helmfile values.
 
 ## Your own AI LLM
 
-If you do not want to deploy Ollama but want to use your own AI system disable ollama by setting `application.ollama.enabled: false` and configure your AI endpoint in `ai.llm.*`. See [AI services](../features/ai-services.md) for configuration examples. MijnBureau does not promote or prefer any AI provider; the choice is up to your organisation.
+If you do not want to deploy Ollama but want to use your own AI system disable ollama by setting `application.ollama.enabled: false` and configure your AI endpoint in `ai.llm.*`. See [AI services](./ai-services.md) for configuration examples. MijnBureau does not promote or prefer any AI provider; the choice is up to your organisation.

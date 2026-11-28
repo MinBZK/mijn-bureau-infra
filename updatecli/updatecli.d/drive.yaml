@@ -70,7 +70,7 @@ targets:
     kind: file
     spec:
       files:
-        - "docs/docs/intro.md"
+        - "docs/docs/index.md"
       matchpattern: "v([0-9.]+)]\\Q(https://github.com/suitenumerique/drive/releases/tag/v\\E([0-9.]+)"
       replacepattern: '{{ source "drive_latest_version" }}](https://github.com/suitenumerique/drive/releases/tag/{{ source "drive_latest_version" }}'
     sourceid: drive_latest_version

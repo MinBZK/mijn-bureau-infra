@@ -1,4 +1,10 @@
+---
+sidebar_position: 70
+---
+
 # Collabora
+
+_Where this fits: this page covers deployment. How to use it: [Office editing (Collabora)](../user-guide/collabora.md)._
 
 MijnBureau supplies an installation of [Collabora](https://www.collaboraonline.com/) based office. Collabora Online is a powerful online document editing suite. There is also a [desktop application](https://www.collaboraonline.com/collabora-office/) available
 

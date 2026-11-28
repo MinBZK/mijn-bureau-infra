@@ -1,12 +1,12 @@
 ---
-sidebar_position: 8
+sidebar_position: 70
 ---
 
 # Secure email setup
 
 This page is the end-to-end checklist for running Messages (E-mail) with working
 authentication, TLS and a deliverability reputation. The record examples also appear in
-[DNS](../dns.md#email-messages) and [Messages](../components/messages.md#dns-and-mx-records);
+[DNS](../operating/dns.md#email-messages) and [Messages](../components/messages.md#dns-and-mx-records);
 this page explains why each record exists and how to roll it out safely.
 
 ## What MijnBureau provides
@@ -116,5 +116,5 @@ message headers.
 ## Related
 
 - [Messages component](../components/messages.md)
-- [DNS and MX records](../dns.md#email-messages)
+- [DNS and MX records](../operating/dns.md#email-messages)
 - [Email feature](./email.md)

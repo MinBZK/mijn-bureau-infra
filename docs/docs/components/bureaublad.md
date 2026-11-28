@@ -1,4 +1,11 @@
+---
+sidebar_position: 30
+sidebar_label: Bureaublad (component)
+---
+
 # Bureaublad
+
+_Where this fits: this page covers deployment. How to use it: [Bureaublad](../user-guide/bureaublad.md)._
 
 MijnBureau supplies an installation of [Bureaublad](https://github.com/MinBZK/bureaublad). Bureaublad is a flexible dashboard application that aggregates information from multiple open-source components into a unified interface. Users can access essential tools and data from a single location without needing to switch between different applications.
 

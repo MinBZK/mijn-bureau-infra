@@ -1,4 +1,10 @@
+---
+sidebar_position: 20
+---
+
 # Keycloak
+
+_Deployment details for the identity provider. Concept: [Identity federation](../security/identity-federation.md). Tasks: [Your account](../user-guide/account.md)._
 
 MijnBureau supplies an installation of [Keycloak](https://www.keycloak.org/). Keycloak is an Identity and Access Management system. You can choose to use this component or your existing identity provider, such as Microsoft Entra ID, Okta, Google Cloud Identity or OneLogin.
 

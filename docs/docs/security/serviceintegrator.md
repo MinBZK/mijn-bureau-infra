@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 30
 ---
 
 # Service Integrator
@@ -26,7 +26,7 @@ Implement automated security controls using policies. [Kyverno](https://kyverno.
 Most MijnBureau credentials are derived from `MIJNBUREAU_MASTER_PASSWORD` and cannot be
 rotated individually; rotating the master password rotates every derived credential at
 once and is a planned migration, not routine maintenance (see
-[Secrets](../secrets/index.md) and ADR-MB-016). For values that are not derived, the
+[Secrets](../operating/secrets/index.md) and ADR-MB-016). For values that are not derived, the
 [External Secrets Operator](https://external-secrets.io/latest/) can automate rotation.
 
 ## Container Sandboxes

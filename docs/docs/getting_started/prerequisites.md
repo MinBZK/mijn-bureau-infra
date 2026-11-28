@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 20
 ---
 
 # Prerequisites
@@ -48,7 +48,7 @@ kubectl -n cnpg-system get pods
 
 Each application gets its own CNPG `Cluster` in the demo environment. The operator
 needs a default StorageClass (or per-cluster `pvc.<app>.storageClass`) to provision the
-database volumes. See [PostgreSQL](../datastores/postgresql.md) for the database
+database volumes. See [PostgreSQL](../operating/datastores/postgresql.md) for the database
 configuration.
 
 The cert-manager operator is only required when you use the bundled TLS issuance, and a Gateway API
@@ -105,4 +105,4 @@ There is also support for External Secret Operator. which makes it possible to s
 
 ## 🌐 Domain Configuration
 
-MijnBureau is a browser-based suite that requires a domain or subdomain (e.g., `mijnbureau.example.com`) that you control to make the application accessible to users. For detailed DNS configuration guidance, see the [DNS documentation](../dns.md).
+MijnBureau is a browser-based suite that requires a domain or subdomain (e.g., `mijnbureau.example.com`) that you control to make the application accessible to users. For detailed DNS configuration guidance, see the [DNS documentation](../operating/dns.md).

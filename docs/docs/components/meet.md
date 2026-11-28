@@ -1,4 +1,10 @@
+---
+sidebar_position: 140
+---
+
 # Meet
+
+_Where this fits: this page covers deployment. How to use it: [Meetings (Meet)](../user-guide/meet.md)._
 
 MijnBureau supplies an installation of [Meet](https://github.com/suitenumerique/meet). It is a video conferencing solutions that uses livekit.
 

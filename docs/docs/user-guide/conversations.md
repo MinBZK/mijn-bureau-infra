@@ -1,5 +1,5 @@
 ---
-sidebar_position: 6
+sidebar_position: 60
 ---
 
 # AI assistant (Conversations)
@@ -8,6 +8,11 @@ Conversations is the MijnBureau AI assistant: a chat interface to a language
 model, with room for context you bring along (text, documents, meeting notes).
 Use it to draft, summarise, rewrite, brainstorm and translate — as a colleague
 who never gets tired, but also one you have to check.
+
+Conversations is currently offered as a sandbox product and is under active
+development by the French government. The model behind it is chosen by your
+administrator; see [AI services](../components/ai-services.md) for what that
+means for data residency.
 
 ## Opening it
 
@@ -95,4 +100,5 @@ The assistant receives everything you paste or attach. Before you do:
 - [Docs](./docs.md) — where to keep the results
 - [Dictaphone](./dictaphone.md) — transcripts you can feed into the assistant
 - [Meet](./meet.md) — AI meeting summaries
+- [AI services](../components/ai-services.md) — models, OCR and transcription configuration
 - [Component documentation](../components/conversations.md) — how the assistant is deployed

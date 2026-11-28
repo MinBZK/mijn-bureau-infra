@@ -1,4 +1,10 @@
+---
+sidebar_position: 120
+---
+
 # Element
+
+_Where this fits: this page covers deployment. How to use it: [Chat (Element)](../user-guide/element.md)._
 
 MijnBureau supplies an installation of [Matrix](https://matrix.org/) based chat. [Element Synapse](https://element-hq.github.io/synapse/latest/) is combined with the [Element Web](https://element.io/) chat web client. Their are also [desktop and mobile apps](https://matrix.org/ecosystem/clients/) available to connect to Synapse directly
 
@@ -64,14 +70,14 @@ MatrixRTC calling stack:
   endpoint, plus an `org.matrix.msc4143.rtc_foci` well-known fallback for
   older clients.
 
-Both hostnames need their own DNS records (see [DNS](../dns.md)).
+Both hostnames need their own DNS records (see [DNS](../operating/dns.md)).
 
 ## Matrix Authentication Service (MAS)
 
 By default the element app also deploys the [Matrix Authentication Service](https://element-hq.github.io/matrix-authentication-service/) (`application.element.mas.enabled: true`). MAS is the OIDC broker required for native clients such as Element X: Synapse delegates authentication to it via MSC3861. The MAS deployment gets:
 
 - its own release `element-mas` and a CloudNativePG credential/cluster release (`mas-cluster-credentials`) in the demo environment,
-- a dedicated hostname `mas.<global.domain>` (requires its own DNS record — see [DNS](../dns.md)),
+- a dedicated hostname `mas.<global.domain>` (requires its own DNS record — see [DNS](../operating/dns.md)),
 - OIDC credentials from `authentication.client.mas.*`,
 - its database connection from `database.mas.*`,
 - the MAS admin API on the public listener when `application.element.ketesa.enabled`
@@ -84,7 +90,7 @@ With `application.element.ketesa.enabled` (default: false) MijnBureau deploys
 [Ketesa](https://github.com/etkecc/ketesa), the open source admin UI for
 Synapse that grew out of `synapse-admin`. It runs as the `ketesa` release in the
 element namespace, at `ketesa.<global.domain>` (needs its own DNS record, see
-[DNS](../dns.md)), from the `ghcr.io/etkecc/ketesa` image.
+[DNS](../operating/dns.md)), from the `ghcr.io/etkecc/ketesa` image.
 
 Ketesa is a static single page application: there is no backend, no database
 and no additional credentials. The browser calls the homeserver's
@@ -107,7 +113,7 @@ other pods (only through the gateway).
 MAS-backed management (sessions, linked emails, upstream OAuth links,
 registration tokens) needs a MAS admin account in addition to a Synapse admin.
 The panel talks to the MAS admin API, which this app exposes on the MAS listener
-when Ketesa is enabled. See [Administration](../administration.md) for promoting
+when Ketesa is enabled. See [Administration](../operating/administration.md) for promoting
 both kinds of admin, the `mas-cli` commands and the other products' admin UIs.
 
 ## More information

@@ -1,4 +1,11 @@
+---
+sidebar_position: 180
+sidebar_label: Dictaphone (component)
+---
+
 # Dictaphone
+
+_Where this fits: this page covers deployment. How to use it: [Dictaphone](../user-guide/dictaphone.md)._
 
 MijnBureau supplies an installation of [Dictaphone](https://github.com/suitenumerique/dictaphone),
 also known as Assistant Transcripts. It is the transcription and meeting workflow application
@@ -40,7 +47,7 @@ Summary API. Set `ai.dictaphone.serviceUrl` to the service endpoint and provide
 matching API keys through `ai.dictaphone.serviceApiKey` and
 `ai.dictaphone.webhookApiKey`. When no AI service is configured, recordings and
 transcripts can still be managed, but new transcription jobs cannot be processed.
-See [AI services](../features/ai-services.md#batch-transcription-of-recordings) for the
+See [AI services](./ai-services.md#batch-transcription-of-recordings) for the
 supported transcription backends.
 
 ## More information

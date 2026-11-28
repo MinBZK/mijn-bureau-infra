@@ -1,5 +1,5 @@
 ---
-sidebar_position: 7
+sidebar_position: 70
 ---
 
 # Mail (Messages)
@@ -10,6 +10,10 @@ your organisation's own infrastructure and arrives through your own mail server.
 
 Your address is `<username>@<mail domain>`, for example `janedoe@example.org`.
 Mail to colleagues is delivered directly inside the platform.
+
+A mail domain can be configured so that a mailbox is created automatically for
+every user the first time they sign in. Shared mailboxes are created by an
+administrator.
 
 ## Opening it
 

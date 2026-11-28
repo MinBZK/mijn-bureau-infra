@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 50
 ---
 
 # Meetings (Meet)
@@ -7,7 +7,8 @@ sidebar_position: 5
 Meet is the MijnBureau video conferencing application. It runs on the
 organisation's own media server, so audio and video never leave your
 infrastructure. Use it for scheduled meetings, stand-ups, interviews and
-webinars — and for anything you want recorded or summarised.
+webinars — and for anything you want recorded or summarised. Depending on the
+deployment, participants can also dial in by phone.
 
 ## Opening it
 

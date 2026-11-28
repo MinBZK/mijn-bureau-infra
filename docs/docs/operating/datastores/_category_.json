@@ -1,0 +1,8 @@
+{
+  "label": "Datastores",
+  "position": 60,
+  "link": {
+    "type": "doc",
+    "id": "operating/datastores/index"
+  }
+}

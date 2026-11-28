@@ -1,4 +1,10 @@
+---
+sidebar_position: 50
+---
+
 # Drive
+
+_Where this fits: this page covers deployment. How to use it: [Files (Drive)](../user-guide/drive.md)._
 
 MijnBureau supplies an installation of [Drive](https://github.com/suitenumerique/drive). It is a filestorage solutions that uses S3 and can be seen as a simpelere alternative to nextcloud files.
 

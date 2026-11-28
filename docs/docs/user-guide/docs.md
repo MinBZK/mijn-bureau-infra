@@ -1,5 +1,5 @@
 ---
-sidebar_position: 10
+sidebar_position: 100
 ---
 
 # Docs
@@ -7,7 +7,8 @@ sidebar_position: 10
 Docs is the MijnBureau document editor: a collaborative, block-based writing
 tool for notes, meeting minutes, specifications and wikis. Several people can
 type in the same document at the same time, every change is saved
-automatically, and each document keeps its own history.
+automatically, and each document keeps its own history. Office documents
+(DOCX, XLSX, PPTX) open in [Collabora](./collabora.md) for in-browser editing.
 
 ## Opening it
 

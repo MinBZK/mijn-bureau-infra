@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 30
 ---
 
 # Bureaublad
@@ -7,6 +7,8 @@ sidebar_position: 3
 Bureaublad is the MijnBureau home page: one overview with the applications your
 organisation has enabled, global search, and shortcuts to the things you use
 most. It is the page to bookmark and the page new colleagues start from.
+Bureaublad is under active development, so tiles and shortcuts can change between
+releases.
 
 ## Opening it
 

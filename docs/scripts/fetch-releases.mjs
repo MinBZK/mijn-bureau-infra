@@ -223,7 +223,7 @@ function indexPage(releases, error) {
   const lines = [
     "---",
     "title: Releases",
-    "sidebar_position: 1",
+    "sidebar_position: 10",
     "---",
     "",
     "# Releases",
@@ -290,7 +290,7 @@ async function main() {
     `${JSON.stringify(
       {
         label: "Releases",
-        position: 9,
+        position: 90,
         link: { type: "doc", id: "releases/index" },
       },
       null,
